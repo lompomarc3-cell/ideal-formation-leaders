@@ -1,0 +1,57 @@
+name: ideal_formation_leaders
+description: Application IFL - Idéal Formation Leaders pour les concours administratifs au Burkina Faso
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Supabase
+  supabase_flutter: ^2.3.4
+  
+  # State Management
+  provider: 6.1.5+1
+  
+  # Navigation
+  go_router: ^14.0.0
+  
+  # UI
+  flutter_svg: ^2.0.10
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+  fluttertoast: ^8.2.5
+  
+  # Storage local
+  shared_preferences: 2.5.3
+  hive: 2.2.3
+  hive_flutter: 1.1.0
+  
+  # HTTP
+  http: 1.5.0
+  
+  # Icons
+  cupertino_icons: ^1.0.6
+  
+  # Format téléphone
+  intl_phone_field: ^3.2.0
+  
+  # Animations
+  lottie: ^3.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.9
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/lottie/
