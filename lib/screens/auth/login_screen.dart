@@ -5,6 +5,7 @@ import '../../config/app_theme.dart';
 import '../../services/auth_service.dart';
 import 'register_screen.dart';
 import '../home/home_screen.dart';
+import '../demo/demo_intro_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -226,6 +227,57 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Séparateur
+                      const Row(
+                        children: [
+                          Expanded(child: Divider()),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              'ou',
+                              style: TextStyle(color: AppTheme.textSecondary),
+                            ),
+                          ),
+                          Expanded(child: Divider()),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Bouton Démo Gratuite
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: OutlinedButton.icon(
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const DemoIntroScreen(),
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.play_circle_outline_rounded,
+                            color: AppTheme.secondaryColor,
+                          ),
+                          label: const Text(
+                            'Essayer la démo GRATUITE',
+                            style: TextStyle(
+                              color: AppTheme.secondaryColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                              color: AppTheme.secondaryColor,
+                              width: 2,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
                     ],
