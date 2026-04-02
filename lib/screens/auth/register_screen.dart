@@ -81,14 +81,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     const SizedBox(height: 8),
                     Container(
-                      width: 70,
-                      height: 70,
+                      width: 90,
+                      height: 90,
                       decoration: BoxDecoration(
-                        color: AppTheme.secondaryColor,
+                        color: Colors.white,
                         shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                      child:
-                          const Icon(Icons.school, size: 36, color: Colors.white),
+                      clipBehavior: Clip.antiAlias,
+                      child: Image.asset(
+                        'assets/images/logo_ifl.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.school,
+                                size: 44, color: AppTheme.primaryColor),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     const Text(

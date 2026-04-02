@@ -89,7 +89,31 @@ class DashboardTab extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.school, color: Colors.white, size: 32),
+                    // Logo IFL dans la bannière
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Image.asset(
+                        'assets/images/logo_ifl.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (ctx, e, st) => const Icon(
+                            Icons.school,
+                            color: AppTheme.primaryColor,
+                            size: 28),
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     const Text(
                       'Préparez vos concours\navec IFL',
