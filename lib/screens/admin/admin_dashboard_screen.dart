@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../services/auth_service.dart';
 import '../../services/categorie_service.dart';
 import '../../services/paiement_service.dart';
 import 'admin_upload_qcm_screen.dart';
@@ -39,6 +40,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         backgroundColor: AppTheme.secondaryColor,
         foregroundColor: Colors.white,
         title: const Text('Espace Administrateur IFL'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.lock_reset_rounded, color: Colors.white),
+            tooltip: 'Modifier mot de passe',
+            onPressed: () => _showChangePassword(context),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
@@ -430,6 +438,101 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
             const SizedBox(width: 8),
             Icon(Icons.arrow_forward_ios, size: 12, color: color),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChangePassword(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+    final newPassCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+    bool obscure1 = true;
+    bool obscure2 = true;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setStateDlg) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.lock_reset_rounded, color: AppTheme.secondaryColor),
+              SizedBox(width: 10),
+              Expanded(child: Text('Changer le mot de passe')),
+            ],
+          ),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: newPassCtrl,
+                  obscureText: obscure1,
+                  decoration: InputDecoration(
+                    labelText: 'Nouveau mot de passe',
+                    prefixIcon: const Icon(Icons.lock_rounded),
+                    suffixIcon: IconButton(
+                      icon: Icon(obscure1 ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setStateDlg(() => obscure1 = !obscure1),
+                    ),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Requis';
+                    if (v.length < 6) return 'Minimum 6 caractères';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: confirmCtrl,
+                  obscureText: obscure2,
+                  decoration: InputDecoration(
+                    labelText: 'Confirmer le mot de passe',
+                    prefixIcon: const Icon(Icons.lock_outline_rounded),
+                    suffixIcon: IconButton(
+                      icon: Icon(obscure2 ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setStateDlg(() => obscure2 = !obscure2),
+                    ),
+                  ),
+                  validator: (v) {
+                    if (v != newPassCtrl.text) return 'Ne correspondent pas';
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.secondaryColor,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+                Navigator.pop(ctx);
+                final authService = context.read<AuthService>();
+                final ok = await authService.changePassword(newPassCtrl.text);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(ok
+                          ? '✅ Mot de passe modifié avec succès !'
+                          : '❌ Erreur: ${authService.error}'),
+                      backgroundColor: ok ? AppTheme.accentColor : AppTheme.errorColor,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Confirmer'),
+            ),
           ],
         ),
       ),

@@ -52,7 +52,7 @@ class CategoriesScreen extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Accès à chaque dossier : $prix (paiement Orange Money)',
+                    'Accès complet au $title : $prix (paiement Orange Money)',
                     style: TextStyle(
                       fontSize: 12,
                       color: color,
@@ -114,6 +114,8 @@ class CategoriesScreen extends StatelessWidget {
     final authService = context.read<AuthService>();
     final user = authService.currentUser;
     final hasAccess = user?.hasCategorieAccess(cat.id) ?? false;
+    // Le prix affiché est celui du concours entier (pas par dossier)
+    final concoursPrix = type == 'direct' ? '5 000 FCFA' : '20 000 FCFA';
 
     return GestureDetector(
       onTap: () {
@@ -128,10 +130,10 @@ class CategoriesScreen extends StatelessWidget {
             ),
           );
         } else {
-          // Proposer le paiement
+          // Proposer le paiement pour le concours entier
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => PaymentScreen(categorie: cat),
+              builder: (_) => PaymentScreen(categorie: cat, concoursPrix: concoursPrix),
             ),
           );
         }
@@ -191,14 +193,24 @@ class CategoriesScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Text(
-                        cat.prixFormate,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: color,
-                          fontWeight: FontWeight.w600,
+                      if (!hasAccess)
+                        Text(
+                          concoursPrix,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: color,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        )
+                      else
+                        Text(
+                          'Accès débloqué',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: color,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
                       if (cat.questionCount > 0) ...[
                         const SizedBox(width: 8),
                         Text(

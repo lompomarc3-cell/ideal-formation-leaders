@@ -11,8 +11,9 @@ import '../../services/paiement_service.dart';
 
 class PaymentScreen extends StatefulWidget {
   final CategorieModel categorie;
+  final String concoursPrix;
 
-  const PaymentScreen({super.key, required this.categorie});
+  const PaymentScreen({super.key, required this.categorie, required this.concoursPrix});
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -23,8 +24,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final _numeroOmCtrl = TextEditingController();
   bool _submitted = false;
 
-  // Numéro Orange Money de l'administrateur IFL
-  static const String adminOmNumber = '+226 XX XX XX XX';
+  // Numéro Orange Money de l'administrateur IFL - NIAMPA Issa
+  static const String adminOmNumber = '+22676223962';
+  // Même numéro pour OM et WhatsApp
+  static const String adminWhatsApp = '+22676223962'; // Utilisé dans buildConfirmation
+
+  String get _prixLabel => widget.concoursPrix;
 
   @override
   void dispose() {
@@ -181,7 +186,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       icon: Icons.send_to_mobile_rounded,
                       color: const Color(0xFFFF8C00),
                       title: 'Envoyez le paiement Orange Money',
-                      description: 'Envoyez ${widget.categorie.prixFormate} au numéro de l\'administrateur IFL ci-dessous',
+                      description: 'Envoyez ${_prixLabel} au numéro de l\'administrateur IFL ci-dessous',
                       extra: _buildOmNumber(),
                     ),
                     const SizedBox(height: 12),
@@ -455,7 +460,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
-                '✅ N\'oubliez pas d\'envoyer votre capture d\'écran de paiement sur WhatsApp.\n\nVotre accès sera activé dans les 24h après validation.',
+                '✅ N\'oubliez pas d\'envoyer votre capture d\'écran sur WhatsApp au +22676223962.\n\nVotre accès sera activé dans les 24h après validation.',
                 style: TextStyle(
                   fontSize: 13,
                   color: AppTheme.textPrimary,

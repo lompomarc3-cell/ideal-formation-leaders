@@ -74,20 +74,36 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Construire l'email synthétique depuis le téléphone
-      final email = _buildEmail(telephone);
-      final res = await _client.auth.signInWithPassword(
-        email: email,
+      // Essayer d'abord avec @ifl.app (domaine du vrai admin)
+      final emailApp = _buildEmail(telephone, domain: 'ifl.app');
+      try {
+        final res = await _client.auth.signInWithPassword(
+          email: emailApp,
+          password: password,
+        );
+        if (res.session != null) {
+          await _loadUserProfile(res.user!.id);
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        }
+      } catch (_) {
+        // Essayer avec @ifl.bf (ancien domaine)
+      }
+
+      final emailBf = _buildEmail(telephone, domain: 'ifl.bf');
+      final res2 = await _client.auth.signInWithPassword(
+        email: emailBf,
         password: password,
       );
 
-      if (res.session != null) {
-        await _loadUserProfile(res.user!.id);
+      if (res2.session != null) {
+        await _loadUserProfile(res2.user!.id);
         _isLoading = false;
         notifyListeners();
         return true;
       }
-      _error = 'Connexion échouée';
+      _error = 'Numéro ou mot de passe incorrect';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -115,16 +131,22 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final email = _buildEmail(telephone);
+      // Utiliser @ifl.app comme domaine standard
+      final email = _buildEmail(telephone, domain: 'ifl.app');
+      final fullName = '$prenom $nom'.trim();
+
       final res = await _client.auth.signUp(
         email: email,
         password: password,
       );
 
       if (res.user != null) {
-        await _client.from('profiles').insert({
+        // Insérer en utilisant le schéma réel (phone, full_name)
+        await _client.from('profiles').upsert({
           'id': res.user!.id,
+          'phone': telephone,
           'telephone': telephone,
+          'full_name': fullName,
           'nom': nom,
           'prenom': prenom,
           'role': 'user',
@@ -165,9 +187,21 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  String _buildEmail(String telephone) {
+  // Changer le mot de passe (pour l'admin)
+  Future<bool> changePassword(String newPassword) async {
+    try {
+      await _client.auth.updateUser(UserAttributes(password: newPassword));
+      return true;
+    } catch (e) {
+      _error = 'Erreur lors du changement de mot de passe: ${e.toString()}';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  String _buildEmail(String telephone, {String domain = 'ifl.app'}) {
     final cleaned = telephone.replaceAll(RegExp(r'[^0-9+]'), '');
-    return '$cleaned@ifl.bf';
+    return '$cleaned@$domain';
   }
 
   String _translateAuthError(String msg) {

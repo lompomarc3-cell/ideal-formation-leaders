@@ -108,7 +108,7 @@ class QuestionService extends ChangeNotifier {
         optionA: 'Cour des Comptes', optionB: 'ARMP',
         optionC: 'DGCMEF', optionD: 'Direction de la commande publique',
         reponseCorrecte: 'C',
-        explication: 'La DGCMEF (Direction Générale du Contrôle des Marchés Publics et des Engagements Financiers) exerce le contrôle a priori.',
+        explication: 'La DGCMEF exerce le contrôle a priori des marchés publics.',
         categorie: 'marches_publics',
       ),
       DemoQuestionModel(
@@ -135,7 +135,7 @@ class QuestionService extends ChangeNotifier {
         optionA: 'Ministère de l\'Économie', optionB: 'ARMP',
         optionC: 'DGCMEF', optionD: 'Cour des Comptes',
         reponseCorrecte: 'B',
-        explication: 'L\'ARMP (Autorité de Régulation de la Commande Publique) reçoit et traite les recours des candidats soumissionnaires.',
+        explication: 'L\'ARMP reçoit et traite les recours des candidats soumissionnaires.',
         categorie: 'marches_publics',
       ),
       DemoQuestionModel(
@@ -159,7 +159,7 @@ class QuestionService extends ChangeNotifier {
     ];
   }
 
-  // Upload de questions en masse (pour l'admin)
+  // Upload de questions en masse (pour l'admin) - VERSION AMÉLIORÉE avec batch insert
   Future<Map<String, dynamic>> uploadQuestionsEnMasse({
     required String categorieId,
     required List<Map<String, dynamic>> questions,
@@ -168,40 +168,51 @@ class QuestionService extends ChangeNotifier {
     int errors = 0;
     List<String> errorMessages = [];
 
-    for (final q in questions) {
-      try {
-        await _client.from('questions').insert({
-          'categorie_id': categorieId,
-          'enonce': q['enonce'] ?? '',
-          'option_a': q['option_a'] ?? '',
-          'option_b': q['option_b'] ?? '',
-          'option_c': q['option_c'] ?? '',
-          'option_d': q['option_d'] ?? '',
-          'reponse_correcte': q['reponse_correcte'] ?? 'A',
-          'explication': q['explication'] ?? '',
-          'is_published': true,
-        });
-        success++;
-      } catch (e) {
-        errors++;
-        errorMessages.add(e.toString());
+    // Préparer toutes les questions avec les bons champs
+    final batchData = questions.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final q = entry.value;
+      return {
+        'categorie_id': categorieId,
+        'enonce': (q['enonce'] ?? '').toString().trim(),
+        'option_a': (q['option_a'] ?? '').toString().trim(),
+        'option_b': (q['option_b'] ?? '').toString().trim(),
+        'option_c': (q['option_c'] ?? '').toString().trim(),
+        'option_d': (q['option_d'] ?? '').toString().trim(),
+        'reponse_correcte': (q['reponse_correcte'] ?? 'A').toString().trim().toUpperCase(),
+        'explication': (q['explication'] ?? '').toString().trim(),
+        'is_published': true,
+        'ordre': idx + 1,
+      };
+    }).toList();
+
+    // Essayer le batch insert d'abord (plus rapide)
+    try {
+      await _client.from('questions').insert(batchData);
+      success = batchData.length;
+    } catch (batchError) {
+      if (kDebugMode) debugPrint('Batch insert failed: $batchError, trying one by one...');
+      // Si le batch échoue, insérer un par un pour identifier les erreurs
+      for (final q in batchData) {
+        try {
+          await _client.from('questions').insert(q);
+          success++;
+        } catch (e) {
+          errors++;
+          final errMsg = e.toString();
+          errorMessages.add(errMsg);
+          if (kDebugMode) debugPrint('Insert error for "${q['enonce']}": $errMsg');
+        }
       }
     }
 
     // Mettre à jour le compteur de questions
     if (success > 0) {
       try {
-        final catData = await _client
-            .from('categories')
-            .select('question_count')
-            .eq('id', categorieId)
-            .single();
-        final current = (catData['question_count'] as num?)?.toInt() ?? 0;
-        await _client
-            .from('categories')
-            .update({'question_count': current + success})
-            .eq('id', categorieId);
-      } catch (_) {}
+        await _updateQuestionCount(categorieId, success);
+      } catch (e) {
+        if (kDebugMode) debugPrint('updateQuestionCount error: $e');
+      }
     }
 
     return {
@@ -209,6 +220,38 @@ class QuestionService extends ChangeNotifier {
       'errors': errors,
       'errorMessages': errorMessages,
     };
+  }
+
+  // Mettre à jour le compteur de questions d'une catégorie
+  Future<void> _updateQuestionCount(String categorieId, int delta) async {
+    try {
+      final catData = await _client
+          .from('categories')
+          .select('question_count')
+          .eq('id', categorieId)
+          .single();
+      final current = (catData['question_count'] as num?)?.toInt() ?? 0;
+      await _client
+          .from('categories')
+          .update({'question_count': current + delta})
+          .eq('id', categorieId);
+    } catch (e) {
+      if (kDebugMode) debugPrint('_updateQuestionCount error: $e');
+    }
+  }
+
+  // Compter les questions d'une catégorie
+  Future<int> countByCategorie(String categorieId) async {
+    try {
+      final data = await _client
+          .from('questions')
+          .select('id')
+          .eq('categorie_id', categorieId)
+          .eq('is_published', true);
+      return (data as List).length;
+    } catch (_) {
+      return 0;
+    }
   }
 
   // Supprimer une question
