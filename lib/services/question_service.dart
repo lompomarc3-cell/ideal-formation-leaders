@@ -1,4 +1,9 @@
 // lib/services/question_service.dart
+// Adapté au VRAI schéma Supabase:
+// - category_id (pas categorie_id)
+// - is_active (pas is_published)
+// - is_demo (pour les questions de démo)
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/question_model.dart';
@@ -23,12 +28,13 @@ class QuestionService extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Utiliser le vrai nom de colonne: category_id (PAS categorie_id)
       final data = await _client
           .from('questions')
           .select('*')
-          .eq('categorie_id', categorieId)
-          .eq('is_published', true)
-          .order('ordre');
+          .eq('category_id', categorieId)
+          .eq('is_active', true)
+          .eq('is_demo', false);
 
       _questions = (data as List)
           .map((e) => QuestionModel.fromJson(e as Map<String, dynamic>))
@@ -40,23 +46,29 @@ class QuestionService extends ChangeNotifier {
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
+      if (kDebugMode) debugPrint('loadByCategorie error: $e');
       return [];
     }
   }
 
   Future<List<DemoQuestionModel>> loadDemoQuestions() async {
     try {
+      // Charger les questions de démo depuis la table questions avec is_demo=true
       final data = await _client
-          .from('demo_questions')
+          .from('questions')
           .select('*')
-          .eq('is_active', true)
-          .order('numero');
+          .eq('is_demo', true)
+          .eq('is_active', true);
 
-      _demoQuestions = (data as List)
-          .map((e) => DemoQuestionModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-      notifyListeners();
-      return _demoQuestions;
+      if ((data as List).isNotEmpty) {
+        _demoQuestions = data
+            .map((e) => DemoQuestionModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+        notifyListeners();
+        return _demoQuestions;
+      }
+      // Si pas de données en ligne, utiliser les données locales
+      return _getDefaultDemoQuestions();
     } catch (e) {
       if (kDebugMode) debugPrint('loadDemoQuestions error: $e');
       return _getDefaultDemoQuestions();
@@ -159,7 +171,7 @@ class QuestionService extends ChangeNotifier {
     ];
   }
 
-  // Upload de questions en masse (pour l'admin) - VERSION AMÉLIORÉE avec batch insert
+  // Upload de questions en masse (pour l'admin)
   Future<Map<String, dynamic>> uploadQuestionsEnMasse({
     required String categorieId,
     required List<Map<String, dynamic>> questions,
@@ -168,12 +180,11 @@ class QuestionService extends ChangeNotifier {
     int errors = 0;
     List<String> errorMessages = [];
 
-    // Préparer toutes les questions avec les bons champs
+    // Préparer toutes les questions avec le VRAI schéma (category_id, is_active)
     final batchData = questions.asMap().entries.map((entry) {
-      final idx = entry.key;
       final q = entry.value;
       return {
-        'categorie_id': categorieId,
+        'category_id': categorieId, // ✅ Vrai nom de colonne
         'enonce': (q['enonce'] ?? '').toString().trim(),
         'option_a': (q['option_a'] ?? '').toString().trim(),
         'option_b': (q['option_b'] ?? '').toString().trim(),
@@ -181,18 +192,18 @@ class QuestionService extends ChangeNotifier {
         'option_d': (q['option_d'] ?? '').toString().trim(),
         'reponse_correcte': (q['reponse_correcte'] ?? 'A').toString().trim().toUpperCase(),
         'explication': (q['explication'] ?? '').toString().trim(),
-        'is_published': true,
-        'ordre': idx + 1,
+        'is_active': true, // ✅ Vrai nom de colonne (pas is_published)
+        'is_demo': false,
+        'matiere': (q['matiere'] ?? '').toString().trim(),
       };
     }).toList();
 
-    // Essayer le batch insert d'abord (plus rapide)
+    // Batch insert
     try {
       await _client.from('questions').insert(batchData);
       success = batchData.length;
     } catch (batchError) {
       if (kDebugMode) debugPrint('Batch insert failed: $batchError, trying one by one...');
-      // Si le batch échoue, insérer un par un pour identifier les erreurs
       for (final q in batchData) {
         try {
           await _client.from('questions').insert(q);
@@ -201,7 +212,7 @@ class QuestionService extends ChangeNotifier {
           errors++;
           final errMsg = e.toString();
           errorMessages.add(errMsg);
-          if (kDebugMode) debugPrint('Insert error for "${q['enonce']}": $errMsg');
+          if (kDebugMode) debugPrint('Insert error: $errMsg');
         }
       }
     }
@@ -246,8 +257,9 @@ class QuestionService extends ChangeNotifier {
       final data = await _client
           .from('questions')
           .select('id')
-          .eq('categorie_id', categorieId)
-          .eq('is_published', true);
+          .eq('category_id', categorieId) // ✅ Vrai nom
+          .eq('is_active', true) // ✅ Vrai nom
+          .eq('is_demo', false);
       return (data as List).length;
     } catch (_) {
       return 0;

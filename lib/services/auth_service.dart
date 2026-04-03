@@ -1,4 +1,9 @@
 // lib/services/auth_service.dart
+// Adapté au VRAI schéma Supabase profiles:
+// - phone (pas telephone)
+// - full_name (pas nom + prenom séparés)
+// - subscription_status, subscription_type, subscription_expires_at
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
@@ -45,7 +50,7 @@ class AuthService extends ChangeNotifier {
           .eq('id', userId)
           .single();
 
-      // Charger les abonnements
+      // Charger les abonnements depuis la table abonnements si elle existe
       List<String> abonnements = [];
       try {
         final abs = await _client
@@ -56,10 +61,13 @@ class AuthService extends ChangeNotifier {
         abonnements = (abs as List)
             .map((e) => e['categorie_id'].toString())
             .toList();
-      } catch (_) {}
+      } catch (_) {
+        // La table abonnements n'existe pas encore - pas de problème
+      }
 
+      final profileData = Map<String, dynamic>.from(data as Map);
       _currentUser = UserModel.fromJson({
-        ...data as Map<String, dynamic>,
+        ...profileData,
         'abonnements': abonnements,
       });
       notifyListeners();
@@ -74,11 +82,13 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Essayer d'abord avec @ifl.app (domaine du vrai admin)
-      final emailApp = _buildEmail(telephone, domain: 'ifl.app');
+      // Format principal: tel22676223962@ifl.app
+      final emailTel = _buildEmail(telephone, domain: 'ifl.app');
+      
+      // Essayer avec le format tel{numero}@ifl.app (nouveau format standard)
       try {
         final res = await _client.auth.signInWithPassword(
-          email: emailApp,
+          email: emailTel,
           password: password,
         );
         if (res.session != null) {
@@ -87,22 +97,39 @@ class AuthService extends ChangeNotifier {
           notifyListeners();
           return true;
         }
-      } catch (_) {
-        // Essayer avec @ifl.bf (ancien domaine)
-      }
+      } catch (_) {}
 
-      final emailBf = _buildEmail(telephone, domain: 'ifl.bf');
-      final res2 = await _client.auth.signInWithPassword(
-        email: emailBf,
-        password: password,
-      );
+      // Essayer avec l'ancien format +{numero}@ifl.app
+      final cleaned = telephone.replaceAll(RegExp(r'[^0-9+]'), '');
+      final emailOld = '$cleaned@ifl.app';
+      try {
+        final res2 = await _client.auth.signInWithPassword(
+          email: emailOld,
+          password: password,
+        );
+        if (res2.session != null) {
+          await _loadUserProfile(res2.user!.id);
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        }
+      } catch (_) {}
 
-      if (res2.session != null) {
-        await _loadUserProfile(res2.user!.id);
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      }
+      // Essayer avec @ifl.bf (ancien domaine)
+      final emailBf = '$cleaned@ifl.bf';
+      try {
+        final res3 = await _client.auth.signInWithPassword(
+          email: emailBf,
+          password: password,
+        );
+        if (res3.session != null) {
+          await _loadUserProfile(res3.user!.id);
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        }
+      } catch (_) {}
+
       _error = 'Numéro ou mot de passe incorrect';
       _isLoading = false;
       notifyListeners();
@@ -131,7 +158,6 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Utiliser @ifl.app comme domaine standard
       final email = _buildEmail(telephone, domain: 'ifl.app');
       final fullName = '$prenom $nom'.trim();
 
@@ -141,15 +167,14 @@ class AuthService extends ChangeNotifier {
       );
 
       if (res.user != null) {
-        // Insérer en utilisant le schéma réel (phone, full_name)
+        // Insérer uniquement les colonnes qui existent dans profiles
+        // (phone, full_name, role - PAS nom/prenom/telephone séparément)
         await _client.from('profiles').upsert({
           'id': res.user!.id,
           'phone': telephone,
-          'telephone': telephone,
           'full_name': fullName,
-          'nom': nom,
-          'prenom': prenom,
           'role': 'user',
+          'subscription_status': 'free',
         });
 
         await _loadUserProfile(res.user!.id);
@@ -187,7 +212,7 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Changer le mot de passe (pour l'admin)
+  // Changer le mot de passe
   Future<bool> changePassword(String newPassword) async {
     try {
       await _client.auth.updateUser(UserAttributes(password: newPassword));
@@ -200,8 +225,11 @@ class AuthService extends ChangeNotifier {
   }
 
   String _buildEmail(String telephone, {String domain = 'ifl.app'}) {
-    final cleaned = telephone.replaceAll(RegExp(r'[^0-9+]'), '');
-    return '$cleaned@$domain';
+    // Format: tel{numeros}@ifl.app
+    // Ex: +22676223962 → tel22676223962@ifl.app
+    // Enlever le + et tous les caractères non numériques
+    final cleaned = telephone.replaceAll(RegExp(r'[^0-9]'), '');
+    return 'tel$cleaned@$domain';
   }
 
   String _translateAuthError(String msg) {
@@ -213,6 +241,9 @@ class AuthService extends ChangeNotifier {
     }
     if (msg.contains('Password should be')) {
       return 'Mot de passe trop court (minimum 6 caractères)';
+    }
+    if (msg.contains('Email not confirmed')) {
+      return 'Compte non confirmé. Essayez de vous reconnecter.';
     }
     return msg;
   }

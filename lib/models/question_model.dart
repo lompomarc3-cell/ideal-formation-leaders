@@ -1,9 +1,12 @@
 // lib/models/question_model.dart
-// Correspond à la table 'questions' dans Supabase
+// Adapté au VRAI schéma Supabase:
+// - category_id (pas categorie_id)
+// - is_active (pas is_published)
+// - matiere, difficulte, annee (nouvelles colonnes)
 
 class QuestionModel {
   final String id;
-  final String categorieId;
+  final String categorieId; // = category_id dans Supabase
   final String enonce;
   final String optionA;
   final String optionB;
@@ -11,7 +14,11 @@ class QuestionModel {
   final String optionD;
   final String reponseCorrecte; // 'A', 'B', 'C', 'D'
   final String explication;
-  final bool isPublished;
+  final bool isPublished; // = is_active dans Supabase
+  final bool isDemo;
+  final String matiere;
+  final String difficulte;
+  final int? annee;
   final int ordre;
   final DateTime? createdAt;
 
@@ -26,40 +33,36 @@ class QuestionModel {
     required this.reponseCorrecte,
     this.explication = '',
     this.isPublished = true,
+    this.isDemo = false,
+    this.matiere = '',
+    this.difficulte = '',
+    this.annee,
     this.ordre = 0,
     this.createdAt,
   });
 
   factory QuestionModel.fromJson(Map<String, dynamic> json) {
-    // Support pour options JSONB ou colonnes séparées
-    String optA = '';
-    String optB = '';
-    String optC = '';
-    String optD = '';
-
-    if (json['options'] != null) {
-      final opts = json['options'];
-      if (opts is List && opts.length >= 4) {
-        optA = opts[0].toString();
-        optB = opts[1].toString();
-        optC = opts[2].toString();
-        optD = opts[3].toString();
-      }
-    }
-
     return QuestionModel(
       id: json['id'] as String? ?? '',
-      categorieId: json['categorie_id'] as String? ?? '',
+      // Support double schéma: category_id (nouveau) et categorie_id (ancien)
+      categorieId: json['category_id'] as String? ?? 
+                   json['categorie_id'] as String? ?? '',
       enonce: json['enonce'] as String? ?? json['question'] as String? ?? '',
-      optionA: json['option_a'] as String? ?? optA,
-      optionB: json['option_b'] as String? ?? optB,
-      optionC: json['option_c'] as String? ?? optC,
-      optionD: json['option_d'] as String? ?? optD,
+      optionA: json['option_a'] as String? ?? '',
+      optionB: json['option_b'] as String? ?? '',
+      optionC: json['option_c'] as String? ?? '',
+      optionD: json['option_d'] as String? ?? '',
       reponseCorrecte: json['reponse_correcte'] as String? ?? 
                        json['correct_answer'] as String? ?? 'A',
       explication: json['explication'] as String? ?? 
                    json['explanation'] as String? ?? '',
-      isPublished: json['is_published'] as bool? ?? true,
+      // Support double: is_active (nouveau) et is_published (ancien)
+      isPublished: json['is_active'] as bool? ?? 
+                   json['is_published'] as bool? ?? true,
+      isDemo: json['is_demo'] as bool? ?? false,
+      matiere: json['matiere'] as String? ?? '',
+      difficulte: json['difficulte'] as String? ?? '',
+      annee: (json['annee'] as num?)?.toInt(),
       ordre: (json['ordre'] as num?)?.toInt() ?? 0,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
@@ -69,7 +72,7 @@ class QuestionModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'categorie_id': categorieId,
+      'category_id': categorieId, // ✅ Vrai nom de colonne
       'enonce': enonce,
       'option_a': optionA,
       'option_b': optionB,
@@ -77,7 +80,9 @@ class QuestionModel {
       'option_d': optionD,
       'reponse_correcte': reponseCorrecte,
       'explication': explication,
-      'is_published': isPublished,
+      'is_active': isPublished, // ✅ Vrai nom de colonne
+      'is_demo': isDemo,
+      'matiere': matiere,
     };
   }
 

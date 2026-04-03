@@ -1,23 +1,28 @@
 // lib/models/user_model.dart
-// Adapté au schéma Supabase réel: phone, full_name (+ colonnes telephone/nom/prenom ajoutées)
+// Adapté au VRAI schéma Supabase profiles:
+// Colonnes réelles: id, full_name, phone, province_id, exam_category_id, 
+//                  avatar_url, role, subscription_status, subscription_expires_at, 
+//                  subscription_type, created_at
 
 class UserModel {
   final String id;
   final String telephone; // = phone dans Supabase
-  final String nom;
-  final String prenom;
   final String fullNameRaw; // = full_name dans Supabase
   final String role; // 'user', 'admin', 'superadmin'
-  final List<String> abonnements; // IDs des catégories payées
+  final String subscriptionStatus; // 'free', 'premium', 'expired'
+  final String? subscriptionType; // ID de la catégorie ou type d'abonnement
+  final DateTime? subscriptionExpiresAt;
+  final List<String> abonnements; // IDs des catégories payées (calculé)
   final DateTime? createdAt;
 
   UserModel({
     required this.id,
     required this.telephone,
-    required this.nom,
-    required this.prenom,
     required this.fullNameRaw,
     required this.role,
+    this.subscriptionStatus = 'free',
+    this.subscriptionType,
+    this.subscriptionExpiresAt,
     this.abonnements = const [],
     this.createdAt,
   });
@@ -28,22 +33,25 @@ class UserModel {
     if (rawAbs is List) {
       abs = rawAbs.map((e) => e.toString()).toList();
     }
-
-    // Compatibilité double schéma: phone/full_name OU telephone/nom/prenom
-    final phone = json['phone'] as String? ?? json['telephone'] as String? ?? '';
-    final fullName = json['full_name'] as String? ?? '';
-    final nom = json['nom'] as String? ??
-        (fullName.contains(' ') ? fullName.split(' ').skip(1).join(' ') : fullName);
-    final prenom = json['prenom'] as String? ??
-        (fullName.contains(' ') ? fullName.split(' ').first : '');
+    
+    // Ajouter subscriptionType aux abonnements si premium
+    final subStatus = json['subscription_status'] as String? ?? 'free';
+    final subType = json['subscription_type'] as String?;
+    if (subStatus == 'premium' && subType != null && !abs.contains(subType)) {
+      abs = [...abs, subType];
+    }
 
     return UserModel(
       id: json['id'] as String? ?? '',
-      telephone: phone,
-      nom: nom,
-      prenom: prenom,
-      fullNameRaw: fullName.isNotEmpty ? fullName : '$prenom $nom'.trim(),
+      // Compatibilité: phone (nouveau) ou telephone (ancien)
+      telephone: json['phone'] as String? ?? json['telephone'] as String? ?? '',
+      fullNameRaw: json['full_name'] as String? ?? '',
       role: json['role'] as String? ?? 'user',
+      subscriptionStatus: subStatus,
+      subscriptionType: subType,
+      subscriptionExpiresAt: json['subscription_expires_at'] != null
+          ? DateTime.tryParse(json['subscription_expires_at'] as String)
+          : null,
       abonnements: abs,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
@@ -54,21 +62,36 @@ class UserModel {
   Map<String, dynamic> toJson() {
     return {
       'phone': telephone,
-      'telephone': telephone,
       'full_name': fullName,
-      'nom': nom,
-      'prenom': prenom,
       'role': role,
     };
   }
 
-  String get fullName => fullNameRaw.isNotEmpty
-      ? fullNameRaw
-      : '$prenom $nom'.trim();
+  // Nom complet
+  String get fullName => fullNameRaw.isNotEmpty ? fullNameRaw : telephone;
+  
+  // Prénom (premier mot du fullName)
+  String get prenom => fullNameRaw.contains(' ') 
+      ? fullNameRaw.split(' ').first 
+      : fullNameRaw;
+  
+  // Nom de famille (reste après le prénom)
+  String get nom => fullNameRaw.contains(' ')
+      ? fullNameRaw.split(' ').skip(1).join(' ')
+      : '';
+
   bool get isAdmin => role == 'admin' || role == 'superadmin';
   bool get isSuperAdmin => role == 'superadmin';
+  bool get isPremium => subscriptionStatus == 'premium';
 
   bool hasCategorieAccess(String categorieId) {
-    return isAdmin || abonnements.contains(categorieId);
+    if (isAdmin) return true;
+    if (abonnements.contains(categorieId)) return true;
+    // Vérifier si l'abonnement n'est pas expiré
+    if (subscriptionType == categorieId && isPremium) {
+      if (subscriptionExpiresAt == null) return true;
+      return DateTime.now().isBefore(subscriptionExpiresAt!);
+    }
+    return false;
   }
 }

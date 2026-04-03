@@ -1,5 +1,6 @@
 // lib/models/demo_question_model.dart
-// QCM gratuits pour la démo - table demo_questions
+// QCM gratuits pour la démo
+// Compatible avec la table 'questions' (is_demo=true) ET l'ancienne table 'demo_questions'
 
 class DemoQuestionModel {
   final String id;
@@ -31,6 +32,7 @@ class DemoQuestionModel {
   factory DemoQuestionModel.fromJson(Map<String, dynamic> json) {
     return DemoQuestionModel(
       id: json['id'] as String? ?? '',
+      // 'numero' n'existe pas dans la table questions → utiliser l'ordre d'insertion
       numero: (json['numero'] as num?)?.toInt() ?? 0,
       enonce: json['enonce'] as String? ?? '',
       optionA: json['option_a'] as String? ?? '',
@@ -39,7 +41,9 @@ class DemoQuestionModel {
       optionD: json['option_d'] as String? ?? '',
       reponseCorrecte: json['reponse_correcte'] as String? ?? 'A',
       explication: json['explication'] as String? ?? '',
-      categorie: json['categorie'] as String? ?? 'general',
+      // 'categorie' → utiliser 'matiere' si 'categorie' absent
+      categorie: json['categorie'] as String? ?? 
+                 json['matiere'] as String? ?? 'general',
       isActive: json['is_active'] as bool? ?? true,
     );
   }

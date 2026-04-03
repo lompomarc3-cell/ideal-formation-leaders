@@ -8,6 +8,7 @@ import 'services/auth_service.dart';
 import 'services/categorie_service.dart';
 import 'services/question_service.dart';
 import 'services/paiement_service.dart';
+import 'services/migration_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 
@@ -18,6 +19,9 @@ Future<void> main() async {
     url: SupabaseConfig.url,
     anonKey: SupabaseConfig.anonKey,
   );
+
+  // Lancer les migrations en arrière-plan (sans bloquer l'app)
+  MigrationService.runMigrations();
 
   runApp(const IFLApp());
 }
