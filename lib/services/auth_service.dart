@@ -104,7 +104,7 @@ class AuthService extends ChangeNotifier {
       final existing = await _client
           .from('profiles')
           .select('id')
-          .eq('telephone', cleanPhone)
+          .eq('phone', cleanPhone)
           .maybeSingle();
 
       if (existing != null) {
@@ -129,10 +129,10 @@ class AuthService extends ChangeNotifier {
         // Créer le profil
         await _client.from('profiles').insert({
           'id': response.user!.id,
-          'telephone': cleanPhone,
-          'nom': nom,
-          'prenom': prenom,
+          'phone': cleanPhone,
+          'full_name': '$nom $prenom'.trim(),
           'role': 'user',
+          'subscription_status': 'free',
         });
 
         await _loadUserProfile(response.user!.id);
