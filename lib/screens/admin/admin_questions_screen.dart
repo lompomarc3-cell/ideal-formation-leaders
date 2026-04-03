@@ -38,7 +38,7 @@ class _AdminQuestionsScreenState extends State<AdminQuestionsScreen> {
     setState(() => _isLoading = true);
     final qs = await context
         .read<QuestionService>()
-        .getAllQuestions(sousCategorieId: widget.sousCategorieId);
+        .getAllQuestions(categoryId: widget.sousCategorieId);
     setState(() {
       _questions = qs;
       _isLoading = false;
@@ -228,7 +228,7 @@ class _AdminQuestionsScreenState extends State<AdminQuestionsScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${q.options.length} options • ${q.options.where((o) => o.isCorrect).length} bonne(s) réponse(s)',
+                      '4 options • Réponse correcte: ${q.reponseCorrecte}${q.matiere != null ? ' • ${q.matiere}' : ''}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondary,

@@ -1,10 +1,10 @@
 // lib/screens/admin/admin_create_question_screen.dart
+// Adapté au vrai schéma: questions(category_id, option_a/b/c/d, reponse_correcte, ...)
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../models/question_model.dart';
 import '../../services/categorie_service.dart';
-import '../../services/auth_service.dart';
 import '../../services/question_service.dart';
 
 class AdminCreateQuestionScreen extends StatefulWidget {
@@ -25,60 +25,43 @@ class _AdminCreateQuestionScreenState
   final _formKey = GlobalKey<FormState>();
   final _enonceController = TextEditingController();
   final _explicationController = TextEditingController();
+  final _matiereController = TextEditingController();
+  final _anneeController = TextEditingController();
 
-  String? _selectedSousCategorieId;
-  bool _isPublished = true;
+  // Controllers pour les 4 options
+  final _optAController = TextEditingController();
+  final _optBController = TextEditingController();
+  final _optCController = TextEditingController();
+  final _optDController = TextEditingController();
+
+  String? _selectedCategoryId;
+  String _reponseCorrecte = 'A'; // A, B, C, ou D
+  bool _isDemo = false;
   bool _isLoading = false;
-
-  // Options de réponse (max 6)
-  final List<Map<String, dynamic>> _options = [
-    {'id': 'A', 'texte': '', 'is_correct': false, 'controller': TextEditingController()},
-    {'id': 'B', 'texte': '', 'is_correct': false, 'controller': TextEditingController()},
-    {'id': 'C', 'texte': '', 'is_correct': false, 'controller': TextEditingController()},
-    {'id': 'D', 'texte': '', 'is_correct': false, 'controller': TextEditingController()},
-  ];
 
   @override
   void initState() {
     super.initState();
-    _selectedSousCategorieId = widget.preselectedSousCategorieId;
+    _selectedCategoryId = widget.preselectedSousCategorieId;
   }
 
   @override
   void dispose() {
     _enonceController.dispose();
     _explicationController.dispose();
-    for (var opt in _options) {
-      (opt['controller'] as TextEditingController).dispose();
-    }
+    _matiereController.dispose();
+    _anneeController.dispose();
+    _optAController.dispose();
+    _optBController.dispose();
+    _optCController.dispose();
+    _optDController.dispose();
     super.dispose();
-  }
-
-  void _addOption() {
-    if (_options.length >= 6) return;
-    setState(() {
-      final ids = ['A', 'B', 'C', 'D', 'E', 'F'];
-      _options.add({
-        'id': ids[_options.length],
-        'texte': '',
-        'is_correct': false,
-        'controller': TextEditingController(),
-      });
-    });
-  }
-
-  void _removeOption(int index) {
-    if (_options.length <= 2) return;
-    setState(() {
-      (_options[index]['controller'] as TextEditingController).dispose();
-      _options.removeAt(index);
-    });
   }
 
   Future<void> _submitQuestion() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedSousCategorieId == null) {
+    if (_selectedCategoryId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Veuillez sélectionner un dossier'),
@@ -88,38 +71,28 @@ class _AdminCreateQuestionScreenState
       return;
     }
 
-    // Vérifier qu'au moins une option est correcte
-    final hasCorrect = _options.any((o) => o['is_correct'] == true);
-    if (!hasCorrect) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cochez au moins une bonne réponse'),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
-      return;
-    }
-
     setState(() => _isLoading = true);
 
-    final authService = context.read<AuthService>();
     final questionService = context.read<QuestionService>();
 
     final question = QuestionModel(
       id: '',
-      sousCategorieId: _selectedSousCategorieId!,
+      categoryId: _selectedCategoryId!,
       enonce: _enonceController.text.trim(),
-      options: _options
-          .where((o) => (o['controller'] as TextEditingController).text.isNotEmpty)
-          .map((o) => OptionModel(
-                id: o['id'] as String,
-                texte: (o['controller'] as TextEditingController).text.trim(),
-                isCorrect: o['is_correct'] as bool,
-              ))
-          .toList(),
+      optionA: _optAController.text.trim(),
+      optionB: _optBController.text.trim(),
+      optionC: _optCController.text.trim(),
+      optionD: _optDController.text.trim(),
+      reponseCorrecte: _reponseCorrecte,
       explication: _explicationController.text.trim(),
-      auteurId: authService.currentUser?.id,
-      isPublished: _isPublished,
+      matiere: _matiereController.text.trim().isNotEmpty
+          ? _matiereController.text.trim()
+          : null,
+      annee: _anneeController.text.trim().isNotEmpty
+          ? _anneeController.text.trim()
+          : null,
+      isDemo: _isDemo,
+      isActive: true,
     );
 
     final success = await questionService.createQuestion(question);
@@ -147,7 +120,7 @@ class _AdminCreateQuestionScreenState
   @override
   Widget build(BuildContext context) {
     final catService = context.watch<CategorieService>();
-    final allSC = catService.sousCategories;
+    final allCats = catService.categories;
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -164,7 +137,7 @@ class _AdminCreateQuestionScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Sélection dossier
-                _buildSectionTitle('Dossier de publication'),
+                _buildSectionTitle('Dossier de publication *'),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -176,26 +149,66 @@ class _AdminCreateQuestionScreenState
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      value: _selectedSousCategorieId,
+                      value: _selectedCategoryId,
                       isExpanded: true,
-                      hint: const Text('Sélectionner un sous-dossier'),
-                      items: allSC.map((sc) {
-                        final type = sc.typeConcours == 'direct'
+                      hint: const Text('Sélectionner un dossier'),
+                      items: allCats.map((cat) {
+                        final type = cat.typeConcours == 'direct'
                             ? '🔵 Direct'
                             : '🟣 Prof.';
                         return DropdownMenuItem<String>(
-                          value: sc.id,
+                          value: cat.id,
                           child: Text(
-                            '$type - ${sc.nom}',
+                            '$type - ${cat.nom}',
                             style: const TextStyle(fontSize: 13),
                             overflow: TextOverflow.ellipsis,
                           ),
                         );
                       }).toList(),
                       onChanged: (v) =>
-                          setState(() => _selectedSousCategorieId = v),
+                          setState(() => _selectedCategoryId = v),
                     ),
                   ),
+                ),
+                const SizedBox(height: 16),
+
+                // Matière et année (optionnels)
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle('Matière'),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _matiereController,
+                            decoration: const InputDecoration(
+                              hintText: 'Ex: Droit constitutionnel',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 90,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle('Année'),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _anneeController,
+                            decoration: const InputDecoration(
+                              hintText: '2024',
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
 
@@ -213,97 +226,67 @@ class _AdminCreateQuestionScreenState
                 ),
                 const SizedBox(height: 16),
 
-                // Options de réponse
-                _buildSectionTitle('Options de réponse *'),
-                const SizedBox(height: 4),
-                const Text(
-                  'Cochez la ou les bonnes réponses',
-                  style: TextStyle(
-                      fontSize: 12, color: AppTheme.textSecondary),
-                ),
+                // Les 4 options
+                _buildSectionTitle('Options de réponse (A, B, C, D) *'),
                 const SizedBox(height: 8),
-                ...List.generate(_options.length, (i) {
-                  final opt = _options[i];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: opt['is_correct'] == true
-                            ? AppTheme.accentColor
-                            : AppTheme.dividerColor,
-                        width: opt['is_correct'] == true ? 1.5 : 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        // Label (A, B, C...)
-                        Container(
-                          width: 32,
-                          height: 32,
+                _buildOptionField('A', _optAController),
+                const SizedBox(height: 8),
+                _buildOptionField('B', _optBController),
+                const SizedBox(height: 8),
+                _buildOptionField('C', _optCController),
+                const SizedBox(height: 8),
+                _buildOptionField('D', _optDController),
+                const SizedBox(height: 16),
+
+                // Bonne réponse
+                _buildSectionTitle('Bonne réponse *'),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.dividerColor),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: ['A', 'B', 'C', 'D'].map((letter) {
+                      final isSelected = _reponseCorrecte == letter;
+                      return GestureDetector(
+                        onTap: () =>
+                            setState(() => _reponseCorrecte = letter),
+                        child: Container(
+                          width: 56,
+                          height: 56,
                           decoration: BoxDecoration(
-                            color: opt['is_correct'] == true
+                            color: isSelected
                                 ? AppTheme.accentColor
-                                : AppTheme.dividerColor.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(8),
+                                : AppTheme.dividerColor.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppTheme.accentColor
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
                           ),
                           child: Center(
                             child: Text(
-                              opt['id'] as String,
+                              letter,
                               style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: opt['is_correct'] == true
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: isSelected
                                     ? Colors.white
                                     : AppTheme.textSecondary,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        // Texte option
-                        Expanded(
-                          child: TextFormField(
-                            controller:
-                                opt['controller'] as TextEditingController,
-                            decoration: InputDecoration(
-                              hintText: 'Option ${opt['id']}...',
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                            onChanged: (v) =>
-                                setState(() => opt['texte'] = v),
-                          ),
-                        ),
-                        // Checkbox bonne réponse
-                        Checkbox(
-                          value: opt['is_correct'] as bool,
-                          activeColor: AppTheme.accentColor,
-                          onChanged: (v) =>
-                              setState(() => opt['is_correct'] = v ?? false),
-                        ),
-                        // Supprimer option
-                        if (_options.length > 2)
-                          IconButton(
-                            icon: const Icon(Icons.close,
-                                size: 18, color: AppTheme.errorColor),
-                            onPressed: () => _removeOption(i),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                      ],
-                    ),
-                  );
-                }),
-
-                // Ajouter option
-                if (_options.length < 6)
-                  TextButton.icon(
-                    onPressed: _addOption,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Ajouter une option'),
+                      );
+                    }).toList(),
                   ),
+                ),
                 const SizedBox(height: 16),
 
                 // Explication
@@ -311,17 +294,17 @@ class _AdminCreateQuestionScreenState
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _explicationController,
-                  maxLines: 5,
+                  maxLines: 4,
                   decoration: const InputDecoration(
                     hintText:
-                        'Expliquez la bonne réponse en détail pour aider les candidats...',
+                        'Expliquez la bonne réponse pour aider les candidats...',
                   ),
                   validator: (v) =>
                       v == null || v.isEmpty ? 'L\'explication est obligatoire' : null,
                 ),
                 const SizedBox(height: 16),
 
-                // Statut publication
+                // Option démo
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -329,16 +312,16 @@ class _AdminCreateQuestionScreenState
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: SwitchListTile(
-                    title: const Text('Publier immédiatement'),
+                    title: const Text('Question Démo (gratuite)'),
                     subtitle: Text(
-                      _isPublished
-                          ? 'Visible par tous les candidats'
-                          : 'Brouillon - non visible',
+                      _isDemo
+                          ? 'Accessible sans inscription'
+                          : 'Accès payant uniquement',
                       style: const TextStyle(fontSize: 12),
                     ),
-                    value: _isPublished,
-                    activeColor: AppTheme.accentColor,
-                    onChanged: (v) => setState(() => _isPublished = v),
+                    value: _isDemo,
+                    activeThumbColor: AppTheme.secondaryColor,
+                    onChanged: (v) => setState(() => _isDemo = v),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -360,9 +343,7 @@ class _AdminCreateQuestionScreenState
                                 color: Colors.white, strokeWidth: 2),
                           )
                         : const Icon(Icons.publish),
-                    label: Text(
-                      _isPublished ? 'PUBLIER LA QUESTION' : 'ENREGISTRER BROUILLON',
-                    ),
+                    label: const Text('PUBLIER LA QUESTION'),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -370,6 +351,57 @@ class _AdminCreateQuestionScreenState
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildOptionField(String label, TextEditingController controller) {
+    final isSelected = _reponseCorrecte == label;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isSelected ? AppTheme.accentColor : AppTheme.dividerColor,
+          width: isSelected ? 1.5 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppTheme.accentColor
+                  : AppTheme.dividerColor.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: isSelected ? Colors.white : AppTheme.textSecondary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextFormField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: 'Option $label...',
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+              validator: (v) =>
+                  v == null || v.isEmpty ? 'Option $label requise' : null,
+            ),
+          ),
+        ],
       ),
     );
   }

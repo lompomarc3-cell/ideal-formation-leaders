@@ -1,4 +1,5 @@
 // lib/services/question_service.dart
+// Adapté au vrai schéma: questions(id, category_id, enonce, option_a/b/c/d, reponse_correcte, ...)
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/question_model.dart';
@@ -14,8 +15,13 @@ class QuestionService extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  // Récupérer questions par catégorie (remplace l'ancienne méthode par sous_categorie)
   Future<List<QuestionModel>> getQuestionsBySousCategorie(
-      String sousCategorieId) async {
+      String categoryId) async {
+    return getQuestionsByCategory(categoryId);
+  }
+
+  Future<List<QuestionModel>> getQuestionsByCategory(String categoryId) async {
     try {
       _isLoading = true;
       _error = null;
@@ -24,9 +30,9 @@ class QuestionService extends ChangeNotifier {
       final response = await _client
           .from('questions')
           .select()
-          .eq('sous_categorie_id', sousCategorieId)
-          .eq('is_published', true)
-          .order('ordre', ascending: true);
+          .eq('category_id', categoryId)
+          .eq('is_active', true)
+          .order('created_at', ascending: true);
 
       _questions = (response as List)
           .map((e) => QuestionModel.fromMap(e as Map<String, dynamic>))
@@ -36,6 +42,37 @@ class QuestionService extends ChangeNotifier {
       return _questions;
     } catch (e) {
       _error = 'Erreur lors du chargement des questions: $e';
+      if (kDebugMode) debugPrint(_error);
+      notifyListeners();
+      return [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Récupérer les questions démo
+  Future<List<QuestionModel>> getDemoQuestions() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final response = await _client
+          .from('questions')
+          .select()
+          .eq('is_demo', true)
+          .eq('is_active', true)
+          .order('created_at', ascending: true);
+
+      _questions = (response as List)
+          .map((e) => QuestionModel.fromMap(e as Map<String, dynamic>))
+          .toList();
+
+      notifyListeners();
+      return _questions;
+    } catch (e) {
+      _error = 'Erreur lors du chargement des questions démo: $e';
       if (kDebugMode) debugPrint(_error);
       notifyListeners();
       return [];
@@ -78,13 +115,12 @@ class QuestionService extends ChangeNotifier {
     }
   }
 
-  /// Publier / dépublier une question (admin)
-  Future<bool> togglePublish(String id, bool isPublished) async {
+  /// Activer / désactiver une question (admin)
+  Future<bool> togglePublish(String id, bool isActive) async {
     try {
       await _client
           .from('questions')
-          .update({'is_published': isPublished})
-          .eq('id', id);
+          .update({'is_active': isActive}).eq('id', id);
       return true;
     } catch (e) {
       if (kDebugMode) debugPrint('Erreur toggle publish: $e');
@@ -93,11 +129,11 @@ class QuestionService extends ChangeNotifier {
   }
 
   /// Récupérer toutes les questions pour l'admin
-  Future<List<QuestionModel>> getAllQuestions({String? sousCategorieId}) async {
+  Future<List<QuestionModel>> getAllQuestions({String? categoryId}) async {
     try {
       dynamic query = _client.from('questions').select();
-      if (sousCategorieId != null) {
-        query = query.eq('sous_categorie_id', sousCategorieId);
+      if (categoryId != null) {
+        query = query.eq('category_id', categoryId);
       }
       final response = await query.order('created_at', ascending: false);
       return (response as List)

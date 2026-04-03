@@ -1,59 +1,101 @@
 // lib/models/question_model.dart
+// Adapté au vrai schéma: questions(id, category_id, enonce, option_a/b/c/d, reponse_correcte, explication, annee, matiere, difficulte, is_demo, is_active, created_at)
 class QuestionModel {
   final String id;
-  final String sousCategorieId;
+  final String categoryId;
+  // sousCategorieId gardé pour compatibilité, mais correspond à categoryId
+  String get sousCategorieId => categoryId;
   final String enonce;
-  final List<OptionModel> options;
+  final String optionA;
+  final String optionB;
+  final String optionC;
+  final String optionD;
+  final String reponseCorrecte; // 'A', 'B', 'C', 'D'
   final String explication;
-  final int ordre;
-  final String? auteurId;
+  final String? annee;
+  final String? matiere;
+  final String? difficulte;
+  final bool isDemo;
+  final bool isActive;
   final DateTime? createdAt;
-  final bool isPublished;
+
+  // Pour compatibilité avec les options en liste
+  List<OptionModel> get options => [
+        OptionModel(id: 'A', texte: optionA, isCorrect: reponseCorrecte == 'A'),
+        OptionModel(id: 'B', texte: optionB, isCorrect: reponseCorrecte == 'B'),
+        OptionModel(id: 'C', texte: optionC, isCorrect: reponseCorrecte == 'C'),
+        OptionModel(id: 'D', texte: optionD, isCorrect: reponseCorrecte == 'D'),
+      ];
+
+  bool get isPublished => isActive;
+  int get ordre => 0;
 
   QuestionModel({
     required this.id,
-    required this.sousCategorieId,
+    required this.categoryId,
     required this.enonce,
-    required this.options,
-    required this.explication,
-    this.ordre = 0,
-    this.auteurId,
+    required this.optionA,
+    required this.optionB,
+    required this.optionC,
+    required this.optionD,
+    required this.reponseCorrecte,
+    this.explication = '',
+    this.annee,
+    this.matiere,
+    this.difficulte,
+    this.isDemo = false,
+    this.isActive = true,
     this.createdAt,
-    this.isPublished = true,
   });
 
   factory QuestionModel.fromMap(Map<String, dynamic> map) {
-    List<OptionModel> opts = [];
-    if (map['options'] != null) {
-      opts = (map['options'] as List)
-          .map((o) => OptionModel.fromMap(o as Map<String, dynamic>))
-          .toList();
-    }
     return QuestionModel(
       id: map['id']?.toString() ?? '',
-      sousCategorieId: map['sous_categorie_id']?.toString() ?? '',
+      categoryId: map['category_id']?.toString() ?? map['sous_categorie_id']?.toString() ?? '',
       enonce: map['enonce'] as String? ?? '',
-      options: opts,
+      optionA: map['option_a'] as String? ?? '',
+      optionB: map['option_b'] as String? ?? '',
+      optionC: map['option_c'] as String? ?? '',
+      optionD: map['option_d'] as String? ?? '',
+      reponseCorrecte: map['reponse_correcte'] as String? ?? 'A',
       explication: map['explication'] as String? ?? '',
-      ordre: map['ordre'] as int? ?? 0,
-      auteurId: map['auteur_id']?.toString(),
+      annee: map['annee']?.toString(),
+      matiere: map['matiere'] as String?,
+      difficulte: map['difficulte'] as String?,
+      isDemo: map['is_demo'] as bool? ?? false,
+      isActive: map['is_active'] as bool? ?? true,
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'].toString())
           : null,
-      isPublished: map['is_published'] as bool? ?? true,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'sous_categorie_id': sousCategorieId,
+      'category_id': categoryId,
       'enonce': enonce,
-      'options': options.map((o) => o.toMap()).toList(),
+      'option_a': optionA,
+      'option_b': optionB,
+      'option_c': optionC,
+      'option_d': optionD,
+      'reponse_correcte': reponseCorrecte,
       'explication': explication,
-      'ordre': ordre,
-      'auteur_id': auteurId,
-      'is_published': isPublished,
+      'annee': annee,
+      'matiere': matiere,
+      'difficulte': difficulte,
+      'is_demo': isDemo,
+      'is_active': isActive,
     };
+  }
+
+  String getOptionText(String lettre) {
+    switch (lettre) {
+      case 'A': return optionA;
+      case 'B': return optionB;
+      case 'C': return optionC;
+      case 'D': return optionD;
+      default: return '';
+    }
   }
 }
 
