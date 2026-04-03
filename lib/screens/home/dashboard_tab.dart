@@ -5,7 +5,7 @@ import '../../config/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/categorie_service.dart';
 import '../categories/categories_screen.dart';
-import '../demo/demo_intro_screen.dart';
+import '../demo/demo_quiz_screen.dart';
 
 class DashboardTab extends StatelessWidget {
   const DashboardTab({super.key});
@@ -19,198 +19,211 @@ class DashboardTab extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header salutation
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Bonjour, ${user?.prenom ?? 'Candidat'} 👋',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Prêt pour votre préparation ?',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        user?.prenom.isNotEmpty == true
-                            ? user!.prenom[0].toUpperCase()
-                            : 'C',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Bannière IFL
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.primaryColor, Color(0xFF2563EB)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: RefreshIndicator(
+          onRefresh: () => catService.loadAll(),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
                   children: [
-                    // Logo IFL dans la bannière
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Bonjour, ${user?.prenom ?? 'Candidat'} 👋',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Prêt pour votre préparation ?',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
                         ],
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Image.asset(
-                        'assets/images/logo_ifl.png',
-                        fit: BoxFit.cover,
-                        errorBuilder: (ctx, e, st) => const Icon(
-                            Icons.school,
-                            color: AppTheme.primaryColor,
-                            size: 28),
-                      ),
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Préparez vos concours\navec IFL',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        height: 1.3,
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor,
+                        shape: BoxShape.circle,
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Des QCM préparés par des experts\npour votre réussite',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                        height: 1.4,
+                      child: Center(
+                        child: Text(
+                          user?.prenom.isNotEmpty == true
+                              ? user!.prenom[0].toUpperCase()
+                              : 'C',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-              // Sections de concours
-              const Text(
-                'Choisissez votre concours',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Concours Direct
-              _buildConcourCard(
-                context,
-                title: 'Concours Direct',
-                subtitle: '10 sous-dossiers disponibles',
-                icon: Icons.assignment_rounded,
-                color: AppTheme.directColor,
-                count: catService.getSousCategoriesByType('direct').length,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        const CategoriesScreen(typeConcours: 'direct'),
+                // Bannière IFL principale
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.primaryColor, Color(0xFF2563EB)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.asset(
+                                'assets/images/logo_ifl.png',
+                                width: 52,
+                                height: 52,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Center(
+                                    child: Text('IFL',
+                                        style: TextStyle(
+                                            color: AppTheme.primaryColor,
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 14)),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Préparez vos concours\navec IFL',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                height: 1.3,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Des QCM préparés par des experts',
+                              style: TextStyle(fontSize: 12, color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 14),
+                const SizedBox(height: 24),
 
-              // Concours Professionnel
-              _buildConcourCard(
-                context,
-                title: 'Concours Professionnel',
-                subtitle: '12 sous-dossiers disponibles',
-                icon: Icons.workspace_premium_rounded,
-                color: AppTheme.professionnelColor,
-                count: catService.getSousCategoriesByType('professionnel').length,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        const CategoriesScreen(typeConcours: 'professionnel'),
+                // Stats rapides
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        '${catService.directCategories.length}',
+                        'Dossiers Direct',
+                        Icons.assignment_rounded,
+                        AppTheme.directColor,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        '${catService.professionnelCategories.length}',
+                        'Dossiers Prof.',
+                        Icons.workspace_premium_rounded,
+                        AppTheme.professionnelColor,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        '22',
+                        'Total dossiers',
+                        Icons.folder_rounded,
+                        AppTheme.secondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Titre section
+                const Text(
+                  'Choisissez votre concours',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 14),
 
-              // Stats
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      '22',
-                      'Sous-dossiers',
-                      Icons.folder_open_rounded,
-                      AppTheme.secondaryColor,
+                // Concours Direct
+                _buildConcourCard(
+                  context,
+                  title: 'Concours Direct',
+                  subtitle: '10 sous-dossiers — 5 000 FCFA',
+                  icon: Icons.assignment_rounded,
+                  color: AppTheme.directColor,
+                  count: catService.directCategories.length,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CategoriesScreen(type: 'direct'),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      '∞',
-                      'Questions QCM',
-                      Icons.quiz_rounded,
-                      AppTheme.accentColor,
+                ),
+                const SizedBox(height: 14),
+
+                // Concours Professionnel
+                _buildConcourCard(
+                  context,
+                  title: 'Concours Professionnel',
+                  subtitle: '12 sous-dossiers — 20 000 FCFA',
+                  icon: Icons.workspace_premium_rounded,
+                  color: AppTheme.professionnelColor,
+                  count: catService.professionnelCategories.length,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const CategoriesScreen(type: 'professionnel'),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                ),
+                const SizedBox(height: 24),
 
-              // Bannière DÉMO GRATUITE
-              _buildDemoBanner(context),
-              const SizedBox(height: 20),
-            ],
+                // Bannière DÉMO
+                _buildDemoBanner(context),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
@@ -269,7 +282,7 @@ class DashboardTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    count > 0 ? '$count sous-dossiers' : subtitle,
+                    count > 0 ? '$count dossiers disponibles' : subtitle,
                     style: const TextStyle(
                       fontSize: 13,
                       color: AppTheme.textSecondary,
@@ -288,37 +301,34 @@ class DashboardTab extends StatelessWidget {
   Widget _buildStatCard(
       String value, String label, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
+          Icon(icon, color: color, size: 22),
+          const SizedBox(height: 6),
           Text(
             value,
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 20,
               fontWeight: FontWeight.w800,
               color: color,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppTheme.textSecondary,
-            ),
+            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
             textAlign: TextAlign.center,
           ),
         ],
@@ -329,21 +339,21 @@ class DashboardTab extends StatelessWidget {
   Widget _buildDemoBanner(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const DemoIntroScreen()),
+        MaterialPageRoute(builder: (_) => const DemoQuizScreen()),
       ),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFFE8B84B), Color(0xFFF59E0B)],
+            colors: [Color(0xFFFF8C00), Color(0xFFFFB347)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFE8B84B).withValues(alpha: 0.3),
+              color: const Color(0xFFFF8C00).withValues(alpha: 0.3),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),
@@ -356,7 +366,8 @@ class DashboardTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(8),
@@ -383,15 +394,13 @@ class DashboardTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    '20 questions QCM sans inscription',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white70,
-                    ),
+                    '10 QCM avec correction et explications',
+                    style: TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
@@ -399,7 +408,7 @@ class DashboardTab extends StatelessWidget {
                     child: const Text(
                       'Commencer →',
                       style: TextStyle(
-                        color: Color(0xFFE8B84B),
+                        color: Color(0xFFFF8C00),
                         fontWeight: FontWeight.w800,
                         fontSize: 13,
                       ),
@@ -409,11 +418,7 @@ class DashboardTab extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            const Icon(
-              Icons.quiz_rounded,
-              color: Colors.white,
-              size: 64,
-            ),
+            const Icon(Icons.quiz_rounded, color: Colors.white, size: 64),
           ],
         ),
       ),

@@ -4,13 +4,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 
 class AuthService extends ChangeNotifier {
-  final SupabaseClient _client = Supabase.instance.client;
+  final _client = Supabase.instance.client;
+
   UserModel? _currentUser;
   bool _isLoading = false;
+  String? _error;
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
-  bool get isLoggedIn => _currentUser != null;
+  String? get error => _error;
+  bool get isAuthenticated => _currentUser != null;
   bool get isAdmin => _currentUser?.isAdmin ?? false;
 
   AuthService() {
@@ -18,18 +21,16 @@ class AuthService extends ChangeNotifier {
   }
 
   void _initAuth() {
-    // Écouter les changements d'authentification
-    _client.auth.onAuthStateChange.listen((data) async {
+    _client.auth.onAuthStateChange.listen((data) {
       final session = data.session;
       if (session != null) {
-        await _loadUserProfile(session.user.id);
+        _loadUserProfile(session.user.id);
       } else {
         _currentUser = null;
         notifyListeners();
       }
     });
 
-    // Charger l'utilisateur actuel si déjà connecté
     final session = _client.auth.currentSession;
     if (session != null) {
       _loadUserProfile(session.user.id);
@@ -38,114 +39,116 @@ class AuthService extends ChangeNotifier {
 
   Future<void> _loadUserProfile(String userId) async {
     try {
-      final response = await _client
+      final data = await _client
           .from('profiles')
-          .select()
+          .select('*')
           .eq('id', userId)
           .single();
-      _currentUser = UserModel.fromMap(response);
+
+      // Charger les abonnements
+      List<String> abonnements = [];
+      try {
+        final abs = await _client
+            .from('abonnements')
+            .select('categorie_id')
+            .eq('user_id', userId)
+            .eq('statut', 'actif');
+        abonnements = (abs as List)
+            .map((e) => e['categorie_id'].toString())
+            .toList();
+      } catch (_) {}
+
+      _currentUser = UserModel.fromJson({
+        ...data as Map<String, dynamic>,
+        'abonnements': abonnements,
+      });
       notifyListeners();
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Erreur chargement profil: $e');
-      }
+      if (kDebugMode) debugPrint('_loadUserProfile error: $e');
     }
   }
 
-  /// Connexion par téléphone + mot de passe
-  /// Le téléphone est utilisé comme email fictif: telephone@ifl.app
-  Future<Map<String, dynamic>> signIn({
-    required String telephone,
-    required String password,
-  }) async {
+  Future<bool> signIn(String telephone, String password) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
     try {
-      _isLoading = true;
-      notifyListeners();
-
-      // Normaliser le téléphone
-      final cleanPhone = _cleanPhone(telephone);
-      final fakeEmail = '$cleanPhone@ifl.app';
-
-      final response = await _client.auth.signInWithPassword(
-        email: fakeEmail,
+      // Construire l'email synthétique depuis le téléphone
+      final email = _buildEmail(telephone);
+      final res = await _client.auth.signInWithPassword(
+        email: email,
         password: password,
       );
 
-      if (response.user != null) {
-        await _loadUserProfile(response.user!.id);
-        return {'success': true};
+      if (res.session != null) {
+        await _loadUserProfile(res.user!.id);
+        _isLoading = false;
+        notifyListeners();
+        return true;
       }
-      return {'success': false, 'message': 'Connexion échouée'};
-    } on AuthException catch (e) {
-      return {'success': false, 'message': _getErrorMessage(e.message)};
-    } catch (e) {
-      return {'success': false, 'message': 'Erreur de connexion'};
-    } finally {
+      _error = 'Connexion échouée';
       _isLoading = false;
       notifyListeners();
+      return false;
+    } on AuthException catch (e) {
+      _error = _translateAuthError(e.message);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = 'Erreur: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 
-  /// Inscription: nom, prénom, téléphone, mot de passe
-  Future<Map<String, dynamic>> signUp({
+  Future<bool> signUp({
+    required String telephone,
     required String nom,
     required String prenom,
-    required String telephone,
     required String password,
   }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
     try {
-      _isLoading = true;
-      notifyListeners();
-
-      final cleanPhone = _cleanPhone(telephone);
-      final fakeEmail = '$cleanPhone@ifl.app';
-
-      // Vérifier que le téléphone n'existe pas déjà
-      final existing = await _client
-          .from('profiles')
-          .select('id')
-          .eq('phone', cleanPhone)
-          .maybeSingle();
-
-      if (existing != null) {
-        return {
-          'success': false,
-          'message': 'Ce numéro de téléphone est déjà utilisé'
-        };
-      }
-
-      // Créer le compte Supabase
-      final response = await _client.auth.signUp(
-        email: fakeEmail,
+      final email = _buildEmail(telephone);
+      final res = await _client.auth.signUp(
+        email: email,
         password: password,
-        data: {
-          'nom': nom,
-          'prenom': prenom,
-          'telephone': cleanPhone,
-        },
       );
 
-      if (response.user != null) {
-        // Créer le profil
+      if (res.user != null) {
         await _client.from('profiles').insert({
-          'id': response.user!.id,
-          'phone': cleanPhone,
-          'full_name': '$nom $prenom'.trim(),
+          'id': res.user!.id,
+          'telephone': telephone,
+          'nom': nom,
+          'prenom': prenom,
           'role': 'user',
-          'subscription_status': 'free',
         });
 
-        await _loadUserProfile(response.user!.id);
-        return {'success': true};
+        await _loadUserProfile(res.user!.id);
+        _isLoading = false;
+        notifyListeners();
+        return true;
       }
-      return {'success': false, 'message': 'Inscription échouée'};
-    } on AuthException catch (e) {
-      return {'success': false, 'message': _getErrorMessage(e.message)};
-    } catch (e) {
-      return {'success': false, 'message': 'Erreur lors de l\'inscription: $e'};
-    } finally {
+      _error = 'Inscription échouée';
       _isLoading = false;
       notifyListeners();
+      return false;
+    } on AuthException catch (e) {
+      _error = _translateAuthError(e.message);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = 'Erreur: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 
@@ -155,20 +158,28 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
-  String _cleanPhone(String phone) {
-    return phone.replaceAll(RegExp(r'[^\d+]'), '');
+  Future<void> refreshUser() async {
+    final session = _client.auth.currentSession;
+    if (session != null) {
+      await _loadUserProfile(session.user.id);
+    }
   }
 
-  String _getErrorMessage(String message) {
-    if (message.contains('Invalid login credentials')) {
-      return 'Numéro de téléphone ou mot de passe incorrect';
+  String _buildEmail(String telephone) {
+    final cleaned = telephone.replaceAll(RegExp(r'[^0-9+]'), '');
+    return '$cleaned@ifl.bf';
+  }
+
+  String _translateAuthError(String msg) {
+    if (msg.contains('Invalid login credentials')) {
+      return 'Numéro ou mot de passe incorrect';
     }
-    if (message.contains('Email not confirmed')) {
-      return 'Compte non confirmé';
+    if (msg.contains('User already registered')) {
+      return 'Ce numéro est déjà inscrit';
     }
-    if (message.contains('User already registered')) {
-      return 'Ce numéro est déjà enregistré';
+    if (msg.contains('Password should be')) {
+      return 'Mot de passe trop court (minimum 6 caractères)';
     }
-    return message;
+    return msg;
   }
 }

@@ -2,25 +2,30 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
-import '../../models/sous_categorie_model.dart';
+import '../../models/categorie_model.dart';
+import '../../services/auth_service.dart';
 import '../../services/categorie_service.dart';
 import '../quiz/quiz_screen.dart';
+import '../demo/payment_screen.dart';
 
 class CategoriesScreen extends StatelessWidget {
-  final String typeConcours; // 'direct' ou 'professionnel'
+  final String type; // 'direct' ou 'professionnel'
 
-  const CategoriesScreen({super.key, required this.typeConcours});
+  const CategoriesScreen({super.key, required this.type});
 
   @override
   Widget build(BuildContext context) {
     final catService = context.watch<CategorieService>();
-    final sousCategories = catService.getSousCategoriesByType(typeConcours);
-    final color = typeConcours == 'direct'
+    final categories = type == 'direct'
+        ? catService.directCategories
+        : catService.professionnelCategories;
+
+    final color = type == 'direct'
         ? AppTheme.directColor
         : AppTheme.professionnelColor;
-    final title = typeConcours == 'direct'
-        ? 'Concours Direct'
-        : 'Concours Professionnel';
+
+    final title = type == 'direct' ? 'Concours Direct' : 'Concours Professionnel';
+    final prix = type == 'direct' ? '5 000 FCFA' : '20 000 FCFA';
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -34,11 +39,39 @@ class CategoriesScreen extends StatelessWidget {
               )
             : null,
       ),
-      body: catService.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : sousCategories.isEmpty
-              ? _buildEmpty(color)
-              : _buildList(context, sousCategories, color),
+      body: Column(
+        children: [
+          // En-tête info prix
+          Container(
+            width: double.infinity,
+            color: color.withValues(alpha: 0.08),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: color, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Accès à chaque dossier : $prix (paiement Orange Money)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: color,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: catService.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : categories.isEmpty
+                    ? _buildEmpty(color)
+                    : _buildList(context, categories, color),
+          ),
+        ],
+      ),
     );
   }
 
@@ -50,56 +83,59 @@ class CategoriesScreen extends StatelessWidget {
           Icon(Icons.folder_open, size: 64, color: color.withValues(alpha: 0.4)),
           const SizedBox(height: 16),
           const Text(
-            'Aucun sous-dossier disponible',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Les contenus seront bientôt disponibles',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppTheme.textSecondary,
-            ),
+            'Chargement des dossiers...',
+            style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildList(BuildContext context, List<SousCategorieModel> items,
-      Color color) {
+  Widget _buildList(
+      BuildContext context, List<CategorieModel> items, Color color) {
     return RefreshIndicator(
       onRefresh: () => context.read<CategorieService>().loadAll(),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: items.length,
         itemBuilder: (context, index) {
-          final sc = items[index];
-          return _buildSousCategorieCard(context, sc, color, index + 1);
+          return _buildCategorieCard(context, items[index], color, index + 1);
         },
       ),
     );
   }
 
-  Widget _buildSousCategorieCard(
+  Widget _buildCategorieCard(
     BuildContext context,
-    SousCategorieModel sc,
+    CategorieModel cat,
     Color color,
     int number,
   ) {
+    final authService = context.read<AuthService>();
+    final user = authService.currentUser;
+    final hasAccess = user?.hasCategorieAccess(cat.id) ?? false;
+
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => QuizListScreen(
-            sousCategorieId: sc.id,
-            sousCategorieNom: sc.nom,
-            color: color,
-          ),
-        ),
-      ),
+      onTap: () {
+        if (hasAccess) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => QuizListScreen(
+                categorieId: cat.id,
+                categorieNom: cat.nom,
+                color: color,
+              ),
+            ),
+          );
+        } else {
+          // Proposer le paiement
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => PaymentScreen(categorie: cat),
+            ),
+          );
+        }
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
@@ -113,6 +149,9 @@ class CategoriesScreen extends StatelessWidget {
               offset: const Offset(0, 2),
             ),
           ],
+          border: hasAccess
+              ? Border.all(color: color.withValues(alpha: 0.3))
+              : null,
         ),
         child: Row(
           children: [
@@ -142,37 +181,54 @@ class CategoriesScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    sc.nom,
+                    cat.nom,
                     style: const TextStyle(
-                      fontSize: 15,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.textPrimary,
                     ),
                   ),
-                  if (sc.description != null && sc.description!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      sc.description!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        cat.prixFormate,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: color,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                      if (cat.questionCount > 0) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          '• ${cat.questionCount} QCM',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ],
               ),
             ),
-            // Flèche
+            // Icône accès
             Container(
-              width: 32,
-              height: 32,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
+                color: hasAccess
+                    ? color.withValues(alpha: 0.12)
+                    : Colors.grey.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.arrow_forward_ios, color: color, size: 14),
+              child: Icon(
+                hasAccess ? Icons.lock_open_rounded : Icons.lock_rounded,
+                color: hasAccess ? color : AppTheme.textSecondary,
+                size: 18,
+              ),
             ),
           ],
         ),

@@ -1,77 +1,91 @@
 // lib/services/categorie_service.dart
-// Adapté au vrai schéma: la table 'categories' contient 'type' (direct/professionnel)
-// Les 'sous_categories' sont simulées depuis les 'categories'
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/categorie_model.dart';
-import '../models/sous_categorie_model.dart';
 
 class CategorieService extends ChangeNotifier {
-  final SupabaseClient _client = Supabase.instance.client;
+  final _client = Supabase.instance.client;
 
   List<CategorieModel> _categories = [];
   bool _isLoading = false;
+  String? _error;
 
   List<CategorieModel> get categories => _categories;
   bool get isLoading => _isLoading;
+  String? get error => _error;
 
-  // Mapper les catégories en "sous-catégories" pour la compatibilité avec l'UI
-  List<SousCategorieModel> get sousCategories {
-    return _categories.asMap().entries.map((entry) {
-      return SousCategorieModel.fromCategorie(entry.value, entry.key + 1);
-    }).toList();
-  }
+  List<CategorieModel> getByType(String type) =>
+      _categories.where((c) => c.type == type && c.isActive).toList()
+        ..sort((a, b) => a.nom.compareTo(b.nom));
 
-  List<CategorieModel> getCategoriesByType(String type) =>
-      _categories.where((c) => c.typeConcours == type).toList();
+  List<CategorieModel> get directCategories => getByType('direct');
+  List<CategorieModel> get professionnelCategories => getByType('professionnel');
 
-  // Cette méthode est appelée par CategoriesScreen avec typeConcours
-  List<SousCategorieModel> getSousCategoriesByType(String type) {
-    final filtered = _categories
-        .where((c) => c.typeConcours == type)
-        .toList();
-    return filtered.asMap().entries.map((entry) {
-      return SousCategorieModel.fromCategorie(entry.value, entry.key + 1);
-    }).toList();
-  }
+  Future<void> loadAll() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
 
-  List<SousCategorieModel> getSousCategoriesByCategorie(String categorieId) {
-    // Dans notre schéma, categorieId == id de la catégorie
-    final filtered = _categories.where((c) => c.id == categorieId).toList();
-    return filtered.asMap().entries.map((entry) {
-      return SousCategorieModel.fromCategorie(entry.value, entry.key + 1);
-    }).toList();
-  }
-
-  Future<void> loadCategories() async {
     try {
-      _isLoading = true;
-      notifyListeners();
-
-      final response = await _client
+      final data = await _client
           .from('categories')
-          .select()
+          .select('*')
           .eq('is_active', true)
-          .order('nom', ascending: true);
+          .order('nom');
 
-      _categories = (response as List)
-          .map((e) => CategorieModel.fromMap(e as Map<String, dynamic>))
+      _categories = (data as List)
+          .map((e) => CategorieModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      if (kDebugMode) debugPrint('Erreur chargement catégories: $e');
+      _error = e.toString();
+      if (kDebugMode) debugPrint('CategorieService error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Compatibilité: loadSousCategories ne fait rien car on n'a pas de table sous_categories
-  Future<void> loadSousCategories() async {
-    // Les sous-catégories sont dérivées des catégories
-    // Pas de table séparée dans le schéma réel
+  Future<void> updatePrix(String categorieId, int nouveauPrix) async {
+    try {
+      await _client
+          .from('categories')
+          .update({'prix': nouveauPrix})
+          .eq('id', categorieId);
+      await loadAll();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
-  Future<void> loadAll() async {
-    await loadCategories();
+  Future<void> updateAllPrixByType(String type, int nouveauPrix) async {
+    try {
+      await _client
+          .from('categories')
+          .update({'prix': nouveauPrix})
+          .eq('type', type);
+      await loadAll();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  // Pour l'admin: incrémenter le compteur de questions
+  Future<void> incrementQuestionCount(String categorieId) async {
+    try {
+      final data = await _client
+          .from('categories')
+          .select('question_count')
+          .eq('id', categorieId)
+          .single();
+      final current = (data['question_count'] as num?)?.toInt() ?? 0;
+      await _client
+          .from('categories')
+          .update({'question_count': current + 1})
+          .eq('id', categorieId);
+    } catch (e) {
+      if (kDebugMode) debugPrint('incrementQuestionCount error: $e');
+    }
   }
 }

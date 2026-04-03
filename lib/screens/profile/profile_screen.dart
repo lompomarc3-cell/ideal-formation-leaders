@@ -44,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
                   child: Text(
                     user?.prenom.isNotEmpty == true
                         ? user!.prenom[0].toUpperCase()
-                        : 'U',
+                        : 'C',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 36,
@@ -55,17 +55,16 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                user?.fullName ?? 'Utilisateur',
+                user?.fullName ?? 'Candidat',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimary,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: user?.isAdmin == true
                       ? AppTheme.secondaryColor.withValues(alpha: 0.15)
@@ -73,7 +72,11 @@ class ProfileScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  user?.isAdmin == true ? 'Administrateur' : 'Candidat',
+                  user?.isSuperAdmin == true
+                      ? 'Super Administrateur'
+                      : user?.isAdmin == true
+                          ? 'Administrateur'
+                          : 'Candidat',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -86,8 +89,14 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Infos
-              _buildInfoCard(context, user?.telephone ?? '-', Icons.phone),
-              const SizedBox(height: 24),
+              _buildInfoCard(user?.telephone ?? '-'),
+              const SizedBox(height: 16),
+
+              // Mes abonnements
+              if (user != null && !user.isAdmin) ...[
+                _buildAbonnementsCard(user.abonnements),
+                const SizedBox(height: 16),
+              ],
 
               // Bouton Admin CMS (si admin)
               if (user?.isAdmin == true) ...[
@@ -104,17 +113,20 @@ class ProfileScreen extends StatelessWidget {
                           builder: (_) => const AdminDashboardScreen()),
                     ),
                     icon: const Icon(Icons.admin_panel_settings),
-                    label: const Text('ESPACE ADMINISTRATEUR CMS'),
+                    label: const Text(
+                      'ESPACE ADMINISTRATEUR IFL',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
               ],
 
-              // Menu profil
+              // Menu
               _buildMenuCard(context),
               const SizedBox(height: 20),
 
-              // Bouton déconnexion
+              // Déconnexion
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -129,6 +141,13 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Version
+              const Text(
+                'IFL v1.0.0\nDéterminer • Travailler • Réussir',
+                style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
         ),
@@ -136,31 +155,31 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(BuildContext context, String phone, IconData icon) {
+  Widget _buildInfoCard(String phone) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
-            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
               color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: AppTheme.primaryColor, size: 22),
+            child: const Icon(Icons.phone_rounded,
+                color: AppTheme.primaryColor, size: 20),
           ),
           const SizedBox(width: 14),
           Column(
@@ -168,12 +187,8 @@ class ProfileScreen extends StatelessWidget {
             children: [
               const Text(
                 'Numéro de téléphone',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.textSecondary,
-                ),
+                style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
               ),
-              const SizedBox(height: 2),
               Text(
                 phone,
                 style: const TextStyle(
@@ -189,33 +204,76 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildAbonnementsCard(List<String> abonnements) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.verified_rounded, color: AppTheme.accentColor, size: 20),
+              SizedBox(width: 8),
+              Text(
+                'Mes dossiers débloqués',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (abonnements.isEmpty)
+            const Text(
+              'Aucun dossier débloqué pour le moment',
+              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            )
+          else
+            Text(
+              '${abonnements.length} dossier(s) débloqué(s)',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.accentColor,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMenuCard(BuildContext context) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
-            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         children: [
-          _buildMenuItem(
-            Icons.help_outline,
-            'Aide & Support',
-            () {},
-          ),
+          _buildMenuItem(Icons.help_outline_rounded, 'Aide & Support', () {}),
           const Divider(height: 1, indent: 60),
-          _buildMenuItem(
-            Icons.info_outline,
-            'À propos de IFL',
-            () => _showAbout(context),
-          ),
+          _buildMenuItem(Icons.info_outline_rounded, 'À propos de IFL',
+              () => _showAbout(context)),
         ],
       ),
     );
@@ -224,24 +282,24 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildMenuItem(IconData icon, String label, VoidCallback onTap) {
     return ListTile(
       leading: Container(
-        width: 38,
-        height: 38,
+        width: 36,
+        height: 36,
         decoration: BoxDecoration(
           color: AppTheme.primaryColor.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, color: AppTheme.primaryColor, size: 20),
+        child: Icon(icon, color: AppTheme.primaryColor, size: 18),
       ),
       title: Text(
         label,
         style: const TextStyle(
-          fontSize: 15,
+          fontSize: 14,
           fontWeight: FontWeight.w500,
           color: AppTheme.textPrimary,
         ),
       ),
-      trailing:
-          const Icon(Icons.arrow_forward_ios, size: 14, color: AppTheme.textSecondary),
+      trailing: const Icon(Icons.arrow_forward_ios,
+          size: 12, color: AppTheme.textSecondary),
       onTap: onTap,
     );
   }
@@ -250,9 +308,31 @@ class ProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('À propos de IFL'),
+        title: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/images/logo_ifl.png',
+                width: 36,
+                height: 36,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.school,
+                  color: AppTheme.primaryColor,
+                  size: 36,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Text('À propos de IFL'),
+          ],
+        ),
         content: const Text(
-          'IFL - Idéal Formation Leaders\n\nApplication de préparation aux concours administratifs du Burkina Faso.\n\nVersion 1.0.0',
+          'IFL – Idéal Formation Leaders\n\n'
+          'Application de préparation aux concours administratifs du Burkina Faso.\n\n'
+          'Motto : Déterminer • Travailler • Réussir\n\n'
+          'Version 1.0.0',
+          style: TextStyle(fontSize: 13, height: 1.6),
         ),
         actions: [
           TextButton(
@@ -276,9 +356,7 @@ class ProfileScreen extends StatelessWidget {
             child: const Text('Annuler'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.errorColor,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorColor),
             onPressed: () async {
               Navigator.pop(context);
               await authService.signOut();

@@ -1,10 +1,9 @@
 // lib/models/question_model.dart
-// Adapté au vrai schéma: questions(id, category_id, enonce, option_a/b/c/d, reponse_correcte, explication, annee, matiere, difficulte, is_demo, is_active, created_at)
+// Correspond à la table 'questions' dans Supabase
+
 class QuestionModel {
   final String id;
-  final String categoryId;
-  // sousCategorieId gardé pour compatibilité, mais correspond à categoryId
-  String get sousCategorieId => categoryId;
+  final String categorieId;
   final String enonce;
   final String optionA;
   final String optionB;
@@ -12,27 +11,13 @@ class QuestionModel {
   final String optionD;
   final String reponseCorrecte; // 'A', 'B', 'C', 'D'
   final String explication;
-  final String? annee;
-  final String? matiere;
-  final String? difficulte;
-  final bool isDemo;
-  final bool isActive;
+  final bool isPublished;
+  final int ordre;
   final DateTime? createdAt;
-
-  // Pour compatibilité avec les options en liste
-  List<OptionModel> get options => [
-        OptionModel(id: 'A', texte: optionA, isCorrect: reponseCorrecte == 'A'),
-        OptionModel(id: 'B', texte: optionB, isCorrect: reponseCorrecte == 'B'),
-        OptionModel(id: 'C', texte: optionC, isCorrect: reponseCorrecte == 'C'),
-        OptionModel(id: 'D', texte: optionD, isCorrect: reponseCorrecte == 'D'),
-      ];
-
-  bool get isPublished => isActive;
-  int get ordre => 0;
 
   QuestionModel({
     required this.id,
-    required this.categoryId,
+    required this.categorieId,
     required this.enonce,
     required this.optionA,
     required this.optionB,
@@ -40,39 +25,51 @@ class QuestionModel {
     required this.optionD,
     required this.reponseCorrecte,
     this.explication = '',
-    this.annee,
-    this.matiere,
-    this.difficulte,
-    this.isDemo = false,
-    this.isActive = true,
+    this.isPublished = true,
+    this.ordre = 0,
     this.createdAt,
   });
 
-  factory QuestionModel.fromMap(Map<String, dynamic> map) {
+  factory QuestionModel.fromJson(Map<String, dynamic> json) {
+    // Support pour options JSONB ou colonnes séparées
+    String optA = '';
+    String optB = '';
+    String optC = '';
+    String optD = '';
+
+    if (json['options'] != null) {
+      final opts = json['options'];
+      if (opts is List && opts.length >= 4) {
+        optA = opts[0].toString();
+        optB = opts[1].toString();
+        optC = opts[2].toString();
+        optD = opts[3].toString();
+      }
+    }
+
     return QuestionModel(
-      id: map['id']?.toString() ?? '',
-      categoryId: map['category_id']?.toString() ?? map['sous_categorie_id']?.toString() ?? '',
-      enonce: map['enonce'] as String? ?? '',
-      optionA: map['option_a'] as String? ?? '',
-      optionB: map['option_b'] as String? ?? '',
-      optionC: map['option_c'] as String? ?? '',
-      optionD: map['option_d'] as String? ?? '',
-      reponseCorrecte: map['reponse_correcte'] as String? ?? 'A',
-      explication: map['explication'] as String? ?? '',
-      annee: map['annee']?.toString(),
-      matiere: map['matiere'] as String?,
-      difficulte: map['difficulte'] as String?,
-      isDemo: map['is_demo'] as bool? ?? false,
-      isActive: map['is_active'] as bool? ?? true,
-      createdAt: map['created_at'] != null
-          ? DateTime.tryParse(map['created_at'].toString())
+      id: json['id'] as String? ?? '',
+      categorieId: json['categorie_id'] as String? ?? '',
+      enonce: json['enonce'] as String? ?? json['question'] as String? ?? '',
+      optionA: json['option_a'] as String? ?? optA,
+      optionB: json['option_b'] as String? ?? optB,
+      optionC: json['option_c'] as String? ?? optC,
+      optionD: json['option_d'] as String? ?? optD,
+      reponseCorrecte: json['reponse_correcte'] as String? ?? 
+                       json['correct_answer'] as String? ?? 'A',
+      explication: json['explication'] as String? ?? 
+                   json['explanation'] as String? ?? '',
+      isPublished: json['is_published'] as bool? ?? true,
+      ordre: (json['ordre'] as num?)?.toInt() ?? 0,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'] as String)
           : null,
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
-      'category_id': categoryId,
+      'categorie_id': categorieId,
       'enonce': enonce,
       'option_a': optionA,
       'option_b': optionB,
@@ -80,16 +77,12 @@ class QuestionModel {
       'option_d': optionD,
       'reponse_correcte': reponseCorrecte,
       'explication': explication,
-      'annee': annee,
-      'matiere': matiere,
-      'difficulte': difficulte,
-      'is_demo': isDemo,
-      'is_active': isActive,
+      'is_published': isPublished,
     };
   }
 
-  String getOptionText(String lettre) {
-    switch (lettre) {
+  String getOption(String letter) {
+    switch (letter.toUpperCase()) {
       case 'A': return optionA;
       case 'B': return optionB;
       case 'C': return optionC;
@@ -97,32 +90,7 @@ class QuestionModel {
       default: return '';
     }
   }
-}
 
-class OptionModel {
-  final String id;
-  final String texte;
-  final bool isCorrect;
-
-  OptionModel({
-    required this.id,
-    required this.texte,
-    required this.isCorrect,
-  });
-
-  factory OptionModel.fromMap(Map<String, dynamic> map) {
-    return OptionModel(
-      id: map['id']?.toString() ?? '',
-      texte: map['texte'] as String? ?? '',
-      isCorrect: map['is_correct'] as bool? ?? false,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'texte': texte,
-      'is_correct': isCorrect,
-    };
-  }
+  bool isCorrect(String selected) =>
+      selected.toUpperCase() == reponseCorrecte.toUpperCase();
 }

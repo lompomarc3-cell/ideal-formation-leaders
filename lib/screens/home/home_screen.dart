@@ -16,13 +16,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _tabs = const [
-    DashboardTab(),
-    CategoriesScreen(typeConcours: 'direct'),
-    CategoriesScreen(typeConcours: 'professionnel'),
-    ProfileScreen(),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -33,10 +26,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tabs = [
+      const DashboardTab(),
+      const CategoriesScreen(type: 'direct'),
+      const CategoriesScreen(type: 'professionnel'),
+      const ProfileScreen(),
+    ];
+
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _tabs,
+        children: tabs,
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

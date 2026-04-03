@@ -7,13 +7,13 @@ import 'config/supabase_config.dart';
 import 'services/auth_service.dart';
 import 'services/categorie_service.dart';
 import 'services/question_service.dart';
+import 'services/paiement_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialiser Supabase
   await Supabase.initialize(
     url: SupabaseConfig.url,
     anonKey: SupabaseConfig.anonKey,
@@ -32,6 +32,7 @@ class IFLApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthService()),
         ChangeNotifierProvider(create: (_) => CategorieService()),
         ChangeNotifierProvider(create: (_) => QuestionService()),
+        ChangeNotifierProvider(create: (_) => PaiementService()),
       ],
       child: MaterialApp(
         title: 'IFL - Idéal Formation Leaders',
@@ -43,7 +44,6 @@ class IFLApp extends StatelessWidget {
   }
 }
 
-// Router principal basé sur l'état d'authentification
 class AppRouter extends StatelessWidget {
   const AppRouter({super.key});
 
@@ -51,7 +51,6 @@ class AppRouter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthService>(
       builder: (context, authService, _) {
-        // Vérifier si l'utilisateur est connecté
         final session = Supabase.instance.client.auth.currentSession;
         if (session != null && authService.currentUser != null) {
           return const HomeScreen();

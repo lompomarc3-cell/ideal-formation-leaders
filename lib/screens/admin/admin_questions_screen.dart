@@ -4,18 +4,16 @@ import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../models/question_model.dart';
 import '../../services/question_service.dart';
-import 'admin_create_question_screen.dart';
-import 'admin_edit_question_screen.dart';
 
 class AdminQuestionsScreen extends StatefulWidget {
-  final String sousCategorieId;
-  final String sousCategorieNom;
+  final String categorieId;
+  final String categorieNom;
   final Color color;
 
   const AdminQuestionsScreen({
     super.key,
-    required this.sousCategorieId,
-    required this.sousCategorieNom,
+    required this.categorieId,
+    required this.categorieNom,
     required this.color,
   });
 
@@ -25,58 +23,34 @@ class AdminQuestionsScreen extends StatefulWidget {
 
 class _AdminQuestionsScreenState extends State<AdminQuestionsScreen> {
   List<QuestionModel> _questions = [];
-  bool _isLoading = true;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _loadQuestions());
+    _load();
   }
 
-  Future<void> _loadQuestions() async {
-    setState(() => _isLoading = true);
-    final qs = await context
-        .read<QuestionService>()
-        .getAllQuestions(categoryId: widget.sousCategorieId);
+  Future<void> _load() async {
+    final service = context.read<QuestionService>();
+    final qs = await service.loadByCategorie(widget.categorieId);
     setState(() {
       _questions = qs;
-      _isLoading = false;
+      _loading = false;
     });
   }
 
-  Future<void> _deleteQuestion(String id) async {
-    if (!mounted) return;
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Supprimer la question ?'),
-        content:
-            const Text('Cette action est irréversible.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annuler')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.errorColor),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
-    );
-    if (confirm == true && mounted) {
-      await context.read<QuestionService>().deleteQuestion(id);
-      _loadQuestions();
+  Future<void> _delete(QuestionModel q) async {
+    final ok = await context.read<QuestionService>()
+        .deleteQuestion(q.id, widget.categorieId);
+    if (ok) {
+      setState(() => _questions.removeWhere((x) => x.id == q.id));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Question supprimée'), duration: Duration(seconds: 1)),
+        );
+      }
     }
-  }
-
-  Future<void> _togglePublish(QuestionModel q) async {
-    await context
-        .read<QuestionService>()
-        .togglePublish(q.id, !q.isPublished);
-    _loadQuestions();
   }
 
   @override
@@ -85,232 +59,158 @@ class _AdminQuestionsScreenState extends State<AdminQuestionsScreen> {
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         backgroundColor: widget.color,
-        title: Text(widget.sousCategorieNom,
-            style: const TextStyle(fontSize: 15)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            tooltip: 'Ajouter une question',
-            onPressed: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => AdminCreateQuestionScreen(
-                    preselectedSousCategorieId: widget.sousCategorieId,
-                  ),
-                ),
-              );
-              _loadQuestions();
-            },
-          ),
-        ],
+        title: Text(
+          widget.categorieNom,
+          style: const TextStyle(fontSize: 14),
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: widget.color,
-        onPressed: () async {
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => AdminCreateQuestionScreen(
-                preselectedSousCategorieId: widget.sousCategorieId,
-              ),
-            ),
-          );
-          _loadQuestions();
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Ajouter'),
-      ),
-      body: _isLoading
+      body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _questions.isEmpty
-              ? _buildEmpty()
-              : _buildList(),
-    );
-  }
-
-  Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.quiz_outlined,
-              size: 64,
-              color: widget.color.withValues(alpha: 0.3)),
-          const SizedBox(height: 12),
-          const Text(
-            'Aucune question dans ce dossier',
-            style: TextStyle(
-                fontSize: 16, color: AppTheme.textSecondary),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: widget.color),
-            onPressed: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => AdminCreateQuestionScreen(
-                    preselectedSousCategorieId: widget.sousCategorieId,
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.quiz_outlined, size: 48,
+                          color: widget.color.withValues(alpha: 0.4)),
+                      const SizedBox(height: 12),
+                      const Text('Aucune question dans ce dossier'),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Utilisez "Upload QCM" pour ajouter des questions',
+                        style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                ),
-              );
-              _loadQuestions();
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Ajouter une question'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _questions.length,
-      itemBuilder: (context, index) {
-        final q = _questions[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: q.isPublished
-                  ? AppTheme.accentColor.withValues(alpha: 0.3)
-                  : AppTheme.dividerColor,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header question
-              Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _questions.length,
+                  itemBuilder: (_, i) {
+                    final q = _questions[i];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: widget.color.withValues(alpha: 0.15)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: widget.color.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Q${i + 1}',
+                                  style: TextStyle(
+                                    color: widget.color,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline_rounded,
+                                    color: AppTheme.errorColor, size: 20),
+                                onPressed: () => _confirmDelete(q),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                    minWidth: 28, minHeight: 28),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
                             q.enonce,
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: AppTheme.textPrimary,
+                              height: 1.4,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        // Badge publié/non publié
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: q.isPublished
-                                ? AppTheme.accentColor.withValues(alpha: 0.12)
-                                : Colors.grey.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(20),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            children: ['A', 'B', 'C', 'D'].map((l) {
+                              final isCorrect = l == q.reponseCorrecte.toUpperCase();
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: isCorrect
+                                      ? const Color(0xFFECFDF5)
+                                      : AppTheme.backgroundColor,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: isCorrect
+                                        ? const Color(0xFF10B981)
+                                        : AppTheme.dividerColor,
+                                  ),
+                                ),
+                                child: Text(
+                                  '$l: ${q.getOption(l).length > 20 ? q.getOption(l).substring(0, 20) + '...' : q.getOption(l)}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: isCorrect
+                                        ? const Color(0xFF065F46)
+                                        : AppTheme.textSecondary,
+                                    fontWeight: isCorrect
+                                        ? FontWeight.w700
+                                        : FontWeight.w400,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
-                          child: Text(
-                            q.isPublished ? 'Publié' : 'Masqué',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: q.isPublished
-                                  ? AppTheme.accentColor
-                                  : Colors.grey,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '4 options • Réponse correcte: ${q.reponseCorrecte}${q.matiere != null ? ' • ${q.matiere}' : ''}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
+                        ],
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              ),
-              // Actions
-              Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.backgroundColor,
-                  borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(14)),
-                ),
-                child: Row(
-                  children: [
-                    // Publier/Masquer
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () => _togglePublish(q),
-                        icon: Icon(
-                          q.isPublished
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          size: 16,
-                          color: q.isPublished
-                              ? Colors.grey
-                              : AppTheme.accentColor,
-                        ),
-                        label: Text(
-                          q.isPublished ? 'Masquer' : 'Publier',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: q.isPublished
-                                ? Colors.grey
-                                : AppTheme.accentColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Modifier
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  AdminEditQuestionScreen(question: q),
-                            ),
-                          );
-                          _loadQuestions();
-                        },
-                        icon: const Icon(Icons.edit, size: 16,
-                            color: AppTheme.directColor),
-                        label: const Text(
-                          'Modifier',
-                          style: TextStyle(
-                              fontSize: 12, color: AppTheme.directColor),
-                        ),
-                      ),
-                    ),
-                    // Supprimer
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () => _deleteQuestion(q.id),
-                        icon: const Icon(Icons.delete_outline,
-                            size: 16, color: AppTheme.errorColor),
-                        label: const Text(
-                          'Supprimer',
-                          style: TextStyle(
-                              fontSize: 12, color: AppTheme.errorColor),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+    );
+  }
+
+  void _confirmDelete(QuestionModel q) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Supprimer la question ?'),
+        content: Text(
+          q.enonce.length > 80
+              ? '${q.enonce.substring(0, 80)}...'
+              : q.enonce,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
           ),
-        );
-      },
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.errorColor),
+            onPressed: () {
+              Navigator.pop(context);
+              _delete(q);
+            },
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
     );
   }
 }

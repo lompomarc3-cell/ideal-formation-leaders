@@ -1,72 +1,57 @@
 // lib/models/user_model.dart
-// Adapté au VRAI schéma Supabase:
-// profiles(id, full_name, phone, province_id, exam_category_id, avatar_url, role, subscription_status, subscription_expires_at, subscription_type, created_at)
+
 class UserModel {
   final String id;
-  final String fullName;
-  final String phone;
+  final String telephone;
+  final String nom;
+  final String prenom;
   final String role; // 'user', 'admin', 'superadmin'
-  final String? avatarUrl;
-  final String subscriptionStatus; // 'free', 'active', etc.
-  final String? subscriptionType;
-  final DateTime? subscriptionExpiresAt;
+  final List<String> abonnements; // IDs des catégories payées
   final DateTime? createdAt;
 
   UserModel({
     required this.id,
-    required this.fullName,
-    required this.phone,
-    this.role = 'user',
-    this.avatarUrl,
-    this.subscriptionStatus = 'free',
-    this.subscriptionType,
-    this.subscriptionExpiresAt,
+    required this.telephone,
+    required this.nom,
+    required this.prenom,
+    required this.role,
+    this.abonnements = const [],
     this.createdAt,
   });
 
-  // Compatibilité avec le code existant qui utilise nom/prenom/telephone
-  String get nom {
-    final parts = fullName.split(' ');
-    return parts.isNotEmpty ? parts[0] : fullName;
-  }
-
-  String get prenom {
-    final parts = fullName.split(' ');
-    return parts.length > 1 ? parts.sublist(1).join(' ') : '';
-  }
-
-  String get telephone => phone;
-
-  factory UserModel.fromMap(Map<String, dynamic> map) {
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    List<String> abs = [];
+    final rawAbs = json['abonnements'];
+    if (rawAbs is List) {
+      abs = rawAbs.map((e) => e.toString()).toList();
+    }
     return UserModel(
-      id: map['id'] as String? ?? '',
-      // Support des deux formats: full_name (nouveau) ou nom+prenom (ancien)
-      fullName: map['full_name'] as String? ??
-          '${map['nom'] ?? ''} ${map['prenom'] ?? ''}'.trim(),
-      phone: map['phone'] as String? ?? map['telephone'] as String? ?? '',
-      role: map['role'] as String? ?? 'user',
-      avatarUrl: map['avatar_url'] as String?,
-      subscriptionStatus: map['subscription_status'] as String? ?? 'free',
-      subscriptionType: map['subscription_type'] as String?,
-      subscriptionExpiresAt: map['subscription_expires_at'] != null
-          ? DateTime.tryParse(map['subscription_expires_at'].toString())
-          : null,
-      createdAt: map['created_at'] != null
-          ? DateTime.tryParse(map['created_at'].toString())
+      id: json['id'] as String? ?? '',
+      telephone: json['telephone'] as String? ?? '',
+      nom: json['nom'] as String? ?? '',
+      prenom: json['prenom'] as String? ?? '',
+      role: json['role'] as String? ?? 'user',
+      abonnements: abs,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'] as String)
           : null,
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'full_name': fullName,
-      'phone': phone,
+      'telephone': telephone,
+      'nom': nom,
+      'prenom': prenom,
       'role': role,
-      'subscription_status': subscriptionStatus,
     };
   }
 
+  String get fullName => '$prenom $nom'.trim();
   bool get isAdmin => role == 'admin' || role == 'superadmin';
-  bool get hasActiveSubscription => subscriptionStatus == 'active';
+  bool get isSuperAdmin => role == 'superadmin';
+
+  bool hasCategorieAccess(String categorieId) {
+    return isAdmin || abonnements.contains(categorieId);
+  }
 }
