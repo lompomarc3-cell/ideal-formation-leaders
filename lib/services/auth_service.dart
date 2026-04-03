@@ -167,15 +167,20 @@ class AuthService extends ChangeNotifier {
       );
 
       if (res.user != null) {
-        // Insérer uniquement les colonnes qui existent dans profiles
-        // (phone, full_name, role - PAS nom/prenom/telephone séparément)
-        await _client.from('profiles').upsert({
-          'id': res.user!.id,
-          'phone': telephone,
-          'full_name': fullName,
-          'role': 'user',
-          'subscription_status': 'free',
-        });
+        // Mettre à jour le profil créé automatiquement par le trigger Supabase
+        // (upsert pour gérer le cas où le profil existe déjà via trigger)
+        try {
+          await _client.from('profiles').upsert({
+            'id': res.user!.id,
+            'phone': telephone,
+            'full_name': fullName,
+            'role': 'user',
+            'subscription_status': 'free',
+          }, onConflict: 'id');
+        } catch (profileError) {
+          // Si le profil existe déjà (créé par trigger), ignorer l'erreur
+          if (kDebugMode) debugPrint('Profile upsert (harmless): $profileError');
+        }
 
         await _loadUserProfile(res.user!.id);
         _isLoading = false;
