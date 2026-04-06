@@ -1,58 +1,45 @@
 import { supabaseAdmin } from '../../../lib/supabase'
-import { getUserFromToken } from '../../../lib/auth'
+import { verifyToken } from '../../../lib/auth'
 
 async function checkAdmin(req) {
   const token = req.headers.authorization?.replace('Bearer ', '')
-  const user = await getUserFromToken(token)
-  return user?.is_admin ? user : null
+  if (!token) return null
+  const decoded = verifyToken(token)
+  if (!decoded) return null
+  const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', decoded.userId).single()
+  if (!['admin', 'superadmin'].includes(profile?.role)) return null
+  return decoded.userId
 }
 
 export default async function handler(req, res) {
-  const admin = await checkAdmin(req)
-  if (!admin) return res.status(403).json({ error: 'Accès admin requis' })
+  const adminId = await checkAdmin(req)
+  if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
 
   try {
-    // Stats utilisateurs
-    const { count: totalUsers } = await supabaseAdmin
-      .from('ifl_users')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_admin', false)
-
-    // Stats abonnements actifs
-    const { count: activeSubscriptions } = await supabaseAdmin
-      .from('ifl_users')
-      .select('*', { count: 'exact', head: true })
-      .not('abonnement_type', 'is', null)
-      .gt('abonnement_valide_jusqua', new Date().toISOString())
-
-    // Stats paiements en attente
+    const { data: allProfiles } = await supabaseAdmin.from('profiles').select('*')
+    const { count: totalUsers } = await supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }).neq('role', 'superadmin')
+    const { count: activeSubscriptions } = await supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }).eq('subscription_status', 'active')
+    const { count: totalQuestions } = await supabaseAdmin.from('questions').select('*', { count: 'exact', head: true })
+    const { count: totalCategories } = await supabaseAdmin.from('categories').select('*', { count: 'exact', head: true })
+    
+    // Paiements en attente
     const { count: pendingPayments } = await supabaseAdmin
-      .from('ifl_payment_requests')
+      .from('correction_requests')
       .select('*', { count: 'exact', head: true })
-      .eq('valide', false)
+      .like('message', '%"type":"payment"%')
+      .eq('status', 'pending')
 
-    // Stats questions
-    const { count: totalQuestions } = await supabaseAdmin
-      .from('ifl_questions')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_demo', false)
-
-    // Derniers inscrits
-    const { data: recentUsers } = await supabaseAdmin
-      .from('ifl_users')
-      .select('id, nom, prenom, phone, abonnement_type, created_at')
-      .eq('is_admin', false)
-      .order('created_at', { ascending: false })
-      .limit(5)
+    const recentUsers = allProfiles?.filter(p => !['admin', 'superadmin'].includes(p.role)).slice(-10).reverse() || []
 
     return res.json({
       stats: {
         totalUsers: totalUsers || 0,
         activeSubscriptions: activeSubscriptions || 0,
-        pendingPayments: pendingPayments || 0,
-        totalQuestions: totalQuestions || 0
+        totalQuestions: totalQuestions || 0,
+        totalCategories: totalCategories || 0,
+        pendingPayments: pendingPayments || 0
       },
-      recentUsers: recentUsers || []
+      recentUsers
     })
   } catch (error) {
     return res.status(500).json({ error: error.message })

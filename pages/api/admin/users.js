@@ -1,46 +1,45 @@
 import { supabaseAdmin } from '../../../lib/supabase'
-import { getUserFromToken, hashPassword } from '../../../lib/auth'
+import { verifyToken } from '../../../lib/auth'
 
 async function checkAdmin(req) {
   const token = req.headers.authorization?.replace('Bearer ', '')
-  const user = await getUserFromToken(token)
-  return user?.is_admin ? user : null
+  if (!token) return null
+  const decoded = verifyToken(token)
+  if (!decoded) return null
+  const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', decoded.userId).single()
+  if (!['admin', 'superadmin'].includes(profile?.role)) return null
+  return decoded.userId
 }
 
 export default async function handler(req, res) {
-  const admin = await checkAdmin(req)
-  if (!admin) return res.status(403).json({ error: 'Accès admin requis' })
+  const adminId = await checkAdmin(req)
+  if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
 
   if (req.method === 'GET') {
-    const { page = 1, limit = 20 } = req.query
-    const offset = (page - 1) * limit
-
-    const { data: users, error, count } = await supabaseAdmin
-      .from('ifl_users')
-      .select('id, phone, nom, prenom, role, is_admin, abonnement_type, abonnement_valide_jusqua, is_active, created_at', { count: 'exact' })
-      .eq('is_admin', false)
+    const { data: users, error } = await supabaseAdmin
+      .from('profiles')
+      .select('*')
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
 
     if (error) return res.status(500).json({ error: error.message })
-    return res.json({ users, total: count })
+    return res.json({ users: users || [] })
   }
 
   if (req.method === 'PUT') {
-    const { id, abonnement_type, abonnement_valide_jusqua, is_active, password } = req.body
+    const { id, subscription_type, subscription_expires_at, subscription_status, role } = req.body
     if (!id) return res.status(400).json({ error: 'ID requis' })
 
     const updates = {}
-    if (abonnement_type !== undefined) updates.abonnement_type = abonnement_type
-    if (abonnement_valide_jusqua !== undefined) updates.abonnement_valide_jusqua = abonnement_valide_jusqua
-    if (is_active !== undefined) updates.is_active = is_active
-    if (password) updates.password_hash = await hashPassword(password)
+    if (subscription_type !== undefined) updates.subscription_type = subscription_type || null
+    if (subscription_expires_at !== undefined) updates.subscription_expires_at = subscription_expires_at || null
+    if (subscription_status !== undefined) updates.subscription_status = subscription_status
+    if (role !== undefined) updates.role = role
 
     const { data, error } = await supabaseAdmin
-      .from('ifl_users')
+      .from('profiles')
       .update(updates)
       .eq('id', id)
-      .select('id, phone, nom, prenom, abonnement_type, abonnement_valide_jusqua, is_active')
+      .select()
       .single()
 
     if (error) return res.status(500).json({ error: error.message })

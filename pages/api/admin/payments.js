@@ -1,64 +1,48 @@
 import { supabaseAdmin } from '../../../lib/supabase'
-import { getUserFromToken } from '../../../lib/auth'
+import { verifyToken } from '../../../lib/auth'
 
 async function checkAdmin(req) {
   const token = req.headers.authorization?.replace('Bearer ', '')
-  const user = await getUserFromToken(token)
-  return user?.is_admin ? user : null
+  if (!token) return null
+  const decoded = verifyToken(token)
+  if (!decoded) return null
+  const { data: p } = await supabaseAdmin.from('profiles').select('role').eq('id', decoded.userId).single()
+  return ['admin', 'superadmin'].includes(p?.role) ? decoded.userId : null
 }
 
 export default async function handler(req, res) {
-  const admin = await checkAdmin(req)
-  if (!admin) return res.status(403).json({ error: 'Accès admin requis' })
+  const adminId = await checkAdmin(req)
+  if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
 
+  // GET - Liste des demandes de paiement
   if (req.method === 'GET') {
-    const { page = 1, limit = 20 } = req.query
-    const offset = (page - 1) * limit
-
-    const { data: payments, error, count } = await supabaseAdmin
-      .from('ifl_payment_requests')
-      .select('*, ifl_users(nom, prenom, phone)', { count: 'exact' })
-      .order('date_demande', { ascending: false })
-      .range(offset, offset + limit - 1)
+    const { data: payments, error } = await supabaseAdmin
+      .from('correction_requests')
+      .select('*, profiles(full_name, phone)')
+      .like('message', '%"type":"payment"%')
+      .order('created_at', { ascending: false })
 
     if (error) return res.status(500).json({ error: error.message })
-    return res.json({ payments, total: count })
-  }
 
-  if (req.method === 'PUT') {
-    const { id, valide, notes_admin, type_concours, user_id } = req.body
+    // Décoder les messages JSON
+    const decoded = (payments || []).map(p => {
+      let payData = {}
+      try { payData = JSON.parse(p.message) } catch {}
+      return {
+        ...p,
+        montant: payData.montant,
+        type_concours: payData.type_concours,
+        capture_url: payData.capture_url,
+        numero_paiement: payData.numero_paiement,
+        notes: payData.notes,
+        valide: p.status === 'approved',
+        date_demande: p.created_at,
+        user_name: p.profiles?.full_name,
+        user_phone: p.profiles?.phone
+      }
+    })
 
-    if (!id) return res.status(400).json({ error: 'ID requis' })
-
-    // Mettre à jour la demande
-    const { error: payError } = await supabaseAdmin
-      .from('ifl_payment_requests')
-      .update({
-        valide,
-        notes_admin,
-        date_validation: valide ? new Date().toISOString() : null
-      })
-      .eq('id', id)
-
-    if (payError) return res.status(500).json({ error: payError.message })
-
-    // Si validé, activer l'abonnement de l'utilisateur
-    if (valide && user_id && type_concours) {
-      const validDate = new Date()
-      validDate.setFullYear(validDate.getFullYear() + 1) // 1 an
-
-      const { error: userError } = await supabaseAdmin
-        .from('ifl_users')
-        .update({
-          abonnement_type: type_concours,
-          abonnement_valide_jusqua: validDate.toISOString()
-        })
-        .eq('id', user_id)
-
-      if (userError) return res.status(500).json({ error: userError.message })
-    }
-
-    return res.json({ success: true, message: valide ? 'Paiement validé et abonnement activé' : 'Paiement rejeté' })
+    return res.json({ payments: decoded })
   }
 
   return res.status(405).json({ error: 'Method not allowed' })

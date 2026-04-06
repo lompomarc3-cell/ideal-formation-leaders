@@ -1,45 +1,70 @@
 import { supabaseAdmin } from '../../../lib/supabase'
-import { getUserFromToken } from '../../../lib/auth'
+import { verifyToken } from '../../../lib/auth'
 
 export default async function handler(req, res) {
-  const token = req.headers.authorization?.replace('Bearer ', '')
-  const user = token ? await getUserFromToken(token) : null
-  const { categorie_id } = req.query
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
 
-  if (!user) return res.status(401).json({ error: 'Connexion requise' })
-  if (!categorie_id) return res.status(400).json({ error: 'categorie_id requis' })
+  const { category_id, is_demo } = req.query
 
-  try {
-    // Récupérer la catégorie pour vérifier le type
-    const { data: cat } = await supabaseAdmin
-      .from('ifl_categories')
-      .select('type_concours')
-      .eq('id', categorie_id)
-      .single()
+  // Vérifier l'auth seulement pour les questions non-démo
+  if (!is_demo) {
+    const token = req.headers.authorization?.replace('Bearer ', '')
+    if (!token) return res.status(401).json({ error: 'Connexion requise' })
 
-    if (!user.is_admin && cat) {
-      if (!user.abonnement_type) {
-        return res.status(403).json({ error: 'Abonnement requis', requirePayment: true })
-      }
-      if (user.abonnement_valide_jusqua && new Date(user.abonnement_valide_jusqua) < new Date()) {
-        return res.status(403).json({ error: 'Abonnement expiré' })
-      }
-      if (user.abonnement_type !== cat.type_concours && user.abonnement_type !== 'all') {
-        return res.status(403).json({ error: 'Abonnement inadapté', requirePayment: true })
+    const decoded = verifyToken(token)
+    if (!decoded) return res.status(401).json({ error: 'Token invalide' })
+
+    // Vérifier l'abonnement si catégorie spécifique
+    if (category_id) {
+      const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('role, subscription_status, subscription_type, subscription_expires_at')
+        .eq('id', decoded.userId)
+        .single()
+
+      const isAdmin = ['admin', 'superadmin'].includes(profile?.role)
+      
+      if (!isAdmin) {
+        // Vérifier l'abonnement
+        const { data: category } = await supabaseAdmin
+          .from('categories')
+          .select('type')
+          .eq('id', category_id)
+          .single()
+
+        const hasActive = profile?.subscription_status === 'active' &&
+          profile?.subscription_expires_at &&
+          new Date(profile.subscription_expires_at) > new Date()
+
+        if (!hasActive) {
+          return res.status(403).json({ error: 'Abonnement requis pour accéder à ce contenu.' })
+        }
+
+        if (category?.type === 'professionnel' && profile?.subscription_type === 'direct') {
+          return res.status(403).json({ error: 'Abonnement Concours Professionnels requis.' })
+        }
+        if (category?.type === 'direct' && profile?.subscription_type === 'professionnel') {
+          return res.status(403).json({ error: 'Abonnement Concours Directs requis.' })
+        }
       }
     }
+  }
 
-    const { data: questions, error } = await supabaseAdmin
-      .from('ifl_questions')
-      .select('*')
-      .eq('categorie_id', categorie_id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: true })
+  try {
+    let query = supabaseAdmin.from('questions').select('*').eq('is_active', true)
+
+    if (is_demo === 'true') {
+      query = query.eq('is_demo', true).limit(10)
+    } else if (category_id) {
+      query = query.eq('category_id', category_id)
+    }
+
+    const { data: questions, error } = await query
 
     if (error) throw error
 
-    return res.json({ questions })
+    return res.json({ questions: questions || [] })
   } catch (error) {
-    return res.status(500).json({ error: error.message })
+    return res.status(500).json({ error: 'Erreur: ' + error.message })
   }
 }

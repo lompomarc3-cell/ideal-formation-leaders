@@ -1,46 +1,53 @@
 import { supabaseAdmin } from '../../../lib/supabase'
+import { verifyToken } from '../../../lib/auth'
+
+async function checkAdmin(req) {
+  const token = req.headers.authorization?.replace('Bearer ', '')
+  if (!token) return null
+  const decoded = verifyToken(token)
+  if (!decoded) return null
+  const { data: p } = await supabaseAdmin.from('profiles').select('role').eq('id', decoded.userId).single()
+  return ['admin', 'superadmin'].includes(p?.role) ? decoded.userId : null
+}
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
+  const adminId = await checkAdmin(req)
+  if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
 
-  const { requestId, userId, paymentType, adminKey } = req.body
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  // Simple admin key check
-  if (adminKey !== 'IFL_ADMIN_2025') {
-    return res.status(403).json({ error: 'Non autorisé' })
-  }
+  const { payment_id, user_id, type_concours } = req.body
+  if (!payment_id || !user_id) return res.status(400).json({ error: 'Paramètres manquants' })
 
   try {
-    // Update request
-    await supabaseAdmin
+    // 1. Valider le paiement
+    const { error: updateErr } = await supabaseAdmin
       .from('correction_requests')
-      .update({ 
-        status: 'resolved',
-        admin_response: 'Paiement validé - accès activé'
+      .update({
+        status: 'approved',
+        admin_response: `Validé par admin le ${new Date().toLocaleDateString('fr-FR')}`
       })
-      .eq('id', requestId)
+      .eq('id', payment_id)
 
-    // Activate user subscription
+    if (updateErr) throw updateErr
+
+    // 2. Activer l'abonnement
     const expiresAt = new Date()
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1)
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1) // 1 an
 
-    const { data, error } = await supabaseAdmin
+    const { error: subErr } = await supabaseAdmin
       .from('profiles')
       .update({
         subscription_status: 'active',
-        subscription_type: paymentType,
+        subscription_type: type_concours || 'direct',
         subscription_expires_at: expiresAt.toISOString()
       })
-      .eq('id', userId)
-      .select()
-      .single()
+      .eq('id', user_id)
 
-    if (error) throw error
+    if (subErr) throw subErr
 
-    return res.status(200).json({ success: true, profile: data })
-  } catch (err) {
-    return res.status(500).json({ error: err.message })
+    return res.json({ success: true, message: 'Paiement validé et abonnement activé' })
+  } catch (error) {
+    return res.status(500).json({ error: error.message })
   }
 }

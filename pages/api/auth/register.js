@@ -14,13 +14,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères.' })
   }
 
-  // Normaliser le téléphone
   let normalizedPhone = phone.trim().replace(/\s/g, '')
   if (!normalizedPhone.startsWith('+226')) {
     normalizedPhone = '+226' + normalizedPhone.replace(/^0+/, '')
   }
 
-  // Vérifier que c'est un numéro burkinabè valide
   if (normalizedPhone.length < 12) {
     return res.status(400).json({ error: 'Numéro de téléphone invalide. Format: +226XXXXXXXX' })
   }
@@ -28,7 +26,7 @@ export default async function handler(req, res) {
   try {
     // Vérifier si déjà existant
     const { data: existing } = await supabaseAdmin
-      .from('ifl_users')
+      .from('profiles')
       .select('id')
       .eq('phone', normalizedPhone)
       .maybeSingle()
@@ -37,43 +35,57 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Ce numéro de téléphone est déjà enregistré.' })
     }
 
+    const full_name = `${nom.toUpperCase().trim()} ${prenom.trim()}`
     const password_hash = await hashPassword(password)
 
-    const { data: user, error } = await supabaseAdmin
-      .from('ifl_users')
+    // Créer le profil
+    const { data: profile, error } = await supabaseAdmin
+      .from('profiles')
       .insert({
         phone: normalizedPhone,
-        nom: nom.toUpperCase().trim(),
-        prenom: prenom.trim(),
-        password_hash,
+        full_name,
         role: 'user',
-        is_admin: false,
-        is_active: true
+        subscription_status: 'free',
+        subscription_type: null,
+        subscription_expires_at: null
       })
-      .select('id, phone, nom, prenom, role, is_admin, abonnement_type, abonnement_valide_jusqua, created_at')
+      .select()
       .single()
 
     if (error) {
       return res.status(400).json({ error: 'Erreur lors de la création du compte. ' + error.message })
     }
 
-    const token = generateToken(user.id, user.is_admin)
+    // Stocker le password_hash dans correction_requests (type auth)
+    await supabaseAdmin.from('correction_requests').insert({
+      user_id: profile.id,
+      question_id: null,
+      message: JSON.stringify({ password_hash, nom: nom.toUpperCase().trim(), prenom: prenom.trim() }),
+      status: 'auth',
+      admin_response: 'password_storage'
+    })
+
+    const isAdmin = ['admin', 'superadmin'].includes(profile.role)
+    const token = generateToken(profile.id, isAdmin)
 
     return res.status(201).json({
       success: true,
       token,
       user: {
-        id: user.id,
-        phone: user.phone,
-        nom: user.nom,
-        prenom: user.prenom,
-        role: user.role,
-        is_admin: user.is_admin,
-        abonnement_type: user.abonnement_type,
-        abonnement_valide_jusqua: user.abonnement_valide_jusqua
+        id: profile.id,
+        phone: profile.phone,
+        nom: nom.toUpperCase().trim(),
+        prenom: prenom.trim(),
+        full_name: profile.full_name,
+        role: profile.role,
+        is_admin: isAdmin,
+        abonnement_type: profile.subscription_type,
+        abonnement_valide_jusqua: profile.subscription_expires_at,
+        subscription_status: profile.subscription_status
       }
     })
   } catch (error) {
+    console.error('Register error:', error)
     return res.status(500).json({ error: 'Erreur serveur: ' + error.message })
   }
 }

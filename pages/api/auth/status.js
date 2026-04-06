@@ -1,45 +1,31 @@
 import { supabaseAdmin } from '../../../lib/supabase'
-import bcrypt from 'bcryptjs'
-
-let initialized = false
-
-// Cette fonction s'exécute lors du premier appel à n'importe quelle route
-export async function ensureTablesExist() {
-  if (initialized) return true
-  
-  // Vérifier si les tables existent
-  const { error: checkError } = await supabaseAdmin
-    .from('ifl_users')
-    .select('id')
-    .limit(1)
-  
-  if (!checkError) {
-    initialized = true
-    return true
-  }
-  
-  // Tables n'existent pas - on ne peut pas les créer via REST API
-  // Retourner false pour que l'app affiche un message d'erreur
-  return false
-}
+import { verifyToken } from '../../../lib/auth'
 
 export default async function handler(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+
   const token = req.headers.authorization?.replace('Bearer ', '')
-  
-  // Vérifier que les tables existent  
-  const { error: checkError } = await supabaseAdmin
-    .from('ifl_users')
-    .select('id')
-    .limit(1)
-    .maybeSingle()
+  if (!token) return res.json({ authenticated: false })
 
-  if (checkError && checkError.code === 'PGRST205') {
-    return res.status(503).json({
-      error: 'database_not_initialized',
-      message: 'Les tables de base de données doivent être créées.',
-      sqlRequired: true
+  const decoded = verifyToken(token)
+  if (!decoded) return res.json({ authenticated: false })
+
+  try {
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('id, role, subscription_status, subscription_type, subscription_expires_at')
+      .eq('id', decoded.userId)
+      .single()
+
+    if (!profile) return res.json({ authenticated: false })
+
+    return res.json({
+      authenticated: true,
+      is_admin: ['admin', 'superadmin'].includes(profile.role),
+      subscription_status: profile.subscription_status,
+      subscription_type: profile.subscription_type
     })
+  } catch {
+    return res.json({ authenticated: false })
   }
-
-  return res.json({ status: 'ok', initialized: true })
 }

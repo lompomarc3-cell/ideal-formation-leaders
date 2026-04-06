@@ -1,40 +1,68 @@
 import { supabaseAdmin } from '../../../lib/supabase'
-import { getUserFromToken } from '../../../lib/auth'
+import { verifyToken } from '../../../lib/auth'
 
 export default async function handler(req, res) {
-  const token = req.headers.authorization?.replace('Bearer ', '')
-  const user = token ? await getUserFromToken(token) : null
-
-  const { type } = req.query // 'direct' ou 'professionnel'
-
-  // Vérifier l'accès
-  if (!user) {
-    return res.status(401).json({ error: 'Connexion requise' })
-  }
-
-  if (!user.is_admin) {
-    if (!user.abonnement_type) {
-      return res.status(403).json({ error: 'Abonnement requis', requirePayment: true })
-    }
-    if (user.abonnement_valide_jusqua && new Date(user.abonnement_valide_jusqua) < new Date()) {
-      return res.status(403).json({ error: 'Abonnement expiré', requirePayment: true })
-    }
-    if (type && user.abonnement_type !== type && user.abonnement_type !== 'all') {
-      return res.status(403).json({ error: `Abonnement '${type}' requis`, requirePayment: true })
-    }
-  }
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
-    let query = supabaseAdmin.from('ifl_categories').select('*').eq('is_active', true)
-    if (type) query = query.eq('type_concours', type)
-    query = query.order('ordre', { ascending: true })
-
-    const { data: categories, error } = await query
+    // Catégories publiques (pas besoin d'auth pour afficher)
+    const { data: categories, error } = await supabaseAdmin
+      .from('categories')
+      .select('*')
+      .eq('is_active', true)
+      .order('type')
+      .order('nom')
 
     if (error) throw error
 
-    return res.json({ categories })
+    // Trier: direct d'abord, puis professionnel
+    const direct = categories.filter(c => c.type === 'direct')
+    const pro = categories.filter(c => c.type === 'professionnel')
+
+    // Ordre spécifique pour les concours directs
+    const ordresDirect = [
+      'Actualité / Culture Générale',
+      'Français',
+      'Littérature et Art',
+      'H-G (Histoire-Géographie)',
+      'SVT (Sciences de la Vie et de la Terre)',
+      'Psychotechniques',
+      'Matchs',
+      'PC (Physique-Chimie)',
+      'Entraînement QCM',
+      'Accompagnement Final'
+    ]
+
+    const ordresPro = [
+      'Spécialités Vie Scolaire – CASU/AASU',
+      'Spécialités CISU/AISU – ENAREF',
+      'Inspectorat – IES/IEPENF',
+      'Professeurs Agrégés',
+      'CAPES – Toutes Options',
+      'Administrateur des Hôpitaux',
+      'Spécialités Santé',
+      'Spécialités GSP (Gestion des Services Publics)',
+      'Spécialités Police',
+      'Administrateur Civil',
+      'Entraînement QCM',
+      'Accompagnement Final'
+    ]
+
+    const sortCats = (cats, ordre) => {
+      return cats.sort((a, b) => {
+        const ia = ordre.findIndex(n => a.nom.includes(n.split(' ')[0]))
+        const ib = ordre.findIndex(n => b.nom.includes(n.split(' ')[0]))
+        if (ia === -1 && ib === -1) return a.nom.localeCompare(b.nom)
+        if (ia === -1) return 1
+        if (ib === -1) return -1
+        return ia - ib
+      })
+    }
+
+    return res.json({
+      categories: [...sortCats(direct, ordresDirect), ...sortCats(pro, ordresPro)]
+    })
   } catch (error) {
-    return res.status(500).json({ error: error.message })
+    return res.status(500).json({ error: 'Erreur: ' + error.message })
   }
 }

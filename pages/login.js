@@ -7,14 +7,16 @@ import { useAuth } from './_app'
 export default function Login() {
   const { user, loading, login } = useAuth()
   const router = useRouter()
-  const [form, setForm] = useState({ phone: '+226', password: '' })
-  const [showPass, setShowPass] = useState(false)
+  const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (!loading && user) {
-      router.push(user.is_admin ? '/admin' : '/dashboard')
+      if (user.is_admin) router.push('/admin')
+      else router.push('/dashboard')
     }
   }, [user, loading, router])
 
@@ -23,112 +25,133 @@ export default function Login() {
     setError('')
     setSubmitting(true)
     try {
-      const userData = await login(form.phone, form.password)
-      router.push(userData.is_admin ? '/admin' : '/dashboard')
+      const loggedUser = await login(phone, password)
+      if (loggedUser.is_admin) router.push('/admin')
+      else router.push('/dashboard')
     } catch (err) {
       setError(err.message)
-    } finally {
-      setSubmitting(false)
     }
+    setSubmitting(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1A4731 0%, #C4521A 100%)' }}>
+        <div className="spinner mx-auto"></div>
+      </div>
+    )
   }
 
   return (
     <>
-      <Head>
-        <title>Connexion – IFL</title>
-      </Head>
-      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(160deg, #1A4731 0%, #2D6A4F 60%, #C4521A 100%)' }}>
+      <Head><title>Connexion – IFL</title></Head>
+      <div className="min-h-screen african-pattern flex flex-col" style={{ background: '#FFF8F0' }}>
         {/* Header */}
-        <div className="text-center pt-10 pb-6">
-          <Link href="/">
-            <div className="inline-block mb-3 shadow-xl" style={{ borderRadius: '20px', overflow: 'hidden', border: '3px solid rgba(212,160,23,0.8)' }}>
-              <img src="/logo.png" alt="IFL" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '17px' }} />
+        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #1A2F20 100%)' }} className="shadow-lg">
+          <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3">
+              <img src="/logo.png" alt="IFL" style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '12px' }} />
+              <div>
+                <h1 className="text-white font-bold text-base leading-tight">IFL</h1>
+                <p className="text-green-200 text-xs">Formation of Leader</p>
+              </div>
+            </Link>
+          </div>
+        </header>
+
+        <div className="flex-1 flex items-start justify-center pt-8 px-4 pb-8">
+          <div className="w-full max-w-sm">
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 mx-auto mb-4 overflow-hidden shadow-lg" style={{ borderRadius: '20px' }}>
+                <img src="/logo.png" alt="IFL" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '20px' }} />
+              </div>
+              <h2 className="text-2xl font-extrabold" style={{ color: '#1A4731' }}>Connexion</h2>
+              <p className="text-gray-500 text-sm mt-1">Entrez votre numéro et mot de passe</p>
             </div>
-          </Link>
-          <h1 className="text-white text-3xl font-extrabold">Connexion</h1>
-          <p className="text-green-200 mt-1">Accédez à vos cours</p>
-        </div>
 
-        {/* Form Card */}
-        <div className="flex-1 px-4 pb-8">
-          <div className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl p-6">
-            {error && (
-              <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-xl text-red-700 text-sm font-medium">
-                ⚠️ {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-gray-700 font-semibold mb-2 text-base">
-                  📱 Numéro de téléphone
-                </label>
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
-                  placeholder="+226 XX XX XX XX"
-                  className="input-field"
-                  required
-                  autoFocus
-                />
-                <p className="text-gray-400 text-xs mt-1">Format: +226XXXXXXXX</p>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-semibold mb-2 text-base">
-                  🔒 Mot de passe
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPass ? 'text' : 'password'}
-                    value={form.password}
-                    onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-                    placeholder="Votre mot de passe"
-                    className="input-field pr-14"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(!showPass)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 p-1"
-                    style={{ fontSize: '22px' }}
-                    aria-label={showPass ? 'Masquer' : 'Afficher'}
-                  >
-                    {showPass ? '🙈' : '👁️'}
-                  </button>
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              {error && (
+                <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 mb-5">
+                  <p className="text-red-700 text-sm font-medium">⚠️ {error}</p>
                 </div>
-              </div>
+              )}
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full py-4 text-xl font-bold text-white rounded-2xl transition-all shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-60"
-                style={{ background: submitting ? '#999' : 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }}
-              >
-                {submitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                    Connexion...
-                  </span>
-                ) : '🔑 Se connecter'}
-              </button>
-            </form>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    📱 Numéro de téléphone (+226)
+                  </label>
+                  <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden focus-within:border-amber-400 transition-all">
+                    <span className="px-3 py-3.5 bg-gray-50 text-gray-500 font-semibold text-sm border-r border-gray-200">+226</span>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={e => setPhone(e.target.value)}
+                      placeholder="XX XX XX XX"
+                      className="flex-1 px-3 py-3.5 text-base outline-none bg-white"
+                      required
+                      autoComplete="tel"
+                    />
+                  </div>
+                </div>
 
-            <div className="mt-6 pt-5 border-t border-gray-100 text-center space-y-3">
-              <p className="text-gray-500 text-sm">Pas encore de compte ?</p>
-              <Link href="/register" className="block w-full py-3 text-center font-bold rounded-xl border-2 transition-all active:scale-95" style={{ color: '#C4521A', borderColor: '#C4521A' }}>
-                S'inscrire maintenant
-              </Link>
-              <Link href="/demo" className="block text-amber-600 font-medium hover:text-amber-700 text-sm">
-                🎯 Essayer la démo gratuite (sans compte)
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    🔒 Mot de passe
+                  </label>
+                  <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden focus-within:border-amber-400 transition-all">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="Votre mot de passe"
+                      className="flex-1 px-4 py-3.5 text-base outline-none bg-white"
+                      required
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="px-4 py-3 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPassword ? (
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                      ) : (
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full py-4 text-lg font-bold text-white rounded-xl active:scale-95 transition-all shadow-md disabled:opacity-60"
+                  style={{ background: '#C4521A' }}
+                >
+                  {submitting ? '⏳ Connexion...' : '🔓 Se connecter'}
+                </button>
+              </form>
+            </div>
+
+            <div className="text-center mt-6 space-y-3">
+              <p className="text-gray-600">
+                Pas encore de compte ?{' '}
+                <Link href="/register" className="font-bold hover:underline" style={{ color: '#C4521A' }}>
+                  S'inscrire
+                </Link>
+              </p>
+              <Link href="/demo" className="block text-gray-500 text-sm hover:text-gray-700">
+                🎯 Essayer la démo gratuite d'abord →
               </Link>
             </div>
           </div>
-
-          <p className="text-center text-green-200 text-sm mt-6">
-            <Link href="/" className="hover:text-white">← Retour à l'accueil</Link>
-          </p>
         </div>
       </div>
     </>

@@ -3,283 +3,249 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
-import { CATEGORIES_DIRECT, CATEGORIES_PRO } from '../lib/data'
+
+const CATEGORIES_DIRECT = [
+  { nom: 'Actualité / Culture générale', icone: '🌍' },
+  { nom: 'Français', icone: '📚' },
+  { nom: 'Littérature et art', icone: '🎨' },
+  { nom: 'Histoire-Géographie', icone: '🗺️' },
+  { nom: 'SVT', icone: '🧬' },
+  { nom: 'Psychotechniques', icone: '🧠' },
+  { nom: 'Maths', icone: '📐' },
+  { nom: 'Physique-Chimie', icone: '⚗️' },
+  { nom: 'Entraînement QCM', icone: '✏️' },
+  { nom: 'Accompagnement final', icone: '🎯' },
+]
+
+const CATEGORIES_PRO = [
+  { nom: 'Spécialités Vie scolaire (CASU/AASU)', icone: '🏫' },
+  { nom: 'Spécialités CISU/AISU/ENAREF', icone: '🏛️' },
+  { nom: 'Inspectorat (IES/IEPENF)', icone: '🔍' },
+  { nom: 'Agrégés', icone: '🎓' },
+  { nom: 'CAPES toutes options', icone: '📖' },
+  { nom: 'Administrateur des hôpitaux', icone: '🏥' },
+  { nom: 'Spécialités santé', icone: '💊' },
+  { nom: 'Spécialités GSP', icone: '🛡️' },
+  { nom: 'Spécialités police', icone: '👮' },
+  { nom: 'Administrateur civil', icone: '📋' },
+  { nom: 'Entraînement QCM', icone: '✏️' },
+  { nom: 'Accompagnement final', icone: '🎯' },
+]
 
 export default function Dashboard() {
   const { user, loading, logout, getToken } = useAuth()
   const router = useRouter()
   const [categories, setCategories] = useState([])
-  const [loadingCats, setLoadingCats] = useState(false)
+  const [progress, setProgress] = useState({})
   const [activeTab, setActiveTab] = useState('direct')
-  const [prices, setPrices] = useState({ direct: 5000, professionnel: 20000 })
-  const [showPayment, setShowPayment] = useState(null)
-  const [paymentStatus, setPaymentStatus] = useState('')
-  const [requestingSub, setRequestingSub] = useState(false)
+  const [loadingCats, setLoadingCats] = useState(true)
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login')
-    }
+    if (!loading && !user) router.push('/login')
   }, [user, loading, router])
 
   useEffect(() => {
     if (user) {
       fetchCategories()
-      fetchPrices()
+      fetchProgress()
     }
   }, [user])
 
   const fetchCategories = async () => {
-    setLoadingCats(true)
     try {
       const token = getToken()
       const res = await fetch('/api/quiz/categories', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
-      if (data.categories) setCategories(data.categories)
+      setCategories(data.categories || [])
     } catch (e) {}
     setLoadingCats(false)
   }
 
-  const fetchPrices = async () => {
+  const fetchProgress = async () => {
     try {
-      const res = await fetch('/api/admin/prices')
+      const token = getToken()
+      const res = await fetch('/api/quiz/progress', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       const data = await res.json()
-      if (data.prices) {
-        const p = {}
-        data.prices.forEach(pr => p[pr.type_concours] = pr.prix)
-        setPrices(p)
-      }
+      const progressMap = {}
+      data.progress?.forEach(p => { progressMap[p.category_id] = p })
+      setProgress(progressMap)
     } catch (e) {}
   }
 
-  const requestSubscription = async (type) => {
-    setRequestingSub(true)
-    setPaymentStatus('')
-    try {
-      const token = getToken()
-      const res = await fetch('/api/payment/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          montant: prices[type],
-          type_concours: type,
-          numero_paiement: user.phone
-        })
-      })
-      const data = await res.json()
-      if (data.success) {
-        setPaymentStatus(data.message)
-      }
-    } catch (e) {
-      setPaymentStatus('Erreur lors de la demande.')
-    }
-    setRequestingSub(false)
-  }
-
-  const hasAccess = (type) => {
+  const hasSubscription = (type) => {
     if (!user) return false
     if (user.is_admin) return true
-    if (!user.abonnement_type) return false
-    if (user.abonnement_valide_jusqua && new Date(user.abonnement_valide_jusqua) < new Date()) return false
+    if (!user.abonnement_type || !user.abonnement_valide_jusqua) return false
+    if (new Date(user.abonnement_valide_jusqua) < new Date()) return false
     return user.abonnement_type === type || user.abonnement_type === 'all'
   }
 
-  const getCats = (type) => {
-    const dbCats = categories.filter(c => c.type_concours === type)
-    if (dbCats.length > 0) return dbCats
-    return (type === 'direct' ? CATEGORIES_DIRECT : CATEGORIES_PRO).map((c, i) => ({
-      id: `local-${type}-${i}`,
-      ...c,
-      type_concours: type
-    }))
+  const hasDirectSub = hasSubscription('direct')
+  const hasProSub = hasSubscription('professionnel')
+
+  const getCategoryByName = (nom) => {
+    return categories.find(c => c.nom.toLowerCase().includes(nom.toLowerCase().split(' ')[0]))
   }
 
-  if (loading) {
+  if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#FFF8F0' }}>
-        <div className="text-center"><div className="spinner mx-auto"></div></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1A4731 0%, #C4521A 100%)' }}>
+        <div className="text-center">
+          <div className="spinner mx-auto mb-4"></div>
+          <p className="text-white">Chargement...</p>
+        </div>
       </div>
     )
   }
 
-  if (!user) return null
-
-  const subExpired = user.abonnement_valide_jusqua && new Date(user.abonnement_valide_jusqua) < new Date()
-  const hasDirectAccess = hasAccess('direct')
-  const hasProAccess = hasAccess('professionnel')
+  const displayCats = activeTab === 'direct' ? CATEGORIES_DIRECT : CATEGORIES_PRO
+  const hasSub = activeTab === 'direct' ? hasDirectSub : hasProSub
+  const subPrice = activeTab === 'direct' ? 5000 : 20000
 
   return (
     <>
-      <Head><title>Tableau de bord – IFL</title></Head>
-      <div className="min-h-screen african-pattern" style={{ background: '#FFF8F0' }}>
+      <Head><title>Mon espace – IFL</title></Head>
+      <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
         {/* Header */}
-        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }} className="sticky top-0 z-40 shadow-lg">
+        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #1A2F20 100%)' }} className="sticky top-0 z-40 shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="IFL" style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '12px' }} />
               <div>
-                <p className="text-white font-bold leading-tight">Bonjour, {user.prenom} 👋</p>
-                <p className="text-green-200 text-xs">{user.abonnement_type ? (subExpired ? '⚠️ Abonnement expiré' : `✅ Abonné ${user.abonnement_type}`) : '🆓 Compte gratuit'}</p>
+                <p className="text-white font-bold text-sm leading-tight">{user.nom} {user.prenom}</p>
+                <p className="text-green-200 text-xs">{user.phone}</p>
               </div>
             </div>
-            <button onClick={logout} className="text-green-200 hover:text-white p-2 rounded-lg transition-colors">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
-              </svg>
-            </button>
+            <div className="flex items-center gap-2">
+              {user.is_admin && (
+                <Link href="/admin" className="px-3 py-1.5 text-xs font-bold text-white rounded-lg" style={{ background: '#C4521A' }}>
+                  ⚙️ Admin
+                </Link>
+              )}
+              <button onClick={() => { logout(); router.push('/') }} className="p-2 text-green-200 hover:text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </header>
 
         <div className="max-w-lg mx-auto px-4 py-6">
-          {/* Status Card */}
-          {!user.is_admin && !user.abonnement_type && (
-            <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 mb-6">
-              <p className="font-bold text-amber-800 text-lg mb-1">📌 Accès au contenu payant</p>
-              <p className="text-amber-700 text-sm mb-4">Abonnez-vous pour accéder aux dossiers de préparation</p>
-              <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => setShowPayment('direct')} className="py-3 text-sm font-bold text-white rounded-xl" style={{ background: '#1A4731' }}>
-                  Directs: {prices.direct?.toLocaleString()} FCFA
-                </button>
-                <button onClick={() => setShowPayment('professionnel')} className="py-3 text-sm font-bold text-white rounded-xl" style={{ background: '#C4521A' }}>
-                  Pro: {prices.professionnel?.toLocaleString()} FCFA
-                </button>
+          {/* Statut abonnement */}
+          <div className="mb-6">
+            {!hasDirectSub && !hasProSub ? (
+              <div className="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4">
+                <p className="text-amber-800 font-bold">🔓 Aucun abonnement actif</p>
+                <p className="text-amber-700 text-sm mt-1">Abonnez-vous pour accéder aux dossiers de préparation.</p>
+                <Link href="/payment" className="inline-block mt-3 px-5 py-2 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#C4521A' }}>
+                  Voir les offres →
+                </Link>
               </div>
-            </div>
-          )}
-
-          {/* Payment Modal */}
-          {showPayment && (
-            <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center p-4">
-              <div className="bg-white rounded-3xl p-6 w-full max-w-md animate-slideIn">
-                <h3 className="text-xl font-bold mb-2">
-                  {showPayment === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
-                </h3>
-                <p className="text-3xl font-extrabold mb-4" style={{ color: '#C4521A' }}>
-                  {(prices[showPayment] || 0).toLocaleString()} FCFA
+            ) : (
+              <div className="bg-green-50 border-2 border-green-400 rounded-2xl p-4">
+                <p className="text-green-800 font-bold">✅ Abonnement actif</p>
+                <p className="text-green-700 text-sm mt-1">
+                  {user.abonnement_type === 'all' ? 'Accès Directs + Professionnels' :
+                   user.abonnement_type === 'direct' ? 'Accès Concours Directs' :
+                   'Accès Concours Professionnels'}
+                  {user.abonnement_valide_jusqua && (
+                    <> | Valide jusqu'au {new Date(user.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}</>
+                  )}
                 </p>
-
-                {paymentStatus ? (
-                  <div className="bg-green-50 border border-green-300 rounded-xl p-4 mb-4">
-                    <p className="text-green-700 font-medium text-sm">✅ {paymentStatus}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 mb-5">
-                    <div className="om-gradient rounded-xl p-4 text-white">
-                      <p className="font-bold text-lg mb-2">📱 Paiement Orange Money</p>
-                      <p className="text-sm opacity-90 mb-2">Numéro : <strong>+226 76 22 39 62</strong></p>
-                      <p className="text-sm opacity-90 mb-2">Code USSD : <code className="bg-white/20 px-2 py-0.5 rounded">*144*2*1*76223962#</code></p>
-                      <p className="text-sm opacity-90">Montant : <strong>{(prices[showPayment] || 0).toLocaleString()} FCFA</strong></p>
-                    </div>
-
-                    <div className="bg-blue-50 rounded-xl p-4 text-sm text-blue-800">
-                      <p className="font-bold mb-1">📸 Étapes :</p>
-                      <ol className="list-decimal list-inside space-y-1">
-                        <li>Effectuez le paiement Orange Money</li>
-                        <li>Prenez une capture d'écran</li>
-                        <li>Envoyez sur WhatsApp : <strong>+226 76 22 39 62</strong></li>
-                        <li>Indiquez votre numéro : <strong>{user.phone}</strong></li>
-                        <li>Cliquez "J'ai payé" ci-dessous</li>
-                      </ol>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-3">
-                  {!paymentStatus ? (
-                    <button
-                      onClick={() => requestSubscription(showPayment)}
-                      disabled={requestingSub}
-                      className="flex-1 py-4 font-bold text-white rounded-xl active:scale-95"
-                      style={{ background: '#C4521A' }}
-                    >
-                      {requestingSub ? 'Envoi...' : "✅ J'ai payé – Notifier l'admin"}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => { setShowPayment(null); setPaymentStatus('') }}
-                      className="flex-1 py-4 font-bold text-white rounded-xl"
-                      style={{ background: '#1A4731' }}
-                    >
-                      Fermer
-                    </button>
-                  )}
-                  {!paymentStatus && (
-                    <button onClick={() => setShowPayment(null)} className="px-4 py-4 border-2 border-gray-300 rounded-xl font-semibold text-gray-600">
-                      Annuler
-                    </button>
-                  )}
-                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Tabs */}
-          <div className="flex rounded-xl overflow-hidden shadow-sm mb-6 border border-gray-200">
+          {/* Onglets */}
+          <div className="flex gap-2 mb-5">
             <button
               onClick={() => setActiveTab('direct')}
-              className={`flex-1 py-3 font-bold text-sm transition-all ${activeTab === 'direct' ? 'text-white' : 'text-gray-600 bg-white hover:bg-gray-50'}`}
+              className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'direct' ? 'text-white shadow-md' : 'bg-gray-100 text-gray-600'}`}
               style={activeTab === 'direct' ? { background: '#1A4731' } : {}}
             >
               📚 Concours Directs
+              {hasDirectSub && <span className="ml-1 text-green-300 text-xs">✓</span>}
             </button>
             <button
               onClick={() => setActiveTab('professionnel')}
-              className={`flex-1 py-3 font-bold text-sm transition-all ${activeTab === 'professionnel' ? 'text-white' : 'text-gray-600 bg-white hover:bg-gray-50'}`}
+              className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'professionnel' ? 'text-white shadow-md' : 'bg-gray-100 text-gray-600'}`}
               style={activeTab === 'professionnel' ? { background: '#C4521A' } : {}}
             >
-              🎓 Concours Pro
+              🎓 Professionnels
+              {hasProSub && <span className="ml-1 text-orange-200 text-xs">✓</span>}
             </button>
           </div>
 
-          {/* Access Lock Message */}
-          {!hasAccess(activeTab) && !user.is_admin && (
-            <div className="mb-4 p-4 rounded-2xl border-2 text-center" style={{ background: activeTab === 'direct' ? '#F0FFF4' : '#FFF5F5', borderColor: activeTab === 'direct' ? '#1A4731' : '#C4521A' }}>
-              <p className="text-2xl mb-2">🔒</p>
-              <p className="font-bold text-gray-800 mb-1">Accès réservé aux abonnés</p>
-              <p className="text-gray-500 text-sm mb-3">
-                Abonnement {activeTab === 'direct' ? 'Directs' : 'Professionnels'} : {(prices[activeTab] || 0).toLocaleString()} FCFA/an
-              </p>
-              <button
-                onClick={() => setShowPayment(activeTab)}
-                className="px-6 py-3 font-bold text-white rounded-xl active:scale-95"
-                style={{ background: activeTab === 'direct' ? '#1A4731' : '#C4521A' }}
-              >
+          {/* Prix si pas d'abonnement */}
+          {!hasSub && (
+            <div className="mb-5 rounded-2xl p-4 text-white text-center" style={{ background: activeTab === 'direct' ? 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' : 'linear-gradient(135deg, #C4521A 0%, #8B2500 100%)' }}>
+              <p className="font-extrabold text-3xl">{subPrice.toLocaleString()} FCFA</p>
+              <p className="text-sm opacity-80">Accès annuel – {displayCats.length} dossiers</p>
+              <Link href={`/payment?type=${activeTab}`} className="inline-block mt-3 px-6 py-2.5 font-bold bg-white rounded-xl text-sm active:scale-95" style={{ color: activeTab === 'direct' ? '#1A4731' : '#C4521A' }}>
                 S'abonner maintenant
-              </button>
+              </Link>
             </div>
           )}
 
-          {/* Categories Grid */}
+          {/* Dossiers */}
+          <h2 className="text-lg font-extrabold mb-4" style={{ color: '#1A4731' }}>
+            {activeTab === 'direct' ? '📚 Dossiers Concours Directs' : '🎓 Dossiers Professionnels'}
+          </h2>
+          
           <div className="grid grid-cols-2 gap-3">
-            {getCats(activeTab).map((cat, i) => {
-              const locked = !hasAccess(activeTab) && !user.is_admin
+            {displayCats.map((cat, i) => {
+              const dbCat = getCategoryByName(cat.nom)
+              const prog = dbCat ? progress[dbCat.id] : null
+              const questionCount = dbCat?.question_count || 0
+              
               return (
-                <div
-                  key={cat.id || i}
-                  onClick={() => !locked && router.push(`/quiz/${cat.id}`)}
-                  className={`bg-white rounded-2xl p-4 shadow-md border transition-all ${locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:scale-95'} ${activeTab === 'direct' ? 'border-green-100' : 'border-orange-100'}`}
-                >
-                  <div className="text-4xl mb-3">{cat.icone || '📖'}</div>
-                  <p className="font-bold text-gray-800 text-sm leading-tight mb-2">{cat.nom}</p>
-                  {locked ? (
-                    <span className="text-xs text-gray-400">🔒 Abonnement requis</span>
+                <div key={i} className={`rounded-2xl p-4 border-2 transition-all ${hasSub ? 'bg-white border-amber-100 hover:border-amber-300 cursor-pointer active:scale-95' : 'bg-gray-50 border-gray-200'}`}>
+                  {hasSub ? (
+                    <Link href={dbCat ? `/quiz/${dbCat.id}` : '/payment'} className="block">
+                      <div className="text-4xl mb-2">{cat.icone}</div>
+                      <p className="text-sm font-bold text-gray-800 leading-tight">{cat.nom}</p>
+                      <p className="text-xs text-gray-400 mt-1">{questionCount} question{questionCount !== 1 ? 's' : ''}</p>
+                      {prog && prog.total_answered > 0 && (
+                        <div className="mt-2">
+                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-green-400 rounded-full" style={{ width: `${Math.min(100, Math.round((prog.score / prog.total_answered) * 100))}%` }}></div>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-1">{prog.score}/{prog.total_answered}</p>
+                        </div>
+                      )}
+                    </Link>
                   ) : (
-                    <span className="text-xs font-medium" style={{ color: activeTab === 'direct' ? '#1A4731' : '#C4521A' }}>Accéder →</span>
+                    <>
+                      <div className="text-4xl mb-2 opacity-40">{cat.icone}</div>
+                      <p className="text-sm font-bold text-gray-400 leading-tight">{cat.nom}</p>
+                      <p className="text-xs text-gray-300 mt-1">🔒 Abonnement requis</p>
+                    </>
                   )}
                 </div>
               )
             })}
           </div>
 
-          {/* Demo CTA */}
-          <div className="mt-8 p-5 bg-white rounded-2xl border border-amber-200 shadow-sm text-center">
-            <p className="text-gray-600 text-sm mb-2">Vous n'avez pas encore testé la démo ?</p>
-            <Link href="/demo" className="inline-block px-5 py-2 font-bold rounded-xl text-sm active:scale-95" style={{ background: '#D4A017', color: 'white' }}>
-              🎯 Démo gratuite (10 questions)
-            </Link>
-          </div>
+          {/* CTA paiement Orange Money */}
+          {!hasSub && (
+            <div className="mt-6 rounded-2xl p-5 text-white" style={{ background: 'linear-gradient(135deg, #FF6B00 0%, #FF9500 100%)' }}>
+              <p className="font-bold text-lg mb-2">📱 Paiement Orange Money</p>
+              <p className="text-orange-100 text-sm mb-3">Payez facilement avec votre mobile</p>
+              <div className="bg-white/20 rounded-xl p-3 text-sm">
+                <p className="font-semibold">📲 Numéro : <span className="text-yellow-200">+226 76 22 39 62</span></p>
+                <p className="text-orange-100 mt-1">USSD : <code className="bg-white/20 px-1.5 py-0.5 rounded text-xs">*144*2*1*76223962#</code></p>
+                <p className="text-orange-100 mt-1">📸 Envoyez la capture par WhatsApp</p>
+              </div>
+              <Link href="/payment" className="block mt-3 py-3 text-center font-bold bg-white rounded-xl text-orange-600 active:scale-95 text-sm">
+                Demander mon accès
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </>
