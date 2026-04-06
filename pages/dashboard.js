@@ -35,13 +35,16 @@ export default function Dashboard() {
   }
 
   const fetchAllProgress = async () => {
-    const { data } = await supabase
-      .from('user_progress')
-      .select('*')
-      .eq('user_id', user.id)
-    if (data) {
+    // Use localStorage for progress tracking since user_progress has different schema
+    if (typeof window !== 'undefined') {
+      const keys = Object.keys(localStorage).filter(k => k.startsWith(`ifl_progress_${user.id}_`))
       const p = {}
-      data.forEach(item => { p[item.categorie_id] = item })
+      keys.forEach(key => {
+        const catId = key.replace(`ifl_progress_${user.id}_`, '')
+        try {
+          p[catId] = JSON.parse(localStorage.getItem(key))
+        } catch(e) {}
+      })
       setProgress(p)
     }
   }

@@ -53,17 +53,15 @@ export default function QuizPage() {
     
     if (qs) setQuestions(qs)
 
-    // Check saved progress
-    const { data: prog } = await supabase
-      .from('user_progress')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('categorie_id', categoryId)
-      .single()
-    
-    if (prog && prog.questions_vues > 0) {
-      setSavedProgress(prog)
-      setResuming(true)
+    // Check saved progress from localStorage
+    const progressKey = `ifl_progress_${user.id}_${categoryId}`
+    const savedProg = localStorage.getItem(progressKey)
+    if (savedProg) {
+      const prog = JSON.parse(savedProg)
+      if (prog.questions_vues > 0) {
+        setSavedProgress(prog)
+        setResuming(true)
+      }
     }
     
     setLoadingQ(false)
@@ -84,19 +82,31 @@ export default function QuizPage() {
     setResuming(false)
   }
 
-  const saveProgressToDb = async (qIndex, currentScore) => {
+  const saveProgressToDb = async (qIndex, currentScore, questionId, selectedOpt, correct) => {
     try {
-      await supabase
-        .from('user_progress')
-        .upsert({
-          user_id: user.id,
-          categorie_id: categoryId,
-          score: currentScore,
-          questions_vues: qIndex,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id,categorie_id' })
+      // Save to localStorage for category-level progress
+      const progressKey = `ifl_progress_${user.id}_${categoryId}`
+      localStorage.setItem(progressKey, JSON.stringify({
+        questions_vues: qIndex,
+        score: currentScore,
+        updated_at: new Date().toISOString()
+      }))
+      
+      // Also save individual answer to DB if we have a question_id
+      if (questionId && selectedOpt) {
+        await supabase
+          .from('user_progress')
+          .insert({
+            user_id: user.id,
+            question_id: questionId,
+            reponse_donnee: selectedOpt,
+            is_correct: correct,
+            time_spent_seconds: 30
+          })
+          .single()
+      }
     } catch (e) {
-      console.error('Save progress error:', e)
+      // Silently fail - progress still saved in localStorage
     }
   }
 
@@ -111,13 +121,13 @@ export default function QuizPage() {
     if (correct) setScore(s => s + 1)
     
     // Auto-save progress
-    saveProgressToDb(currentQ + 1, newScore)
+    saveProgressToDb(currentQ + 1, newScore, q.id, option, correct)
   }
 
   const handleNext = () => {
     if (currentQ + 1 >= questions.length) {
       setFinished(true)
-      saveProgressToDb(questions.length, score)
+      saveProgressToDb(questions.length, score, null, null, null)
     } else {
       setCurrentQ(q => q + 1)
       setSelectedAnswer(null)
