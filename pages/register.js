@@ -1,251 +1,193 @@
 import Head from 'next/head'
-import { useState } from 'react'
-import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { supabase } from '../lib/supabase'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import { useAuth } from './_app'
 
 export default function Register() {
+  const { user, loading, register } = useAuth()
   const router = useRouter()
-  const [form, setForm] = useState({
-    phone: '+226',
-    nom: '',
-    prenom: '',
-    password: '',
-    confirmPassword: ''
-  })
-  const [loading, setLoading] = useState(false)
+  const [form, setForm] = useState({ nom: '', prenom: '', phone: '+226', password: '', confirm: '' })
+  const [showPass, setShowPass] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-    setError('')
-  }
+  useEffect(() => {
+    if (!loading && user) {
+      router.push(user.is_admin ? '/admin' : '/dashboard')
+    }
+  }, [user, loading, router])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    // Validations
-    if (!form.phone.match(/^\+226[0-9]{8}$/)) {
-      setError('Numéro de téléphone invalide. Format: +226XXXXXXXX')
-      return
-    }
-    if (form.nom.trim().length < 2) {
-      setError('Le nom doit contenir au moins 2 caractères')
-      return
-    }
-    if (form.prenom.trim().length < 2) {
-      setError('Le prénom doit contenir au moins 2 caractères')
+    if (form.password !== form.confirm) {
+      setError('Les mots de passe ne correspondent pas.')
       return
     }
     if (form.password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères')
-      return
-    }
-    if (form.password !== form.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas')
+      setError('Le mot de passe doit contenir au moins 6 caractères.')
       return
     }
 
-    setLoading(true)
-
+    setSubmitting(true)
     try {
-      // Check if phone already exists
-      const { data: existingProfiles } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('phone', form.phone)
-        .limit(1)
-
-      if (existingProfiles && existingProfiles.length > 0) {
-        setError('Ce numéro de téléphone est déjà utilisé')
-        setLoading(false)
-        return
-      }
-
-      // Create auth user
-      const email = `${form.phone.replace(/\+/g, '')}@ifl.bf`
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password: form.password,
-        options: {
-          data: {
-            phone: form.phone,
-            nom: form.nom,
-            prenom: form.prenom,
-            full_name: `${form.prenom} ${form.nom}`
-          }
-        }
-      })
-
-      if (authError) throw authError
-
-      // Create profile via API
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: authData.user.id,
-          phone: form.phone,
-          nom: form.nom,
-          prenom: form.prenom
-        })
-      })
-
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.error || 'Erreur d\'inscription')
-
-      // Auto login
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email,
+      const userData = await register({
+        nom: form.nom,
+        prenom: form.prenom,
+        phone: form.phone,
         password: form.password
       })
-
-      if (loginError) throw loginError
-
       router.push('/dashboard')
     } catch (err) {
-      console.error('Register error:', err)
-      setError(err.message || 'Erreur lors de l\'inscription. Réessayez.')
+      setError(err.message)
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 
   return (
     <>
       <Head>
-        <title>Inscription - IFL</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Inscription – IFL</title>
       </Head>
-
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 to-blue-700 flex flex-col">
+      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(160deg, #C4521A 0%, #8B2500 50%, #1A4731 100%)' }}>
         {/* Header */}
-        <div className="py-6 px-4 flex items-center">
-          <Link href="/" className="text-white mr-4">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+        <div className="text-center pt-8 pb-4">
+          <Link href="/">
+            <div className="inline-block mb-3 shadow-xl" style={{ borderRadius: '20px', overflow: 'hidden', border: '3px solid rgba(212,160,23,0.8)' }}>
+              <img src="/logo.png" alt="IFL" style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '17px' }} />
+            </div>
           </Link>
-          <img src="/logo.png" alt="IFL" className="h-10 w-10 object-contain" />
+          <h1 className="text-white text-3xl font-extrabold">Créer un compte</h1>
+          <p className="text-orange-200 mt-1">Rejoignez IFL maintenant</p>
         </div>
 
         {/* Form */}
         <div className="flex-1 px-4 pb-8">
-          <div className="max-w-md mx-auto">
-            <div className="text-white mb-8">
-              <h1 className="text-2xl font-bold">Créer votre compte</h1>
-              <p className="text-blue-200 mt-1">Commencez par la démo gratuite</p>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Téléphone (+226)
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={form.phone}
-                    onChange={handleChange}
-                    placeholder="+22670000000"
-                    className="input-field"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Prénom
-                    </label>
-                    <input
-                      type="text"
-                      name="prenom"
-                      value={form.prenom}
-                      onChange={handleChange}
-                      placeholder="Jean"
-                      className="input-field"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Nom
-                    </label>
-                    <input
-                      type="text"
-                      name="nom"
-                      value={form.nom}
-                      onChange={handleChange}
-                      placeholder="OUEDRAOGO"
-                      className="input-field"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mot de passe
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    placeholder="Au moins 6 caractères"
-                    className="input-field"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirmer le mot de passe
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={form.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Répétez votre mot de passe"
-                    className="input-field"
-                    required
-                  />
-                </div>
-
-                {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-                    {error}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full btn-primary text-center disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <div className="spinner w-4 h-4"></div>
-                      Inscription en cours...
-                    </span>
-                  ) : (
-                    'Créer mon compte'
-                  )}
-                </button>
-              </form>
-
-              <div className="mt-4 text-center text-sm text-gray-600">
-                Déjà un compte ?{' '}
-                <Link href="/login" className="text-blue-600 font-semibold hover:underline">
-                  Se connecter
-                </Link>
+          <div className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl p-6">
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-xl text-red-700 text-sm font-medium">
+                ⚠️ {error}
               </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1.5 text-sm">Nom *</label>
+                  <input
+                    type="text"
+                    value={form.nom}
+                    onChange={e => setForm(p => ({ ...p, nom: e.target.value }))}
+                    placeholder="NIAMPA"
+                    className="input-field text-base py-2.5"
+                    required
+                    autoCapitalize="characters"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1.5 text-sm">Prénom *</label>
+                  <input
+                    type="text"
+                    value={form.prenom}
+                    onChange={e => setForm(p => ({ ...p, prenom: e.target.value }))}
+                    placeholder="Issa"
+                    className="input-field text-base py-2.5"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-semibold mb-1.5 text-sm">📱 Téléphone (+226) *</label>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
+                  placeholder="+226 XX XX XX XX"
+                  className="input-field"
+                  required
+                />
+                <p className="text-gray-400 text-xs mt-1">Burkina Faso uniquement (+226)</p>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-semibold mb-1.5 text-sm">🔒 Mot de passe *</label>
+                <div className="relative">
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    value={form.password}
+                    onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                    placeholder="Min. 6 caractères"
+                    className="input-field pr-14"
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 p-1"
+                    style={{ fontSize: '22px' }}
+                  >
+                    {showPass ? '🙈' : '👁️'}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-semibold mb-1.5 text-sm">🔒 Confirmer le mot de passe *</label>
+                <div className="relative">
+                  <input
+                    type={showConfirm ? 'text' : 'password'}
+                    value={form.confirm}
+                    onChange={e => setForm(p => ({ ...p, confirm: e.target.value }))}
+                    placeholder="Répéter le mot de passe"
+                    className="input-field pr-14"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 p-1"
+                    style={{ fontSize: '22px' }}
+                  >
+                    {showConfirm ? '🙈' : '👁️'}
+                  </button>
+                </div>
+                {form.confirm && form.password !== form.confirm && (
+                  <p className="text-red-500 text-xs mt-1">⚠️ Mots de passe différents</p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-4 text-xl font-bold text-white rounded-2xl transition-all shadow-lg active:scale-95 disabled:opacity-60 mt-2"
+                style={{ background: submitting ? '#999' : 'linear-gradient(135deg, #C4521A 0%, #8B2500 100%)' }}
+              >
+                {submitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    Création...
+                  </span>
+                ) : '✅ Créer mon compte'}
+              </button>
+            </form>
+
+            <div className="mt-5 pt-4 border-t border-gray-100 text-center">
+              <p className="text-gray-500 text-sm">Déjà inscrit ?</p>
+              <Link href="/login" className="block mt-2 font-bold hover:opacity-80 text-lg" style={{ color: '#1A4731' }}>
+                Se connecter →
+              </Link>
             </div>
           </div>
+
+          <p className="text-center text-orange-200 text-sm mt-4">
+            <Link href="/" className="hover:text-white">← Retour à l'accueil</Link>
+          </p>
         </div>
       </div>
     </>

@@ -1,469 +1,545 @@
 import Head from 'next/head'
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
 import { useAuth } from '../_app'
-import { supabase } from '../../lib/supabase'
 
 export default function AdminDashboard() {
-  const { user, profile, loading } = useAuth()
+  const { user, loading, logout, getToken } = useAuth()
   const router = useRouter()
-  const [stats, setStats] = useState({ users: 0, active: 0, pending: 0, total_revenue: 0 })
-  const [requests, setRequests] = useState([])
-  const [loadingData, setLoadingData] = useState(true)
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [stats, setStats] = useState(null)
+  const [recentUsers, setRecentUsers] = useState([])
+  const [activeSection, setActiveSection] = useState('dashboard')
+  const [loadingStats, setLoadingStats] = useState(true)
 
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        router.push('/login')
-        return
-      }
-      if (profile && profile.role !== 'admin') {
-        router.push('/dashboard')
-        return
-      }
+    if (!loading && (!user || !user.is_admin)) {
+      router.push('/login')
     }
-  }, [user, profile, loading, router])
+  }, [user, loading, router])
 
   useEffect(() => {
-    if (user && profile?.role === 'admin') {
+    if (user?.is_admin) {
       fetchStats()
     }
-  }, [user, profile])
+  }, [user])
 
   const fetchStats = async () => {
-    setLoadingData(true)
-    
-    // Count users
-    const { count: usersCount } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .neq('role', 'admin')
-
-    // Count active subscriptions
-    const { count: activeCount } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('subscription_status', 'active')
-
-    // Get pending payment requests
-    const { data: pendingRequests } = await supabase
-      .from('correction_requests')
-      .select(`
-        *,
-        profiles(full_name, phone, subscription_status, subscription_type)
-      `)
-      .eq('status', 'pending')
-      .ilike('message', 'PAIEMENT_%')
-      .order('created_at', { ascending: false })
-      .limit(20)
-
-    setStats({
-      users: usersCount || 0,
-      active: activeCount || 0,
-      pending: pendingRequests?.length || 0,
-    })
-
-    if (pendingRequests) setRequests(pendingRequests)
-    setLoadingData(false)
-  }
-
-  const parsePaymentMessage = (message) => {
-    // Format: PAIEMENT_direct_5000FCFA or PAIEMENT_professionnel_20000FCFA
-    const match = message?.match(/PAIEMENT_(\w+)_(\d+)FCFA/)
-    if (match) {
-      return { type: match[1], amount: parseInt(match[2]) }
-    }
-    return { type: 'unknown', amount: 0 }
-  }
-
-  const handleValidatePayment = async (requestId, userId, paymentType) => {
     try {
-      // Update correction_request status
-      await supabase
-        .from('correction_requests')
-        .update({ status: 'resolved', admin_response: 'Paiement validé et accès activé' })
-        .eq('id', requestId)
-
-      // Activate subscription for user
-      const expiresAt = new Date()
-      expiresAt.setFullYear(expiresAt.getFullYear() + 1) // 1 year
-
-      await supabase
-        .from('profiles')
-        .update({
-          subscription_status: 'active',
-          subscription_type: paymentType,
-          subscription_expires_at: expiresAt.toISOString()
-        })
-        .eq('id', userId)
-
-      // Refresh
-      fetchStats()
-      alert('✅ Abonnement activé avec succès !')
-    } catch (err) {
-      alert('❌ Erreur : ' + err.message)
-    }
+      const token = getToken()
+      const res = await fetch('/api/admin/stats', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.stats) {
+        setStats(data.stats)
+        setRecentUsers(data.recentUsers || [])
+      }
+    } catch (e) {}
+    setLoadingStats(false)
   }
 
-  const handleRejectPayment = async (requestId) => {
-    const reason = prompt('Raison du rejet (optionnel):')
-    try {
-      await supabase
-        .from('correction_requests')
-        .update({
-          status: 'rejected',
-          admin_response: reason || 'Paiement non confirmé'
-        })
-        .eq('id', requestId)
-
-      fetchStats()
-      alert('Demande rejetée.')
-    } catch (err) {
-      alert('Erreur : ' + err.message)
-    }
-  }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
-
-  if (loading || loadingData) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="spinner w-10 h-10"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#1A0A00' }}>
+        <div className="text-center"><div className="spinner mx-auto"></div></div>
       </div>
     )
   }
 
-  if (!profile || profile.role !== 'admin') return null
+  if (!user?.is_admin) return null
 
   return (
     <>
-      <Head>
-        <title>Administration - IFL</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
-
-      <div className="min-h-screen bg-gray-100">
+      <Head><title>Admin – IFL</title></Head>
+      <div className="min-h-screen" style={{ background: '#0F1A0F' }}>
         {/* Admin Header */}
-        <header className="bg-blue-900 text-white px-4 py-4 sticky top-0 z-50 shadow-lg">
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
+        <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
+          <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="IFL" className="h-9 w-9 object-contain" />
+              <img src="/logo.png" alt="IFL" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '10px' }} />
               <div>
-                <div className="font-bold text-sm">IFL Administration</div>
-                <div className="text-blue-200 text-xs">Panneau admin</div>
+                <p className="text-white font-bold leading-tight">ADMIN IFL</p>
+                <p className="text-orange-200 text-xs">{user.nom} {user.prenom}</p>
               </div>
             </div>
-            <button onClick={handleLogout} className="text-blue-200 hover:text-white text-sm">
-              Déconnexion
-            </button>
+            <div className="flex gap-2">
+              <Link href="/dashboard" className="text-orange-200 hover:text-white p-2 text-sm">
+                🏠
+              </Link>
+              <button onClick={logout} className="text-orange-200 hover:text-white p-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </header>
 
-        {/* Nav Tabs */}
-        <div className="bg-white border-b sticky top-[65px] z-40">
-          <div className="max-w-5xl mx-auto px-4 flex overflow-x-auto">
+        {/* Navigation */}
+        <div className="max-w-lg mx-auto px-4 py-3">
+          <div className="flex gap-2 overflow-x-auto pb-1">
             {[
-              { id: 'dashboard', label: '📊 Dashboard' },
-              { id: 'payments', label: '💰 Paiements' },
+              { id: 'dashboard', label: '📊 Stats', },
+              { id: 'payments', label: '💳 Paiements' },
               { id: 'users', label: '👥 Utilisateurs' },
-              { id: 'questions', label: '📝 Questions' },
-              { id: 'settings', label: '⚙️ Paramètres' },
-            ].map(tab => (
+              { id: 'questions', label: '❓ QCM' },
+              { id: 'prices', label: '💰 Prix' },
+            ].map(s => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                key={s.id}
+                onClick={() => setActiveSection(s.id)}
+                className={`px-4 py-2 rounded-xl font-semibold text-sm whitespace-nowrap transition-all ${activeSection === s.id ? 'text-white' : 'text-gray-400 bg-gray-800 hover:bg-gray-700'}`}
+                style={activeSection === s.id ? { background: '#C4521A' } : {}}
               >
-                {tab.label}
+                {s.label}
               </button>
             ))}
           </div>
         </div>
 
-        <main className="max-w-5xl mx-auto px-4 py-6">
+        <div className="max-w-lg mx-auto px-4 pb-8">
+          {/* Dashboard Stats */}
+          {activeSection === 'dashboard' && (
+            <AdminStats stats={stats} recentUsers={recentUsers} loading={loadingStats} getToken={getToken} />
+          )}
           
-          {/* Dashboard Tab */}
-          {activeTab === 'dashboard' && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-900">Vue d'ensemble</h2>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="card text-center">
-                  <div className="text-3xl font-bold text-blue-700">{stats.users}</div>
-                  <div className="text-gray-500 text-sm mt-1">Utilisateurs</div>
-                </div>
-                <div className="card text-center">
-                  <div className="text-3xl font-bold text-green-600">{stats.active}</div>
-                  <div className="text-gray-500 text-sm mt-1">Abonnés actifs</div>
-                </div>
-                <div className="card text-center">
-                  <div className="text-3xl font-bold text-orange-600">{stats.pending}</div>
-                  <div className="text-gray-500 text-sm mt-1">Paiements en attente</div>
-                </div>
-                <div className="card text-center">
-                  <div className="text-3xl font-bold text-purple-600">22</div>
-                  <div className="text-gray-500 text-sm mt-1">Dossiers</div>
-                </div>
-              </div>
-
-              {/* Pending requests preview */}
-              {requests.length > 0 && (
-                <div className="card">
-                  <h3 className="font-bold text-gray-900 mb-3">⏳ Paiements en attente ({requests.length})</h3>
-                  <div className="space-y-2">
-                    {requests.slice(0, 3).map(req => {
-                      const payment = parsePaymentMessage(req.message)
-                      return (
-                        <div key={req.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                          <div>
-                            <div className="font-medium text-sm text-gray-900">
-                              {req.profiles?.full_name || 'Utilisateur'}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {req.profiles?.phone} • {payment.amount.toLocaleString()} FCFA • {payment.type}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => setActiveTab('payments')}
-                            className="text-blue-600 text-sm font-medium hover:underline"
-                          >
-                            Voir →
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                  {requests.length > 3 && (
-                    <button onClick={() => setActiveTab('payments')} className="mt-2 text-blue-600 text-sm hover:underline">
-                      Voir tous ({requests.length}) →
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Payments Tab */}
-          {activeTab === 'payments' && (
-            <AdminPayments
-              requests={requests}
-              parsePaymentMessage={parsePaymentMessage}
-              handleValidate={handleValidatePayment}
-              handleReject={handleRejectPayment}
-              onRefresh={fetchStats}
-            />
-          )}
-
-          {/* Users Tab */}
-          {activeTab === 'users' && <AdminUsers />}
-
-          {/* Questions Tab */}
-          {activeTab === 'questions' && <AdminQuestions />}
-
-          {/* Settings Tab */}
-          {activeTab === 'settings' && <AdminSettings />}
-        </main>
+          {activeSection === 'payments' && <AdminPayments getToken={getToken} />}
+          {activeSection === 'users' && <AdminUsers getToken={getToken} />}
+          {activeSection === 'questions' && <AdminQuestions getToken={getToken} />}
+          {activeSection === 'prices' && <AdminPrices getToken={getToken} />}
+        </div>
       </div>
     </>
   )
 }
 
-// ===================== Admin Payments Component =====================
-function AdminPayments({ requests, parsePaymentMessage, handleValidate, handleReject, onRefresh }) {
-  const [allRequests, setAllRequests] = useState([])
-  const [filter, setFilter] = useState('pending')
+// =================== STATS ===================
+function AdminStats({ stats, recentUsers, loading, getToken }) {
+  if (loading) return <div className="py-12 text-center"><div className="spinner mx-auto"></div></div>
 
-  useEffect(() => {
-    fetchAll()
-  }, [filter])
-
-  const fetchAll = async () => {
-    const query = supabase
-      .from('correction_requests')
-      .select(`*, profiles(full_name, phone, subscription_status, subscription_type)`)
-      .ilike('message', 'PAIEMENT_%')
-      .order('created_at', { ascending: false })
-
-    if (filter !== 'all') {
-      query.eq('status', filter)
-    }
-
-    const { data } = await query.limit(50)
-    if (data) setAllRequests(data)
-  }
+  const statCards = [
+    { label: 'Utilisateurs', value: stats?.totalUsers || 0, icon: '👥', color: '#1A4731' },
+    { label: 'Abonnés actifs', value: stats?.activeSubscriptions || 0, icon: '✅', color: '#D4A017' },
+    { label: 'Paiements en attente', value: stats?.pendingPayments || 0, icon: '⏳', color: '#C4521A' },
+    { label: 'Questions totales', value: stats?.totalQuestions || 0, icon: '❓', color: '#1A4731' },
+  ]
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">💰 Paiements</h2>
-        <button onClick={fetchAll} className="btn-secondary text-sm py-2">
-          Actualiser
-        </button>
-      </div>
-
-      <div className="flex gap-2">
-        {['pending', 'resolved', 'all'].map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              filter === f ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border'
-            }`}
-          >
-            {f === 'pending' ? 'En attente' : f === 'resolved' ? 'Validés' : 'Tous'}
-          </button>
+    <div>
+      <h2 className="text-white text-xl font-bold mb-5 mt-2">📊 Tableau de bord</h2>
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        {statCards.map((s, i) => (
+          <div key={i} className="rounded-2xl p-5 text-white" style={{ background: s.color }}>
+            <div className="text-3xl mb-2">{s.icon}</div>
+            <div className="text-3xl font-extrabold">{s.value}</div>
+            <div className="text-sm opacity-80 mt-1">{s.label}</div>
+          </div>
         ))}
       </div>
 
-      <div className="space-y-3">
-        {allRequests.length === 0 ? (
-          <div className="card text-center py-8 text-gray-500">Aucune demande de paiement trouvée.</div>
-        ) : (
-          allRequests.map(req => {
-            const payment = parsePaymentMessage(req.message)
-            const statusColors = {
-              pending: 'badge-orange',
-              resolved: 'badge-green',
-              rejected: 'badge-red'
-            }
-            return (
-              <div key={req.id} className="card">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-gray-900">{req.profiles?.full_name || 'Utilisateur inconnu'}</span>
-                      <span className={`badge ${statusColors[req.status] || 'badge-blue'}`}>
-                        {req.status === 'pending' ? 'En attente' : req.status === 'resolved' ? 'Validé' : req.status}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      📱 {req.profiles?.phone}
-                    </div>
-                    <div className="text-sm text-gray-600 mt-1">
-                      💰 {payment.amount.toLocaleString()} FCFA • 
-                      <span className={`ml-1 font-medium ${payment.type === 'professionnel' ? 'text-purple-600' : 'text-blue-600'}`}>
-                        {payment.type === 'professionnel' ? 'Concours Pros' : 'Concours Directs'}
-                      </span>
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {new Date(req.created_at).toLocaleString('fr-FR')}
-                    </div>
-                    {req.admin_response && (
-                      <div className="text-xs text-gray-500 mt-1 italic">{req.admin_response}</div>
-                    )}
-                  </div>
-                  
-                  {req.status === 'pending' && (
-                    <div className="flex flex-col gap-2 flex-shrink-0">
-                      <button
-                        onClick={() => handleValidate(req.id, req.user_id, payment.type)}
-                        className="bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-3 rounded-lg font-medium transition-colors"
-                      >
-                        ✅ Valider
-                      </button>
-                      <button
-                        onClick={() => handleReject(req.id)}
-                        className="bg-red-100 hover:bg-red-200 text-red-700 text-xs py-2 px-3 rounded-lg font-medium transition-colors"
-                      >
-                        ❌ Rejeter
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          })
-        )}
+      <h3 className="text-white font-bold mb-3">👤 Derniers inscrits</h3>
+      <div className="space-y-2">
+        {recentUsers.map(u => (
+          <div key={u.id} className="bg-gray-800 rounded-xl p-4 flex items-center justify-between">
+            <div>
+              <p className="text-white font-semibold">{u.prenom} {u.nom}</p>
+              <p className="text-gray-400 text-sm">{u.phone}</p>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold ${u.abonnement_type ? 'bg-green-800 text-green-200' : 'bg-gray-700 text-gray-400'}`}>
+              {u.abonnement_type || 'Gratuit'}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   )
 }
 
-// ===================== Admin Users Component =====================
-function AdminUsers() {
+// =================== PAIEMENTS ===================
+function AdminPayments({ getToken }) {
+  const [payments, setPayments] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [notification, setNotification] = useState('')
+
+  useEffect(() => { fetchPayments() }, [])
+
+  const fetchPayments = async () => {
+    try {
+      const token = getToken()
+      const res = await fetch('/api/admin/payments', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      setPayments(data.payments || [])
+    } catch (e) {}
+    setLoading(false)
+  }
+
+  const handleValidate = async (payment, valide) => {
+    try {
+      const token = getToken()
+      const res = await fetch('/api/admin/payments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          id: payment.id,
+          valide,
+          user_id: payment.user_id,
+          type_concours: payment.type_concours,
+          notes_admin: valide ? 'Validé par admin' : 'Rejeté par admin'
+        })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setNotification(data.message)
+        setTimeout(() => setNotification(''), 4000)
+        fetchPayments()
+      }
+    } catch (e) {}
+  }
+
+  if (loading) return <div className="py-12 text-center"><div className="spinner mx-auto"></div></div>
+
+  return (
+    <div>
+      {notification && (
+        <div className="notification success mb-4 relative" style={{ position: 'relative', top: 'auto', right: 'auto' }}>
+          ✅ {notification}
+        </div>
+      )}
+      <h2 className="text-white text-xl font-bold mb-5 mt-2">💳 Demandes de paiement</h2>
+      {payments.length === 0 ? (
+        <div className="bg-gray-800 rounded-2xl p-8 text-center">
+          <p className="text-gray-400 text-lg">📭 Aucune demande de paiement</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {payments.map(p => (
+            <div key={p.id} className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-white font-bold">{p.ifl_users?.prenom} {p.ifl_users?.nom}</p>
+                  <p className="text-gray-400 text-sm">{p.ifl_users?.phone}</p>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.valide ? 'bg-green-800 text-green-200' : 'bg-amber-800 text-amber-200'}`}>
+                  {p.valide ? '✅ Validé' : '⏳ En attente'}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm font-bold">
+                  {p.montant?.toLocaleString()} FCFA
+                </span>
+                <span className="text-gray-400 text-sm">{p.type_concours}</span>
+                <span className="text-gray-500 text-xs">{new Date(p.date_demande).toLocaleDateString()}</span>
+              </div>
+              {!p.valide && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleValidate(p, true)}
+                    className="flex-1 py-2.5 font-bold text-white rounded-xl text-sm active:scale-95"
+                    style={{ background: '#1A4731' }}
+                  >
+                    ✅ Valider & Activer
+                  </button>
+                  <button
+                    onClick={() => handleValidate(p, false)}
+                    className="px-4 py-2.5 font-bold text-white rounded-xl text-sm active:scale-95"
+                    style={{ background: '#8B0000' }}
+                  >
+                    ❌ Rejeter
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// =================== UTILISATEURS ===================
+function AdminUsers({ getToken }) {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [editUser, setEditUser] = useState(null)
+  const [notification, setNotification] = useState('')
 
   useEffect(() => { fetchUsers() }, [])
 
   const fetchUsers = async () => {
-    setLoading(true)
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .neq('role', 'admin')
-      .order('created_at', { ascending: false })
-      .limit(100)
-    if (data) setUsers(data)
+    try {
+      const token = getToken()
+      const res = await fetch('/api/admin/users', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      setUsers(data.users || [])
+    } catch (e) {}
     setLoading(false)
   }
 
-  const handleToggleSubscription = async (userId, currentStatus) => {
-    const newStatus = currentStatus === 'active' ? 'free' : 'active'
-    await supabase
-      .from('profiles')
-      .update({ subscription_status: newStatus })
-      .eq('id', userId)
-    fetchUsers()
+  const updateUser = async (updates) => {
+    try {
+      const token = getToken()
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(updates)
+      })
+      const data = await res.json()
+      if (data.user) {
+        setNotification('Utilisateur mis à jour')
+        setTimeout(() => setNotification(''), 3000)
+        fetchUsers()
+        setEditUser(null)
+      }
+    } catch (e) {}
   }
 
-  const filtered = users.filter(u =>
-    u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    u.phone?.includes(search)
-  )
+  if (loading) return <div className="py-12 text-center"><div className="spinner mx-auto"></div></div>
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">👥 Utilisateurs ({users.length})</h2>
-        <button onClick={fetchUsers} className="btn-secondary text-sm py-2">Actualiser</button>
+    <div>
+      {notification && (
+        <div className="bg-green-700 text-white rounded-xl p-3 mb-4 text-sm font-medium">✅ {notification}</div>
+      )}
+      <h2 className="text-white text-xl font-bold mb-5 mt-2">👥 Utilisateurs ({users.length})</h2>
+      
+      <div className="space-y-3">
+        {users.map(u => (
+          <div key={u.id} className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-white font-bold">{u.prenom} {u.nom}</p>
+                <p className="text-gray-400 text-sm">{u.phone}</p>
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${u.is_active ? 'bg-green-800 text-green-300' : 'bg-red-900 text-red-300'}`}>
+                    {u.is_active ? 'Actif' : 'Bloqué'}
+                  </span>
+                  {u.abonnement_type && (
+                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-800 text-amber-300">
+                      {u.abonnement_type}
+                    </span>
+                  )}
+                  {u.abonnement_valide_jusqua && (
+                    <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">
+                      exp: {new Date(u.abonnement_valide_jusqua).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => setEditUser(editUser?.id === u.id ? null : u)}
+                className="ml-3 p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 text-sm"
+              >
+                ✏️
+              </button>
+            </div>
+
+            {editUser?.id === u.id && (
+              <div className="mt-4 pt-4 border-t border-gray-700">
+                <UserEditForm user={u} onSave={updateUser} onCancel={() => setEditUser(null)} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function UserEditForm({ user, onSave, onCancel }) {
+  const [form, setForm] = useState({
+    id: user.id,
+    abonnement_type: user.abonnement_type || '',
+    abonnement_valide_jusqua: user.abonnement_valide_jusqua ? new Date(user.abonnement_valide_jusqua).toISOString().split('T')[0] : '',
+    is_active: user.is_active
+  })
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="text-gray-400 text-xs mb-1 block">Type abonnement</label>
+        <select
+          value={form.abonnement_type}
+          onChange={e => setForm(p => ({ ...p, abonnement_type: e.target.value }))}
+          className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm"
+        >
+          <option value="">Aucun</option>
+          <option value="direct">Concours Directs</option>
+          <option value="professionnel">Concours Professionnels</option>
+          <option value="all">Les deux</option>
+        </select>
+      </div>
+      <div>
+        <label className="text-gray-400 text-xs mb-1 block">Valide jusqu'au</label>
+        <input
+          type="date"
+          value={form.abonnement_valide_jusqua}
+          onChange={e => setForm(p => ({ ...p, abonnement_valide_jusqua: e.target.value }))}
+          className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm"
+        />
+      </div>
+      <div className="flex items-center gap-3">
+        <label className="text-gray-400 text-sm">Compte actif</label>
+        <button
+          onClick={() => setForm(p => ({ ...p, is_active: !p.is_active }))}
+          className={`w-12 h-6 rounded-full transition-all ${form.is_active ? 'bg-green-600' : 'bg-gray-600'}`}
+        >
+          <div className={`w-5 h-5 bg-white rounded-full shadow transition-all ${form.is_active ? 'translate-x-6' : 'translate-x-0.5'}`}></div>
+        </button>
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => onSave({
+            ...form,
+            abonnement_valide_jusqua: form.abonnement_valide_jusqua ? new Date(form.abonnement_valide_jusqua).toISOString() : null
+          })}
+          className="flex-1 py-2 font-bold text-white rounded-lg text-sm active:scale-95"
+          style={{ background: '#1A4731' }}
+        >
+          ✅ Sauvegarder
+        </button>
+        <button onClick={onCancel} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg text-sm">Annuler</button>
+      </div>
+    </div>
+  )
+}
+
+// =================== QUESTIONS ===================
+function AdminQuestions({ getToken }) {
+  const [questions, setQuestions] = useState([])
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [editQ, setEditQ] = useState(null)
+  const [filterCat, setFilterCat] = useState('')
+  const [notification, setNotification] = useState('')
+
+  useEffect(() => {
+    fetchCategories()
+    fetchQuestions()
+  }, [])
+
+  const fetchCategories = async () => {
+    try {
+      const token = getToken()
+      const res = await fetch('/api/admin/prices', { headers: { Authorization: `Bearer ${token}` } })
+      // On utilise l'API categories directement
+      const res2 = await fetch('/api/quiz/categories', { headers: { Authorization: `Bearer ${token}` } })
+      const data = await res2.json()
+      setCategories(data.categories || [])
+    } catch (e) {}
+  }
+
+  const fetchQuestions = async (catId) => {
+    setLoading(true)
+    try {
+      const token = getToken()
+      const url = catId ? `/api/admin/questions?categorie_id=${catId}` : '/api/admin/questions'
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      const data = await res.json()
+      setQuestions(data.questions || [])
+    } catch (e) {}
+    setLoading(false)
+  }
+
+  const saveQuestion = async (formData) => {
+    try {
+      const token = getToken()
+      const method = formData.id ? 'PUT' : 'POST'
+      const res = await fetch('/api/admin/questions', {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(formData)
+      })
+      const data = await res.json()
+      if (data.question) {
+        setNotification(formData.id ? 'Question modifiée' : 'Question ajoutée')
+        setTimeout(() => setNotification(''), 3000)
+        setShowForm(false)
+        setEditQ(null)
+        fetchQuestions(filterCat)
+      } else {
+        alert(data.error)
+      }
+    } catch (e) {}
+  }
+
+  const deleteQuestion = async (id) => {
+    if (!confirm('Supprimer cette question ?')) return
+    try {
+      const token = getToken()
+      await fetch(`/api/admin/questions?id=${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      fetchQuestions(filterCat)
+    } catch (e) {}
+  }
+
+  return (
+    <div>
+      {notification && (
+        <div className="bg-green-700 text-white rounded-xl p-3 mb-4 text-sm font-medium">✅ {notification}</div>
+      )}
+      <div className="flex items-center justify-between mb-5 mt-2">
+        <h2 className="text-white text-xl font-bold">❓ QCM</h2>
+        <button
+          onClick={() => { setShowForm(true); setEditQ(null) }}
+          className="px-4 py-2 font-bold text-white rounded-xl text-sm active:scale-95"
+          style={{ background: '#C4521A' }}
+        >
+          + Ajouter
+        </button>
       </div>
 
-      <input
-        type="text"
-        placeholder="Rechercher par nom ou téléphone..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="input-field"
-      />
+      {/* Filtre */}
+      <select
+        value={filterCat}
+        onChange={e => { setFilterCat(e.target.value); fetchQuestions(e.target.value) }}
+        className="w-full bg-gray-800 text-white rounded-xl px-4 py-3 mb-4 text-sm border border-gray-700"
+      >
+        <option value="">Toutes les catégories</option>
+        {categories.map(c => (
+          <option key={c.id} value={c.id}>{c.type_concours === 'direct' ? '📚' : '🎓'} {c.nom}</option>
+        ))}
+      </select>
+
+      {(showForm || editQ) && (
+        <QuestionForm
+          initial={editQ}
+          categories={categories}
+          onSave={saveQuestion}
+          onCancel={() => { setShowForm(false); setEditQ(null) }}
+        />
+      )}
 
       {loading ? (
-        <div className="flex justify-center py-8"><div className="spinner w-8 h-8"></div></div>
+        <div className="py-8 text-center"><div className="spinner mx-auto"></div></div>
       ) : (
-        <div className="space-y-2">
-          {filtered.map(u => (
-            <div key={u.id} className="card py-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium text-gray-900">{u.full_name}</div>
-                  <div className="text-sm text-gray-500">{u.phone}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">
-                    Inscrit le {new Date(u.created_at).toLocaleDateString('fr-FR')}
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <span className={`badge ${u.subscription_status === 'active' ? 'badge-green' : 'badge-blue'}`}>
-                    {u.subscription_status === 'active' 
-                      ? (u.subscription_type === 'professionnel' ? 'Pro' : 'Direct')
-                      : 'Gratuit'
-                    }
-                  </span>
-                  <button
-                    onClick={() => handleToggleSubscription(u.id, u.subscription_status)}
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    {u.subscription_status === 'active' ? 'Désactiver' : 'Activer'}
-                  </button>
+        <div className="space-y-3">
+          {questions.length === 0 ? (
+            <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-400">
+              Aucune question pour cette catégorie
+            </div>
+          ) : questions.map(q => (
+            <div key={q.id} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+              <p className="text-white text-sm font-medium mb-2 leading-relaxed">{q.question_text}</p>
+              <div className="grid grid-cols-2 gap-1 mb-3">
+                {['A', 'B', 'C', 'D'].map(opt => (
+                  <p key={opt} className={`text-xs rounded px-2 py-1 ${q.bonne_reponse === opt ? 'bg-green-800 text-green-300 font-bold' : 'text-gray-400'}`}>
+                    {opt}: {q[`option_${opt.toLowerCase()}`]}
+                  </p>
+                ))}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500">{q.ifl_categories?.nom}</span>
+                <div className="flex gap-2">
+                  <button onClick={() => { setEditQ(q); setShowForm(false) }} className="text-amber-400 text-sm hover:text-amber-300">✏️</button>
+                  <button onClick={() => deleteQuestion(q.id)} className="text-red-400 text-sm hover:text-red-300">🗑️</button>
                 </div>
               </div>
             </div>
@@ -474,445 +550,182 @@ function AdminUsers() {
   )
 }
 
-// ===================== Admin Questions Component =====================
-function AdminQuestions() {
-  const [categories, setCategories] = useState([])
-  const [selectedCat, setSelectedCat] = useState(null)
-  const [questions, setQuestions] = useState([])
-  const [showForm, setShowForm] = useState(false)
-  const [editQuestion, setEditQuestion] = useState(null)
-  const [form, setForm] = useState({
-    enonce: '', option_a: '', option_b: '', option_c: '', option_d: '',
-    reponse_correcte: 'A', explication: '', difficulte: 'moyen'
+function QuestionForm({ initial, categories, onSave, onCancel }) {
+  const [form, setForm] = useState(initial || {
+    categorie_id: '',
+    question_text: '',
+    option_a: '',
+    option_b: '',
+    option_c: '',
+    option_d: '',
+    bonne_reponse: 'A',
+    explication: ''
   })
-  const [saving, setSaving] = useState(false)
-  const [loadingQ, setLoadingQ] = useState(false)
-
-  useEffect(() => { fetchCategories() }, [])
-
-  const fetchCategories = async () => {
-    const { data } = await supabase
-      .from('categories')
-      .select('*')
-      .order('type', { ascending: true })
-    if (data) setCategories(data)
-  }
-
-  const fetchQuestions = async (catId) => {
-    setLoadingQ(true)
-    const { data } = await supabase
-      .from('questions')
-      .select('*')
-      .eq('category_id', catId)
-      .order('created_at', { ascending: false })
-    if (data) setQuestions(data)
-    setLoadingQ(false)
-  }
-
-  const handleSelectCat = (cat) => {
-    setSelectedCat(cat)
-    fetchQuestions(cat.id)
-    setShowForm(false)
-    setEditQuestion(null)
-  }
-
-  const resetForm = () => {
-    setForm({ enonce: '', option_a: '', option_b: '', option_c: '', option_d: '', reponse_correcte: 'A', explication: '', difficulte: 'moyen' })
-    setEditQuestion(null)
-  }
-
-  const handleEdit = (q) => {
-    setForm({
-      enonce: q.enonce,
-      option_a: q.option_a,
-      option_b: q.option_b,
-      option_c: q.option_c,
-      option_d: q.option_d,
-      reponse_correcte: q.reponse_correcte,
-      explication: q.explication || '',
-      difficulte: q.difficulte || 'moyen'
-    })
-    setEditQuestion(q)
-    setShowForm(true)
-    window.scrollTo(0, 0)
-  }
-
-  const handleDelete = async (qId) => {
-    if (!confirm('Supprimer cette question ?')) return
-    await supabase.from('questions').delete().eq('id', qId)
-    fetchQuestions(selectedCat.id)
-    // Update category count
-    const newCount = questions.length - 1
-    await supabase.from('categories').update({ question_count: newCount }).eq('id', selectedCat.id)
-  }
-
-  const handleSave = async (e) => {
-    e.preventDefault()
-    if (!selectedCat) return
-    setSaving(true)
-
-    try {
-      if (editQuestion) {
-        // Update
-        await supabase
-          .from('questions')
-          .update({ ...form, is_active: true })
-          .eq('id', editQuestion.id)
-      } else {
-        // Create
-        await supabase
-          .from('questions')
-          .insert({ ...form, category_id: selectedCat.id, is_active: true, is_demo: false })
-        
-        // Update category count
-        await supabase
-          .from('categories')
-          .update({ question_count: (selectedCat.question_count || 0) + 1 })
-          .eq('id', selectedCat.id)
-      }
-
-      fetchQuestions(selectedCat.id)
-      resetForm()
-      setShowForm(false)
-    } catch (err) {
-      alert('Erreur : ' + err.message)
-    } finally {
-      setSaving(false)
-    }
-  }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">📝 Gestion des Questions</h2>
-
-      <div className="grid md:grid-cols-3 gap-4">
-        {/* Category list */}
-        <div className="card md:col-span-1">
-          <h3 className="font-bold text-gray-700 text-sm mb-3">Dossiers</h3>
-          <div className="space-y-1">
-            {['direct', 'professionnel'].map(type => (
-              <div key={type}>
-                <div className="text-xs font-bold text-gray-400 uppercase py-1 px-2">
-                  {type === 'direct' ? '🎯 Concours Directs' : '🏆 Concours Pros'}
-                </div>
-                {categories
-                  .filter(c => c.type === type)
-                  .map(cat => (
-                    <button
-                      key={cat.id}
-                      onClick={() => handleSelectCat(cat)}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                        selectedCat?.id === cat.id
-                          ? 'bg-blue-600 text-white'
-                          : 'hover:bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      <div className="truncate">{cat.nom}</div>
-                      <div className={`text-xs ${selectedCat?.id === cat.id ? 'text-blue-200' : 'text-gray-400'}`}>
-                        {cat.question_count || 0} question(s)
-                      </div>
-                    </button>
-                  ))}
-              </div>
+    <div className="bg-gray-800 rounded-2xl p-5 mb-4 border border-amber-700">
+      <h3 className="text-white font-bold mb-4">{initial ? '✏️ Modifier' : '➕ Nouvelle question'}</h3>
+      <div className="space-y-3">
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Catégorie *</label>
+          <select
+            value={form.categorie_id}
+            onChange={e => setForm(p => ({ ...p, categorie_id: e.target.value }))}
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm"
+            required
+          >
+            <option value="">Choisir une catégorie</option>
+            {categories.map(c => (
+              <option key={c.id} value={c.id}>{c.type_concours === 'direct' ? '📚' : '🎓'} {c.nom}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Question *</label>
+          <textarea
+            value={form.question_text}
+            onChange={e => setForm(p => ({ ...p, question_text: e.target.value }))}
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm min-h-[80px]"
+            placeholder="Texte de la question..."
+            required
+          />
+        </div>
+        {['a', 'b', 'c', 'd'].map(opt => (
+          <div key={opt}>
+            <label className="text-gray-400 text-xs mb-1 block">Option {opt.toUpperCase()} *</label>
+            <input
+              type="text"
+              value={form[`option_${opt}`]}
+              onChange={e => setForm(p => ({ ...p, [`option_${opt}`]: e.target.value }))}
+              className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm"
+              placeholder={`Réponse ${opt.toUpperCase()}`}
+              required
+            />
+          </div>
+        ))}
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Bonne réponse *</label>
+          <div className="flex gap-2">
+            {['A', 'B', 'C', 'D'].map(opt => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setForm(p => ({ ...p, bonne_reponse: opt }))}
+                className={`flex-1 py-2.5 font-extrabold rounded-lg text-sm transition-all ${form.bonne_reponse === opt ? 'text-white' : 'bg-gray-700 text-gray-400'}`}
+                style={form.bonne_reponse === opt ? { background: '#16a34a' } : {}}
+              >
+                {opt}
+              </button>
             ))}
           </div>
         </div>
-
-        {/* Questions panel */}
-        <div className="md:col-span-2 space-y-4">
-          {!selectedCat ? (
-            <div className="card text-center py-12 text-gray-500">
-              👈 Sélectionnez un dossier
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-gray-900">{selectedCat.nom}</h3>
-                <button
-                  onClick={() => { resetForm(); setShowForm(!showForm) }}
-                  className="btn-primary text-sm py-2"
-                >
-                  {showForm ? 'Annuler' : '+ Ajouter une question'}
-                </button>
-              </div>
-
-              {/* Add/Edit Form */}
-              {showForm && (
-                <div className="card border-2 border-blue-200">
-                  <h4 className="font-bold text-gray-900 mb-4">
-                    {editQuestion ? 'Modifier la question' : 'Nouvelle question'}
-                  </h4>
-                  <form onSubmit={handleSave} className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 mb-1 block">Question *</label>
-                      <textarea
-                        value={form.enonce}
-                        onChange={e => setForm({...form, enonce: e.target.value})}
-                        className="input-field h-24 resize-none"
-                        placeholder="Tapez votre question ici..."
-                        required
-                      />
-                    </div>
-                    {['a', 'b', 'c', 'd'].map(opt => (
-                      <div key={opt}>
-                        <label className="text-sm font-medium text-gray-700 mb-1 block">
-                          Option {opt.toUpperCase()} *
-                        </label>
-                        <input
-                          type="text"
-                          value={form[`option_${opt}`]}
-                          onChange={e => setForm({...form, [`option_${opt}`]: e.target.value})}
-                          className="input-field"
-                          placeholder={`Réponse ${opt.toUpperCase()}`}
-                          required
-                        />
-                      </div>
-                    ))}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 mb-1 block">Bonne réponse *</label>
-                        <select
-                          value={form.reponse_correcte}
-                          onChange={e => setForm({...form, reponse_correcte: e.target.value})}
-                          className="input-field"
-                        >
-                          {['A', 'B', 'C', 'D'].map(o => (
-                            <option key={o} value={o}>Option {o}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 mb-1 block">Difficulté</label>
-                        <select
-                          value={form.difficulte}
-                          onChange={e => setForm({...form, difficulte: e.target.value})}
-                          className="input-field"
-                        >
-                          <option value="facile">Facile</option>
-                          <option value="moyen">Moyen</option>
-                          <option value="difficile">Difficile</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 mb-1 block">Explication</label>
-                      <textarea
-                        value={form.explication}
-                        onChange={e => setForm({...form, explication: e.target.value})}
-                        className="input-field h-20 resize-none"
-                        placeholder="Explication de la réponse correcte..."
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <button type="submit" disabled={saving} className="btn-primary flex-1 disabled:opacity-50">
-                        {saving ? 'Sauvegarde...' : (editQuestion ? 'Modifier' : 'Ajouter la question')}
-                      </button>
-                      <button type="button" onClick={() => { resetForm(); setShowForm(false) }} className="btn-secondary">
-                        Annuler
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
-
-              {/* Questions list */}
-              {loadingQ ? (
-                <div className="flex justify-center py-8"><div className="spinner w-8 h-8"></div></div>
-              ) : questions.length === 0 ? (
-                <div className="card text-center py-8 text-gray-500">
-                  Aucune question dans ce dossier. Ajoutez-en une !
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {questions.map((q, idx) => (
-                    <div key={q.id} className="card border-l-4 border-blue-400">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="text-xs text-gray-400 mb-1">Q{idx + 1} • {q.difficulte}</div>
-                          <p className="font-medium text-gray-900 text-sm leading-relaxed">{q.enonce}</p>
-                          <div className="mt-2 grid grid-cols-2 gap-1">
-                            {['A', 'B', 'C', 'D'].map(opt => (
-                              <div key={opt} className={`text-xs px-2 py-1 rounded ${
-                                q.reponse_correcte === opt
-                                  ? 'bg-green-100 text-green-700 font-bold'
-                                  : 'bg-gray-50 text-gray-600'
-                              }`}>
-                                {opt}: {q[`option_${opt.toLowerCase()}`]}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-1 flex-shrink-0">
-                          <button
-                            onClick={() => handleEdit(q)}
-                            className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 py-1.5 px-3 rounded-lg font-medium"
-                          >
-                            ✏️ Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(q.id)}
-                            className="text-xs bg-red-50 hover:bg-red-100 text-red-700 py-1.5 px-3 rounded-lg font-medium"
-                          >
-                            🗑️ Sup.
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Explication *</label>
+          <textarea
+            value={form.explication}
+            onChange={e => setForm(p => ({ ...p, explication: e.target.value }))}
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm min-h-[80px]"
+            placeholder="Explication détaillée de la réponse..."
+            required
+          />
+        </div>
+        <div className="flex gap-2 pt-2">
+          <button
+            onClick={() => onSave(form)}
+            className="flex-1 py-3 font-bold text-white rounded-xl active:scale-95"
+            style={{ background: '#C4521A' }}
+          >
+            {initial ? '💾 Modifier' : '➕ Ajouter'}
+          </button>
+          <button onClick={onCancel} className="px-5 py-3 bg-gray-700 text-gray-300 rounded-xl font-semibold">Annuler</button>
         </div>
       </div>
     </div>
   )
 }
 
-// ===================== Admin Settings Component =====================
-function AdminSettings() {
-  const [prices, setPrices] = useState({ direct: 5000, professionnel: 20000 })
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [adminPassword, setAdminPassword] = useState({ current: '', new: '', confirm: '' })
-  const [pwSaving, setPwSaving] = useState(false)
-  const [pwError, setPwError] = useState('')
-  const { user } = useAuth()
+// =================== PRIX ===================
+function AdminPrices({ getToken }) {
+  const [prices, setPrices] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [notification, setNotification] = useState('')
 
-  const handleSavePrices = async () => {
-    setSaving(true)
+  useEffect(() => { fetchPrices() }, [])
+
+  const fetchPrices = async () => {
     try {
-      // Update prices in categories
-      await supabase
-        .from('categories')
-        .update({ prix: prices.direct })
-        .eq('type', 'direct')
-      
-      await supabase
-        .from('categories')
-        .update({ prix: prices.professionnel })
-        .eq('type', 'professionnel')
-      
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
-    } catch (err) {
-      alert('Erreur : ' + err.message)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault()
-    setPwError('')
-
-    if (adminPassword.new !== adminPassword.confirm) {
-      setPwError('Les mots de passe ne correspondent pas')
-      return
-    }
-    if (adminPassword.new.length < 6) {
-      setPwError('Le nouveau mot de passe doit faire au moins 6 caractères')
-      return
-    }
-
-    setPwSaving(true)
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: adminPassword.new
+      const token = getToken()
+      const res = await fetch('/api/admin/prices', {
+        headers: { Authorization: `Bearer ${token}` }
       })
-      if (error) throw error
-      setAdminPassword({ current: '', new: '', confirm: '' })
-      alert('✅ Mot de passe modifié avec succès !')
-    } catch (err) {
-      setPwError('Erreur : ' + err.message)
-    } finally {
-      setPwSaving(false)
-    }
+      const data = await res.json()
+      setPrices(data.prices || [])
+    } catch (e) {}
+    setLoading(false)
   }
+
+  const updatePrice = async (type_concours, prix) => {
+    try {
+      const token = getToken()
+      const res = await fetch('/api/admin/prices', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ type_concours, prix: parseInt(prix) })
+      })
+      const data = await res.json()
+      if (data.price) {
+        setNotification('Prix mis à jour')
+        setTimeout(() => setNotification(''), 3000)
+        fetchPrices()
+      }
+    } catch (e) {}
+  }
+
+  if (loading) return <div className="py-8 text-center"><div className="spinner mx-auto"></div></div>
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-900">⚙️ Paramètres</h2>
+    <div>
+      {notification && (
+        <div className="bg-green-700 text-white rounded-xl p-3 mb-4 text-sm font-medium">✅ {notification}</div>
+      )}
+      <h2 className="text-white text-xl font-bold mb-5 mt-2">💰 Configuration des prix</h2>
+      <div className="space-y-4">
+        {prices.map(p => (
+          <PriceEditor key={p.id} price={p} onSave={updatePrice} />
+        ))}
+      </div>
+    </div>
+  )
+}
 
-      {/* Prices */}
-      <div className="card">
-        <h3 className="font-bold text-gray-900 mb-4">💰 Prix des abonnements</h3>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">
-              Concours Directs (FCFA)
-            </label>
-            <input
-              type="number"
-              value={prices.direct}
-              onChange={e => setPrices({...prices, direct: parseInt(e.target.value)})}
-              className="input-field"
-              min="0"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">
-              Concours Professionnels (FCFA)
-            </label>
-            <input
-              type="number"
-              value={prices.professionnel}
-              onChange={e => setPrices({...prices, professionnel: parseInt(e.target.value)})}
-              className="input-field"
-              min="0"
-            />
-          </div>
+function PriceEditor({ price, onSave }) {
+  const [prix, setPrix] = useState(price.prix)
+  const [saved, setSaved] = useState(false)
+
+  return (
+    <div className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
+      <p className="text-white font-bold mb-1">
+        {price.type_concours === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
+      </p>
+      <p className="text-gray-400 text-sm mb-4">{price.description}</p>
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <label className="text-gray-400 text-xs mb-1 block">Prix (FCFA)</label>
+          <input
+            type="number"
+            value={prix}
+            onChange={e => { setPrix(e.target.value); setSaved(false) }}
+            className="w-full bg-gray-700 text-white rounded-xl px-4 py-3 text-lg font-bold"
+            min="100"
+          />
         </div>
-        <button onClick={handleSavePrices} disabled={saving} className="btn-primary disabled:opacity-50">
-          {saving ? 'Sauvegarde...' : saved ? '✅ Sauvegardé !' : 'Sauvegarder les prix'}
+        <button
+          onClick={async () => { await onSave(price.type_concours, prix); setSaved(true) }}
+          className="px-5 py-3 font-bold text-white rounded-xl active:scale-95 self-end"
+          style={{ background: saved ? '#1A4731' : '#C4521A' }}
+        >
+          {saved ? '✅' : '💾'}
         </button>
-      </div>
-
-      {/* Admin Info */}
-      <div className="card">
-        <h3 className="font-bold text-gray-900 mb-4">📱 Informations admin</h3>
-        <div className="space-y-2 text-sm text-gray-600">
-          <div>Email admin : <strong>admin@ifl.bf</strong></div>
-          <div>Téléphone WhatsApp : <strong>+226 76 22 39 62</strong></div>
-          <div>Numéro Orange Money : <strong>+226 76 22 39 62</strong></div>
-        </div>
-      </div>
-
-      {/* Change password */}
-      <div className="card">
-        <h3 className="font-bold text-gray-900 mb-4">🔒 Changer le mot de passe admin</h3>
-        <form onSubmit={handleChangePassword} className="space-y-3">
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">Nouveau mot de passe</label>
-            <input
-              type="password"
-              value={adminPassword.new}
-              onChange={e => setAdminPassword({...adminPassword, new: e.target.value})}
-              className="input-field"
-              placeholder="Au moins 6 caractères"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">Confirmer le nouveau mot de passe</label>
-            <input
-              type="password"
-              value={adminPassword.confirm}
-              onChange={e => setAdminPassword({...adminPassword, confirm: e.target.value})}
-              className="input-field"
-              placeholder="Répétez le nouveau mot de passe"
-              required
-            />
-          </div>
-          {pwError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-              {pwError}
-            </div>
-          )}
-          <button type="submit" disabled={pwSaving} className="btn-primary disabled:opacity-50">
-            {pwSaving ? 'Modification...' : 'Modifier le mot de passe'}
-          </button>
-        </form>
       </div>
     </div>
   )

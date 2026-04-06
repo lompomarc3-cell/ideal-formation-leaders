@@ -1,31 +1,37 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+    './lib/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          500: '#1d6bc0',
-          600: '#1a5ca8',
-          700: '#1e3a7a',
-          800: '#1e3070',
-          900: '#1a2a5e',
+        terracotta: {
+          50: '#fdf3ee',
+          100: '#fae4d4',
+          500: '#C4521A',
+          600: '#a8431a',
+          700: '#8B2500',
         },
-        orange: {
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
+        gold: {
+          400: '#D4A017',
+          500: '#C8960B',
+        },
+        forest: {
+          700: '#1A4731',
+          800: '#142D1F',
+          900: '#0D1E15',
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Poppins', 'system-ui', '-apple-system', 'sans-serif'],
       },
+      animation: {
+        'fadeIn': 'fadeIn 0.4s ease forwards',
+        'slideIn': 'slideIn 0.3s ease forwards',
+      }
     },
   },
   plugins: [],

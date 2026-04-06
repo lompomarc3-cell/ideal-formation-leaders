@@ -1,165 +1,146 @@
 import Head from 'next/head'
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
 import { useAuth } from '../_app'
-import { supabase } from '../../lib/supabase'
 
 export default function QuizPage() {
-  const { user, profile, loading } = useAuth()
+  const { user, loading, getToken } = useAuth()
   const router = useRouter()
-  const { id: categoryId } = router.query
+  const { id } = router.query
 
-  const [category, setCategory] = useState(null)
   const [questions, setQuestions] = useState([])
+  const [category, setCategory] = useState(null)
   const [currentQ, setCurrentQ] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState(null)
-  const [showResult, setShowResult] = useState(false)
+  const [selected, setSelected] = useState(null)
+  const [answered, setAnswered] = useState(false)
   const [score, setScore] = useState(0)
   const [finished, setFinished] = useState(false)
   const [loadingQ, setLoadingQ] = useState(true)
-  const [savedProgress, setSavedProgress] = useState(null)
-  const [resuming, setResuming] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!loading && !user) router.push('/login')
+    if (!loading && !user) {
+      router.push('/login')
+    }
   }, [user, loading, router])
 
   useEffect(() => {
-    if (categoryId && user) {
-      fetchCategoryAndQuestions()
+    if (id && user) {
+      fetchQuestions()
     }
-  }, [categoryId, user])
+  }, [id, user])
 
-  const fetchCategoryAndQuestions = async () => {
+  const fetchQuestions = async () => {
     setLoadingQ(true)
-    
-    // Fetch category
-    const { data: cat } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('id', categoryId)
-      .single()
-    
-    if (cat) setCategory(cat)
+    setError('')
+    try {
+      const token = getToken()
+      const res = await fetch(`/api/quiz/questions?categorie_id=${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
 
-    // Fetch questions (using existing schema with category_id and enonce)
-    const { data: qs } = await supabase
-      .from('questions')
-      .select('*')
-      .eq('category_id', categoryId)
-      .eq('is_active', true)
-      .order('created_at', { ascending: true })
-    
-    if (qs) setQuestions(qs)
-
-    // Check saved progress from localStorage
-    const progressKey = `ifl_progress_${user.id}_${categoryId}`
-    const savedProg = localStorage.getItem(progressKey)
-    if (savedProg) {
-      const prog = JSON.parse(savedProg)
-      if (prog.questions_vues > 0) {
-        setSavedProgress(prog)
-        setResuming(true)
+      if (!res.ok) {
+        if (data.requirePayment) {
+          setError('Abonnement requis pour accéder à ce contenu.')
+        } else {
+          setError(data.error || 'Erreur')
+        }
+        setLoadingQ(false)
+        return
       }
+
+      setQuestions(data.questions || [])
+
+      // Récupérer la catégorie
+      const catRes = await fetch(`/api/quiz/categories`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const catData = await catRes.json()
+      if (catData.categories) {
+        const cat = catData.categories.find(c => c.id === id)
+        setCategory(cat)
+      }
+
+      // Récupérer progression
+      const progRes = await fetch(`/api/quiz/progress?categorie_id=${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const progData = await progRes.json()
+      if (progData.progress && progData.progress.length > 0) {
+        const prog = progData.progress[0]
+        // Reprendre à la dernière question
+        if (prog.total_repondu > 0 && prog.total_repondu < (data.questions || []).length) {
+          setCurrentQ(prog.total_repondu)
+          setScore(prog.score || 0)
+        }
+      }
+    } catch (e) {
+      setError('Erreur lors du chargement.')
     }
-    
     setLoadingQ(false)
   }
 
-  const handleResume = () => {
-    if (savedProgress && questions.length > 0) {
-      const startIdx = Math.min(savedProgress.questions_vues, questions.length - 1)
-      setCurrentQ(startIdx)
-      setScore(savedProgress.score || 0)
-    }
-    setResuming(false)
-  }
-
-  const handleStartOver = () => {
-    setCurrentQ(0)
-    setScore(0)
-    setResuming(false)
-  }
-
-  const saveProgressToDb = async (qIndex, currentScore, questionId, selectedOpt, correct) => {
+  const saveProgress = async (newScore, newTotal, questionId) => {
     try {
-      // Save to localStorage for category-level progress
-      const progressKey = `ifl_progress_${user.id}_${categoryId}`
-      localStorage.setItem(progressKey, JSON.stringify({
-        questions_vues: qIndex,
-        score: currentScore,
-        updated_at: new Date().toISOString()
-      }))
-      
-      // Also save individual answer to DB if we have a question_id
-      if (questionId && selectedOpt) {
-        await supabase
-          .from('user_progress')
-          .insert({
-            user_id: user.id,
-            question_id: questionId,
-            reponse_donnee: selectedOpt,
-            is_correct: correct,
-            time_spent_seconds: 30
-          })
-          .single()
-      }
-    } catch (e) {
-      // Silently fail - progress still saved in localStorage
-    }
+      const token = getToken()
+      await fetch('/api/quiz/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          categorie_id: id,
+          derniere_question_id: questionId,
+          score: newScore,
+          total_repondu: newTotal
+        })
+      })
+    } catch (e) {}
   }
 
-  const handleAnswer = (option) => {
-    if (showResult) return
-    setSelectedAnswer(option)
-    setShowResult(true)
-    
+  const handleSelect = async (key) => {
+    if (answered) return
+    setSelected(key)
+    setAnswered(true)
     const q = questions[currentQ]
-    const correct = option === q.reponse_correcte
-    const newScore = correct ? score + 1 : score
-    if (correct) setScore(s => s + 1)
-    
-    // Auto-save progress
-    saveProgressToDb(currentQ + 1, newScore, q.id, option, correct)
+    const isCorrect = key === q.bonne_reponse
+    const newScore = isCorrect ? score + 1 : score
+    const newTotal = currentQ + 1
+    setScore(newScore)
+    await saveProgress(newScore, newTotal, q.id)
   }
 
   const handleNext = () => {
     if (currentQ + 1 >= questions.length) {
       setFinished(true)
-      saveProgressToDb(questions.length, score, null, null, null)
     } else {
-      setCurrentQ(q => q + 1)
-      setSelectedAnswer(null)
-      setShowResult(false)
+      setCurrentQ(c => c + 1)
+      setSelected(null)
+      setAnswered(false)
     }
   }
 
   if (loading || loadingQ) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="spinner w-10 h-10"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#FFF8F0' }}>
+        <div className="text-center">
+          <div className="spinner mx-auto mb-4"></div>
+          <p className="text-gray-500">Chargement des questions...</p>
+        </div>
       </div>
     )
   }
 
-  if (resuming && savedProgress) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="max-w-sm w-full card text-center">
-          <div className="text-4xl mb-4">💾</div>
-          <h2 className="font-bold text-gray-900 text-lg mb-2">Progression sauvegardée</h2>
-          <p className="text-gray-600 text-sm mb-6">
-            Vous étiez à la question {savedProgress.questions_vues} sur {questions.length}.<br/>
-            Score: {savedProgress.score} point(s)
-          </p>
-          <div className="space-y-3">
-            <button onClick={handleResume} className="w-full btn-primary">
-              Reprendre où j'étais
-            </button>
-            <button onClick={handleStartOver} className="w-full btn-secondary">
-              Recommencer depuis le début
-            </button>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#FFF8F0' }}>
+        <div className="bg-white rounded-2xl p-8 text-center max-w-sm shadow-lg">
+          <div className="text-6xl mb-4">🔒</div>
+          <p className="text-gray-800 font-bold text-lg mb-2">{error}</p>
+          <div className="space-y-3 mt-5">
+            <Link href="/dashboard" className="block py-3 font-bold text-white rounded-xl" style={{ background: '#1A4731' }}>
+              ← Retour au tableau de bord
+            </Link>
           </div>
         </div>
       </div>
@@ -168,13 +149,13 @@ export default function QuizPage() {
 
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="card text-center max-w-sm">
-          <div className="text-5xl mb-4">📝</div>
-          <h2 className="font-bold text-gray-900 mb-2">{category?.nom}</h2>
-          <p className="text-gray-500 text-sm mb-6">Les questions de ce dossier seront ajoutées prochainement par l'administrateur.</p>
-          <Link href={`/courses/${category?.type}`} className="btn-primary block text-center">
-            Retour aux dossiers
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#FFF8F0' }}>
+        <div className="bg-white rounded-2xl p-8 text-center max-w-sm shadow-lg">
+          <div className="text-6xl mb-4">📭</div>
+          <p className="text-gray-800 font-bold text-lg mb-2">Aucune question disponible</p>
+          <p className="text-gray-500 text-sm mb-5">Les questions seront ajoutées prochainement par l'équipe IFL.</p>
+          <Link href="/dashboard" className="block py-3 font-bold text-white rounded-xl" style={{ background: '#1A4731' }}>
+            ← Retour
           </Link>
         </div>
       </div>
@@ -182,36 +163,31 @@ export default function QuizPage() {
   }
 
   if (finished) {
-    const percent = Math.round((score / questions.length) * 100)
+    const pct = Math.round((score / questions.length) * 100)
+    const mention = pct >= 80 ? { label: 'Excellent !', color: '#1A4731', emoji: '🏆' }
+      : pct >= 60 ? { label: 'Bien !', color: '#D4A017', emoji: '👍' }
+      : { label: 'À améliorer', color: '#C4521A', emoji: '💪' }
+
     return (
       <>
-        <Head><title>Résultats - {category?.nom} - IFL</title></Head>
-        <div className="min-h-screen bg-gradient-to-br from-blue-900 to-blue-700 flex items-center justify-center px-4">
-          <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center animate-fade-in">
-            <div className="text-6xl mb-4">
-              {percent >= 70 ? '🎉' : percent >= 50 ? '👍' : '💪'}
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1">{category?.nom}</h2>
-            <p className="text-gray-500 text-sm mb-4">Exercice terminé !</p>
-            
-            <div className="bg-blue-50 rounded-xl p-4 mb-6">
-              <div className="text-3xl font-bold text-blue-700">{score}/{questions.length}</div>
-              <div className="text-gray-600 text-sm mt-1">{percent}% de réussite</div>
-            </div>
-            
-            <div className="progress-bar mb-6">
-              <div className="progress-fill" style={{ width: `${percent}%` }}></div>
-            </div>
-
+        <Head><title>Résultats – IFL</title></Head>
+        <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: 'linear-gradient(160deg, #1A4731 0%, #2D6A4F 50%, #C4521A 100%)' }}>
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
+            <div className="text-7xl mb-3">{mention.emoji}</div>
+            <h2 className="text-2xl font-extrabold mb-1" style={{ color: mention.color }}>{mention.label}</h2>
+            {category && <p className="text-gray-500 text-sm mb-3">{category.nom}</p>}
+            <div className="text-6xl font-extrabold my-4" style={{ color: mention.color }}>{pct}%</div>
+            <p className="text-gray-600 text-lg mb-6">Score : <strong>{score}/{questions.length}</strong></p>
             <div className="space-y-3">
               <button
-                onClick={() => { setCurrentQ(0); setScore(0); setFinished(false); setSelectedAnswer(null); setShowResult(false); }}
-                className="w-full btn-primary"
+                onClick={() => { setCurrentQ(0); setScore(0); setFinished(false); setSelected(null); setAnswered(false) }}
+                className="block w-full py-4 font-bold text-white rounded-2xl active:scale-95"
+                style={{ background: '#1A4731' }}
               >
-                Recommencer ce dossier
+                🔄 Recommencer
               </button>
-              <Link href={`/courses/${category?.type}`} className="w-full btn-secondary block text-center">
-                Retour aux dossiers
+              <Link href="/dashboard" className="block w-full py-3 font-semibold rounded-2xl border-2 border-gray-300 text-gray-700">
+                ← Tableau de bord
               </Link>
             </div>
           </div>
@@ -220,121 +196,103 @@ export default function QuizPage() {
     )
   }
 
-  const question = questions[currentQ]
-  
-  const optionColors = (opt) => {
-    if (!showResult) {
-      return selectedAnswer === opt ? 'option-btn selected' : 'option-btn'
-    }
-    if (opt === question.reponse_correcte) return 'option-btn correct'
-    if (opt === selectedAnswer && opt !== question.reponse_correcte) return 'option-btn incorrect'
-    return 'option-btn opacity-50'
-  }
-
+  const q = questions[currentQ]
   const options = [
-    { key: 'A', text: question.option_a },
-    { key: 'B', text: question.option_b },
-    { key: 'C', text: question.option_c },
-    { key: 'D', text: question.option_d },
+    { key: 'A', text: q.option_a },
+    { key: 'B', text: q.option_b },
+    { key: 'C', text: q.option_c },
+    { key: 'D', text: q.option_d },
   ]
+  const progress = ((currentQ + (answered ? 1 : 0)) / questions.length) * 100
 
   return (
     <>
-      <Head>
-        <title>{category?.nom} - IFL</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
-
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-blue-900 text-white px-4 py-4 sticky top-0 z-50">
-          <div className="max-w-2xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link href={`/courses/${category?.type}`} className="text-blue-200">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </Link>
-              <div>
-                <div className="font-bold text-sm truncate max-w-[180px]">{category?.nom}</div>
-                <div className="text-blue-200 text-xs">{currentQ + 1}/{questions.length}</div>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm font-bold">{score} ✓</div>
-              <div className="text-blue-200 text-xs">Score</div>
-            </div>
+      <Head><title>{category?.nom || 'Quiz'} – IFL</title></Head>
+      <div className="min-h-screen african-pattern" style={{ background: '#FFF8F0' }}>
+        {/* Header */}
+        <header style={{ background: category?.type_concours === 'direct' ? 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' : 'linear-gradient(135deg, #C4521A 0%, #8B2500 100%)' }} className="sticky top-0 z-40">
+          <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+            <Link href="/dashboard" className="text-white hover:opacity-80">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+            </Link>
+            <h2 className="text-white font-bold text-sm text-center flex-1 mx-3 truncate">
+              {category?.nom || 'Quiz'}
+            </h2>
+            <span className="text-white font-bold text-sm whitespace-nowrap">{currentQ + 1}/{questions.length}</span>
           </div>
-          <div className="max-w-2xl mx-auto mt-2">
-            <div className="progress-bar">
-              <div className="progress-fill" style={{ width: `${(currentQ / questions.length) * 100}%` }}></div>
-            </div>
+          <div className="h-1.5" style={{ background: 'rgba(255,255,255,0.2)' }}>
+            <div className="h-1.5 progress-bar" style={{ width: `${progress}%`, background: '#D4A017' }}></div>
           </div>
         </header>
 
-        <main className="max-w-2xl mx-auto px-4 py-6">
-          <div className="card animate-fade-in">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="badge badge-blue">{category?.nom}</span>
-              {question.difficulte && (
-                <span className={`badge ${
-                  question.difficulte === 'facile' ? 'badge-green' :
-                  question.difficulte === 'difficile' ? 'badge-red' : 'badge-orange'
-                }`}>{question.difficulte}</span>
-              )}
-            </div>
-
-            <h2 className="text-gray-900 font-semibold text-base leading-relaxed mb-6">
-              {question.enonce}
-            </h2>
-
-            <div className="space-y-3">
-              {options.map(({ key, text }) => (
-                <button
-                  key={key}
-                  onClick={() => handleAnswer(key)}
-                  className={optionColors(key)}
-                  disabled={showResult}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 ${
-                      showResult && key === question.reponse_correcte ? 'bg-green-500 border-green-500 text-white' :
-                      showResult && key === selectedAnswer && key !== question.reponse_correcte ? 'bg-red-500 border-red-500 text-white' :
-                      'border-current'
-                    }`}>
-                      {key}
-                    </span>
-                    <span className="text-sm leading-relaxed pt-0.5">{text}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {showResult && (
-              <div className={`mt-4 p-4 rounded-xl animate-fade-in ${
-                selectedAnswer === question.reponse_correcte
-                  ? 'bg-green-50 border border-green-200'
-                  : 'bg-red-50 border border-red-200'
-              }`}>
-                <div className={`font-semibold text-sm mb-1 ${
-                  selectedAnswer === question.reponse_correcte ? 'text-green-800' : 'text-red-800'
-                }`}>
-                  {selectedAnswer === question.reponse_correcte
-                    ? '✅ Bonne réponse !'
-                    : `❌ La bonne réponse est ${question.reponse_correcte}`}
-                </div>
-                {question.explication && (
-                  <p className="text-sm text-gray-700 leading-relaxed">{question.explication}</p>
-                )}
-              </div>
-            )}
-
-            {showResult && (
-              <button onClick={handleNext} className="w-full btn-primary mt-4">
-                {currentQ + 1 >= questions.length ? 'Voir mes résultats' : 'Question suivante →'}
-              </button>
-            )}
+        <div className="max-w-lg mx-auto px-4 py-6">
+          {/* Score */}
+          <div className="flex items-center justify-between mb-5">
+            <span className="text-gray-500 text-sm">Question {currentQ + 1} sur {questions.length}</span>
+            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">
+              ✅ {score} correctes
+            </span>
           </div>
-        </main>
+
+          {/* Question */}
+          <div className="bg-white rounded-2xl shadow-md p-6 mb-5 border border-amber-100 animate-fadeIn">
+            <p className="text-gray-800 font-semibold text-lg leading-relaxed">{q.question_text}</p>
+          </div>
+
+          {/* Options */}
+          <div className="space-y-3 mb-5">
+            {options.map(opt => {
+              let cls = 'question-option'
+              if (answered) {
+                if (opt.key === q.bonne_reponse) cls += ' correct'
+                else if (opt.key === selected) cls += ' wrong'
+                else cls += ' disabled opacity-60'
+              }
+              return (
+                <button
+                  key={opt.key}
+                  onClick={() => handleSelect(opt.key)}
+                  className={cls}
+                  disabled={answered}
+                >
+                  <span className="font-bold mr-3 inline-flex items-center justify-center w-8 h-8 rounded-full text-sm flex-shrink-0" style={{
+                    background: answered && opt.key === q.bonne_reponse ? '#16a34a' : answered && opt.key === selected ? '#dc2626' : '#e5e7eb',
+                    color: answered && (opt.key === q.bonne_reponse || opt.key === selected) ? 'white' : '#374151'
+                  }}>
+                    {opt.key}
+                  </span>
+                  <span>{opt.text}</span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Correction */}
+          {answered && (
+            <div className={`rounded-2xl p-5 mb-5 animate-fadeIn ${selected === q.bonne_reponse ? 'bg-green-50 border-2 border-green-400' : 'bg-red-50 border-2 border-red-400'}`}>
+              <div className="flex items-start gap-3 mb-2">
+                <span className="text-2xl flex-shrink-0">{selected === q.bonne_reponse ? '✅' : '❌'}</span>
+                <div>
+                  <p className="font-bold text-base">{selected === q.bonne_reponse ? 'Bonne réponse !' : `Réponse incorrecte. Réponse : ${q.bonne_reponse}`}</p>
+                  <p className="text-gray-700 text-sm leading-relaxed mt-1">{q.explication}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation */}
+          {answered && (
+            <button
+              onClick={handleNext}
+              className="w-full py-4 text-lg font-bold text-white rounded-2xl shadow-lg active:scale-95 animate-fadeIn"
+              style={{ background: category?.type_concours === 'direct' ? '#1A4731' : '#C4521A' }}
+            >
+              {currentQ + 1 >= questions.length ? '📊 Voir les résultats' : 'Question suivante →'}
+            </button>
+          )}
+        </div>
       </div>
     </>
   )
