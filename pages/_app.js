@@ -1,6 +1,5 @@
-import { useState, useEffect, createContext, useContext, useCallback } from 'react'
 import '../styles/globals.css'
-import Head from 'next/head'
+import { createContext, useContext, useState, useEffect } from 'react'
 
 const AuthContext = createContext(null)
 
@@ -12,70 +11,49 @@ function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchUser = useCallback(async () => {
+  useEffect(() => {
     const token = localStorage.getItem('ifl_token')
-    if (!token) {
-      setLoading(false)
-      return
-    }
-    try {
-      const res = await fetch('/api/auth/me', {
+    if (token) {
+      fetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      if (res.ok) {
-        const { user: userData } = await res.json()
-        setUser(userData)
-      } else {
-        localStorage.removeItem('ifl_token')
-      }
-    } catch (e) {
-      console.error('Auth error:', e)
-    } finally {
+        .then(r => r.json())
+        .then(data => {
+          if (data.user) setUser(data.user)
+          else localStorage.removeItem('ifl_token')
+        })
+        .catch(() => localStorage.removeItem('ifl_token'))
+        .finally(() => setLoading(false))
+    } else {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => {
-    fetchUser()
-  }, [fetchUser])
-
-  const login = async (phone, password) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, password })
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error)
-    localStorage.setItem('ifl_token', data.token)
-    setUser(data.user)
-    return data.user
-  }
-
-  const register = async (formData) => {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error)
-    localStorage.setItem('ifl_token', data.token)
-    setUser(data.user)
-    return data.user
+  const login = (userData, token) => {
+    localStorage.setItem('ifl_token', token)
+    setUser(userData)
   }
 
   const logout = () => {
     localStorage.removeItem('ifl_token')
     setUser(null)
+    window.location.href = '/'
   }
 
   const getToken = () => localStorage.getItem('ifl_token')
 
-  const refreshUser = () => fetchUser()
+  const refreshUser = async () => {
+    const token = getToken()
+    if (!token) return
+    try {
+      const r = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      const data = await r.json()
+      if (data.user) setUser(data.user)
+    } catch {}
+  }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, getToken, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, getToken, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )
@@ -84,12 +62,6 @@ function AuthProvider({ children }) {
 export default function App({ Component, pageProps }) {
   return (
     <AuthProvider>
-      <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        <meta name="theme-color" content="#C4521A" />
-        <link rel="icon" href="/logo.png" />
-        <title>IFL - Idéale Formation of Leader</title>
-      </Head>
       <Component {...pageProps} />
     </AuthProvider>
   )

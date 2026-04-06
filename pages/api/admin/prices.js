@@ -6,52 +6,87 @@ async function checkAdmin(req) {
   if (!token) return null
   const decoded = verifyToken(token)
   if (!decoded) return null
-  const { data: p } = await supabaseAdmin.from('profiles').select('role').eq('id', decoded.userId).single()
+  const { data: p } = await supabaseAdmin
+    .from('profiles')
+    .select('role')
+    .eq('id', decoded.userId)
+    .single()
   return ['admin', 'superadmin'].includes(p?.role) ? decoded.userId : null
 }
 
-// Prix stockés dans les categories (champ prix)
+// Prix par défaut (utilise la colonne prix des catégories)
+const DEFAULT_PRICES = [
+  { id: 1, type_concours: 'direct', prix: 5000, description: 'Accès à tous les dossiers pour les concours directs' },
+  { id: 2, type_concours: 'professionnel', prix: 20000, description: 'Accès complet aux concours professionnels' }
+]
+
 export default async function handler(req, res) {
-  // GET - Prix actuels depuis les categories
+  const adminId = await checkAdmin(req)
+  if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
+
+  // GET - Récupérer les prix depuis les catégories
   if (req.method === 'GET') {
-    const adminId = await checkAdmin(req)
-    if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
+    try {
+      // Prendre le prix de la première catégorie de chaque type
+      const { data: directCat } = await supabaseAdmin
+        .from('categories')
+        .select('prix')
+        .eq('type', 'direct')
+        .limit(1)
+        .single()
 
-    // Récupérer les prix uniques par type
-    const { data: cats, error } = await supabaseAdmin
-      .from('categories')
-      .select('type, prix')
-      .eq('is_active', true)
+      const { data: proCat } = await supabaseAdmin
+        .from('categories')
+        .select('prix')
+        .eq('type', 'professionnel')
+        .limit(1)
+        .single()
 
-    if (error) return res.status(500).json({ error: error.message })
-
-    const directPrix = cats?.find(c => c.type === 'direct')?.prix || 5000
-    const proPrix = cats?.find(c => c.type === 'professionnel')?.prix || 20000
-
-    return res.json({
-      prices: [
-        { id: 1, type_concours: 'direct', prix: directPrix, description: 'Concours Directs – 10 dossiers' },
-        { id: 2, type_concours: 'professionnel', prix: proPrix, description: 'Concours Professionnels – 12 dossiers' }
+      const prices = [
+        {
+          id: 1,
+          type_concours: 'direct',
+          prix: directCat?.prix || 5000,
+          description: 'Accès à tous les dossiers pour les concours directs'
+        },
+        {
+          id: 2,
+          type_concours: 'professionnel',
+          prix: proCat?.prix || 20000,
+          description: 'Accès complet aux concours professionnels'
+        }
       ]
-    })
+
+      return res.json({ prices })
+    } catch {
+      return res.json({ prices: DEFAULT_PRICES })
+    }
   }
 
-  // PUT - Modifier les prix (dans toutes les catégories du type)
+  // PUT - Mettre à jour le prix
   if (req.method === 'PUT') {
-    const adminId = await checkAdmin(req)
-    if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
-
     const { type_concours, prix } = req.body
-    if (!type_concours || !prix) return res.status(400).json({ error: 'Paramètres manquants' })
+    if (!type_concours || !prix) return res.status(400).json({ error: 'Données requises' })
 
-    const { data, error } = await supabaseAdmin
+    const newPrix = parseInt(prix)
+    if (isNaN(newPrix) || newPrix < 100) {
+      return res.status(400).json({ error: 'Prix invalide (minimum 100 FCFA)' })
+    }
+
+    // Mettre à jour le prix dans toutes les catégories du même type
+    const catType = type_concours === 'direct' ? 'direct' : 'professionnel'
+    const { error } = await supabaseAdmin
       .from('categories')
-      .update({ prix: parseInt(prix) })
-      .eq('type', type_concours)
-      .select()
+      .update({ prix: newPrix })
+      .eq('type', catType)
 
     if (error) return res.status(500).json({ error: error.message })
-    return res.json({ price: { type_concours, prix: parseInt(prix) }, updated: data?.length })
+
+    return res.json({
+      price: { type_concours, prix: newPrix },
+      success: true,
+      message: `Prix ${type_concours === 'direct' ? 'Concours Directs' : 'Concours Professionnels'} mis à jour: ${newPrix.toLocaleString()} FCFA`
+    })
   }
 
   return res.status(405).json({ error: 'Method not allowed' })

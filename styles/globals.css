@@ -123,10 +123,23 @@ input, select, textarea {
   font-size: 16px !important;
 }
 
-/* Logo rounded */
+/* Logo rounded - coins bien arrondis */
 .logo-rounded {
-  border-radius: 20px;
+  border-radius: 22px;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.logo-circle {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* Logo avec ombre douce */
+.logo-header {
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 /* Orange Money colors */

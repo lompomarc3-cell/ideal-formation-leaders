@@ -6,15 +6,19 @@ async function checkAdmin(req) {
   if (!token) return null
   const decoded = verifyToken(token)
   if (!decoded) return null
-  const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', decoded.userId).single()
-  if (!['admin', 'superadmin'].includes(profile?.role)) return null
-  return decoded.userId
+  const { data: p } = await supabaseAdmin
+    .from('profiles')
+    .select('role')
+    .eq('id', decoded.userId)
+    .single()
+  return ['admin', 'superadmin'].includes(p?.role) ? decoded.userId : null
 }
 
 export default async function handler(req, res) {
   const adminId = await checkAdmin(req)
   if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
 
+  // GET - Liste des utilisateurs
   if (req.method === 'GET') {
     const { data: users, error } = await supabaseAdmin
       .from('profiles')
@@ -22,18 +26,44 @@ export default async function handler(req, res) {
       .order('created_at', { ascending: false })
 
     if (error) return res.status(500).json({ error: error.message })
-    return res.json({ users: users || [] })
+
+    const mapped = (users || []).map(u => {
+      const parts = (u.full_name || '').split(' ')
+      return {
+        id: u.id,
+        phone: u.phone,
+        nom: parts[0] || '',
+        prenom: parts.slice(1).join(' ') || '',
+        full_name: u.full_name,
+        role: u.role,
+        is_admin: ['admin', 'superadmin'].includes(u.role),
+        is_active: u.subscription_status !== 'blocked',
+        abonnement_type: u.subscription_type,
+        abonnement_valide_jusqua: u.subscription_expires_at,
+        subscription_status: u.subscription_status,
+        created_at: u.created_at
+      }
+    })
+
+    return res.json({ users: mapped })
   }
 
+  // PUT - Modifier un utilisateur
   if (req.method === 'PUT') {
-    const { id, subscription_type, subscription_expires_at, subscription_status, role } = req.body
+    const { id, abonnement_type, abonnement_valide_jusqua, is_active } = req.body
     if (!id) return res.status(400).json({ error: 'ID requis' })
 
     const updates = {}
-    if (subscription_type !== undefined) updates.subscription_type = subscription_type || null
-    if (subscription_expires_at !== undefined) updates.subscription_expires_at = subscription_expires_at || null
-    if (subscription_status !== undefined) updates.subscription_status = subscription_status
-    if (role !== undefined) updates.role = role
+    if (abonnement_type !== undefined) {
+      updates.subscription_type = abonnement_type || null
+      updates.subscription_status = abonnement_type ? 'active' : 'free'
+    }
+    if (abonnement_valide_jusqua !== undefined) {
+      updates.subscription_expires_at = abonnement_valide_jusqua || null
+    }
+    if (is_active === false) {
+      updates.subscription_status = 'blocked'
+    }
 
     const { data, error } = await supabaseAdmin
       .from('profiles')
@@ -43,7 +73,18 @@ export default async function handler(req, res) {
       .single()
 
     if (error) return res.status(500).json({ error: error.message })
-    return res.json({ user: data })
+
+    const parts = (data.full_name || '').split(' ')
+    return res.json({
+      user: {
+        ...data,
+        nom: parts[0] || '',
+        prenom: parts.slice(1).join(' ') || '',
+        abonnement_type: data.subscription_type,
+        abonnement_valide_jusqua: data.subscription_expires_at,
+        is_active: data.subscription_status !== 'blocked'
+      }
+    })
   }
 
   return res.status(405).json({ error: 'Method not allowed' })

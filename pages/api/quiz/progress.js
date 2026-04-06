@@ -3,50 +3,61 @@ import { verifyToken } from '../../../lib/auth'
 
 export default async function handler(req, res) {
   const token = req.headers.authorization?.replace('Bearer ', '')
-  if (!token) return res.status(401).json({ error: 'Connexion requise' })
+  if (!token) return res.status(401).json({ error: 'Non authentifié' })
 
   const decoded = verifyToken(token)
   if (!decoded) return res.status(401).json({ error: 'Token invalide' })
 
-  const userId = decoded.userId
-
+  // GET - Récupérer la progression pour une catégorie
   if (req.method === 'GET') {
-    const { category_id } = req.query
-    try {
-      let query = supabaseAdmin
-        .from('user_progress')
-        .select('*')
-        .eq('user_id', userId)
+    const { categorie_id } = req.query
 
-      if (category_id) {
-        query = query.eq('question_id', category_id) // user_progress utilise question_id
-      }
+    const { data: progress } = await supabaseAdmin
+      .from('user_progress')
+      .select('*')
+      .eq('user_id', decoded.userId)
+      .eq('question_id', categorie_id) // On réutilise question_id pour stocker l'info
+      .maybeSingle()
 
-      const { data, error } = await query
-      if (error) throw error
-      return res.json({ progress: data || [] })
-    } catch (error) {
-      return res.status(500).json({ error: error.message })
-    }
+    return res.json({ progress: progress || null })
   }
 
+  // POST - Sauvegarder la progression
   if (req.method === 'POST') {
-    const { category_id, question_id, score } = req.body
-    try {
-      // Sauvegarder la progression
-      const { data, error } = await supabaseAdmin
-        .from('user_progress')
-        .upsert({
-          user_id: userId,
-          question_id: question_id || null
-        }, { onConflict: 'user_id,question_id' })
-        .select()
-        .single()
+    const { categorie_id, derniere_question_id, score } = req.body
+    if (!categorie_id) return res.status(400).json({ error: 'categorie_id requis' })
 
-      if (error) throw error
-      return res.json({ success: true, progress: data })
-    } catch (error) {
-      return res.status(500).json({ error: error.message })
+    // Stocker la progression dans une structure JSON dans user_progress
+    // On utilise les champs disponibles de façon créative
+    try {
+      const { data: existing } = await supabaseAdmin
+        .from('user_progress')
+        .select('id')
+        .eq('user_id', decoded.userId)
+        .eq('question_id', categorie_id)
+        .maybeSingle()
+
+      if (existing) {
+        await supabaseAdmin
+          .from('user_progress')
+          .update({
+            is_correct: score ? true : false, // utiliser is_correct comme flag
+            created_at: new Date().toISOString()
+          })
+          .eq('id', existing.id)
+      } else {
+        await supabaseAdmin
+          .from('user_progress')
+          .insert({
+            user_id: decoded.userId,
+            question_id: categorie_id,
+            is_correct: score ? true : false
+          })
+      }
+
+      return res.json({ success: true })
+    } catch (e) {
+      return res.json({ success: false, error: e.message })
     }
   }
 

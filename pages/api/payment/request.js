@@ -10,42 +10,57 @@ export default async function handler(req, res) {
   const decoded = verifyToken(token)
   if (!decoded) return res.status(401).json({ error: 'Token invalide' })
 
-  const { montant, type_concours, capture_url, numero_paiement } = req.body
-  if (!montant || !type_concours) return res.status(400).json({ error: 'Paramètres manquants' })
+  const { type_concours, montant, numero_paiement, notes } = req.body
+
+  if (!type_concours || !montant) {
+    return res.status(400).json({ error: 'Type et montant requis' })
+  }
+
+  const validMontants = { direct: 5000, professionnel: 20000 }
+  if (montant !== validMontants[type_concours]) {
+    return res.status(400).json({ error: 'Montant incorrect pour ce type d\'abonnement' })
+  }
 
   try {
-    // Vérifier qu'une demande identique n'est pas déjà en attente
+    // Vérifier s'il y a déjà une demande en attente
     const { data: existing } = await supabaseAdmin
       .from('correction_requests')
-      .select('id')
+      .select('id, status')
       .eq('user_id', decoded.userId)
+      .like('message', '%"type":"payment"%')
       .eq('status', 'pending')
-      .like('message', `%"type":"payment"%"type_concours":"${type_concours}"%`)
       .maybeSingle()
 
     if (existing) {
-      return res.status(400).json({ error: 'Une demande de paiement est déjà en cours pour ce type de concours.' })
+      return res.status(400).json({ error: 'Vous avez déjà une demande de paiement en attente. Attendez la validation de l\'admin.' })
     }
 
-    const { data, error } = await supabaseAdmin.from('correction_requests').insert({
-      user_id: decoded.userId,
-      question_id: null,
-      message: JSON.stringify({
-        type: 'payment',
-        montant,
-        type_concours,
-        capture_url: capture_url || null,
-        numero_paiement: numero_paiement || null,
-        timestamp: new Date().toISOString()
-      }),
-      status: 'pending',
-      admin_response: null
-    }).select().single()
+    const { data, error } = await supabaseAdmin
+      .from('correction_requests')
+      .insert({
+        user_id: decoded.userId,
+        question_id: null,
+        message: JSON.stringify({
+          type: 'payment',
+          type_concours,
+          montant,
+          numero_paiement: numero_paiement || '',
+          notes: notes || ''
+        }),
+        status: 'pending',
+        admin_response: null
+      })
+      .select()
+      .single()
 
-    if (error) throw error
+    if (error) return res.status(500).json({ error: error.message })
 
-    return res.status(201).json({ success: true, payment_id: data.id })
+    return res.status(201).json({
+      success: true,
+      message: '✅ Demande envoyée ! L\'admin validera votre paiement sous peu.',
+      payment_id: data.id
+    })
   } catch (error) {
-    return res.status(500).json({ error: error.message })
+    return res.status(500).json({ error: 'Erreur serveur: ' + error.message })
   }
 }

@@ -4,67 +4,70 @@ import { verifyToken } from '../../../lib/auth'
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { category_id, is_demo } = req.query
+  const token = req.headers.authorization?.replace('Bearer ', '')
+  const decoded = token ? verifyToken(token) : null
 
-  // Vérifier l'auth seulement pour les questions non-démo
-  if (!is_demo) {
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (!token) return res.status(401).json({ error: 'Connexion requise' })
+  const { categorie_id } = req.query
+  if (!categorie_id) return res.status(400).json({ error: 'categorie_id requis' })
 
-    const decoded = verifyToken(token)
-    if (!decoded) return res.status(401).json({ error: 'Token invalide' })
+  // Vérifier si l'utilisateur a accès (abonnement actif)
+  if (decoded) {
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('subscription_type, subscription_status, subscription_expires_at, role')
+      .eq('id', decoded.userId)
+      .single()
 
-    // Vérifier l'abonnement si catégorie spécifique
-    if (category_id) {
-      const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('role, subscription_status, subscription_type, subscription_expires_at')
-        .eq('id', decoded.userId)
+    const isAdmin = ['admin', 'superadmin'].includes(profile?.role)
+    const isActive = profile?.subscription_status === 'active'
+    const notExpired = !profile?.subscription_expires_at ||
+      new Date(profile.subscription_expires_at) > new Date()
+
+    if (!isAdmin && !(isActive && notExpired)) {
+      return res.status(403).json({ error: 'Abonnement requis pour accéder à ce contenu.' })
+    }
+
+    // Vérifier que le type d'abonnement correspond à la catégorie
+    if (!isAdmin) {
+      const { data: cat } = await supabaseAdmin
+        .from('categories')
+        .select('type')
+        .eq('id', categorie_id)
         .single()
 
-      const isAdmin = ['admin', 'superadmin'].includes(profile?.role)
-      
-      if (!isAdmin) {
-        // Vérifier l'abonnement
-        const { data: category } = await supabaseAdmin
-          .from('categories')
-          .select('type')
-          .eq('id', category_id)
-          .single()
-
-        const hasActive = profile?.subscription_status === 'active' &&
-          profile?.subscription_expires_at &&
-          new Date(profile.subscription_expires_at) > new Date()
-
-        if (!hasActive) {
-          return res.status(403).json({ error: 'Abonnement requis pour accéder à ce contenu.' })
-        }
-
-        if (category?.type === 'professionnel' && profile?.subscription_type === 'direct') {
-          return res.status(403).json({ error: 'Abonnement Concours Professionnels requis.' })
-        }
-        if (category?.type === 'direct' && profile?.subscription_type === 'professionnel') {
-          return res.status(403).json({ error: 'Abonnement Concours Directs requis.' })
+      const subType = profile.subscription_type
+      if (cat && subType !== 'all') {
+        if (cat.type !== subType) {
+          return res.status(403).json({ error: 'Votre abonnement ne couvre pas cette catégorie.' })
         }
       }
     }
+  } else {
+    return res.status(401).json({ error: 'Connexion requise pour accéder à ce contenu.' })
   }
 
-  try {
-    let query = supabaseAdmin.from('questions').select('*').eq('is_active', true)
+  // Récupérer les questions
+  const { data, error } = await supabaseAdmin
+    .from('questions')
+    .select('*')
+    .eq('category_id', categorie_id)
+    .eq('is_active', true)
+    .order('created_at', { ascending: true })
 
-    if (is_demo === 'true') {
-      query = query.eq('is_demo', true).limit(10)
-    } else if (category_id) {
-      query = query.eq('category_id', category_id)
-    }
+  if (error) return res.status(500).json({ error: error.message })
 
-    const { data: questions, error } = await query
+  // Mapper les champs
+  const questions = (data || []).map(q => ({
+    id: q.id,
+    categorie_id: q.category_id,
+    question_text: q.enonce,
+    option_a: q.option_a,
+    option_b: q.option_b,
+    option_c: q.option_c,
+    option_d: q.option_d,
+    bonne_reponse: q.reponse_correcte,
+    explication: q.explication
+  }))
 
-    if (error) throw error
-
-    return res.json({ questions: questions || [] })
-  } catch (error) {
-    return res.status(500).json({ error: 'Erreur: ' + error.message })
-  }
+  return res.json({ questions })
 }

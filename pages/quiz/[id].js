@@ -56,8 +56,8 @@ export default function QuizPage() {
       
       // Restaurer la progression
       const savedProgress = await fetchProgress()
-      if (savedProgress?.last_question_id && data.questions?.length > 0) {
-        const idx = data.questions.findIndex(q => q.id === savedProgress.last_question_id)
+      if (savedProgress?.derniere_question_id && data.questions?.length > 0) {
+        const idx = data.questions.findIndex(q => q.id === savedProgress.derniere_question_id)
         if (idx > 0) setCurrentIndex(idx)
       }
     } catch (e) {
@@ -69,11 +69,11 @@ export default function QuizPage() {
   const fetchProgress = async () => {
     try {
       const token = getToken()
-      const res = await fetch(`/api/quiz/progress?category_id=${id}`, {
+      const res = await fetch(`/api/quiz/progress?categorie_id=${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
-      return data.progress?.[0] || null
+      return data.progress || null
     } catch (e) {
       return null
     }
@@ -86,10 +86,10 @@ export default function QuizPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          category_id: id,
-          last_question_id: questionId,
+          categorie_id: id,
+          derniere_question_id: questionId,
           score: newScore,
-          total_answered: total
+          total_reponses: total
         })
       })
     } catch (e) {}
@@ -285,11 +285,11 @@ export default function QuizPage() {
           </div>
 
           {showResult && (
-            <div className={`rounded-2xl p-4 mb-4 border-2 ${selected === question.reponse_correcte ? 'bg-green-50 border-green-300' : 'bg-orange-50 border-orange-300'}`}>
-              <p className={`font-bold text-sm mb-1 ${selected === question.reponse_correcte ? 'text-green-700' : 'text-orange-700'}`}>
-                {selected === question.reponse_correcte ? '✅ Correct !' : `❌ Incorrect – Réponse : ${question.reponse_correcte}`}
+            <div className={`rounded-2xl p-4 mb-4 border-2 ${selected === question.bonne_reponse ? 'bg-green-50 border-green-300' : 'bg-orange-50 border-orange-300'}`}>
+              <p className={`font-bold text-sm mb-1 ${selected === question.bonne_reponse ? 'text-green-700' : 'text-orange-700'}`}>
+                {selected === question.bonne_reponse ? '✅ Correct !' : `❌ Incorrect – Réponse : ${question.bonne_reponse}`}
               </p>
-              <p className={`text-sm leading-relaxed ${selected === question.reponse_correcte ? 'text-green-600' : 'text-orange-600'}`}>
+              <p className={`text-sm leading-relaxed ${selected === question.bonne_reponse ? 'text-green-600' : 'text-orange-600'}`}>
                 {question.explication}
               </p>
             </div>

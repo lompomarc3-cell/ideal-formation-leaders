@@ -9,7 +9,6 @@ export default async function handler(req, res) {
   if (!phone || !nom || !prenom || !password) {
     return res.status(400).json({ error: 'Tous les champs sont obligatoires.' })
   }
-
   if (password.length < 6) {
     return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères.' })
   }
@@ -18,7 +17,6 @@ export default async function handler(req, res) {
   if (!normalizedPhone.startsWith('+226')) {
     normalizedPhone = '+226' + normalizedPhone.replace(/^0+/, '')
   }
-
   if (normalizedPhone.length < 12) {
     return res.status(400).json({ error: 'Numéro de téléphone invalide. Format: +226XXXXXXXX' })
   }
@@ -53,14 +51,19 @@ export default async function handler(req, res) {
       .single()
 
     if (error) {
-      return res.status(400).json({ error: 'Erreur lors de la création du compte. ' + error.message })
+      return res.status(400).json({ error: 'Erreur lors de la création du compte: ' + error.message })
     }
 
-    // Stocker le password_hash dans correction_requests (type auth)
+    // Stocker le password_hash dans correction_requests
     await supabaseAdmin.from('correction_requests').insert({
       user_id: profile.id,
       question_id: null,
-      message: JSON.stringify({ password_hash, nom: nom.toUpperCase().trim(), prenom: prenom.trim() }),
+      message: JSON.stringify({
+        password_hash,
+        nom: nom.toUpperCase().trim(),
+        prenom: prenom.trim(),
+        type: 'auth'
+      }),
       status: 'auth',
       admin_response: 'password_storage'
     })
@@ -79,13 +82,13 @@ export default async function handler(req, res) {
         full_name: profile.full_name,
         role: profile.role,
         is_admin: isAdmin,
-        abonnement_type: profile.subscription_type,
-        abonnement_valide_jusqua: profile.subscription_expires_at,
-        subscription_status: profile.subscription_status
+        abonnement_type: null,
+        abonnement_valide_jusqua: null,
+        subscription_status: 'free'
       }
     })
   } catch (error) {
     console.error('Register error:', error)
-    return res.status(500).json({ error: 'Erreur serveur: ' + error.message })
+    return res.status(500).json({ error: 'Erreur serveur. Veuillez réessayer.' })
   }
 }
