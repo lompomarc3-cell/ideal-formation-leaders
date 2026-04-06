@@ -7,12 +7,12 @@ async function checkAdmin(req) {
   if (!token) return null
   const decoded = await verifyToken(token)
   if (!decoded) return null
-  const { data: user } = await supabaseAdmin
-    .from('ifl_users')
-    .select('id, is_admin, role')
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('id, role')
     .eq('id', decoded.userId)
     .single()
-  return (user?.is_admin || user?.role === 'admin') ? decoded.userId : null
+  return (profile?.role === 'superadmin' || profile?.role === 'admin') ? decoded.userId : null
 }
 
 export default async function handler(req, res) {
@@ -20,27 +20,39 @@ export default async function handler(req, res) {
   if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
 
   if (req.method === 'GET') {
-    const { data, error } = await supabaseAdmin
-      .from('ifl_prix_config')
-      .select('*')
-      .order('id')
+    // Récupérer les prix depuis les catégories (prix distinct par type)
+    const { data: cats } = await supabaseAdmin
+      .from('categories')
+      .select('type, prix')
+      .eq('is_active', true)
 
-    if (error) return res.status(500).json({ error: error.message })
-    return res.json({ prices: data || [] })
+    const prices = {
+      direct: 5000,
+      professionnel: 20000
+    }
+
+    if (cats) {
+      for (const c of cats) {
+        if (c.prix && c.type === 'direct') prices.direct = c.prix
+        if (c.prix && c.type === 'professionnel') prices.professionnel = c.prix
+      }
+    }
+
+    return res.json({ prices })
   }
 
   if (req.method === 'PUT') {
     const { type_concours, prix } = req.body
-    if (!type_concours || !prix) return res.status(400).json({ error: 'Paramètres manquants' })
+    if (!type_concours || !prix) return res.status(400).json({ error: 'Paramètres requis' })
 
-    const { data, error } = await supabaseAdmin
-      .from('ifl_prix_config')
-      .upsert({ type_concours, prix: parseInt(prix) }, { onConflict: 'type_concours' })
-      .select()
-      .single()
+    // Mettre à jour le prix dans toutes les catégories du type
+    const { error } = await supabaseAdmin
+      .from('categories')
+      .update({ prix: parseInt(prix) })
+      .eq('type', type_concours)
 
     if (error) return res.status(500).json({ error: error.message })
-    return res.json({ price: data })
+    return res.json({ success: true, message: `Prix mis à jour: ${prix} FCFA` })
   }
 
   return res.status(405).json({ error: 'Method not allowed' })

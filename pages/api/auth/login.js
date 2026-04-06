@@ -16,44 +16,79 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { data: user, error } = await supabaseAdmin
-      .from('ifl_users')
+    // 1. Chercher le profil par téléphone
+    const { data: profile, error: profileErr } = await supabaseAdmin
+      .from('profiles')
       .select('*')
       .eq('phone', normalizedPhone)
       .maybeSingle()
 
-    if (error || !user) {
+    if (profileErr || !profile) {
       return res.status(401).json({ error: 'Numéro de téléphone ou mot de passe incorrect.' })
     }
 
-    if (!user.is_active) {
-      return res.status(401).json({ error: 'Compte désactivé. Contactez l\'administrateur.' })
+    // 2. Récupérer le hash depuis correction_requests
+    const { data: authRecords } = await supabaseAdmin
+      .from('correction_requests')
+      .select('message, admin_response')
+      .eq('user_id', profile.id)
+      .not('message', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    let passwordHash = null
+    if (authRecords && authRecords.length > 0) {
+      for (const record of authRecords) {
+        // Format JSON {type: 'ifl_auth', password_hash: '...'}
+        try {
+          const parsed = JSON.parse(record.message)
+          if (parsed.type === 'ifl_auth' && parsed.password_hash) {
+            passwordHash = parsed.password_hash
+            break
+          }
+        } catch {}
+        // Format sha256 dans admin_response (legacy)
+        if (!passwordHash && record.admin_response && record.admin_response.startsWith('sha256:')) {
+          passwordHash = record.admin_response
+          break
+        }
+      }
     }
 
-    const valid = await verifyPassword(password, user.password_hash)
+    if (!passwordHash) {
+      return res.status(401).json({ error: 'Numéro de téléphone ou mot de passe incorrect.' })
+    }
+
+    const valid = await verifyPassword(password, passwordHash)
     if (!valid) {
       return res.status(401).json({ error: 'Numéro de téléphone ou mot de passe incorrect.' })
     }
 
-    const token = await generateToken(user.id, user.is_admin)
+    const isAdmin = profile.role === 'superadmin' || profile.role === 'admin'
+    const token = await generateToken(profile.id, isAdmin)
+
+    const nameParts = (profile.full_name || '').trim().split(' ')
+    const nom = nameParts[0] || ''
+    const prenom = nameParts.slice(1).join(' ') || ''
 
     return res.json({
       success: true,
       token,
       user: {
-        id: user.id,
-        phone: user.phone,
-        nom: user.nom,
-        prenom: user.prenom,
-        role: user.role,
-        is_admin: user.is_admin,
-        abonnement_type: user.abonnement_type,
-        abonnement_valide_jusqua: user.abonnement_valide_jusqua,
-        is_active: user.is_active
+        id: profile.id,
+        phone: profile.phone,
+        nom,
+        prenom,
+        full_name: profile.full_name,
+        role: profile.role,
+        is_admin: isAdmin,
+        abonnement_type: profile.subscription_type,
+        abonnement_valide_jusqua: profile.subscription_expires_at,
+        subscription_status: profile.subscription_status,
+        is_active: true
       }
     })
   } catch (error) {
-    console.error('Login error:', error)
     return res.status(500).json({ error: 'Erreur serveur: ' + error.message })
   }
 }

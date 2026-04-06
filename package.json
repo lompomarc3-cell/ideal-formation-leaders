@@ -1,12 +1,14 @@
 {
   "name": "ifl-app",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "export": "next build && next export"
+    "pages:build": "npx @cloudflare/next-on-pages@1",
+    "preview": "npm run pages:build && npx wrangler pages dev",
+    "deploy": "npm run pages:build && npx wrangler pages deploy .vercel/output/static"
   },
   "dependencies": {
     "next": "14.2.29",
@@ -14,12 +16,13 @@
     "react-dom": "^18",
     "@supabase/supabase-js": "^2",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2"
+    "jose": "^5.0.0"
   },
   "devDependencies": {
     "tailwindcss": "^3",
     "autoprefixer": "^10",
-    "postcss": "^8"
+    "postcss": "^8",
+    "@cloudflare/next-on-pages": "^1"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 
   try {
     const { data: existing } = await supabaseAdmin
-      .from('ifl_users')
+      .from('profiles')
       .select('id')
       .eq('phone', normalizedPhone)
       .maybeSingle()
@@ -35,43 +35,60 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Ce numéro de téléphone est déjà enregistré.' })
     }
 
+    const full_name = `${nom.toUpperCase().trim()} ${prenom.trim()}`
     const password_hash = await hashPassword(password)
 
-    const { data: user, error } = await supabaseAdmin
-      .from('ifl_users')
+    // Créer le profil
+    const { data: profile, error } = await supabaseAdmin
+      .from('profiles')
       .insert({
         phone: normalizedPhone,
-        nom: nom.toUpperCase().trim(),
-        prenom: prenom.trim(),
-        password_hash,
+        full_name,
         role: 'user',
-        is_admin: false,
-        is_active: true,
-        abonnement_type: null,
-        abonnement_valide_jusqua: null
+        subscription_status: 'free',
+        subscription_type: null,
+        subscription_expires_at: null
       })
       .select()
       .single()
 
     if (error) {
-      return res.status(400).json({ error: 'Erreur lors de la création du compte. ' + error.message })
+      return res.status(400).json({ error: 'Erreur création compte: ' + error.message })
     }
 
-    const token = await generateToken(user.id, false)
+    // Stocker le hash dans correction_requests
+    await supabaseAdmin
+      .from('correction_requests')
+      .insert({
+        user_id: profile.id,
+        question_id: null,
+        message: JSON.stringify({
+          type: 'ifl_auth',
+          password_hash,
+          nom: nom.toUpperCase().trim(),
+          prenom: prenom.trim()
+        }),
+        status: 'pending',
+        admin_response: null
+      })
+
+    const token = await generateToken(profile.id, false)
 
     return res.status(201).json({
       success: true,
       token,
       user: {
-        id: user.id,
-        phone: user.phone,
-        nom: user.nom,
-        prenom: user.prenom,
-        role: user.role,
-        is_admin: user.is_admin,
-        abonnement_type: user.abonnement_type,
-        abonnement_valide_jusqua: user.abonnement_valide_jusqua,
-        is_active: user.is_active
+        id: profile.id,
+        phone: profile.phone,
+        nom: nom.toUpperCase().trim(),
+        prenom: prenom.trim(),
+        full_name: profile.full_name,
+        role: 'user',
+        is_admin: false,
+        abonnement_type: null,
+        abonnement_valide_jusqua: null,
+        subscription_status: 'free',
+        is_active: true
       }
     })
   } catch (error) {

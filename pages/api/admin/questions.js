@@ -7,12 +7,12 @@ async function checkAdmin(req) {
   if (!token) return null
   const decoded = await verifyToken(token)
   if (!decoded) return null
-  const { data: user } = await supabaseAdmin
-    .from('ifl_users')
-    .select('id, is_admin, role')
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('id, role')
     .eq('id', decoded.userId)
     .single()
-  return (user?.is_admin || user?.role === 'admin') ? decoded.userId : null
+  return (profile?.role === 'superadmin' || profile?.role === 'admin') ? decoded.userId : null
 }
 
 export default async function handler(req, res) {
@@ -24,11 +24,12 @@ export default async function handler(req, res) {
     let query = supabaseAdmin
       .from('questions')
       .select('*, categories(nom, type)')
+      .eq('is_active', true)
       .order('created_at', { ascending: false })
 
     if (categorie_id) query = query.eq('category_id', categorie_id)
 
-    const { data, error } = await query.limit(100)
+    const { data, error } = await query.limit(200)
     if (error) return res.status(500).json({ error: error.message })
 
     const questions = (data || []).map(q => ({
@@ -42,7 +43,7 @@ export default async function handler(req, res) {
       explication: q.explication,
       categorie_id: q.category_id,
       is_demo: q.is_demo,
-      ifl_categories: q.categories
+      categories: q.categories
     }))
 
     return res.json({ questions })
@@ -71,6 +72,18 @@ export default async function handler(req, res) {
       .single()
 
     if (error) return res.status(500).json({ error: error.message })
+
+    // Mettre à jour question_count
+    await supabaseAdmin.rpc('increment_question_count', { cat_id: categorie_id }).catch(() => {})
+    // Fallback: mise à jour manuelle
+    const { count } = await supabaseAdmin
+      .from('questions')
+      .select('*', { count: 'exact', head: true })
+      .eq('category_id', categorie_id)
+      .eq('is_active', true)
+    if (count !== null) {
+      await supabaseAdmin.from('categories').update({ question_count: count }).eq('id', categorie_id)
+    }
 
     return res.status(201).json({
       question: {
@@ -124,7 +137,7 @@ export default async function handler(req, res) {
   if (req.method === 'DELETE') {
     const { id } = req.query
     if (!id) return res.status(400).json({ error: 'ID requis' })
-    const { error } = await supabaseAdmin.from('questions').delete().eq('id', id)
+    const { error } = await supabaseAdmin.from('questions').update({ is_active: false }).eq('id', id)
     if (error) return res.status(500).json({ error: error.message })
     return res.json({ success: true })
   }

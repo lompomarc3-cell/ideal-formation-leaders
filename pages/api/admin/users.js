@@ -1,18 +1,18 @@
 export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
-import { verifyToken, hashPassword } from '../../../lib/auth'
+import { verifyToken } from '../../../lib/auth'
 
 async function checkAdmin(req) {
   const token = req.headers.authorization?.replace('Bearer ', '')
   if (!token) return null
   const decoded = await verifyToken(token)
   if (!decoded) return null
-  const { data: user } = await supabaseAdmin
-    .from('ifl_users')
-    .select('id, is_admin, role')
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('id, role')
     .eq('id', decoded.userId)
     .single()
-  return (user?.is_admin || user?.role === 'admin') ? decoded.userId : null
+  return (profile?.role === 'superadmin' || profile?.role === 'admin') ? decoded.userId : null
 }
 
 export default async function handler(req, res) {
@@ -21,35 +21,50 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     const { data: users, error } = await supabaseAdmin
-      .from('ifl_users')
-      .select('id, phone, nom, prenom, role, is_admin, is_active, abonnement_type, abonnement_valide_jusqua, created_at')
+      .from('profiles')
+      .select('*')
+      .not('role', 'in', '("superadmin","admin")')
       .order('created_at', { ascending: false })
+      .limit(100)
 
     if (error) return res.status(500).json({ error: error.message })
-    return res.json({ users: users || [] })
+
+    return res.json({
+      users: (users || []).map(u => {
+        const [nom, ...prenomParts] = (u.full_name || '').split(' ')
+        return {
+          id: u.id,
+          phone: u.phone,
+          nom: nom || '',
+          prenom: prenomParts.join(' ') || '',
+          full_name: u.full_name,
+          role: u.role,
+          is_admin: false,
+          abonnement_type: u.subscription_type,
+          subscription_status: u.subscription_status,
+          abonnement_valide_jusqua: u.subscription_expires_at,
+          created_at: u.created_at
+        }
+      })
+    })
   }
 
   if (req.method === 'PUT') {
-    const { id, abonnement_type, abonnement_valide_jusqua, is_active, new_password } = req.body
+    const { id, subscription_type, subscription_status, subscription_expires_at } = req.body
     if (!id) return res.status(400).json({ error: 'ID requis' })
 
-    const updates = {}
-    if (abonnement_type !== undefined) updates.abonnement_type = abonnement_type || null
-    if (abonnement_valide_jusqua !== undefined) updates.abonnement_valide_jusqua = abonnement_valide_jusqua || null
-    if (is_active !== undefined) updates.is_active = is_active
-    if (new_password && new_password.length >= 6) {
-      updates.password_hash = await hashPassword(new_password)
-    }
+    const updateData = {}
+    if (subscription_type !== undefined) updateData.subscription_type = subscription_type
+    if (subscription_status !== undefined) updateData.subscription_status = subscription_status
+    if (subscription_expires_at !== undefined) updateData.subscription_expires_at = subscription_expires_at
 
-    const { data, error } = await supabaseAdmin
-      .from('ifl_users')
-      .update(updates)
+    const { error } = await supabaseAdmin
+      .from('profiles')
+      .update(updateData)
       .eq('id', id)
-      .select()
-      .single()
 
     if (error) return res.status(500).json({ error: error.message })
-    return res.json({ user: data })
+    return res.json({ success: true })
   }
 
   return res.status(405).json({ error: 'Method not allowed' })

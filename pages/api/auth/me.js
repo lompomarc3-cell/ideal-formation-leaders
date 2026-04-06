@@ -12,25 +12,32 @@ export default async function handler(req, res) {
   if (!decoded) return res.status(401).json({ error: 'Token invalide' })
 
   try {
-    const { data: user, error } = await supabaseAdmin
-      .from('ifl_users')
-      .select('id, phone, nom, prenom, role, is_admin, abonnement_type, abonnement_valide_jusqua, is_active, created_at')
+    const { data: profile, error } = await supabaseAdmin
+      .from('profiles')
+      .select('*')
       .eq('id', decoded.userId)
       .single()
 
-    if (error || !user) return res.status(404).json({ error: 'Utilisateur non trouvé' })
+    if (error || !profile) return res.status(404).json({ error: 'Utilisateur non trouvé' })
+
+    const isAdmin = profile.role === 'superadmin' || profile.role === 'admin'
+    const nameParts = (profile.full_name || '').trim().split(' ')
+    const nom = nameParts[0] || ''
+    const prenom = nameParts.slice(1).join(' ') || ''
 
     return res.json({
       user: {
-        id: user.id,
-        phone: user.phone,
-        nom: user.nom,
-        prenom: user.prenom,
-        role: user.role,
-        is_admin: user.is_admin,
-        abonnement_type: user.abonnement_type,
-        abonnement_valide_jusqua: user.abonnement_valide_jusqua,
-        is_active: user.is_active
+        id: profile.id,
+        phone: profile.phone,
+        nom,
+        prenom,
+        full_name: profile.full_name,
+        role: profile.role,
+        is_admin: isAdmin,
+        abonnement_type: profile.subscription_type,
+        abonnement_valide_jusqua: profile.subscription_expires_at,
+        subscription_status: profile.subscription_status,
+        is_active: true
       }
     })
   } catch (error) {

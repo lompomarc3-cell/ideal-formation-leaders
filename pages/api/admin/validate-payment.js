@@ -1,10 +1,11 @@
+export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
 async function checkAdmin(req) {
   const token = req.headers.authorization?.replace('Bearer ', '')
   if (!token) return null
-  const decoded = verifyToken(token)
+  const decoded = await verifyToken(token)
   if (!decoded) return null
   const { data: p } = await supabaseAdmin.from('profiles').select('role').eq('id', decoded.userId).single()
   return ['admin', 'superadmin'].includes(p?.role) ? decoded.userId : null

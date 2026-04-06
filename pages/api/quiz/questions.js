@@ -3,57 +3,30 @@ import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
-
-  const { categorie_id } = req.query
-  if (!categorie_id) return res.status(400).json({ error: 'categorie_id requis' })
-
   const token = req.headers.authorization?.replace('Bearer ', '')
   if (!token) return res.status(401).json({ error: 'Non authentifié' })
 
   const decoded = await verifyToken(token)
   if (!decoded) return res.status(401).json({ error: 'Token invalide' })
 
-  try {
-    const { data: user } = await supabaseAdmin
-      .from('ifl_users')
-      .select('id, abonnement_type, abonnement_valide_jusqua, is_admin')
-      .eq('id', decoded.userId)
-      .single()
+  if (req.method === 'GET') {
+    const { categorie_id, limit = 50 } = req.query
 
-    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' })
-
-    const { data: category } = await supabaseAdmin
-      .from('categories')
-      .select('id, nom, type, is_active')
-      .eq('id', categorie_id)
-      .single()
-
-    if (!category || !category.is_active) {
-      return res.status(404).json({ error: 'Catégorie non trouvée' })
-    }
-
-    if (!user.is_admin) {
-      const hasAccess = checkAccess(user, category.type)
-      if (!hasAccess) {
-        return res.status(403).json({
-          error: 'Abonnement requis',
-          type: category.type,
-          prix: category.type === 'direct' ? 5000 : 20000
-        })
-      }
+    if (!categorie_id) {
+      return res.status(400).json({ error: 'categorie_id requis' })
     }
 
     const { data: questions, error } = await supabaseAdmin
       .from('questions')
-      .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication')
+      .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo')
       .eq('category_id', categorie_id)
       .eq('is_active', true)
       .order('created_at', { ascending: true })
+      .limit(parseInt(limit))
 
     if (error) return res.status(500).json({ error: error.message })
 
-    const normalized = (questions || []).map(q => ({
+    const mapped = (questions || []).map(q => ({
       id: q.id,
       question_text: q.enonce,
       option_a: q.option_a,
@@ -61,18 +34,12 @@ export default async function handler(req, res) {
       option_c: q.option_c,
       option_d: q.option_d,
       bonne_reponse: q.reponse_correcte,
-      explication: q.explication
+      explication: q.explication,
+      is_demo: q.is_demo
     }))
 
-    return res.json({ questions: normalized, category })
-  } catch (error) {
-    return res.status(500).json({ error: error.message })
+    return res.json({ questions: mapped })
   }
-}
 
-function checkAccess(user, categoryType) {
-  if (!user.abonnement_type) return false
-  if (user.abonnement_valide_jusqua && new Date(user.abonnement_valide_jusqua) < new Date()) return false
-  if (user.abonnement_type === 'all') return true
-  return user.abonnement_type === categoryType
+  return res.status(405).json({ error: 'Method not allowed' })
 }

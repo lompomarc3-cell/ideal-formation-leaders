@@ -40,7 +40,7 @@ export default async function handler(req, res) {
 
 function getIcone(nom, type) {
   const mapping = {
-    'Actualité': '🌍', 'Culture générale': '🌍', 'Culture Générale': '🌍',
+    'Actualité': '🌍', 'Culture': '🌍',
     'Français': '📚', 'Littérature': '🎨', 'Histoire': '🗺️', 'Géographie': '🗺️',
     'SVT': '🧬', 'Psychotechniques': '🧠', 'Maths': '📐', 'Physique': '⚗️',
     'Chimie': '⚗️', 'Entraînement': '✏️', 'Accompagnement': '🎯',
