@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
@@ -5,50 +6,30 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const token = req.headers.authorization?.replace('Bearer ', '')
-  if (!token) return res.status(401).json({ error: 'Connexion requise' })
+  if (!token) return res.status(401).json({ error: 'Non authentifié' })
 
-  const decoded = verifyToken(token)
+  const decoded = await verifyToken(token)
   if (!decoded) return res.status(401).json({ error: 'Token invalide' })
 
-  const { type_concours, montant, numero_paiement, notes } = req.body
+  const { type_concours, montant, numero_paiement, capture_url } = req.body
 
   if (!type_concours || !montant) {
-    return res.status(400).json({ error: 'Type et montant requis' })
+    return res.status(400).json({ error: 'Type de concours et montant requis' })
   }
 
-  const validMontants = { direct: 5000, professionnel: 20000 }
-  if (montant !== validMontants[type_concours]) {
-    return res.status(400).json({ error: 'Montant incorrect pour ce type d\'abonnement' })
-  }
+  const expectedAmount = type_concours === 'direct' ? 5000 : 20000
 
   try {
-    // Vérifier s'il y a déjà une demande en attente
-    const { data: existing } = await supabaseAdmin
-      .from('correction_requests')
-      .select('id, status')
-      .eq('user_id', decoded.userId)
-      .like('message', '%"type":"payment"%')
-      .eq('status', 'pending')
-      .maybeSingle()
-
-    if (existing) {
-      return res.status(400).json({ error: 'Vous avez déjà une demande de paiement en attente. Attendez la validation de l\'admin.' })
-    }
-
     const { data, error } = await supabaseAdmin
-      .from('correction_requests')
+      .from('ifl_payment_requests')
       .insert({
         user_id: decoded.userId,
-        question_id: null,
-        message: JSON.stringify({
-          type: 'payment',
-          type_concours,
-          montant,
-          numero_paiement: numero_paiement || '',
-          notes: notes || ''
-        }),
-        status: 'pending',
-        admin_response: null
+        montant: expectedAmount,
+        type_concours,
+        capture_url: capture_url || null,
+        numero_paiement: numero_paiement || null,
+        valide: false,
+        date_demande: new Date().toISOString()
       })
       .select()
       .single()
@@ -57,10 +38,10 @@ export default async function handler(req, res) {
 
     return res.status(201).json({
       success: true,
-      message: '✅ Demande envoyée ! L\'admin validera votre paiement sous peu.',
-      payment_id: data.id
+      message: 'Demande de paiement envoyée ! L\'admin validera votre abonnement sous 24h.',
+      payment: data
     })
   } catch (error) {
-    return res.status(500).json({ error: 'Erreur serveur: ' + error.message })
+    return res.status(500).json({ error: error.message })
   }
 }

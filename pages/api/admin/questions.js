@@ -1,24 +1,24 @@
+export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
 async function checkAdmin(req) {
   const token = req.headers.authorization?.replace('Bearer ', '')
   if (!token) return null
-  const decoded = verifyToken(token)
+  const decoded = await verifyToken(token)
   if (!decoded) return null
-  const { data: p } = await supabaseAdmin
-    .from('profiles')
-    .select('role')
+  const { data: user } = await supabaseAdmin
+    .from('ifl_users')
+    .select('id, is_admin, role')
     .eq('id', decoded.userId)
     .single()
-  return ['admin', 'superadmin'].includes(p?.role) ? decoded.userId : null
+  return (user?.is_admin || user?.role === 'admin') ? decoded.userId : null
 }
 
 export default async function handler(req, res) {
   const adminId = await checkAdmin(req)
   if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
 
-  // GET - Liste des questions
   if (req.method === 'GET') {
     const { categorie_id } = req.query
     let query = supabaseAdmin
@@ -28,25 +28,28 @@ export default async function handler(req, res) {
 
     if (categorie_id) query = query.eq('category_id', categorie_id)
 
-    const { data, error } = await query
+    const { data, error } = await query.limit(100)
     if (error) return res.status(500).json({ error: error.message })
 
-    // Mapper les champs pour compatibilité
     const questions = (data || []).map(q => ({
-      ...q,
+      id: q.id,
       question_text: q.enonce,
+      option_a: q.option_a,
+      option_b: q.option_b,
+      option_c: q.option_c,
+      option_d: q.option_d,
       bonne_reponse: q.reponse_correcte,
+      explication: q.explication,
       categorie_id: q.category_id,
+      is_demo: q.is_demo,
       ifl_categories: q.categories
     }))
 
     return res.json({ questions })
   }
 
-  // POST - Ajouter une question
   if (req.method === 'POST') {
     const { categorie_id, question_text, option_a, option_b, option_c, option_d, bonne_reponse, explication } = req.body
-
     if (!categorie_id || !question_text || !option_a || !option_b || !option_c || !option_d || !bonne_reponse || !explication) {
       return res.status(400).json({ error: 'Tous les champs sont requis' })
     }
@@ -57,41 +60,33 @@ export default async function handler(req, res) {
         category_id: categorie_id,
         enonce: question_text,
         option_a, option_b, option_c, option_d,
-        reponse_correcte: bonne_reponse,
+        reponse_correcte: bonne_reponse.toUpperCase(),
         explication,
         is_demo: false,
-        is_active: true
+        is_active: true,
+        matiere: 'QCM',
+        difficulte: 'moyen'
       })
       .select()
       .single()
 
     if (error) return res.status(500).json({ error: error.message })
 
-    // Mettre à jour le compteur de la catégorie
-    await supabaseAdmin.rpc('increment_question_count', { cat_id: categorie_id }).catch(() => {
-      supabaseAdmin.from('categories')
-        .select('question_count')
-        .eq('id', categorie_id)
-        .single()
-        .then(({ data: cat }) => {
-          if (cat) {
-            supabaseAdmin.from('categories')
-              .update({ question_count: (cat.question_count || 0) + 1 })
-              .eq('id', categorie_id)
-          }
-        })
-    })
-
     return res.status(201).json({
       question: {
-        ...data,
+        id: data.id,
         question_text: data.enonce,
-        bonne_reponse: data.reponse_correcte
+        option_a: data.option_a,
+        option_b: data.option_b,
+        option_c: data.option_c,
+        option_d: data.option_d,
+        bonne_reponse: data.reponse_correcte,
+        explication: data.explication,
+        categorie_id: data.category_id
       }
     })
   }
 
-  // PUT - Modifier une question
   if (req.method === 'PUT') {
     const { id, categorie_id, question_text, option_a, option_b, option_c, option_d, bonne_reponse, explication } = req.body
     if (!id) return res.status(400).json({ error: 'ID requis' })
@@ -102,7 +97,7 @@ export default async function handler(req, res) {
         category_id: categorie_id,
         enonce: question_text,
         option_a, option_b, option_c, option_d,
-        reponse_correcte: bonne_reponse,
+        reponse_correcte: bonne_reponse.toUpperCase(),
         explication
       })
       .eq('id', id)
@@ -113,38 +108,24 @@ export default async function handler(req, res) {
 
     return res.json({
       question: {
-        ...data,
+        id: data.id,
         question_text: data.enonce,
-        bonne_reponse: data.reponse_correcte
+        option_a: data.option_a,
+        option_b: data.option_b,
+        option_c: data.option_c,
+        option_d: data.option_d,
+        bonne_reponse: data.reponse_correcte,
+        explication: data.explication,
+        categorie_id: data.category_id
       }
     })
   }
 
-  // DELETE - Supprimer une question
   if (req.method === 'DELETE') {
     const { id } = req.query
     if (!id) return res.status(400).json({ error: 'ID requis' })
-
-    // Récupérer la catégorie avant suppression
-    const { data: q } = await supabaseAdmin.from('questions').select('category_id').eq('id', id).single()
-
     const { error } = await supabaseAdmin.from('questions').delete().eq('id', id)
     if (error) return res.status(500).json({ error: error.message })
-
-    // Décrémenter le compteur
-    if (q?.category_id) {
-      const { data: cat } = await supabaseAdmin
-        .from('categories')
-        .select('question_count')
-        .eq('id', q.category_id)
-        .single()
-      if (cat) {
-        await supabaseAdmin.from('categories')
-          .update({ question_count: Math.max(0, (cat.question_count || 1) - 1) })
-          .eq('id', q.category_id)
-      }
-    }
-
     return res.json({ success: true })
   }
 

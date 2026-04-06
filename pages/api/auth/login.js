@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyPassword, generateToken } from '../../../lib/auth'
 
@@ -15,74 +16,44 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Trouver le profil
-    const { data: profile, error: profileErr } = await supabaseAdmin
-      .from('profiles')
+    const { data: user, error } = await supabaseAdmin
+      .from('ifl_users')
       .select('*')
       .eq('phone', normalizedPhone)
       .maybeSingle()
 
-    if (profileErr || !profile) {
+    if (error || !user) {
       return res.status(401).json({ error: 'Numéro de téléphone ou mot de passe incorrect.' })
     }
 
-    // 2. Récupérer le password_hash stocké dans correction_requests
-    const { data: authRecord } = await supabaseAdmin
-      .from('correction_requests')
-      .select('message')
-      .eq('user_id', profile.id)
-      .eq('status', 'auth')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    let storedHash = null
-    if (authRecord?.message) {
-      try {
-        const parsed = JSON.parse(authRecord.message)
-        storedHash = parsed.password_hash
-      } catch {
-        storedHash = authRecord.message
-      }
+    if (!user.is_active) {
+      return res.status(401).json({ error: 'Compte désactivé. Contactez l\'administrateur.' })
     }
 
-    if (!storedHash) {
-      return res.status(401).json({ error: 'Compte non configuré. Contactez l\'administrateur.' })
-    }
-
-    // 3. Vérifier le mot de passe
-    const valid = await verifyPassword(password, storedHash)
+    const valid = await verifyPassword(password, user.password_hash)
     if (!valid) {
       return res.status(401).json({ error: 'Numéro de téléphone ou mot de passe incorrect.' })
     }
 
-    // 4. Générer le token
-    const isAdmin = ['admin', 'superadmin'].includes(profile.role)
-    const token = generateToken(profile.id, isAdmin)
-
-    // Extraire nom/prénom du full_name
-    const nameParts = (profile.full_name || '').split(' ')
-    const nom = nameParts[0] || ''
-    const prenom = nameParts.slice(1).join(' ') || ''
+    const token = await generateToken(user.id, user.is_admin)
 
     return res.json({
       success: true,
       token,
       user: {
-        id: profile.id,
-        phone: profile.phone,
-        nom,
-        prenom,
-        full_name: profile.full_name,
-        role: profile.role,
-        is_admin: isAdmin,
-        abonnement_type: profile.subscription_type,
-        abonnement_valide_jusqua: profile.subscription_expires_at,
-        subscription_status: profile.subscription_status
+        id: user.id,
+        phone: user.phone,
+        nom: user.nom,
+        prenom: user.prenom,
+        role: user.role,
+        is_admin: user.is_admin,
+        abonnement_type: user.abonnement_type,
+        abonnement_valide_jusqua: user.abonnement_valide_jusqua,
+        is_active: user.is_active
       }
     })
   } catch (error) {
     console.error('Login error:', error)
-    return res.status(500).json({ error: 'Erreur serveur. Veuillez réessayer.' })
+    return res.status(500).json({ error: 'Erreur serveur: ' + error.message })
   }
 }

@@ -1,154 +1,143 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
 
 export default function Login() {
-  const { user, loading, login } = useAuth()
+  const { login } = useAuth()
   const router = useRouter()
-  const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [form, setForm] = useState({ phone: '', password: '' })
+  const [showPwd, setShowPwd] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-
-  useEffect(() => {
-    if (!loading && user) {
-      if (user.is_admin) router.push('/admin')
-      else router.push('/dashboard')
-    }
-  }, [user, loading, router])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setSubmitting(true)
+    setLoading(true)
     try {
-      const loggedUser = await login(phone, password)
-      if (loggedUser.is_admin) router.push('/admin')
-      else router.push('/dashboard')
-    } catch (err) {
-      setError(err.message)
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      })
+      const data = await res.json()
+      if (data.token) {
+        login(data.user, data.token)
+        if (data.user.is_admin) router.push('/admin')
+        else router.push('/dashboard')
+      } else {
+        setError(data.error || 'Erreur de connexion')
+      }
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion.')
     }
-    setSubmitting(false)
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1A4731 0%, #C4521A 100%)' }}>
-        <div className="spinner mx-auto"></div>
-      </div>
-    )
+    setLoading(false)
   }
 
   return (
     <>
-      <Head><title>Connexion – IFL</title></Head>
+      <Head>
+        <title>Connexion – IFL</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </Head>
       <div className="min-h-screen african-pattern flex flex-col" style={{ background: '#FFF8F0' }}>
         {/* Header */}
-        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #1A2F20 100%)' }} className="shadow-lg">
-          <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-3">
-              <img src="/logo.png" alt="IFL" style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '12px' }} />
-              <div>
-                <h1 className="text-white font-bold text-base leading-tight">IFL</h1>
-                <p className="text-green-200 text-xs">Formation of Leader</p>
-              </div>
-            </Link>
-          </div>
+        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }} className="py-4 px-5 flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="logo-header" style={{ width: 44, height: 44 }}>
+              <img src="/logo.png" alt="IFL" style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 14 }} />
+            </div>
+            <span className="text-white font-bold text-lg">IFL</span>
+          </Link>
         </header>
 
-        <div className="flex-1 flex items-start justify-center pt-8 px-4 pb-8">
-          <div className="w-full max-w-sm">
+        <div className="flex-1 flex items-center justify-center px-4 py-8">
+          <div className="w-full max-w-sm animate-fadeIn">
+            {/* Logo centré */}
             <div className="text-center mb-8">
-              <div className="w-20 h-20 mx-auto mb-4 overflow-hidden shadow-lg" style={{ borderRadius: '20px' }}>
-                <img src="/logo.png" alt="IFL" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '20px' }} />
+              <div className="logo-hero inline-block mb-4" style={{ borderRadius: 28 }}>
+                <img src="/logo.png" alt="IFL Logo" style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 28, display: 'block' }} />
               </div>
-              <h2 className="text-2xl font-extrabold" style={{ color: '#1A4731' }}>Connexion</h2>
-              <p className="text-gray-500 text-sm mt-1">Entrez votre numéro et mot de passe</p>
+              <h1 className="text-3xl font-extrabold" style={{ color: '#1A4731' }}>Connexion</h1>
+              <p className="text-gray-500 mt-1">Accédez à votre espace IFL</p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            {/* Formulaire */}
+            <div className="bg-white rounded-3xl shadow-xl p-6 border border-amber-100">
               {error && (
-                <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 mb-5">
-                  <p className="text-red-700 text-sm font-medium">⚠️ {error}</p>
+                <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 mb-5 text-sm font-medium flex items-center gap-2">
+                  <span>⚠️</span> {error}
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Téléphone */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     📱 Numéro de téléphone (+226)
                   </label>
-                  <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden focus-within:border-amber-400 transition-all">
-                    <span className="px-3 py-3.5 bg-gray-50 text-gray-500 font-semibold text-sm border-r border-gray-200">+226</span>
+                  <div className="flex rounded-xl border-2 border-gray-200 focus-within:border-amber-500 overflow-hidden transition-all">
+                    <span className="flex items-center px-3 bg-gray-50 text-gray-600 font-semibold text-base border-r border-gray-200">
+                      🇧🇫 +226
+                    </span>
                     <input
                       type="tel"
-                      value={phone}
-                      onChange={e => setPhone(e.target.value)}
+                      value={form.phone.replace(/^\+226/, '')}
+                      onChange={e => setForm(p => ({ ...p, phone: e.target.value.replace(/^0+/, '') }))}
                       placeholder="XX XX XX XX"
-                      className="flex-1 px-3 py-3.5 text-base outline-none bg-white"
+                      className="flex-1 px-3 py-3.5 outline-none text-base bg-white"
                       required
-                      autoComplete="tel"
                     />
                   </div>
                 </div>
 
+                {/* Mot de passe */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     🔒 Mot de passe
                   </label>
-                  <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden focus-within:border-amber-400 transition-all">
+                  <div className="flex rounded-xl border-2 border-gray-200 focus-within:border-amber-500 overflow-hidden transition-all">
                     <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
+                      type={showPwd ? 'text' : 'password'}
+                      value={form.password}
+                      onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                       placeholder="Votre mot de passe"
-                      className="flex-1 px-4 py-3.5 text-base outline-none bg-white"
+                      className="flex-1 px-4 py-3.5 outline-none text-base bg-white"
                       required
-                      autoComplete="current-password"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="px-4 py-3 text-gray-400 hover:text-gray-600 transition-colors"
+                      onClick={() => setShowPwd(!showPwd)}
+                      className="px-4 text-gray-400 hover:text-gray-600 bg-gray-50 border-l border-gray-200 transition-colors"
                     >
-                      {showPassword ? (
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
-                          <line x1="1" y1="1" x2="23" y2="23"/>
-                        </svg>
-                      ) : (
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                          <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                      )}
+                      {showPwd ? '🙈' : '👁️'}
                     </button>
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="w-full py-4 text-lg font-bold text-white rounded-xl active:scale-95 transition-all shadow-md disabled:opacity-60"
-                  style={{ background: '#C4521A' }}
+                  disabled={loading}
+                  className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-60"
+                  style={{ background: loading ? '#999' : 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }}
                 >
-                  {submitting ? '⏳ Connexion...' : '🔓 Se connecter'}
+                  {loading ? <span className="flex items-center justify-center gap-2"><span className="spinner" style={{width:22,height:22,borderWidth:3}}></span> Connexion...</span> : '🔐 Se connecter'}
                 </button>
               </form>
+
+              <div className="mt-6 text-center">
+                <p className="text-gray-500 text-sm">Pas encore de compte ?</p>
+                <Link href="/register" className="font-bold text-base mt-1 block" style={{ color: '#C4521A' }}>
+                  Créer un compte gratuitement →
+                </Link>
+              </div>
             </div>
 
-            <div className="text-center mt-6 space-y-3">
-              <p className="text-gray-600">
-                Pas encore de compte ?{' '}
-                <Link href="/register" className="font-bold hover:underline" style={{ color: '#C4521A' }}>
-                  S'inscrire
-                </Link>
-              </p>
-              <Link href="/demo" className="block text-gray-500 text-sm hover:text-gray-700">
-                🎯 Essayer la démo gratuite d'abord →
+            <div className="mt-6 text-center">
+              <Link href="/" className="text-gray-400 text-sm hover:text-gray-600">
+                ← Retour à l'accueil
               </Link>
             </div>
           </div>

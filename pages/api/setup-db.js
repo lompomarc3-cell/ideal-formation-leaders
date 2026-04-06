@@ -1,8 +1,7 @@
+export const runtime = 'edge'
 import { supabaseAdmin } from '../../lib/supabase'
 import { hashPassword } from '../../lib/auth'
 
-// Endpoint pour initialiser la base de données
-// Appeler avec POST { "secret": "IFL_INIT_DB_2025" }
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
@@ -12,25 +11,25 @@ export default async function handler(req, res) {
   }
 
   const results = {}
-
-  // Vérifier les tables
   const checks = {}
+
   for (const table of ['ifl_users', 'ifl_payment_requests', 'ifl_prix_config', 'ifl_user_progress', 'categories', 'questions']) {
     const { error } = await supabaseAdmin.from(table).select('id', { count: 'exact', head: true }).limit(1)
-    checks[table] = error ? `❌ MISSING (${error.message})` : '✅ EXISTS'
+    checks[table] = error ? `❌ MISSING: ${error.message}` : '✅ EXISTS'
   }
   results.tables = checks
 
-  // Vérifier / créer l'admin
-  if (!checks['ifl_users'].startsWith('❌')) {
+  // Créer/mettre à jour l'admin si ifl_users existe
+  if (checks['ifl_users'] === '✅ EXISTS') {
     const { data: existingAdmin } = await supabaseAdmin
       .from('ifl_users')
       .select('id, phone')
       .eq('phone', '+22676223962')
       .maybeSingle()
 
+    const passwordHash = await hashPassword('IFL@Admin2025!')
+
     if (!existingAdmin) {
-      const passwordHash = await hashPassword('IFL@Admin2025!')
       const { data: newAdmin, error: ae } = await supabaseAdmin
         .from('ifl_users')
         .insert({
@@ -46,41 +45,41 @@ export default async function handler(req, res) {
         .single()
 
       results.admin = ae
-        ? `❌ Erreur création admin: ${ae.message}`
+        ? `❌ ${ae.message}`
         : `✅ Admin créé: ${newAdmin.phone}`
     } else {
-      // Mettre à jour le hash admin
-      const passwordHash = await hashPassword('IFL@Admin2025!')
       const { error: ue } = await supabaseAdmin
         .from('ifl_users')
         .update({ password_hash: passwordHash, is_admin: true, is_active: true, role: 'admin' })
         .eq('phone', '+22676223962')
       results.admin = ue
-        ? `❌ Erreur update admin: ${ue.message}`
-        : `✅ Admin mis à jour: ${existingAdmin.phone}`
+        ? `❌ ${ue.message}`
+        : `✅ Admin mis à jour (${existingAdmin.phone})`
     }
 
-    // Vérifier/créer les prix
-    if (!checks['ifl_prix_config'].startsWith('❌')) {
-      const { data: existingPrices } = await supabaseAdmin.from('ifl_prix_config').select('type_concours')
-      const types = (existingPrices || []).map(p => p.type_concours)
-
+    // Créer les prix si la table existe
+    if (checks['ifl_prix_config'] === '✅ EXISTS') {
       for (const [type, prix, desc] of [
         ['direct', 5000, 'Concours Directs - 10 dossiers'],
         ['professionnel', 20000, 'Concours Professionnels - 12 dossiers']
       ]) {
-        if (!types.includes(type)) {
+        const { data: existing } = await supabaseAdmin
+          .from('ifl_prix_config')
+          .select('id')
+          .eq('type_concours', type)
+          .maybeSingle()
+
+        if (!existing) {
           await supabaseAdmin.from('ifl_prix_config').insert({ type_concours: type, prix, description: desc })
-          results[`price_${type}`] = `✅ Prix ${type} créé: ${prix} FCFA`
+          results[`price_${type}`] = `✅ Prix créé: ${prix} FCFA`
         } else {
-          results[`price_${type}`] = `✅ Prix ${type} existe déjà`
+          results[`price_${type}`] = `✅ Prix existe: ${prix} FCFA`
         }
       }
     }
   }
 
-  const sqlToRun = `
--- EXÉCUTER CE SQL DANS SUPABASE SQL EDITOR si des tables sont manquantes:
+  const sqlToRun = `-- EXÉCUTER DANS SUPABASE SQL EDITOR:
 -- https://app.supabase.com/project/cyasoaihjjochwhnhwqf/sql/new
 
 CREATE TABLE IF NOT EXISTS public.ifl_users (
@@ -118,9 +117,7 @@ CREATE TABLE IF NOT EXISTS public.ifl_prix_config (
 );
 
 INSERT INTO public.ifl_prix_config (type_concours, prix, description) 
-VALUES 
-  ('direct', 5000, 'Concours Directs - 10 dossiers'),
-  ('professionnel', 20000, 'Concours Professionnels - 12 dossiers')
+VALUES ('direct', 5000, 'Concours Directs'),('professionnel', 20000, 'Concours Professionnels')
 ON CONFLICT (type_concours) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS public.ifl_user_progress (
@@ -139,16 +136,17 @@ ALTER TABLE public.ifl_payment_requests DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ifl_prix_config DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ifl_user_progress DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.questions DISABLE ROW LEVEL SECURITY;
-  `
+ALTER TABLE public.questions DISABLE ROW LEVEL SECURITY;`
+
+  const needsSQL = Object.values(checks).some(v => v.startsWith('❌'))
 
   return res.json({
     success: true,
     results,
-    sql_needed: Object.values(checks).some(v => v.startsWith('❌')),
-    sql_to_run: sqlToRun,
-    message: Object.values(checks).some(v => v.startsWith('❌'))
-      ? '⚠️ Des tables sont manquantes. Exécutez le SQL ci-dessus dans Supabase SQL Editor.'
-      : '✅ Toutes les tables existent. Base de données prête.'
+    sql_needed: needsSQL,
+    sql_to_run: needsSQL ? sqlToRun : null,
+    message: needsSQL
+      ? '⚠️ Tables manquantes. Exécutez le SQL ci-dessus dans Supabase.'
+      : '✅ Base de données prête !'
   })
 }

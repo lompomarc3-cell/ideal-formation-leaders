@@ -8,14 +8,13 @@ export default function QuizPage() {
   const { user, loading, getToken } = useAuth()
   const router = useRouter()
   const { id } = router.query
-  
+
   const [questions, setQuestions] = useState([])
   const [category, setCategory] = useState(null)
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [current, setCurrent] = useState(0)
   const [selected, setSelected] = useState(null)
-  const [showResult, setShowResult] = useState(false)
+  const [answered, setAnswered] = useState(false)
   const [score, setScore] = useState(0)
-  const [answers, setAnswers] = useState([])
   const [finished, setFinished] = useState(false)
   const [loadingQ, setLoadingQ] = useState(true)
   const [error, setError] = useState('')
@@ -25,280 +24,225 @@ export default function QuizPage() {
   }, [user, loading, router])
 
   useEffect(() => {
-    if (id && user) {
-      fetchQuestions()
-    }
+    if (id && user) fetchQuestions()
   }, [id, user])
 
   const fetchQuestions = async () => {
     setLoadingQ(true)
     try {
       const token = getToken()
-      const res = await fetch(`/api/quiz/questions?category_id=${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const data = await res.json()
-      
-      if (res.status === 403) {
-        setError(`Abonnement requis (${data.required_type === 'direct' ? '5 000' : '20 000'} FCFA)`)
-        setLoadingQ(false)
-        return
+      // Récupérer les infos de la catégorie
+      const [catRes, qRes] = await Promise.all([
+        fetch('/api/quiz/categories', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`/api/quiz/questions?categorie_id=${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      ])
+      const catData = await catRes.json()
+      const qData = await qRes.json()
+
+      if (qData.error) {
+        setError(qData.error)
+      } else {
+        setQuestions(qData.questions || [])
+        const cat = catData.categories?.find(c => c.id === id)
+        setCategory(cat || null)
       }
-      
-      if (!res.ok) {
-        setError(data.error || 'Erreur chargement')
-        setLoadingQ(false)
-        return
-      }
-      
-      setQuestions(data.questions || [])
-      setCategory(data.category)
-      
-      // Restaurer la progression
-      const savedProgress = await fetchProgress()
-      if (savedProgress?.derniere_question_id && data.questions?.length > 0) {
-        const idx = data.questions.findIndex(q => q.id === savedProgress.derniere_question_id)
-        if (idx > 0) setCurrentIndex(idx)
-      }
-    } catch (e) {
-      setError('Erreur de connexion')
+    } catch {
+      setError('Erreur de chargement des questions')
     }
     setLoadingQ(false)
   }
 
-  const fetchProgress = async () => {
+  const handleSelect = (opt) => {
+    if (answered) return
+    setSelected(opt)
+    setAnswered(true)
+    if (opt === questions[current].bonne_reponse) setScore(s => s + 1)
+    // Sauvegarder la progression
     try {
       const token = getToken()
-      const res = await fetch(`/api/quiz/progress?categorie_id=${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const data = await res.json()
-      return data.progress || null
-    } catch (e) {
-      return null
-    }
-  }
-
-  const saveProgress = async (questionId, newScore, total) => {
-    try {
-      const token = getToken()
-      await fetch('/api/quiz/progress', {
+      fetch('/api/quiz/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          categorie_id: id,
-          derniere_question_id: questionId,
-          score: newScore,
-          total_reponses: total
-        })
+        body: JSON.stringify({ categorie_id: id, score: score + (opt === questions[current].bonne_reponse ? 1 : 0) })
       })
-    } catch (e) {}
-  }
-
-  const handleSelect = (opt) => {
-    if (showResult) return
-    setSelected(opt)
-    setShowResult(true)
-    const isCorrect = opt === questions[currentIndex].reponse_correcte
-    const newScore = isCorrect ? score + 1 : score
-    if (isCorrect) setScore(newScore)
-    setAnswers(prev => [...prev, { correct: isCorrect }])
-    saveProgress(questions[currentIndex].id, newScore, answers.length + 1)
+    } catch {}
   }
 
   const handleNext = () => {
-    if (currentIndex + 1 >= questions.length) {
+    if (current + 1 >= questions.length) {
       setFinished(true)
     } else {
-      setCurrentIndex(i => i + 1)
+      setCurrent(c => c + 1)
       setSelected(null)
-      setShowResult(false)
+      setAnswered(false)
     }
   }
 
-  const handleRestart = () => {
-    setCurrentIndex(0)
-    setSelected(null)
-    setShowResult(false)
-    setScore(0)
-    setFinished(false)
-    setAnswers([])
-  }
-
-  if (loading || !user || loadingQ) {
+  if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#FFF8F0' }}>
-        <div className="text-center">
-          <div className="spinner mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement des questions...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#1A4731,#C4521A)' }}>
+        <div className="text-center"><div className="spinner mx-auto mb-3"></div><p className="text-white font-semibold">Chargement...</p></div>
       </div>
     )
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#FFF8F0' }}>
-        <div className="text-center max-w-sm">
-          <div className="text-6xl mb-4">🔒</div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Accès requis</h2>
-          <p className="text-gray-500 mb-6">{error}</p>
-          <Link href="/payment" className="block py-3 text-center font-bold text-white rounded-xl mb-3 active:scale-95" style={{ background: '#C4521A' }}>
-            S'abonner maintenant
-          </Link>
-          <Link href="/dashboard" className="block text-center text-gray-500">← Retour</Link>
-        </div>
-      </div>
-    )
-  }
-
-  if (questions.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#FFF8F0' }}>
-        <div className="text-center max-w-sm">
-          <div className="text-6xl mb-4">📭</div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Aucune question disponible</h2>
-          <p className="text-gray-500 mb-6">Les questions pour ce dossier seront bientôt ajoutées par l'administrateur.</p>
-          <Link href="/dashboard" className="block py-3 text-center font-bold text-white rounded-xl active:scale-95" style={{ background: '#1A4731' }}>
-            ← Retour au tableau de bord
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const question = questions[currentIndex]
+  const q = questions[current]
   const total = questions.length
-  const optionLabels = ['A', 'B', 'C', 'D']
-  const optionKeys = ['option_a', 'option_b', 'option_c', 'option_d']
-
-  if (finished) {
-    const pct = Math.round((score / answers.length) * 100)
-    return (
-      <>
-        <Head><title>Résultats – {category?.nom}</title></Head>
-        <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
-          <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #1A2F20 100%)' }} className="sticky top-0 z-40 shadow-lg">
-            <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
-              <Link href="/dashboard" className="text-white">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M19 12H5M12 5l-7 7 7 7"/>
-                </svg>
-              </Link>
-              <h1 className="text-white font-bold text-base">{category?.nom}</h1>
-            </div>
-          </header>
-          <div className="max-w-lg mx-auto px-4 py-10 text-center">
-            <div className="text-7xl mb-4">{pct >= 70 ? '🏆' : pct >= 50 ? '👍' : '📚'}</div>
-            <h2 className="text-2xl font-extrabold mb-5" style={{ color: '#1A4731' }}>Quiz terminé !</h2>
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-              <p className="text-5xl font-extrabold mb-2" style={{ color: '#C4521A' }}>{score}/{answers.length}</p>
-              <p className="text-gray-500 text-lg">Score : {pct}%</p>
-              <div className="flex gap-1 justify-center mt-4 flex-wrap">
-                {answers.map((a, i) => (
-                  <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${a.correct ? 'bg-green-500' : 'bg-red-500'}`}>
-                    {a.correct ? '✓' : '✗'}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <button onClick={handleRestart} className="w-full py-4 font-bold text-white rounded-2xl active:scale-95" style={{ background: '#1A4731' }}>
-                🔄 Recommencer
-              </button>
-              <Link href="/dashboard" className="block w-full py-4 text-center font-bold text-gray-600 bg-gray-100 rounded-2xl active:scale-95">
-                ← Retour au tableau de bord
-              </Link>
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
+  const progress = total > 0 ? ((current + (answered ? 1 : 0)) / total) * 100 : 0
 
   return (
     <>
-      <Head><title>{category?.nom} – IFL</title></Head>
+      <Head>
+        <title>{category?.nom || 'QCM'} – IFL</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </Head>
       <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
-        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #1A2F20 100%)' }} className="sticky top-0 z-40 shadow-lg">
-          <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="text-white">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M19 12H5M12 5l-7 7 7 7"/>
-                </svg>
-              </Link>
-              <div>
-                <h1 className="text-white font-bold text-sm leading-tight">{category?.nom}</h1>
-                <p className="text-green-200 text-xs">Q{currentIndex + 1}/{total}</p>
-              </div>
+        {/* Header */}
+        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }} className="sticky top-0 z-40 shadow-lg">
+          <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
+            <button onClick={() => router.push('/dashboard')} className="text-green-200 hover:text-white p-1">
+              <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+            </button>
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-bold truncate leading-tight">{category?.nom || 'QCM'}</p>
+              {!loadingQ && !error && (
+                <p className="text-green-200 text-xs">{total} question{total > 1 ? 's' : ''}</p>
+              )}
             </div>
-            <div className="text-right">
-              <p className="text-white font-bold">{score} <span className="text-green-300 text-sm">pts</span></p>
+            {!loadingQ && !error && (
+              <span className="text-white text-sm font-bold opacity-70 flex-shrink-0">
+                {current + 1}/{total}
+              </span>
+            )}
+          </div>
+          {!loadingQ && !error && !finished && (
+            <div className="h-1.5 bg-green-900">
+              <div className="h-full progress-bar" style={{ width: `${progress}%`, background: '#D4A017' }}></div>
             </div>
-          </div>
-          <div className="h-1.5 bg-green-900">
-            <div className="h-full bg-amber-400 transition-all" style={{ width: `${((currentIndex) / total) * 100}%` }}></div>
-          </div>
+          )}
         </header>
 
         <div className="max-w-lg mx-auto px-4 py-5">
-          <div className="bg-white rounded-2xl shadow-md p-5 mb-4">
-            <p className="text-gray-800 text-lg font-semibold leading-relaxed">{question.enonce}</p>
-            {question.matiere && (
-              <p className="text-xs text-gray-400 mt-2">📌 {question.matiere}</p>
-            )}
-          </div>
-
-          <div className="space-y-3 mb-4">
-            {optionLabels.map((label, i) => {
-              const key = optionKeys[i]
-              const isSelected = selected === label
-              const isCorrect = label === question.reponse_correcte
-
-              let style = 'bg-white border-2 border-gray-200'
-              let textStyle = 'text-gray-800'
-              if (showResult) {
-                if (isCorrect) { style = 'border-2 border-green-500 bg-green-50'; textStyle = 'text-green-800' }
-                else if (isSelected) { style = 'border-2 border-red-500 bg-red-50'; textStyle = 'text-red-800' }
-                else { style = 'bg-gray-50 border-2 border-gray-100'; textStyle = 'text-gray-400' }
-              } else if (isSelected) {
-                style = 'border-2 border-amber-400 bg-amber-50'
-              }
-
-              return (
-                <button key={label} onClick={() => handleSelect(label)} disabled={showResult}
-                  className={`w-full p-4 rounded-xl text-left transition-all ${style}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm border-2 ${
-                      showResult && isCorrect ? 'bg-green-500 border-green-500 text-white' :
-                      showResult && isSelected && !isCorrect ? 'bg-red-500 border-red-500 text-white' :
-                      isSelected ? 'border-amber-400 bg-amber-400 text-white' :
-                      'border-gray-300 text-gray-500'
-                    }`}>{showResult && isCorrect ? '✓' : showResult && isSelected && !isCorrect ? '✗' : label}</span>
-                    <span className={`text-base font-medium pt-1 leading-relaxed ${textStyle}`}>{question[key]}</span>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-
-          {showResult && (
-            <div className={`rounded-2xl p-4 mb-4 border-2 ${selected === question.bonne_reponse ? 'bg-green-50 border-green-300' : 'bg-orange-50 border-orange-300'}`}>
-              <p className={`font-bold text-sm mb-1 ${selected === question.bonne_reponse ? 'text-green-700' : 'text-orange-700'}`}>
-                {selected === question.bonne_reponse ? '✅ Correct !' : `❌ Incorrect – Réponse : ${question.bonne_reponse}`}
-              </p>
-              <p className={`text-sm leading-relaxed ${selected === question.bonne_reponse ? 'text-green-600' : 'text-orange-600'}`}>
-                {question.explication}
-              </p>
+          {/* Loading */}
+          {loadingQ && (
+            <div className="py-16 text-center">
+              <div className="spinner mx-auto mb-4"></div>
+              <p className="text-gray-500">Chargement des questions...</p>
             </div>
           )}
 
-          {showResult && (
-            <button onClick={handleNext} className="w-full py-4 text-lg font-bold text-white rounded-2xl shadow-md active:scale-95" style={{ background: '#1A4731' }}>
-              {currentIndex + 1 >= total ? '🏆 Voir résultats' : 'Question suivante →'}
-            </button>
+          {/* Erreur */}
+          {error && !loadingQ && (
+            <div className="animate-fadeIn">
+              <div className="bg-white rounded-3xl shadow-md p-8 text-center border border-red-100">
+                <div className="text-6xl mb-4">🔒</div>
+                <h3 className="text-xl font-extrabold text-gray-800 mb-2">Accès restreint</h3>
+                <p className="text-gray-500 mb-6">{error}</p>
+                <Link href="/payment" className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl mb-3 shadow-md active:scale-95" style={{ background: '#C4521A' }}>
+                  💳 S'abonner maintenant
+                </Link>
+                <Link href="/dashboard" className="block text-center text-gray-400 text-sm">
+                  ← Retour au tableau de bord
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Aucune question */}
+          {!loadingQ && !error && total === 0 && (
+            <div className="text-center py-16 animate-fadeIn">
+              <div className="text-6xl mb-4">📭</div>
+              <h3 className="text-xl font-bold text-gray-700 mb-2">Aucune question</h3>
+              <p className="text-gray-500 mb-6">Les questions pour cette catégorie ne sont pas encore disponibles.</p>
+              <Link href="/dashboard" className="inline-block px-6 py-3 font-bold text-white rounded-xl" style={{ background: '#1A4731' }}>
+                ← Retour
+              </Link>
+            </div>
+          )}
+
+          {/* Résultats */}
+          {finished && !loadingQ && (
+            <div className="animate-popIn">
+              <div className="bg-white rounded-3xl shadow-xl p-8 border border-amber-100 text-center">
+                <div className="text-7xl mb-4">{score >= total * 0.7 ? '🏆' : score >= total * 0.5 ? '👍' : '📚'}</div>
+                <h2 className="text-3xl font-extrabold mb-1" style={{ color: '#1A4731' }}>Terminé !</h2>
+                <p className="text-gray-500 mb-5">{category?.nom}</p>
+                <div className="rounded-2xl p-5 mb-6" style={{ background: 'linear-gradient(135deg,#1A4731,#2D6A4F)' }}>
+                  <p className="text-white font-semibold mb-1">Votre score</p>
+                  <p className="text-5xl font-extrabold text-white">{score}<span className="text-2xl opacity-70">/{total}</span></p>
+                  <div className="mt-3 h-2 bg-green-900 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${(score/total)*100}%`, background: '#D4A017', transition: 'width 1s ease' }}></div>
+                  </div>
+                  <p className="text-green-200 text-sm mt-2">{Math.round((score/total)*100)}% de réussite</p>
+                </div>
+                <div className="space-y-3">
+                  <button onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setFinished(false) }}
+                    className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-md active:scale-95"
+                    style={{ background: '#C4521A' }}>
+                    🔄 Recommencer
+                  </button>
+                  <Link href="/dashboard" className="block w-full py-3.5 text-center font-bold rounded-xl border-2 border-gray-200 text-gray-700 active:scale-95">
+                    ← Retour aux dossiers
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Question */}
+          {!loadingQ && !error && !finished && q && (
+            <div className="animate-fadeIn">
+              <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-6 mb-5">
+                <div className="flex items-start gap-3 mb-6">
+                  <span className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                    style={{ background: '#D4A017' }}>{current + 1}</span>
+                  <p className="text-gray-800 font-semibold text-lg leading-relaxed">{q.question_text}</p>
+                </div>
+
+                <div className="space-y-3">
+                  {['A', 'B', 'C', 'D'].map(opt => {
+                    const optText = q[`option_${opt.toLowerCase()}`]
+                    let cls = 'question-option'
+                    if (answered) {
+                      if (opt === q.bonne_reponse) cls += ' correct'
+                      else if (opt === selected) cls += ' wrong'
+                      else cls += ' disabled opacity-50'
+                    }
+                    return (
+                      <button key={opt} className={cls} onClick={() => handleSelect(opt)}>
+                        <span className="inline-flex w-7 h-7 rounded-full items-center justify-center text-sm font-bold mr-3 flex-shrink-0"
+                          style={{
+                            background: answered && opt === q.bonne_reponse ? '#16a34a' : answered && opt === selected ? '#dc2626' : '#f3f4f6',
+                            color: answered && (opt === q.bonne_reponse || opt === selected) ? 'white' : '#374151'
+                          }}>
+                          {opt}
+                        </span>
+                        {optText}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {answered && (
+                  <div className="mt-5 animate-fadeIn rounded-2xl p-4"
+                    style={{ background: selected === q.bonne_reponse ? '#F0FDF4' : '#FFF7F0', borderLeft: `4px solid ${selected === q.bonne_reponse ? '#16a34a' : '#C4521A'}` }}>
+                    <p className="font-bold mb-1.5 text-sm" style={{ color: selected === q.bonne_reponse ? '#16a34a' : '#C4521A' }}>
+                      {selected === q.bonne_reponse ? '✅ Bonne réponse !' : `❌ Mauvaise – Bonne réponse : ${q.bonne_reponse}`}
+                    </p>
+                    <p className="text-gray-700 text-sm leading-relaxed">{q.explication}</p>
+                  </div>
+                )}
+              </div>
+
+              {answered && (
+                <button onClick={handleNext} className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg active:scale-95 animate-popIn"
+                  style={{ background: 'linear-gradient(135deg, #1A4731, #2D6A4F)' }}>
+                  {current + 1 >= total ? '📊 Voir mes résultats' : 'Question suivante →'}
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>

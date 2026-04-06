@@ -1,192 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-
 :root {
-  --primary: #C4521A;      /* Terracotta */
-  --secondary: #D4A017;    /* Or africain */
-  --dark-green: #1A4731;   /* Vert foncé */
-  --light-bg: #FFF8F0;     /* Crème */
-  --dark-bg: #1A0A00;      /* Brun foncé */
-  --accent: #F5871F;       /* Orange vif */
-  --text-dark: #1A0A00;
-  --text-light: #F5E6D3;
+  --primary: #C4521A;
+  --secondary: #D4A017;
+  --dark-green: #1A4731;
+  --light-bg: #FFF8F0;
+  --accent: #F5871F;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-html {
-  font-size: 16px;
-  scroll-behavior: smooth;
-}
+html { font-size: 16px; scroll-behavior: smooth; }
 
 body {
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--light-bg);
-  color: var(--text-dark);
+  color: #1A0A00;
   line-height: 1.6;
   min-height: 100vh;
 }
 
 /* Spinner */
 .spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid rgba(196, 82, 26, 0.2);
-  border-top-color: var(--primary);
+  width: 44px; height: 44px;
+  border: 4px solid rgba(196,82,26,0.2);
+  border-top-color: #C4521A;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  display: inline-block;
 }
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 160, 23, 0.4); }
-  50% { box-shadow: 0 0 0 10px rgba(212, 160, 23, 0); }
-}
+@keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes slideIn { from { opacity:0; transform:translateX(-20px); } to { opacity:1; transform:translateX(0); } }
+@keyframes popIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
 
 .animate-fadeIn { animation: fadeIn 0.4s ease forwards; }
 .animate-slideIn { animation: slideIn 0.3s ease forwards; }
+.animate-popIn { animation: popIn 0.3s ease forwards; }
 
 /* African Pattern */
 .african-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C4521A' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23C4521A' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
+/* Logo styles - bien arrondis */
+.logo-rounded {
+  border-radius: 20px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  display: block;
 }
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
+.logo-header {
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  display: block;
 }
-::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 3px;
-}
-
-/* Buttons */
-.btn-primary {
-  @apply bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-95;
-}
-
-.btn-secondary {
-  @apply bg-green-800 hover:bg-green-900 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-95;
+.logo-hero {
+  border-radius: 28px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
 }
 
-.btn-outline {
-  @apply border-2 border-amber-600 text-amber-700 hover:bg-amber-50 font-semibold py-3 px-6 rounded-xl transition-all duration-200;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #C4521A; border-radius: 3px; }
 
 /* Cards */
 .card-african {
-  @apply bg-white rounded-2xl shadow-md border border-amber-100 overflow-hidden hover:shadow-lg transition-shadow duration-200;
+  @apply bg-white rounded-2xl shadow-md border border-amber-100 hover:shadow-lg transition-all duration-200;
 }
 
-/* Input fields */
+/* Input fields - grande taille mobile */
 .input-field {
-  @apply w-full px-4 py-3 text-lg rounded-xl border-2 border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all duration-200 bg-white;
-}
-
-/* Mobile viewport fix */
-@media (max-width: 640px) {
-  body {
-    font-size: 16px;
-  }
-  
-  h1 { font-size: 1.75rem !important; }
-  h2 { font-size: 1.5rem !important; }
-}
-
-/* Prevent zoom on input focus (iOS) */
-input, select, textarea {
+  @apply w-full px-4 py-3.5 text-lg rounded-xl border-2 border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all duration-200 bg-white;
   font-size: 16px !important;
 }
 
-/* Logo rounded - coins bien arrondis */
-.logo-rounded {
-  border-radius: 22px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.logo-circle {
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-/* Logo avec ombre douce */
-.logo-header {
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-/* Orange Money colors */
-.om-gradient {
-  background: linear-gradient(135deg, #FF6B00 0%, #FF9500 100%);
-}
-
-/* Progress bar */
-.progress-bar {
-  transition: width 0.5s ease-in-out;
-}
-
-/* Question cards */
+/* Question options */
 .question-option {
-  @apply w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-amber-400 hover:bg-amber-50 transition-all duration-200 cursor-pointer text-base font-medium;
+  @apply w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-amber-400 hover:bg-amber-50 transition-all duration-200 cursor-pointer font-medium;
+  font-size: 16px;
+  line-height: 1.5;
 }
+.question-option.correct { @apply border-green-500 bg-green-50 text-green-900; }
+.question-option.wrong { @apply border-red-400 bg-red-50 text-red-800; }
+.question-option.disabled { pointer-events: none; }
+.question-option.selected { @apply border-amber-500 bg-amber-50; }
 
-.question-option.correct {
-  @apply border-green-500 bg-green-50 text-green-800;
-}
-
-.question-option.wrong {
-  @apply border-red-500 bg-red-50 text-red-800;
-}
-
-.question-option.disabled {
-  @apply cursor-not-allowed;
-}
-
-/* Admin table */
-.admin-table th {
-  @apply bg-amber-800 text-white py-3 px-4 text-left text-sm font-semibold;
-}
-
-.admin-table td {
-  @apply py-3 px-4 border-b border-gray-100 text-sm;
-}
-
-.admin-table tr:hover td {
-  @apply bg-amber-50;
-}
+/* Orange Money */
+.om-gradient { background: linear-gradient(135deg, #FF6B00 0%, #FF9500 100%); }
 
 /* Notification */
 .notification {
-  @apply fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg text-white font-medium text-sm max-w-xs animate-slideIn;
+  @apply fixed top-4 right-4 z-50 p-4 rounded-2xl shadow-xl text-white font-semibold text-sm max-w-sm;
+  animation: slideIn 0.3s ease;
 }
+.notification.success { background: #16a34a; }
+.notification.error { background: #dc2626; }
+.notification.info { background: #C4521A; }
 
-.notification.success { @apply bg-green-600; }
-.notification.error { @apply bg-red-600; }
-.notification.info { @apply bg-amber-600; }
+/* Progress bar */
+.progress-bar { transition: width 0.5s ease; }
+
+/* Mobile */
+@media (max-width: 640px) {
+  h1 { font-size: 1.8rem !important; }
+  h2 { font-size: 1.4rem !important; }
+}
+input, select, textarea { font-size: 16px !important; }
+
+/* Boutons actifs */
+button:active, a:active { transform: scale(0.97); }
+
+/* Tab navigation */
+.tab-active {
+  background: #C4521A !important;
+  color: white !important;
+}

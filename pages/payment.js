@@ -5,14 +5,16 @@ import { useRouter } from 'next/router'
 import { useAuth } from './_app'
 
 export default function Payment() {
-  const { user, loading, getToken } = useAuth()
+  const { user, loading, getToken, refreshUser } = useAuth()
   const router = useRouter()
-  const { type } = router.query
-  const [selectedType, setSelectedType] = useState(type || 'direct')
-  const [phone, setPhone] = useState('')
+  const { type, montant } = router.query
+
+  const [form, setForm] = useState({ numero_paiement: '', notes: '' })
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [prices, setPrices] = useState({ direct: 5000, professionnel: 20000 })
+  const [selectedType, setSelectedType] = useState(type || 'direct')
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
@@ -20,203 +22,237 @@ export default function Payment() {
 
   useEffect(() => {
     if (type) setSelectedType(type)
+    loadPrices()
   }, [type])
+
+  const loadPrices = async () => {
+    try {
+      const token = getToken()
+      const res = await fetch('/api/admin/prices', { headers: { Authorization: `Bearer ${token}` } })
+      const data = await res.json()
+      if (data.prices) {
+        const map = {}
+        data.prices.forEach(p => { map[p.type_concours] = p.prix })
+        setPrices(prev => ({ ...prev, ...map }))
+      }
+    } catch {}
+  }
+
+  const currentPrice = prices[selectedType] || (selectedType === 'direct' ? 5000 : 20000)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setSubmitting(true)
-    
     try {
       const token = getToken()
-      const res = await fetch('/api/payments/create', {
+      const res = await fetch('/api/payment/request', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           type_concours: selectedType,
-          numero_paiement: phone
+          montant: currentPrice,
+          numero_paiement: form.numero_paiement,
+          notes: form.notes
         })
       })
       const data = await res.json()
-      
-      if (!res.ok) {
-        setError(data.error)
-      } else {
+      if (data.success) {
         setSuccess(true)
+        await refreshUser()
+      } else {
+        setError(data.error || 'Erreur lors de l\'envoi')
       }
-    } catch (err) {
-      setError('Erreur de connexion. Réessayez.')
+    } catch {
+      setError('Erreur réseau')
     }
     setSubmitting(false)
   }
 
-  const prix = selectedType === 'direct' ? 5000 : 20000
-  const label = selectedType === 'direct' ? 'Concours Directs' : 'Concours Professionnels'
-
   if (loading || !user) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="spinner"></div></div>
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#1A4731,#C4521A)' }}>
+        <div className="text-center"><div className="spinner mx-auto mb-3"></div><p className="text-white font-semibold">Chargement...</p></div>
+      </div>
+    )
   }
 
   return (
     <>
-      <Head><title>Paiement – IFL</title></Head>
-      <div className="min-h-screen african-pattern" style={{ background: '#FFF8F0' }}>
-        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #1A2F20 100%)' }} className="sticky top-0 z-40 shadow-lg">
-          <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
-            <Link href="/dashboard" className="text-white">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M19 12H5M12 5l-7 7 7 7"/>
+      <Head>
+        <title>Paiement Orange Money – IFL</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </Head>
+      <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
+        {/* Header */}
+        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }} className="sticky top-0 z-40 shadow-lg py-3 px-4">
+          <div className="max-w-lg mx-auto flex items-center gap-3">
+            <button onClick={() => router.push('/dashboard')} className="text-green-200 hover:text-white p-1">
+              <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
-            </Link>
-            <div>
-              <h1 className="text-white font-bold text-base">Paiement Orange Money</h1>
-              <p className="text-green-200 text-xs">Activation manuelle sous 24h</p>
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="logo-header" style={{ width: 38, height: 38 }}>
+                <img src="/logo.png" alt="IFL" style={{ width: 38, height: 38, objectFit: 'cover', borderRadius: 12 }} />
+              </div>
+              <span className="text-white font-bold">Paiement Orange Money</span>
             </div>
           </div>
         </header>
 
         <div className="max-w-lg mx-auto px-4 py-6">
           {success ? (
-            <div className="text-center py-8 animate-fadeIn">
-              <div className="text-7xl mb-4">✅</div>
-              <h2 className="text-2xl font-extrabold text-green-800 mb-3">Demande envoyée !</h2>
-              <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-5 mb-6 text-left">
-                <p className="text-green-800 font-bold mb-3">📋 Prochaines étapes :</p>
-                <ol className="text-green-700 text-sm space-y-2">
-                  <li><strong>1.</strong> Effectuez le paiement Orange Money : <code className="bg-green-100 px-1 rounded">*144*2*1*76223962#</code></li>
-                  <li><strong>2.</strong> Prenez une capture d'écran de la confirmation</li>
-                  <li><strong>3.</strong> Envoyez la capture via WhatsApp au <strong>+226 76 22 39 62</strong></li>
-                  <li><strong>4.</strong> Votre accès sera activé dans les 24h</li>
-                </ol>
+            <div className="text-center animate-popIn">
+              <div className="bg-white rounded-3xl shadow-xl p-8 border border-green-200">
+                <div className="text-7xl mb-4">✅</div>
+                <h2 className="text-2xl font-extrabold text-green-800 mb-2">Demande envoyée !</h2>
+                <p className="text-gray-600 mb-2">Votre demande de paiement a été transmise à l'administrateur.</p>
+                <div className="bg-green-50 rounded-2xl p-4 mb-6 text-left">
+                  <p className="font-bold text-green-800 mb-2">📋 Prochaines étapes :</p>
+                  <ol className="space-y-2 text-sm text-green-700">
+                    <li>1️⃣ Effectuez le paiement Orange Money si ce n'est pas encore fait</li>
+                    <li>2️⃣ Envoyez la capture d'écran sur WhatsApp au <strong>+226 76 22 39 62</strong></li>
+                    <li>3️⃣ L'admin valide votre abonnement dans les 24h</li>
+                    <li>4️⃣ Vous recevez accès immédiat à tous les QCM</li>
+                  </ol>
+                </div>
+                <Link href="/dashboard" className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl shadow-md active:scale-95" style={{ background: '#1A4731' }}>
+                  🏠 Retour au tableau de bord
+                </Link>
               </div>
-              <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 mb-5">
-                <p className="text-orange-800 font-bold text-sm">📱 Paiement à effectuer :</p>
-                <p className="text-orange-700 text-2xl font-extrabold mt-1">{prix.toLocaleString()} FCFA</p>
-                <p className="text-orange-600 text-sm">Pour : {label}</p>
-              </div>
-              <a
-                href={`https://wa.me/22676223962?text=Bonjour%20IFL%2C%20j'ai%20effectu%C3%A9%20le%20paiement%20de%20${prix}%20FCFA%20pour%20${encodeURIComponent(label)}.%20Voici%20ma%20capture%20d'%C3%A9cran%20de%20confirmation.%20Mon%20num%C3%A9ro%20:%20${user.phone}`}
-                target="_blank" rel="noreferrer"
-                className="block w-full py-4 text-center font-bold text-white rounded-2xl shadow-lg active:scale-95 mb-3"
-                style={{ background: '#25D366' }}
-              >
-                📲 Envoyer la capture WhatsApp
-              </a>
-              <Link href="/dashboard" className="block text-center text-gray-500 py-2">← Retour au tableau de bord</Link>
             </div>
           ) : (
-            <>
-              {/* Sélection type */}
-              <h2 className="text-xl font-extrabold mb-5" style={{ color: '#1A4731' }}>Choisissez votre offre</h2>
-              <div className="space-y-3 mb-6">
-                <button
-                  onClick={() => setSelectedType('direct')}
-                  className={`w-full p-5 rounded-2xl border-2 text-left transition-all ${selectedType === 'direct' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white'}`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className={`font-extrabold text-lg ${selectedType === 'direct' ? 'text-green-800' : 'text-gray-800'}`}>📚 Concours Directs</p>
-                      <p className="text-gray-500 text-sm mt-1">10 dossiers • Accès 1 an</p>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {['Culture gén.', 'Français', 'Maths', 'SVT', 'H-G', '+5 autres'].map(t => (
-                          <span key={t} className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{t}</span>
-                        ))}
+            <div className="animate-fadeIn space-y-5">
+              {/* Sélection du type */}
+              <div>
+                <h2 className="text-2xl font-extrabold mb-4" style={{ color: '#1A4731' }}>Choisissez votre offre</h2>
+                <div className="grid grid-cols-1 gap-3">
+                  <button
+                    onClick={() => setSelectedType('direct')}
+                    className={`p-4 rounded-2xl border-3 text-left transition-all ${selectedType === 'direct' ? 'border-green-500 bg-green-50 shadow-md' : 'border-gray-200 bg-white'}`}
+                    style={{ borderWidth: 2.5, borderColor: selectedType === 'direct' ? '#1A4731' : '#e5e7eb' }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-extrabold text-lg" style={{ color: '#1A4731' }}>📚 Concours Directs</p>
+                        <p className="text-gray-500 text-sm mt-0.5">10 dossiers complets</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-extrabold" style={{ color: '#D4A017' }}>{prices.direct.toLocaleString()}</p>
+                        <p className="text-gray-400 text-xs">FCFA / an</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-3xl font-extrabold" style={{ color: '#D4A017' }}>5 000</p>
-                      <p className="text-gray-400 text-xs">FCFA / an</p>
-                      {selectedType === 'direct' && <span className="text-green-500 text-lg">✓</span>}
-                    </div>
-                  </div>
-                </button>
+                    {selectedType === 'direct' && <div className="mt-2 flex items-center gap-1.5 text-green-700 text-xs font-semibold"><span>✅</span> Sélectionné</div>}
+                  </button>
 
-                <button
-                  onClick={() => setSelectedType('professionnel')}
-                  className={`w-full p-5 rounded-2xl border-2 text-left transition-all ${selectedType === 'professionnel' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white'}`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className={`font-extrabold text-lg ${selectedType === 'professionnel' ? 'text-orange-800' : 'text-gray-800'}`}>🎓 Concours Professionnels</p>
-                      <p className="text-gray-500 text-sm mt-1">12 dossiers • Accès 1 an</p>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {['CAPES', 'Admin civil', 'Santé', 'Police', '+8 autres'].map(t => (
-                          <span key={t} className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">{t}</span>
-                        ))}
+                  <button
+                    onClick={() => setSelectedType('professionnel')}
+                    className="p-4 rounded-2xl text-left transition-all bg-white"
+                    style={{ borderWidth: 2.5, border: `2.5px solid ${selectedType === 'professionnel' ? '#C4521A' : '#e5e7eb'}`, background: selectedType === 'professionnel' ? '#FFF0E8' : 'white' }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-extrabold text-lg" style={{ color: '#C4521A' }}>🎓 Concours Professionnels</p>
+                        <p className="text-gray-500 text-sm mt-0.5">12 dossiers complets</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-extrabold" style={{ color: '#D4A017' }}>{prices.professionnel.toLocaleString()}</p>
+                        <p className="text-gray-400 text-xs">FCFA / an</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-3xl font-extrabold" style={{ color: '#D4A017' }}>20 000</p>
-                      <p className="text-gray-400 text-xs">FCFA / an</p>
-                      {selectedType === 'professionnel' && <span className="text-orange-500 text-lg">✓</span>}
-                    </div>
-                  </div>
-                </button>
+                    {selectedType === 'professionnel' && <div className="mt-2 flex items-center gap-1.5 text-sm font-semibold" style={{ color: '#C4521A' }}><span>✅</span> Sélectionné</div>}
+                  </button>
+                </div>
               </div>
 
-              {/* Instructions paiement */}
-              <div className="rounded-2xl p-5 text-white mb-5" style={{ background: 'linear-gradient(135deg, #FF6B00 0%, #FF9500 100%)' }}>
-                <p className="font-bold text-lg mb-3">📱 Comment payer ?</p>
-                <div className="space-y-2 text-orange-50 text-sm">
-                  <div className="bg-white/20 rounded-xl p-3">
-                    <p className="font-bold text-white">Étape 1 – Effectuez le virement</p>
-                    <p>Composez : <code className="bg-white/20 px-2 py-0.5 rounded font-mono">*144*2*1*76223962#</code></p>
-                    <p>Montant : <strong className="text-yellow-200">{prix.toLocaleString()} FCFA</strong></p>
+              {/* Instructions Orange Money */}
+              <div className="om-gradient rounded-2xl p-5 text-white">
+                <h3 className="font-extrabold text-lg mb-3 flex items-center gap-2">
+                  <span className="text-2xl">📱</span> Comment payer avec Orange Money
+                </h3>
+                <div className="space-y-2.5">
+                  <div className="bg-white/20 rounded-xl p-3.5">
+                    <p className="font-bold text-base mb-1">Option 1 — USSD (Sans internet)</p>
+                    <div className="bg-white/20 rounded-lg px-3 py-2 font-mono text-lg font-bold tracking-wider">
+                      *144*2*1*76223962#
+                    </div>
+                    <p className="text-orange-100 text-xs mt-1.5">Composez ce code et entrez le montant : <strong>{currentPrice.toLocaleString()} FCFA</strong></p>
                   </div>
-                  <div className="bg-white/20 rounded-xl p-3">
-                    <p className="font-bold text-white">Étape 2 – Prenez une capture</p>
-                    <p>Photographiez l'écran de confirmation du paiement</p>
+                  <div className="bg-white/20 rounded-xl p-3.5">
+                    <p className="font-bold text-base mb-1">Option 2 — Application Orange Money</p>
+                    <p className="text-orange-100 text-sm">Numéro du bénéficiaire :</p>
+                    <p className="font-extrabold text-xl mt-1">📞 +226 76 22 39 62</p>
                   </div>
-                  <div className="bg-white/20 rounded-xl p-3">
-                    <p className="font-bold text-white">Étape 3 – Envoyez sur WhatsApp</p>
-                    <p>Numéro : <strong className="text-yellow-200">+226 76 22 39 62</strong></p>
-                    <p>Votre accès sera activé sous 24h</p>
+                  <div className="bg-white/20 rounded-xl p-3.5">
+                    <p className="font-bold text-base">📸 Après le paiement :</p>
+                    <p className="text-orange-100 text-sm mt-1">Envoyez la capture d'écran sur WhatsApp au <strong>+226 76 22 39 62</strong></p>
                   </div>
                 </div>
               </div>
 
-              {/* Formulaire */}
-              <div className="bg-white rounded-2xl shadow-md p-5">
-                <h3 className="font-bold text-gray-800 mb-4">Enregistrer votre demande</h3>
-                
+              {/* Formulaire de confirmation */}
+              <div className="bg-white rounded-2xl shadow-md border border-amber-100 p-5">
+                <h3 className="font-bold text-gray-800 mb-4 text-base">📋 Confirmer votre demande</h3>
                 {error && (
-                  <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-3 mb-4">
-                    <p className="text-red-700 text-sm">⚠️ {error}</p>
-                  </div>
+                  <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 mb-4 text-sm">⚠️ {error}</div>
                 )}
-
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-4">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      📱 Numéro Orange Money utilisé (optionnel)
-                    </label>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={e => setPhone(e.target.value)}
-                      placeholder="+226 XX XX XX XX"
-                      className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl outline-none focus:border-orange-400"
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">📱 Votre numéro Orange Money (optionnel)</label>
+                    <div className="flex rounded-xl border-2 border-gray-200 focus-within:border-amber-500 overflow-hidden">
+                      <span className="flex items-center px-3 bg-gray-50 text-gray-600 font-semibold border-r border-gray-200 whitespace-nowrap">🇧🇫 +226</span>
+                      <input
+                        type="tel"
+                        value={form.numero_paiement}
+                        onChange={e => setForm(p => ({ ...p, numero_paiement: e.target.value }))}
+                        placeholder="XX XX XX XX"
+                        className="flex-1 px-3 py-3.5 outline-none text-base bg-white"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">💬 Message pour l'admin (optionnel)</label>
+                    <textarea
+                      value={form.notes}
+                      onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
+                      placeholder="Ex: Paiement effectué le 05/01/2025 à 14h30"
+                      className="input-field min-h-[80px] resize-none"
                     />
                   </div>
 
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-700">
-                    💡 En cliquant sur "Confirmer", votre demande sera enregistrée. Envoyez ensuite la capture WhatsApp pour validation.
+                  {/* Résumé */}
+                  <div className="rounded-xl p-4" style={{ background: selectedType === 'direct' ? '#E8F5EE' : '#FFF0E8' }}>
+                    <p className="font-bold text-sm mb-1" style={{ color: selectedType === 'direct' ? '#1A4731' : '#C4521A' }}>
+                      📋 Récapitulatif
+                    </p>
+                    <div className="flex justify-between text-sm mt-2">
+                      <span className="text-gray-600">Offre :</span>
+                      <span className="font-bold">{selectedType === 'direct' ? 'Concours Directs' : 'Concours Professionnels'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm mt-1">
+                      <span className="text-gray-600">Montant :</span>
+                      <span className="font-extrabold text-lg">{currentPrice.toLocaleString()} FCFA</span>
+                    </div>
+                    <div className="flex justify-between text-sm mt-1">
+                      <span className="text-gray-600">Durée :</span>
+                      <span className="font-bold">1 an</span>
+                    </div>
                   </div>
 
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-4 text-lg font-bold text-white rounded-xl active:scale-95 transition-all disabled:opacity-60"
-                    style={{ background: '#C4521A' }}
+                    className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg active:scale-95 disabled:opacity-60"
+                    style={{ background: submitting ? '#999' : selectedType === 'direct' ? 'linear-gradient(135deg,#1A4731,#2D6A4F)' : 'linear-gradient(135deg,#C4521A,#8B2500)' }}
                   >
-                    {submitting ? '⏳ Envoi...' : `✅ Confirmer – ${prix.toLocaleString()} FCFA`}
+                    {submitting
+                      ? <span className="flex items-center justify-center gap-2"><span className="spinner" style={{width:22,height:22,borderWidth:3}}></span> Envoi...</span>
+                      : `✅ Confirmer ma demande – ${currentPrice.toLocaleString()} FCFA`}
                   </button>
                 </form>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
