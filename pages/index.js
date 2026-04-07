@@ -1,29 +1,58 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
-import { CATEGORIES_DIRECT, CATEGORIES_PRO } from '../lib/data'
 
 const APP_URL = 'https://ideal-formation-leaders.pages.dev'
+
+const CATEGORIES_DIRECT = [
+  { nom: 'Actualité / Culture générale', icone: '🌍' },
+  { nom: 'Français', icone: '📚' },
+  { nom: 'Littérature et art', icone: '🎨' },
+  { nom: 'H-G (Histoire-Géographie)', icone: '🗺️' },
+  { nom: 'SVT (Sciences de la Vie)', icone: '🧬' },
+  { nom: 'Psychotechniques', icone: '🧠' },
+  { nom: 'Mathématiques', icone: '📐' },
+  { nom: 'PC (Physique-Chimie)', icone: '⚗️' },
+  { nom: 'Entraînement QCM', icone: '✏️' },
+  { nom: 'Accompagnement final', icone: '🎯' }
+]
+
+const CATEGORIES_PRO = [
+  { nom: 'Spécialités Vie Scolaire (CASU/AASU)', icone: '🏫' },
+  { nom: 'Spécialités CISU/AISU/ENAREF', icone: '🏛️' },
+  { nom: 'Inspectorat (IES/IEPENF)', icone: '🔍' },
+  { nom: 'Professeurs Agrégés', icone: '🎓' },
+  { nom: 'CAPES – Toutes Options', icone: '📖' },
+  { nom: 'Administrateur des Hôpitaux', icone: '🏥' },
+  { nom: 'Spécialités Santé', icone: '💊' },
+  { nom: 'Spécialités GSP', icone: '🛡️' },
+  { nom: 'Spécialités Police', icone: '👮' },
+  { nom: 'Administrateur Civil', icone: '📋' },
+  { nom: 'Entraînement QCM', icone: '✏️' },
+  { nom: 'Accompagnement final', icone: '🎯' }
+]
 
 export default function Home() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [shareMsg, setShareMsg] = useState('')
+  const scrollDirectRef = useRef(null)
+  const scrollProRef = useRef(null)
 
   useEffect(() => {
-    // Tous les utilisateurs connectés (y compris admin) vont au dashboard
     if (!loading && user) {
-      router.push('/dashboard')
+      if (user.is_admin) router.push('/admin')
+      else router.push('/dashboard')
     }
   }, [user, loading, router])
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs (5 000 FCFA)\n✅ Concours professionnels (20 000 FCFA)\n✅ 10 questions gratuites sans inscription\n\n👉 ${APP_URL}`
-    if (navigator.share) {
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs (5 000 FCFA/an)\n✅ Concours professionnels (20 000 FCFA/an)\n✅ 10 questions gratuites sans inscription\n\n👉 ${APP_URL}`
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
-        await navigator.share({ title: 'IFL – Idéale Formation of Leader', text, url: APP_URL })
+        await navigator.share({ title: 'IFL – Formation Burkina Faso', text, url: APP_URL })
         setShareMsg('✅ Partagé !')
       } catch (e) {
         if (e.name !== 'AbortError') window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
@@ -36,11 +65,8 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }}>
-        <div className="text-center">
-          <div className="spinner mx-auto mb-4"></div>
-          <p className="text-white text-xl font-semibold">Chargement...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
+        <div className="text-center"><div className="spinner mx-auto mb-3"></div><p className="text-white font-semibold">Chargement...</p></div>
       </div>
     )
   }
@@ -48,227 +74,235 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>IFL - Idéale Formation of Leader | Burkina Faso</title>
-        <meta name="description" content="Préparez vos concours du Burkina Faso avec IFL. Concours directs et professionnels." />
+        <title>IFL – Idéale Formation of Leaders | Concours Burkina Faso</title>
+        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Concours directs et professionnels." />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
+      <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
 
-      <div className="min-h-screen african-pattern" style={{ background: '#FFF8F0' }}>
         {/* Header */}
         <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="logo-rounded overflow-hidden shadow-md" style={{ borderRadius: '16px', width: '52px', height: '52px' }}>
-                <img src="/logo.png" alt="IFL Logo" style={{ width: '52px', height: '52px', objectFit: 'cover', borderRadius: '16px' }} />
+              <div className="logo-header" style={{ width: 44, height: 44 }}>
+                <img src="/logo.png" alt="IFL" style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 14 }} />
               </div>
               <div>
-                <h1 className="text-white font-bold text-lg leading-tight">IFL</h1>
-                <p className="text-orange-200 text-xs">Formation of Leader</p>
+                <p className="text-white font-extrabold text-base leading-tight">IFL</p>
+                <p className="text-orange-200 text-xs">Idéale Formation of Leaders</p>
               </div>
             </div>
             <div className="flex gap-2 items-center">
-              {/* Bouton Partager */}
               <button
                 onClick={handleShare}
                 className="p-2 text-orange-200 hover:text-white transition-colors"
-                title="Partager l'application"
-                aria-label="Partager"
+                title="Partager"
               >
-                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
                   <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
                   <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
                 </svg>
               </button>
-              <Link href="/login" className="px-4 py-2 text-sm font-semibold text-white border-2 border-amber-400 rounded-xl hover:bg-amber-400 transition-all">
+              <Link href="/login" className="px-3 py-1.5 text-xs font-bold text-white rounded-lg" style={{ background: 'rgba(255,255,255,0.2)' }}>
                 Connexion
               </Link>
-              <Link href="/register" className="px-4 py-2 text-sm font-semibold text-white rounded-xl hidden sm:block transition-all" style={{ background: '#C4521A' }}>
-                S'inscrire
-              </Link>
             </div>
           </div>
-          {shareMsg && (
-            <div className="text-center py-1 text-sm font-semibold text-amber-200">{shareMsg}</div>
-          )}
+          {shareMsg && <div className="text-center py-1 text-sm font-semibold text-amber-200">{shareMsg}</div>}
         </header>
 
-        {/* Hero Section */}
-        <section style={{ background: 'linear-gradient(160deg, #8B2500 0%, #C4521A 50%, #D4A017 100%)' }} className="relative overflow-hidden">
-          <div className="absolute inset-0 african-pattern opacity-20"></div>
-          <div className="relative max-w-lg mx-auto px-4 py-16 text-center text-white">
-            <div className="logo-rounded overflow-hidden shadow-2xl mx-auto mb-6 border-4 border-amber-400" style={{ borderRadius: '24px', width: '110px', height: '110px', display: 'inline-block' }}>
-              <img src="/logo.png" alt="IFL Logo" style={{ width: '110px', height: '110px', objectFit: 'cover', borderRadius: '24px' }} />
+        {/* Hero */}
+        <div className="african-pattern" style={{ background: 'linear-gradient(160deg,#8B2500,#C4521A,#D4A017)' }}>
+          <div className="max-w-lg mx-auto px-4 py-12 text-center">
+            <div className="inline-block logo-hero mb-5" style={{ width: 110, height: 110 }}>
+              <img src="/logo.png" alt="IFL" style={{ width: 110, height: 110, objectFit: 'cover', borderRadius: 28 }} />
             </div>
-            <h1 className="text-4xl font-extrabold mb-3 leading-tight">
-              Idéale Formation<br />
-              <span style={{ color: '#D4A017' }}>of Leader</span>
+            <h1 className="text-white font-extrabold text-3xl mb-3 leading-tight">
+              Réussissez vos concours<br/>du Burkina Faso
             </h1>
-            <p className="text-orange-100 text-xl mb-2 font-medium">🇧🇫 Préparation aux concours du Burkina Faso</p>
-            <p className="text-orange-200 text-base mb-8">Des milliers de QCM pour réussir vos concours directs et professionnels</p>
-            
-            <div className="flex flex-col gap-3 max-w-xs mx-auto">
-              <Link href="/demo" className="block w-full py-4 px-6 text-lg font-bold rounded-2xl text-white shadow-lg hover:shadow-xl transition-all active:scale-95" style={{ background: '#D4A017' }}>
-                🎯 Tester la Démo Gratuite
-              </Link>
-              <Link href="/register" className="block w-full py-4 px-6 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 text-white" style={{ background: '#C4521A' }}>
-                🚀 S'inscrire Maintenant
-              </Link>
-              {/* Bouton Partager dans Hero */}
-              <button
-                onClick={handleShare}
-                className="block w-full py-3 px-6 text-base font-bold rounded-2xl shadow-md transition-all active:scale-95 text-white border-2 border-white/40"
-                style={{ background: 'rgba(255,255,255,0.15)' }}
-              >
-                📤 Partager à vos amis
-              </button>
+            <p className="text-orange-200 text-base mb-2">Des milliers de QCM pour vous préparer</p>
+            <div className="inline-block bg-white bg-opacity-20 text-white text-xs font-bold px-3 py-1 rounded-full mb-6">
+              🎯 10 questions gratuites sans inscription
             </div>
-          </div>
-        </section>
-
-        {/* Badge Free Demo */}
-        <div className="max-w-lg mx-auto px-4 -mt-4 relative z-10">
-          <div className="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 text-center shadow-lg">
-            <p className="text-amber-800 font-bold text-lg">🆓 10 questions gratuites sans inscription !</p>
-            <p className="text-amber-700 text-sm mt-1">Testez notre plateforme maintenant</p>
-            <Link href="/demo" className="inline-block mt-3 px-6 py-2 font-bold text-white rounded-xl text-sm transition-all active:scale-95" style={{ background: '#C4521A' }}>
-              Commencer la démo →
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/demo"
+                className="px-8 py-4 text-base font-extrabold text-white rounded-xl shadow-lg active:scale-95 transition-all text-center"
+                style={{ background: '#D4A017' }}
+              >
+                🎯 Démo gratuite
+              </Link>
+              <Link
+                href="/register"
+                className="px-8 py-4 text-base font-extrabold rounded-xl shadow-lg active:scale-95 transition-all text-center"
+                style={{ background: 'white', color: '#C4521A' }}
+              >
+                🚀 S'inscrire →
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Offres */}
-        <section className="max-w-lg mx-auto px-4 py-10">
-          <h2 className="text-3xl font-extrabold text-center mb-2" style={{ color: '#8B2500' }}>Nos Offres</h2>
-          <p className="text-center text-gray-500 mb-8">Choisissez votre parcours de préparation</p>
+        <div className="max-w-lg mx-auto px-4 py-6">
 
-          {/* Offre 1 - Concours Directs */}
-          <div className="card-african mb-6 overflow-hidden">
-            <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-orange-300 uppercase tracking-wider">Offre 1</span>
-                  <h3 className="text-white text-2xl font-extrabold mt-1">Concours Directs</h3>
-                </div>
-                <div className="text-right">
-                  <p className="text-4xl font-extrabold" style={{ color: '#D4A017' }}>5 000</p>
-                  <p className="text-orange-200 text-sm">FCFA / an</p>
-                </div>
-              </div>
+          {/* Offres */}
+          <h2 className="text-2xl font-extrabold mb-4" style={{ color: '#8B2500' }}>Nos offres</h2>
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="bg-white rounded-2xl shadow-md border-2 border-amber-100 p-5 text-center">
+              <div className="text-4xl mb-3">📚</div>
+              <h3 className="font-extrabold text-base mb-1" style={{ color: '#8B2500' }}>Concours Directs</h3>
+              <p className="text-gray-500 text-xs mb-3">10 dossiers thématiques</p>
+              <p className="text-2xl font-extrabold" style={{ color: '#C4521A' }}>5 000</p>
+              <p className="text-gray-400 text-xs">FCFA / an</p>
             </div>
-            <div className="p-5">
-              <p className="text-gray-600 text-sm mb-4">Accès à tous les dossiers pour les concours directs</p>
-              <div className="grid grid-cols-2 gap-2 mb-5">
-                {CATEGORIES_DIRECT.map((cat, i) => (
-                  <div key={i} className="flex items-center gap-2 bg-amber-50 rounded-lg p-2">
-                    <span className="text-xl">{cat.icone}</span>
-                    <span className="text-xs text-amber-800 font-medium leading-tight">{cat.nom}</span>
-                  </div>
-                ))}
-              </div>
-              <Link href="/register" className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl transition-all active:scale-95 shadow-md" style={{ background: '#8B2500' }}>
-                S'abonner – 5 000 FCFA
-              </Link>
+            <div className="bg-white rounded-2xl shadow-md border-2 border-amber-100 p-5 text-center">
+              <div className="text-4xl mb-3">🎓</div>
+              <h3 className="font-extrabold text-base mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
+              <p className="text-gray-500 text-xs mb-3">12 dossiers spécialisés</p>
+              <p className="text-2xl font-extrabold" style={{ color: '#C4521A' }}>20 000</p>
+              <p className="text-gray-400 text-xs">FCFA / an</p>
             </div>
           </div>
 
-          {/* Offre 2 - Concours Professionnels */}
-          <div className="card-african overflow-hidden border-2" style={{ borderColor: '#C4521A' }}>
-            <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #C4521A 0%, #8B2500 100%)' }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-orange-200 uppercase tracking-wider">Offre 2</span>
-                  <h3 className="text-white text-2xl font-extrabold mt-1">Concours Professionnels</h3>
-                </div>
-                <div className="text-right">
-                  <p className="text-4xl font-extrabold" style={{ color: '#D4A017' }}>20 000</p>
-                  <p className="text-orange-200 text-sm">FCFA / an</p>
-                </div>
-              </div>
+          {/* Dossiers Concours Directs - Scroll horizontal */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xl font-extrabold" style={{ color: '#8B2500' }}>📚 Concours Directs</h2>
+              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">10 dossiers</span>
             </div>
-            <div className="p-5">
-              <p className="text-gray-600 text-sm mb-4">Accès complet aux concours professionnels</p>
-              <div className="grid grid-cols-2 gap-2 mb-5">
-                {CATEGORIES_PRO.map((cat, i) => (
-                  <div key={i} className="flex items-center gap-2 bg-orange-50 rounded-lg p-2">
-                    <span className="text-xl">{cat.icone}</span>
-                    <span className="text-xs text-orange-800 font-medium leading-tight">{cat.nom}</span>
-                  </div>
-                ))}
-              </div>
-              <Link href="/register" className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl transition-all active:scale-95 shadow-md" style={{ background: '#C4521A' }}>
-                S'abonner – 20 000 FCFA
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* Orange Money Section */}
-        <section className="max-w-lg mx-auto px-4 py-6">
-          <div className="rounded-2xl p-6 text-white text-center" style={{ background: 'linear-gradient(135deg, #FF6B00 0%, #FF9500 100%)' }}>
-            <p className="text-3xl mb-2">📱</p>
-            <h3 className="text-xl font-bold mb-2">Paiement Orange Money</h3>
-            <p className="text-orange-100 text-sm mb-4">Payez facilement avec votre mobile</p>
-            <div className="bg-white/20 rounded-xl p-4 text-left">
-              <p className="font-bold text-lg mb-2">📲 Numéro : <span className="text-yellow-200">+226 76 22 39 62</span></p>
-              <p className="text-sm text-orange-100">USSD : <code className="bg-white/20 px-2 py-1 rounded">*144*2*1*76223962#</code></p>
-              <p className="text-sm text-orange-100 mt-2">📸 Envoyez la capture par WhatsApp</p>
-            </div>
-            <a
-              href="https://wa.me/22676223962"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block mt-4 px-6 py-3 font-bold text-white rounded-xl shadow-md active:scale-95"
-              style={{ background: 'rgba(0,0,0,0.25)' }}
+            <p className="text-gray-400 text-xs mb-3">← Glissez pour voir tous les dossiers →</p>
+            <div
+              ref={scrollDirectRef}
+              className="flex gap-3 overflow-x-auto pb-3"
+              style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              💬 Contacter sur WhatsApp
-            </a>
+              {CATEGORIES_DIRECT.map((cat, i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 bg-white rounded-2xl border-2 border-amber-100 shadow-sm overflow-hidden"
+                  style={{ scrollSnapAlign: 'start', width: '160px', minWidth: '160px', opacity: 0.85 }}
+                >
+                  <div className="p-4 text-center">
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3 flex-shrink-0"
+                      style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE0C8)', minHeight: '64px', minWidth: '64px' }}>
+                      <span style={{ fontSize: '36px' }}>{cat.icone}</span>
+                    </div>
+                    <p className="text-xs font-bold text-gray-700 leading-tight mb-2">{cat.nom}</p>
+                    <span className="text-gray-300 text-sm">🔒</span>
+                  </div>
+                  <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }}></div>
+                </div>
+              ))}
+            </div>
           </div>
-        </section>
 
-        {/* Features */}
-        <section className="max-w-lg mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold text-center mb-6" style={{ color: '#8B2500' }}>Pourquoi choisir IFL ?</h2>
-          <div className="grid grid-cols-2 gap-4">
+          {/* Dossiers Concours Professionnels - Scroll horizontal */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xl font-extrabold" style={{ color: '#8B2500' }}>🎓 Professionnels</h2>
+              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">12 dossiers</span>
+            </div>
+            <p className="text-gray-400 text-xs mb-3">← Glissez pour voir tous les dossiers →</p>
+            <div
+              ref={scrollProRef}
+              className="flex gap-3 overflow-x-auto pb-3"
+              style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {CATEGORIES_PRO.map((cat, i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 bg-white rounded-2xl border-2 border-amber-100 shadow-sm overflow-hidden"
+                  style={{ scrollSnapAlign: 'start', width: '160px', minWidth: '160px', opacity: 0.85 }}
+                >
+                  <div className="p-4 text-center">
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3 flex-shrink-0"
+                      style={{ background: 'linear-gradient(135deg,#F0E8FF,#E0C8FF)', minHeight: '64px', minWidth: '64px' }}>
+                      <span style={{ fontSize: '36px' }}>{cat.icone}</span>
+                    </div>
+                    <p className="text-xs font-bold text-gray-700 leading-tight mb-2">{cat.nom}</p>
+                    <span className="text-gray-300 text-sm">🔒</span>
+                  </div>
+                  <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg,#8B2500,#C4521A)' }}></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Orange Money paiement */}
+          <div className="rounded-2xl p-5 mb-6 text-white" style={{ background: 'linear-gradient(135deg,#FF6B00,#FF9500)' }}>
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-3xl">📱</span>
+              <div>
+                <p className="font-extrabold text-base">Paiement Orange Money</p>
+                <p className="text-orange-100 text-sm">Simple et rapide</p>
+              </div>
+            </div>
+            <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
+              <p className="text-sm text-orange-100">Code USSD :</p>
+              <p className="text-xl font-extrabold">*144*2*1*76223962#</p>
+            </div>
+            <p className="text-orange-100 text-sm">Bénéficiaire : <strong className="text-white">+226 76 22 39 62</strong></p>
+          </div>
+
+          {/* Fonctionnalités */}
+          <h2 className="text-xl font-extrabold mb-4" style={{ color: '#8B2500' }}>Pourquoi IFL ?</h2>
+          <div className="grid grid-cols-2 gap-3 mb-8">
             {[
-              { icon: '📱', title: 'Mobile-first', desc: 'Apprenez depuis votre téléphone' },
-              { icon: '💾', title: 'Progression sauvée', desc: 'Reprenez où vous avez arrêté' },
-              { icon: '✅', title: 'Corrections', desc: 'Réponses et explications détaillées' },
-              { icon: '🏆', title: 'Expert Burkina', desc: 'QCM spécialisés concours BF' }
+              { icon: '📊', text: 'Milliers de QCM' },
+              { icon: '📱', text: 'Mobile-friendly' },
+              { icon: '⚡', text: 'Résultats immédiats' },
+              { icon: '🎯', text: 'Tous concours BF' }
             ].map((f, i) => (
-              <div key={i} className="bg-white rounded-2xl p-4 shadow-md border border-amber-100 text-center">
-                <div className="text-4xl mb-2">{f.icon}</div>
-                <h4 className="font-bold text-gray-800 text-sm">{f.title}</h4>
-                <p className="text-gray-500 text-xs mt-1">{f.desc}</p>
+              <div key={i} className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-amber-100">
+                <span className="text-2xl">{f.icon}</span>
+                <p className="font-semibold text-sm text-gray-700">{f.text}</p>
               </div>
             ))}
           </div>
-        </section>
 
-        {/* CTA Footer */}
-        <section className="max-w-lg mx-auto px-4 pb-8 pt-4">
-          <div className="text-center">
-            <p className="text-gray-500 text-sm mb-4">Déjà inscrit ?</p>
-            <Link href="/login" className="text-amber-700 font-bold text-lg hover:text-amber-800">
-              Se connecter →
-            </Link>
+          {/* CTA inscription */}
+          <div className="rounded-2xl p-6 text-center mb-6" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
+            <p className="text-white font-extrabold text-xl mb-2">🚀 Commencez aujourd'hui !</p>
+            <p className="text-orange-200 text-sm mb-4">Créez votre compte gratuitement</p>
+            <div className="flex gap-3">
+              <Link href="/register" className="flex-1 py-3.5 text-center font-extrabold rounded-xl text-sm active:scale-95" style={{ background: 'white', color: '#C4521A' }}>
+                📝 S'inscrire
+              </Link>
+              <Link href="/demo" className="flex-1 py-3.5 text-center font-extrabold text-white rounded-xl text-sm border-2 border-white active:scale-95">
+                🎯 Démo gratuite
+              </Link>
+            </div>
           </div>
-        </section>
 
-        {/* Footer */}
-        <footer className="text-center py-6 text-gray-500 text-sm border-t border-amber-100" style={{ background: '#FFF0E0' }}>
-          <p className="font-semibold">© 2025 IFL – Idéale Formation of Leader 🇧🇫</p>
-          <p className="mt-1">
-            <a href="https://wa.me/22676223962" className="font-bold" style={{ color: '#C4521A' }}>
-              💬 WhatsApp : +226 76 22 39 62
-            </a>
-          </p>
-          <p className="mt-2 text-xs text-gray-400">Orange Money : +226 76 22 39 62</p>
-          <div className="flex justify-center gap-4 mt-3">
-            <Link href="/demo" className="text-amber-700 font-semibold text-sm hover:underline">🎯 Démo gratuite</Link>
-            <Link href="/help" className="text-amber-700 font-semibold text-sm hover:underline">❓ Aide</Link>
-            <button onClick={handleShare} className="font-semibold text-sm hover:underline" style={{ color: '#C4521A' }}>📤 Partager</button>
-          </div>
-        </footer>
+          {/* Footer */}
+          <footer className="text-center py-4 border-t border-amber-100">
+            <div className="flex justify-center gap-4 flex-wrap mb-3">
+              <a href="https://wa.me/22676223962" target="_blank" rel="noopener noreferrer" className="font-semibold text-sm" style={{ color: '#C4521A' }}>
+                💬 WhatsApp: +226 76 22 39 62
+              </a>
+            </div>
+            <div className="flex justify-center gap-4 text-sm text-gray-500 mb-2">
+              <Link href="/login" className="hover:underline">Connexion</Link>
+              <Link href="/register" className="hover:underline">Inscription</Link>
+              <Link href="/help" className="hover:underline">Aide</Link>
+              <button onClick={handleShare} className="hover:underline">Partager</button>
+            </div>
+            <p className="text-gray-400 text-xs">© 2025 IFL – Burkina Faso</p>
+          </footer>
+        </div>
+
+        {/* Bouton flottant WhatsApp */}
+        <a
+          href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20je%20voudrais%20des%20informations"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-4 w-14 h-14 rounded-full flex items-center justify-center shadow-xl z-50 text-2xl"
+          style={{ background: '#25D366' }}
+          title="WhatsApp"
+        >
+          💬
+        </a>
       </div>
     </>
   )

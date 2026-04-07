@@ -1,35 +1,44 @@
 import '../styles/globals.css'
 import { createContext, useContext, useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 
 const AuthContext = createContext(null)
+export const useAuth = () => useContext(AuthContext)
 
-export function useAuth() {
-  return useContext(AuthContext)
-}
-
-function AuthProvider({ children }) {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     const token = localStorage.getItem('ifl_token')
     if (token) {
-      fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(r => r.json())
-        .then(data => {
-          if (data.user) setUser(data.user)
-          else localStorage.removeItem('ifl_token')
-        })
-        .catch(() => localStorage.removeItem('ifl_token'))
-        .finally(() => setLoading(false))
+      fetchUser(token)
     } else {
       setLoading(false)
     }
   }, [])
 
-  const login = (userData, token) => {
+  const fetchUser = async (token) => {
+    try {
+      const res = await fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.id) {
+        setUser(data)
+      } else {
+        localStorage.removeItem('ifl_token')
+        setUser(null)
+      }
+    } catch {
+      localStorage.removeItem('ifl_token')
+      setUser(null)
+    }
+    setLoading(false)
+  }
+
+  const login = (token, userData) => {
     localStorage.setItem('ifl_token', token)
     setUser(userData)
   }
@@ -37,19 +46,16 @@ function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('ifl_token')
     setUser(null)
-    window.location.href = '/'
+    router.push('/')
   }
 
-  const getToken = () => localStorage.getItem('ifl_token')
+  const getToken = () => {
+    return localStorage.getItem('ifl_token')
+  }
 
   const refreshUser = async () => {
-    const token = getToken()
-    if (!token) return
-    try {
-      const r = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
-      const data = await r.json()
-      if (data.user) setUser(data.user)
-    } catch {}
+    const token = localStorage.getItem('ifl_token')
+    if (token) await fetchUser(token)
   }
 
   return (

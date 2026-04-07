@@ -1,197 +1,214 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { useAuth } from './_app'
 
 const APP_URL = 'https://ideal-formation-leaders.pages.dev'
-const WHATSAPP_NUMBER = '22676223962'
-const OM_NUMBER = '+226 76 22 39 62'
 
 export default function Help() {
-  const [shareMsg, setShareMsg] = useState('')
+  const { user } = useAuth()
+  const router = useRouter()
+  const [openFaq, setOpenFaq] = useState(null)
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs (5 000 FCFA)\n✅ Concours professionnels (20 000 FCFA)\n✅ 10 questions gratuites sans inscription\n\n👉 ${APP_URL}`
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'IFL – Idéale Formation of Leader',
-          text: text,
-          url: APP_URL
-        })
-        setShareMsg('✅ Partagé avec succès !')
-      } catch (e) {
-        if (e.name !== 'AbortError') {
-          fallbackShare(text)
-        }
-      }
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs (5 000 FCFA/an)\n✅ Concours professionnels (20 000 FCFA/an)\n\n👉 ${APP_URL}`
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try { await navigator.share({ title: 'IFL', text, url: APP_URL }) } catch {}
     } else {
-      fallbackShare(text)
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
     }
-    setTimeout(() => setShareMsg(''), 3000)
   }
 
-  const fallbackShare = (text) => {
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`
-    window.open(waUrl, '_blank')
-  }
-
-  const handleWhatsApp = () => {
-    const msg = encodeURIComponent("Bonjour, j'ai besoin d'aide pour IFL – Idéale Formation of Leader.")
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank')
-  }
+  const faqs = [
+    {
+      q: 'Comment m\'abonner ?',
+      a: '1. Connectez-vous ou créez un compte\n2. Allez dans "Paiement"\n3. Effectuez le paiement Orange Money : *144*2*1*76223962#\n4. Envoyez la capture via WhatsApp au +226 76 22 39 62\n5. Votre abonnement sera activé sous 24h'
+    },
+    {
+      q: 'Comment effectuer le paiement Orange Money ?',
+      a: 'Composez *144*2*1*76223962# sur votre téléphone Orange, saisissez le montant (5 000 ou 20 000 FCFA), confirmez avec votre code secret.\nBénéficiaire : +226 76 22 39 62'
+    },
+    {
+      q: 'Combien de temps dure l\'abonnement ?',
+      a: 'L\'abonnement est valable 1 an à partir de la date d\'activation. Vous avez accès à tous les QCM de votre formule pendant cette période.'
+    },
+    {
+      q: 'Quelle est la différence entre les deux formules ?',
+      a: '📚 Concours Directs (5 000 FCFA/an) : 10 dossiers thématiques (Actualité, Français, Maths, SVT, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA/an) : 12 dossiers spécialisés (CASU, CAPES, Police, Santé, etc.)'
+    },
+    {
+      q: 'Mon abonnement n\'est pas activé après paiement ?',
+      a: 'Vérifiez que vous avez bien envoyé la capture de paiement via WhatsApp au +226 76 22 39 62. L\'activation prend jusqu\'à 24h après réception de la preuve.'
+    },
+    {
+      q: 'Comment partager l\'application ?',
+      a: `Utilisez le bouton "Partager" disponible dans l'application ou partagez directement le lien : ${APP_URL}`
+    }
+  ]
 
   return (
     <>
       <Head>
-        <title>Aide & Contact – IFL</title>
+        <title>Aide – IFL</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
       <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
         {/* Header */}
-        <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg py-3 px-4">
-          <div className="max-w-lg mx-auto flex items-center gap-3">
-            <Link href="/" className="text-orange-200 hover:text-white p-1">
-              <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
+          <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
+            <button onClick={() => router.back()} className="p-2 text-orange-200 hover:text-white">
+              <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
-            </Link>
-            <div className="flex items-center gap-3">
-              <div style={{ borderRadius: 12, overflow: 'hidden', width: 38, height: 38, flexShrink: 0 }}>
-                <img src="/logo.png" alt="IFL" style={{ width: 38, height: 38, objectFit: 'cover' }} />
-              </div>
-              <span className="text-white font-bold text-lg">Aide & Contact</span>
+            </button>
+            <div className="logo-header" style={{ width: 38, height: 38 }}>
+              <img src="/logo.png" alt="IFL" style={{ width: 38, height: 38, objectFit: 'cover', borderRadius: 12 }} />
+            </div>
+            <div>
+              <p className="text-white font-extrabold text-sm">Aide & Contact</p>
+              <p className="text-orange-200 text-xs">IFL Burkina Faso</p>
             </div>
           </div>
         </header>
 
-        <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
+        <div className="max-w-lg mx-auto px-4 py-5 pb-24">
 
-          {/* Contacter l'équipe WhatsApp */}
-          <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-6">
-            <h2 className="text-xl font-extrabold mb-4" style={{ color: '#8B2500' }}>📞 Contacter l'équipe</h2>
-
-            <button
-              onClick={handleWhatsApp}
-              className="w-full py-4 rounded-2xl text-white font-bold text-lg flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-all"
-              style={{ background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)' }}
-            >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-              </svg>
-              WhatsApp : +226 76 22 39 62
-            </button>
-
-            <div className="mt-4 rounded-xl p-4" style={{ background: '#FFF0E8' }}>
-              <p className="text-sm font-semibold" style={{ color: '#8B2500' }}>📱 Numéro WhatsApp direct :</p>
-              <p className="text-2xl font-extrabold mt-1" style={{ color: '#C4521A' }}>+226 76 22 39 62</p>
-              <p className="text-xs text-gray-500 mt-1">Disponible pour toute assistance</p>
-            </div>
-          </div>
-
-          {/* Partager l'application */}
-          <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-6">
-            <h2 className="text-xl font-extrabold mb-2" style={{ color: '#8B2500' }}>📤 Partager l'application</h2>
-            <p className="text-gray-500 text-sm mb-4">Recommandez IFL à vos amis qui préparent des concours</p>
-
-            <div className="rounded-xl p-3 mb-4 font-mono text-sm text-center border-2 border-dashed border-amber-300" style={{ background: '#FFF8F0', color: '#8B2500', wordBreak: 'break-all' }}>
-              {APP_URL}
-            </div>
-
-            <button
-              onClick={handleShare}
-              className="w-full py-4 rounded-2xl text-white font-bold text-lg flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-all mb-3"
-              style={{ background: 'linear-gradient(135deg, #C4521A 0%, #8B2500 100%)' }}
-            >
-              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-              </svg>
-              Partager l'application
-            </button>
-
-            {/* Partage direct WhatsApp */}
+          {/* Contact rapide */}
+          <h2 className="text-xl font-extrabold mb-4" style={{ color: '#8B2500' }}>📞 Contactez-nous</h2>
+          
+          <div className="space-y-3 mb-6">
+            {/* WhatsApp */}
             <a
-              href={`https://wa.me/?text=${encodeURIComponent(`🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs & professionnels\n✅ 10 questions gratuites sans inscription\n\n👉 ${APP_URL}`)}`}
+              href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20j'ai%20besoin%20d'aide"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-3 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-md active:scale-95 transition-all"
-              style={{ background: '#25D366', color: 'white', display: 'flex' }}
+              className="flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 active:scale-95 transition-all"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                style={{ background: '#E8F5E9' }}>
+                💬
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-gray-800">WhatsApp Assistance</p>
+                <p className="text-gray-500 text-sm">+226 76 22 39 62</p>
+              </div>
+              <svg width="20" height="20" fill="none" stroke="#25D366" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
-              Partager via WhatsApp
             </a>
 
-            {shareMsg && (
-              <p className="text-center font-bold mt-3" style={{ color: '#C4521A' }}>{shareMsg}</p>
-            )}
-          </div>
-
-          {/* Paiement Orange Money */}
-          <div className="rounded-2xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #FF6B00 0%, #FF9500 100%)' }}>
-            <h3 className="text-xl font-extrabold mb-3 flex items-center gap-2">
-              <span className="text-2xl">📱</span> Paiement Orange Money
-            </h3>
-            <div className="space-y-3">
-              <div className="bg-white/20 rounded-xl p-4">
-                <p className="font-bold text-base">📞 Numéro de paiement :</p>
-                <p className="text-3xl font-extrabold mt-1">{OM_NUMBER}</p>
+            {/* Orange Money */}
+            <div className="rounded-2xl p-4 text-white" style={{ background: 'linear-gradient(135deg,#FF6B00,#FF9500)' }}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-3xl">📱</span>
+                <div>
+                  <p className="font-extrabold">Paiement Orange Money</p>
+                  <p className="text-orange-100 text-xs">Pour votre abonnement</p>
+                </div>
               </div>
-              <div className="bg-white/20 rounded-xl p-4">
-                <p className="font-bold text-sm mb-2">Code USSD :</p>
-                <code className="bg-white/30 px-3 py-2 rounded-lg font-mono text-xl font-bold block text-center">
-                  *144*2*1*76223962#
-                </code>
+              <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
+                <p className="text-orange-100 text-xs">Code USSD :</p>
+                <p className="text-xl font-extrabold tracking-wider">*144*2*1*76223962#</p>
               </div>
-              <div className="bg-white/20 rounded-xl p-4">
-                <p className="font-bold text-sm">📸 Après le paiement :</p>
-                <p className="text-orange-100 text-sm mt-1">Envoyez la capture d'écran via WhatsApp au <strong>+226 76 22 39 62</strong></p>
+              <p className="text-orange-100 text-sm">Bénéficiaire : <strong className="text-white">+226 76 22 39 62</strong></p>
+              <div className="flex gap-3 mt-3">
+                <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center">
+                  <p className="text-xs text-orange-100">Directs</p>
+                  <p className="font-extrabold">5 000 FCFA</p>
+                </div>
+                <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center">
+                  <p className="text-xs text-orange-100">Professionnels</p>
+                  <p className="font-extrabold">20 000 FCFA</p>
+                </div>
               </div>
             </div>
+
+            {/* Partager */}
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 w-full active:scale-95 transition-all"
+            >
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                style={{ background: '#FFF0E8' }}>
+                📤
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-bold text-gray-800">Partager l'application</p>
+                <p className="text-gray-500 text-sm">Invitez vos amis à rejoindre IFL</p>
+              </div>
+              <svg width="20" height="20" fill="none" stroke="#C4521A" strokeWidth="2" viewBox="0 0 24 24">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+            </button>
           </div>
 
           {/* FAQ */}
-          <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-6">
-            <h2 className="text-xl font-extrabold mb-4" style={{ color: '#8B2500' }}>❓ Questions fréquentes</h2>
-            <div className="space-y-4">
-              {[
-                {
-                  q: "Comment s'inscrire ?",
-                  a: "Cliquez sur 'S'inscrire', entrez votre nom, prénom, numéro +226 et mot de passe."
-                },
-                {
-                  q: "Comment payer ?",
-                  a: "Utilisez Orange Money : composez *144*2*1*76223962# ou envoyez au +226 76 22 39 62. Ensuite envoyez la capture par WhatsApp."
-                },
-                {
-                  q: "Combien de temps pour l'activation ?",
-                  a: "Votre abonnement est activé dans les 24h après réception du paiement."
-                },
-                {
-                  q: "La démo est-elle vraiment gratuite ?",
-                  a: "Oui ! 10 questions gratuites, accessible sans inscription et sans connexion."
-                },
-                {
-                  q: "Quelle est la durée de l'abonnement ?",
-                  a: "1 an à partir de la date d'activation. Concours Directs : 5 000 FCFA. Concours Professionnels : 20 000 FCFA."
-                }
-              ].map((item, i) => (
-                <div key={i} className="rounded-xl p-4" style={{ background: '#FFF8F0' }}>
-                  <p className="font-bold text-base mb-1" style={{ color: '#8B2500' }}>❓ {item.q}</p>
-                  <p className="text-gray-600 text-sm leading-relaxed">{item.a}</p>
-                </div>
-              ))}
-            </div>
+          <h2 className="text-xl font-extrabold mb-4" style={{ color: '#8B2500' }}>❓ Questions fréquentes</h2>
+          <div className="space-y-2 mb-6">
+            {faqs.map((faq, i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-sm border border-amber-100 overflow-hidden">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full px-4 py-4 text-left flex items-center justify-between"
+                >
+                  <p className="font-bold text-gray-800 text-sm pr-3">{faq.q}</p>
+                  <span className="text-amber-500 text-xl font-bold flex-shrink-0 transition-transform"
+                    style={{ transform: openFaq === i ? 'rotate(45deg)' : 'none' }}>
+                    +
+                  </span>
+                </button>
+                {openFaq === i && (
+                  <div className="px-4 pb-4">
+                    <div className="h-px bg-amber-100 mb-3"></div>
+                    <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{faq.a}</p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
 
-          {/* CTA bas */}
-          <div className="text-center pb-6">
-            <Link href="/" className="text-gray-400 text-sm hover:text-gray-600">← Retour à l'accueil</Link>
+          {/* Liens utiles */}
+          <h2 className="text-xl font-extrabold mb-4" style={{ color: '#8B2500' }}>🔗 Liens utiles</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {user ? (
+              <Link href="/dashboard" className="bg-white rounded-2xl p-4 text-center shadow-sm border border-amber-100 active:scale-95">
+                <span className="text-2xl block mb-1">🏠</span>
+                <p className="font-bold text-gray-700 text-sm">Mon espace</p>
+              </Link>
+            ) : (
+              <Link href="/register" className="bg-white rounded-2xl p-4 text-center shadow-sm border border-amber-100 active:scale-95">
+                <span className="text-2xl block mb-1">📝</span>
+                <p className="font-bold text-gray-700 text-sm">S'inscrire</p>
+              </Link>
+            )}
+            <Link href="/demo" className="bg-white rounded-2xl p-4 text-center shadow-sm border border-amber-100 active:scale-95">
+              <span className="text-2xl block mb-1">🎯</span>
+              <p className="font-bold text-gray-700 text-sm">Démo gratuite</p>
+            </Link>
+            <Link href="/payment" className="bg-white rounded-2xl p-4 text-center shadow-sm border border-amber-100 active:scale-95">
+              <span className="text-2xl block mb-1">💳</span>
+              <p className="font-bold text-gray-700 text-sm">Paiement</p>
+            </Link>
+            <a href={APP_URL} className="bg-white rounded-2xl p-4 text-center shadow-sm border border-amber-100 active:scale-95">
+              <span className="text-2xl block mb-1">🌐</span>
+              <p className="font-bold text-gray-700 text-sm">Site web</p>
+            </a>
           </div>
         </div>
+
+        {/* Bouton flottant WhatsApp */}
+        <a
+          href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20j'ai%20besoin%20d'aide"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-4 w-14 h-14 rounded-full flex items-center justify-center shadow-xl z-50 text-2xl"
+          style={{ background: '#25D366' }}
+          title="WhatsApp Assistance"
+        >
+          💬
+        </a>
       </div>
     </>
   )

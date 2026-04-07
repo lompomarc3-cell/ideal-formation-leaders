@@ -3,92 +3,92 @@ import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
 async function checkAdmin(req) {
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
+  const auth = req.headers.get('authorization') || ''
+  const token = auth.replace('Bearer ', '')
   if (!token) return null
-  const decoded = await verifyToken(token)
-  if (!decoded) return null
+  const payload = await verifyToken(token)
+  if (!payload) return null
   const { data: profile } = await supabaseAdmin
     .from('profiles')
     .select('id, role')
-    .eq('id', decoded.userId)
-    .single()
-  return (profile?.role === 'superadmin' || profile?.role === 'admin') ? decoded.userId : null
+    .eq('id', payload.userId)
+    .maybeSingle()
+  if (!profile || !['admin', 'superadmin'].includes(profile.role)) return null
+  return profile.id
 }
 
 export default async function handler(req) {
-  const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
-  const res = {
-    status: (s) => ({ json: (d) => R(d, s) }),
-    json: (d) => R(d, 200)
-  }
-  let body = {}
   if (req.method !== 'GET') {
-    try { body = await req.json() } catch {}
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } })
   }
 
   const adminId = await checkAdmin(req)
-  if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
-
-  if (req.method === 'GET') {
-    try {
-      const { count: totalUsers } = await supabaseAdmin
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .not('role', 'in', '("superadmin","admin")')
-
-      const { count: totalQuestions } = await supabaseAdmin
-        .from('questions')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true)
-
-      const { count: totalCategories } = await supabaseAdmin
-        .from('categories')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true)
-
-      // Paiements en attente (stockés dans correction_requests avec ifl_payment)
-      const { count: pendingPayments } = await supabaseAdmin
-        .from('correction_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending')
-        .like('message', '%ifl_payment%')
-
-      const { count: activeSubscriptions } = await supabaseAdmin
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('subscription_status', 'active')
-
-      const { data: recentUsers } = await supabaseAdmin
-        .from('profiles')
-        .select('id, full_name, phone, subscription_type, subscription_status, created_at')
-        .not('role', 'in', '("superadmin","admin")')
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      return res.json({
-        stats: {
-          totalUsers: totalUsers || 0,
-          activeSubscriptions: activeSubscriptions || 0,
-          totalQuestions: totalQuestions || 0,
-          totalCategories: totalCategories || 0,
-          pendingPayments: pendingPayments || 0
-        },
-        recentUsers: (recentUsers || []).map(u => {
-          const parts = (u.full_name || '').trim().split(' ')
-          const nom = parts[0] || ''
-          const prenom = parts.slice(1).join(' ') || ''
-          return {
-            ...u,
-            nom,
-            prenom,
-            abonnement_type: u.subscription_type
-          }
-        })
-      })
-    } catch (error) {
-      return res.status(500).json({ error: error.message })
-    }
+  if (!adminId) {
+    return new Response(JSON.stringify({ error: 'Accès refusé' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
   }
 
-  return res.status(405).json({ error: 'Method not allowed' })
+  try {
+    // Total utilisateurs (non admin)
+    const { data: allUsers } = await supabaseAdmin
+      .from('profiles')
+      .select('id, full_name, phone, role, subscription_type, subscription_status, created_at')
+      .not('role', 'in', '("admin","superadmin")')
+      .order('created_at', { ascending: false })
+
+    const totalUsers = allUsers ? allUsers.length : 0
+    const activeSubscriptions = allUsers ? allUsers.filter(u => u.subscription_status === 'active').length : 0
+
+    // Total questions actives
+    const { data: questions } = await supabaseAdmin
+      .from('questions')
+      .select('id')
+      .eq('is_active', true)
+    const totalQuestions = questions ? questions.length : 0
+
+    // Total catégories actives
+    const { data: cats } = await supabaseAdmin
+      .from('categories')
+      .select('id')
+      .eq('is_active', true)
+    const totalCategories = cats ? cats.length : 0
+
+    // Paiements en attente (depuis correction_requests)
+    const { data: pendingPayments } = await supabaseAdmin
+      .from('correction_requests')
+      .select('id')
+      .eq('status', 'pending')
+      .like('message', '%ifl_payment%')
+    const pendingPaymentsCount = pendingPayments ? pendingPayments.length : 0
+
+    // 10 derniers inscrits
+    const recentUsers = (allUsers || []).slice(0, 10).map(u => {
+      const nameParts = (u.full_name || '').trim().split(' ')
+      return {
+        id: u.id,
+        nom: nameParts[0] || '',
+        prenom: nameParts.slice(1).join(' ') || '',
+        full_name: u.full_name,
+        phone: u.phone,
+        abonnement_type: u.subscription_type,
+        subscription_status: u.subscription_status,
+        created_at: u.created_at
+      }
+    })
+
+    return new Response(JSON.stringify({
+      stats: {
+        totalUsers,
+        activeSubscriptions,
+        pendingPayments: pendingPaymentsCount,
+        totalQuestions,
+        totalCategories
+      },
+      recentUsers
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+
+  } catch (err) {
+    return new Response(JSON.stringify({ error: 'Erreur serveur: ' + err.message }), {
+      status: 500, headers: { 'Content-Type': 'application/json' }
+    })
+  }
 }

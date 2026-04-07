@@ -3,99 +3,95 @@ import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
 async function checkAdmin(req) {
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
+  const auth = req.headers.get('authorization') || ''
+  const token = auth.replace('Bearer ', '')
   if (!token) return null
-  const decoded = await verifyToken(token)
-  if (!decoded) return null
+  const payload = await verifyToken(token)
+  if (!payload) return null
   const { data: profile } = await supabaseAdmin
     .from('profiles')
     .select('id, role')
-    .eq('id', decoded.userId)
-    .single()
-  return (profile?.role === 'superadmin' || profile?.role === 'admin') ? decoded.userId : null
+    .eq('id', payload.userId)
+    .maybeSingle()
+  if (!profile || !['admin', 'superadmin'].includes(profile.role)) return null
+  return profile.id
 }
 
 export default async function handler(req) {
-  const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
-  const res = {
-    status: (s) => ({ json: (d) => R(d, s) }),
-    json: (d) => R(d, 200)
-  }
-  let body = {}
-  if (req.method !== 'GET') {
-    try { body = await req.json() } catch {}
-  }
-
   const adminId = await checkAdmin(req)
-  if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
+  if (!adminId) {
+    return new Response(JSON.stringify({ error: 'Accès refusé' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+  }
 
+  // GET: liste des utilisateurs non admin
   if (req.method === 'GET') {
-    // Récupérer tous les utilisateurs non-admin
-    const { data: users, error } = await supabaseAdmin
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200)
+    try {
+      const { data: users, error } = await supabaseAdmin
+        .from('profiles')
+        .select('id, full_name, phone, role, subscription_type, subscription_status, subscription_expires_at, created_at')
+        .not('role', 'in', '("admin","superadmin")')
+        .order('created_at', { ascending: false })
+        .limit(100)
 
-    if (error) return res.status(500).json({ error: error.message })
+      if (error) throw error
 
-    return res.json({
-      users: (users || []).map(u => {
-        const parts = (u.full_name || '').trim().split(' ')
-        const nom = parts[0] || ''
-        const prenom = parts.slice(1).join(' ') || ''
-        const isAdmin = u.role === 'superadmin' || u.role === 'admin'
+      const userList = (users || []).map(u => {
+        const nameParts = (u.full_name || '').trim().split(' ')
         return {
           id: u.id,
-          phone: u.phone,
-          nom,
-          prenom,
+          nom: nameParts[0] || '',
+          prenom: nameParts.slice(1).join(' ') || '',
           full_name: u.full_name,
+          phone: u.phone,
           role: u.role,
-          is_admin: isAdmin,
+          is_admin: false,
           abonnement_type: u.subscription_type,
           subscription_status: u.subscription_status,
-          abonnement_valide_jusqua: u.subscription_expires_at,
-          is_active: true,
+          subscription_expires_at: u.subscription_expires_at,
           created_at: u.created_at
         }
       })
-    })
-  }
 
-  if (req.method === 'PUT') {
-    const { id, abonnement_type, abonnement_valide_jusqua, is_active } = body
-    if (!id) return res.status(400).json({ error: 'ID requis' })
-
-    const updateData = {}
-    if (abonnement_type !== undefined) {
-      updateData.subscription_type = abonnement_type || null
-      updateData.subscription_status = abonnement_type ? 'active' : 'free'
+      return new Response(JSON.stringify({ users: userList }), {
+        status: 200, headers: { 'Content-Type': 'application/json' }
+      })
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
     }
-    if (abonnement_valide_jusqua !== undefined) updateData.subscription_expires_at = abonnement_valide_jusqua
-
-    const { data, error } = await supabaseAdmin
-      .from('profiles')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) return res.status(500).json({ error: error.message })
-
-    const parts = (data?.full_name || '').trim().split(' ')
-    return res.json({
-      user: {
-        id: data.id,
-        nom: parts[0] || '',
-        prenom: parts.slice(1).join(' ') || '',
-        phone: data.phone,
-        abonnement_type: data.subscription_type,
-        subscription_status: data.subscription_status,
-        abonnement_valide_jusqua: data.subscription_expires_at
-      }
-    })
   }
 
-  return res.status(405).json({ error: 'Method not allowed' })
+  // PUT: modifier un utilisateur
+  if (req.method === 'PUT') {
+    let body = {}
+    try { body = await req.json() } catch {}
+    const { id, subscription_type, subscription_status, subscription_expires_at } = body
+
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'ID utilisateur manquant' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+    }
+
+    try {
+      const updates = {}
+      if (subscription_type !== undefined) updates.subscription_type = subscription_type
+      if (subscription_status !== undefined) updates.subscription_status = subscription_status
+      if (subscription_expires_at !== undefined) updates.subscription_expires_at = subscription_expires_at
+
+      const { data: updated, error } = await supabaseAdmin
+        .from('profiles')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return new Response(JSON.stringify({ user: updated, success: true }), {
+        status: 200, headers: { 'Content-Type': 'application/json' }
+      })
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
+  }
+
+  return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } })
 }

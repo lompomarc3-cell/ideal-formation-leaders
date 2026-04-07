@@ -3,155 +3,179 @@ import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
 async function checkAdmin(req) {
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
+  const auth = req.headers.get('authorization') || ''
+  const token = auth.replace('Bearer ', '')
   if (!token) return null
-  const decoded = await verifyToken(token)
-  if (!decoded) return null
+  const payload = await verifyToken(token)
+  if (!payload) return null
   const { data: profile } = await supabaseAdmin
     .from('profiles')
     .select('id, role')
-    .eq('id', decoded.userId)
-    .single()
-  return (profile?.role === 'superadmin' || profile?.role === 'admin') ? decoded.userId : null
+    .eq('id', payload.userId)
+    .maybeSingle()
+  if (!profile || !['admin', 'superadmin'].includes(profile.role)) return null
+  return profile.id
 }
 
 export default async function handler(req) {
-  const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
-  const res = {
-    status: (s) => ({ json: (d) => R(d, s) }),
-    json: (d) => R(d, 200)
-  }
-  let body = {}
-  if (req.method !== 'GET' && req.method !== 'DELETE') {
-    try { body = await req.json() } catch {}
-  }
-
   const adminId = await checkAdmin(req)
-  if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
+  if (!adminId) {
+    return new Response(JSON.stringify({ error: 'Accès refusé' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+  }
 
+  const url = new URL(req.url)
+
+  // GET: lister les questions
   if (req.method === 'GET') {
-    const url = new URL(req.url)
-    const categorie_id = url.searchParams.get('categorie_id')
+    try {
+      const categorieId = url.searchParams.get('categorie_id')
+      
+      let query = supabaseAdmin
+        .from('questions')
+        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, is_active, category_id, categories(nom, type)')
+        .eq('is_active', true)
+        .limit(200)
 
-    let query = supabaseAdmin
-      .from('questions')
-      .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, category_id, is_demo, is_active, categories(nom, type)')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
+      if (categorieId) query = query.eq('category_id', categorieId)
 
-    if (categorie_id) query = query.eq('category_id', categorie_id)
+      const { data: questions, error } = await query
 
-    const { data, error } = await query.limit(300)
-    if (error) return res.status(500).json({ error: error.message })
+      if (error) throw error
 
-    const questions = (data || []).map(q => ({
-      id: q.id,
-      question_text: q.enonce,
-      option_a: q.option_a,
-      option_b: q.option_b,
-      option_c: q.option_c,
-      option_d: q.option_d,
-      bonne_reponse: q.reponse_correcte,
-      explication: q.explication,
-      categorie_id: q.category_id,
-      is_demo: q.is_demo,
-      ifl_categories: q.categories ? { nom: q.categories.nom, type: q.categories.type } : null
-    }))
-
-    return res.json({ questions })
+      return new Response(JSON.stringify({
+        questions: (questions || []).map(q => ({
+          id: q.id,
+          category_id: q.category_id,
+          categorie_nom: q.categories?.nom || '',
+          categorie_type: q.categories?.type || '',
+          question_text: q.enonce,
+          option_a: q.option_a,
+          option_b: q.option_b,
+          option_c: q.option_c,
+          option_d: q.option_d,
+          bonne_reponse: q.reponse_correcte,
+          explication: q.explication,
+          is_demo: q.is_demo
+        }))
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
   }
 
+  // POST: ajouter une question
   if (req.method === 'POST') {
-    const { categorie_id, question_text, option_a, option_b, option_c, option_d, bonne_reponse, explication } = body
-    if (!categorie_id || !question_text || !option_a || !option_b || !option_c || !option_d || !bonne_reponse || !explication) {
-      return res.status(400).json({ error: 'Tous les champs sont requis' })
+    let body = {}
+    try { body = await req.json() } catch {}
+    const { category_id, question_text, option_a, option_b, option_c, option_d, bonne_reponse, explication } = body
+
+    if (!category_id || !question_text || !option_a || !option_b || !option_c || !option_d || !bonne_reponse) {
+      return new Response(JSON.stringify({ error: 'Tous les champs sont requis' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('questions')
-      .insert({
-        category_id: categorie_id,
-        enonce: question_text,
-        option_a, option_b, option_c, option_d,
-        reponse_correcte: bonne_reponse.toUpperCase(),
-        explication,
-        is_demo: false,
-        is_active: true,
-        matiere: 'QCM',
-        difficulte: 'moyen'
-      })
-      .select()
-      .single()
+    try {
+      const { data: q, error } = await supabaseAdmin
+        .from('questions')
+        .insert({
+          category_id,
+          enonce: question_text,
+          option_a,
+          option_b,
+          option_c,
+          option_d,
+          reponse_correcte: bonne_reponse,
+          explication: explication || '',
+          matiere: 'QCM',
+          difficulte: 'moyen',
+          is_demo: false,
+          is_active: true
+        })
+        .select()
+        .single()
 
-    if (error) return res.status(500).json({ error: error.message })
+      if (error) throw error
 
-    // Mettre à jour question_count
-    const { count } = await supabaseAdmin
-      .from('questions')
-      .select('*', { count: 'exact', head: true })
-      .eq('category_id', categorie_id)
-      .eq('is_active', true)
-    if (count !== null) {
-      await supabaseAdmin.from('categories').update({ question_count: count }).eq('id', categorie_id)
-    }
+      // Incrémenter le compteur
+      const { data: cat } = await supabaseAdmin
+        .from('categories')
+        .select('question_count')
+        .eq('id', category_id)
+        .single()
 
-    return res.status(201).json({
-      question: {
-        id: data.id,
-        question_text: data.enonce,
-        option_a: data.option_a,
-        option_b: data.option_b,
-        option_c: data.option_c,
-        option_d: data.option_d,
-        bonne_reponse: data.reponse_correcte,
-        explication: data.explication,
-        categorie_id: data.category_id
+      if (cat) {
+        await supabaseAdmin
+          .from('categories')
+          .update({ question_count: (cat.question_count || 0) + 1 })
+          .eq('id', category_id)
       }
-    })
+
+      return new Response(JSON.stringify({ success: true, question: q }), {
+        status: 201, headers: { 'Content-Type': 'application/json' }
+      })
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
   }
 
+  // PUT: modifier une question
   if (req.method === 'PUT') {
-    const { id, categorie_id, question_text, option_a, option_b, option_c, option_d, bonne_reponse, explication } = body
-    if (!id) return res.status(400).json({ error: 'ID requis' })
+    let body = {}
+    try { body = await req.json() } catch {}
+    const { id, question_text, option_a, option_b, option_c, option_d, bonne_reponse, explication } = body
 
-    const { data, error } = await supabaseAdmin
-      .from('questions')
-      .update({
-        category_id: categorie_id,
-        enonce: question_text,
-        option_a, option_b, option_c, option_d,
-        reponse_correcte: bonne_reponse.toUpperCase(),
-        explication
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'ID manquant' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+    }
+
+    try {
+      const updates = {}
+      if (question_text) updates.enonce = question_text
+      if (option_a) updates.option_a = option_a
+      if (option_b) updates.option_b = option_b
+      if (option_c) updates.option_c = option_c
+      if (option_d) updates.option_d = option_d
+      if (bonne_reponse) updates.reponse_correcte = bonne_reponse
+      if (explication !== undefined) updates.explication = explication
+
+      const { data: q, error } = await supabaseAdmin
+        .from('questions')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return new Response(JSON.stringify({ success: true, question: q }), {
+        status: 200, headers: { 'Content-Type': 'application/json' }
       })
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) return res.status(500).json({ error: error.message })
-
-    return res.json({
-      question: {
-        id: data.id,
-        question_text: data.enonce,
-        option_a: data.option_a,
-        option_b: data.option_b,
-        option_c: data.option_c,
-        option_d: data.option_d,
-        bonne_reponse: data.reponse_correcte,
-        explication: data.explication,
-        categorie_id: data.category_id
-      }
-    })
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
   }
 
+  // DELETE: supprimer (soft delete)
   if (req.method === 'DELETE') {
-    const url = new URL(req.url)
     const id = url.searchParams.get('id')
-    if (!id) return res.status(400).json({ error: 'ID requis' })
-    const { error } = await supabaseAdmin.from('questions').update({ is_active: false }).eq('id', id)
-    if (error) return res.status(500).json({ error: error.message })
-    return res.json({ success: true })
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'ID manquant' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+    }
+
+    try {
+      const { error } = await supabaseAdmin
+        .from('questions')
+        .update({ is_active: false })
+        .eq('id', id)
+
+      if (error) throw error
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { 'Content-Type': 'application/json' }
+      })
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
   }
 
-  return res.status(405).json({ error: 'Method not allowed' })
+  return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } })
 }

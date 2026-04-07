@@ -3,77 +3,81 @@ import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
 async function checkAdmin(req) {
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
+  const auth = req.headers.get('authorization') || ''
+  const token = auth.replace('Bearer ', '')
   if (!token) return null
-  const decoded = await verifyToken(token)
-  if (!decoded) return null
+  const payload = await verifyToken(token)
+  if (!payload) return null
   const { data: profile } = await supabaseAdmin
     .from('profiles')
     .select('id, role')
-    .eq('id', decoded.userId)
-    .single()
-  return (profile?.role === 'superadmin' || profile?.role === 'admin') ? decoded.userId : null
+    .eq('id', payload.userId)
+    .maybeSingle()
+  if (!profile || !['admin', 'superadmin'].includes(profile.role)) return null
+  return profile.id
 }
 
 export default async function handler(req) {
-  const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
-  const res = {
-    status: (s) => ({ json: (d) => R(d, s) }),
-    json: (d) => R(d, 200)
-  }
-  let body = {}
-  if (req.method !== 'GET') {
-    try { body = await req.json() } catch {}
+  const adminId = await checkAdmin(req)
+  if (!adminId) {
+    return new Response(JSON.stringify({ error: 'Accès refusé' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
   }
 
-  // Les prix sont publics pour les utilisateurs connectés, mais la modification nécessite admin
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return res.status(401).json({ error: 'Non authentifié' })
-  const decoded = await verifyToken(token)
-  if (!decoded) return res.status(401).json({ error: 'Token invalide' })
-
+  // GET: récupérer les prix depuis les catégories
   if (req.method === 'GET') {
-    // Récupérer les prix configurés (premier prix trouvé par type)
-    const { data: cats } = await supabaseAdmin
-      .from('categories')
-      .select('type, prix')
-      .eq('is_active', true)
+    try {
+      const { data: cats } = await supabaseAdmin
+        .from('categories')
+        .select('type, prix')
+        .eq('is_active', true)
 
-    const priceMap = { direct: 5000, professionnel: 20000 }
-    if (cats) {
-      for (const c of cats) {
-        if (c.prix) {
-          if (c.type === 'direct') priceMap.direct = c.prix
-          if (c.type === 'professionnel') priceMap.professionnel = c.prix
+      // Prix par défaut
+      let directPrix = 5000
+      let profPrix = 20000
+
+      if (cats) {
+        for (const c of cats) {
+          if (c.type === 'direct' && c.prix) directPrix = c.prix
+          if (c.type === 'professionnel' && c.prix) profPrix = c.prix
         }
       }
+
+      return new Response(JSON.stringify({
+        prices: [
+          { type_concours: 'direct', prix: directPrix },
+          { type_concours: 'professionnel', prix: profPrix }
+        ]
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
+  }
+
+  // PUT: modifier les prix
+  if (req.method === 'PUT') {
+    let body = {}
+    try { body = await req.json() } catch {}
+    const { type_concours, prix } = body
+
+    if (!type_concours || !prix) {
+      return new Response(JSON.stringify({ error: 'type_concours et prix requis' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
     }
 
-    // Format attendu par le frontend
-    return res.json({
-      prices: [
-        { id: 1, type_concours: 'direct', prix: priceMap.direct, description: 'Concours Directs' },
-        { id: 2, type_concours: 'professionnel', prix: priceMap.professionnel, description: 'Concours Professionnels' }
-      ]
-    })
+    try {
+      const { error } = await supabaseAdmin
+        .from('categories')
+        .update({ prix: parseInt(prix) })
+        .eq('type', type_concours)
+
+      if (error) throw error
+
+      return new Response(JSON.stringify({ success: true, message: `Prix ${type_concours} mis à jour: ${prix} FCFA` }), {
+        status: 200, headers: { 'Content-Type': 'application/json' }
+      })
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
   }
 
-  if (req.method === 'PUT') {
-    // Seul l'admin peut modifier les prix
-    const adminId = await checkAdmin(req)
-    if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
-
-    const { type_concours, prix } = body
-    if (!type_concours || !prix) return res.status(400).json({ error: 'Paramètres requis' })
-
-    const { error } = await supabaseAdmin
-      .from('categories')
-      .update({ prix: parseInt(prix) })
-      .eq('type', type_concours)
-
-    if (error) return res.status(500).json({ error: error.message })
-    return res.json({ success: true, message: `✅ Prix mis à jour: ${parseInt(prix).toLocaleString()} FCFA` })
-  }
-
-  return res.status(405).json({ error: 'Method not allowed' })
+  return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } })
 }
