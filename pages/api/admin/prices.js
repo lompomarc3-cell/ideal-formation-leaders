@@ -16,55 +16,63 @@ async function checkAdmin(req) {
 }
 
 export default async function handler(req) {
-  // Helper pour compatibilité Edge Runtime
-  let body = {}
-  if (req.method !== 'GET') {
-    try { body = await req.json() } catch {}
-  }
   const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
   const res = {
     status: (s) => ({ json: (d) => R(d, s) }),
     json: (d) => R(d, 200)
   }
-  const reqData = { body, method: req.method, query: {}, headers: req.headers }
+  let body = {}
+  if (req.method !== 'GET') {
+    try { body = await req.json() } catch {}
+  }
 
-  const adminId = await checkAdmin(req)
-  if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
+  // Les prix sont publics pour les utilisateurs connectés, mais la modification nécessite admin
+  const token = req.headers.get('authorization')?.replace('Bearer ', '')
+  if (!token) return res.status(401).json({ error: 'Non authentifié' })
+  const decoded = await verifyToken(token)
+  if (!decoded) return res.status(401).json({ error: 'Token invalide' })
 
   if (req.method === 'GET') {
-    // Récupérer les prix depuis les catégories (prix distinct par type)
+    // Récupérer les prix configurés (premier prix trouvé par type)
     const { data: cats } = await supabaseAdmin
       .from('categories')
       .select('type, prix')
       .eq('is_active', true)
 
-    const prices = {
-      direct: 5000,
-      professionnel: 20000
-    }
-
+    const priceMap = { direct: 5000, professionnel: 20000 }
     if (cats) {
       for (const c of cats) {
-        if (c.prix && c.type === 'direct') prices.direct = c.prix
-        if (c.prix && c.type === 'professionnel') prices.professionnel = c.prix
+        if (c.prix) {
+          if (c.type === 'direct') priceMap.direct = c.prix
+          if (c.type === 'professionnel') priceMap.professionnel = c.prix
+        }
       }
     }
 
-    return res.json({ prices })
+    // Format attendu par le frontend
+    return res.json({
+      prices: [
+        { id: 1, type_concours: 'direct', prix: priceMap.direct, description: 'Concours Directs' },
+        { id: 2, type_concours: 'professionnel', prix: priceMap.professionnel, description: 'Concours Professionnels' }
+      ]
+    })
   }
 
   if (req.method === 'PUT') {
-    const { type_concours, prix } = req.body
+    // Seul l'admin peut modifier les prix
+    const adminId = await checkAdmin(req)
+    if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
+
+    const { type_concours, prix } = body
     if (!type_concours || !prix) return res.status(400).json({ error: 'Paramètres requis' })
 
-    // Mettre à jour le prix dans toutes les catégories du type
     const { error } = await supabaseAdmin
       .from('categories')
       .update({ prix: parseInt(prix) })
       .eq('type', type_concours)
 
     if (error) return res.status(500).json({ error: error.message })
-    return res.json({ success: true, message: `Prix mis à jour: ${prix} FCFA` })
+    return res.json({ success: true, message: `✅ Prix mis à jour: ${parseInt(prix).toLocaleString()} FCFA` })
   }
 
   return res.status(405).json({ error: 'Method not allowed' })

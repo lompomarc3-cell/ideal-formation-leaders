@@ -16,32 +16,32 @@ async function checkAdmin(req) {
 }
 
 export default async function handler(req) {
-  // Helper pour compatibilité Edge Runtime
-  let body = {}
-  if (req.method !== 'GET') {
-    try { body = await req.json() } catch {}
-  }
   const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
   const res = {
     status: (s) => ({ json: (d) => R(d, s) }),
     json: (d) => R(d, 200)
   }
-  const reqData = { body, method: req.method, query: {}, headers: req.headers }
+  let body = {}
+  if (req.method !== 'GET' && req.method !== 'DELETE') {
+    try { body = await req.json() } catch {}
+  }
 
   const adminId = await checkAdmin(req)
   if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
 
   if (req.method === 'GET') {
-    const { categorie_id } = req.query
+    const url = new URL(req.url)
+    const categorie_id = url.searchParams.get('categorie_id')
+
     let query = supabaseAdmin
       .from('questions')
-      .select('*, categories(nom, type)')
+      .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, category_id, is_demo, is_active, categories(nom, type)')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
 
     if (categorie_id) query = query.eq('category_id', categorie_id)
 
-    const { data, error } = await query.limit(200)
+    const { data, error } = await query.limit(300)
     if (error) return res.status(500).json({ error: error.message })
 
     const questions = (data || []).map(q => ({
@@ -55,14 +55,14 @@ export default async function handler(req) {
       explication: q.explication,
       categorie_id: q.category_id,
       is_demo: q.is_demo,
-      categories: q.categories
+      ifl_categories: q.categories ? { nom: q.categories.nom, type: q.categories.type } : null
     }))
 
     return res.json({ questions })
   }
 
   if (req.method === 'POST') {
-    const { categorie_id, question_text, option_a, option_b, option_c, option_d, bonne_reponse, explication } = req.body
+    const { categorie_id, question_text, option_a, option_b, option_c, option_d, bonne_reponse, explication } = body
     if (!categorie_id || !question_text || !option_a || !option_b || !option_c || !option_d || !bonne_reponse || !explication) {
       return res.status(400).json({ error: 'Tous les champs sont requis' })
     }
@@ -86,8 +86,6 @@ export default async function handler(req) {
     if (error) return res.status(500).json({ error: error.message })
 
     // Mettre à jour question_count
-    await supabaseAdmin.rpc('increment_question_count', { cat_id: categorie_id }).catch(() => {})
-    // Fallback: mise à jour manuelle
     const { count } = await supabaseAdmin
       .from('questions')
       .select('*', { count: 'exact', head: true })
@@ -113,7 +111,7 @@ export default async function handler(req) {
   }
 
   if (req.method === 'PUT') {
-    const { id, categorie_id, question_text, option_a, option_b, option_c, option_d, bonne_reponse, explication } = req.body
+    const { id, categorie_id, question_text, option_a, option_b, option_c, option_d, bonne_reponse, explication } = body
     if (!id) return res.status(400).json({ error: 'ID requis' })
 
     const { data, error } = await supabaseAdmin
@@ -147,7 +145,8 @@ export default async function handler(req) {
   }
 
   if (req.method === 'DELETE') {
-    const { id } = req.query
+    const url = new URL(req.url)
+    const id = url.searchParams.get('id')
     if (!id) return res.status(400).json({ error: 'ID requis' })
     const { error } = await supabaseAdmin.from('questions').update({ is_active: false }).eq('id', id)
     if (error) return res.status(500).json({ error: error.message })

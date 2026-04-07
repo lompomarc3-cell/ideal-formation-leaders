@@ -13,10 +13,9 @@ export default function Home() {
   const [shareMsg, setShareMsg] = useState('')
 
   useEffect(() => {
-    if (!loading && user && !user.is_admin) {
+    // Tous les utilisateurs connectés (y compris admin) vont au dashboard
+    if (!loading && user) {
       router.push('/dashboard')
-    } else if (!loading && user && user.is_admin) {
-      router.push('/admin')
     }
   }, [user, loading, router])
 

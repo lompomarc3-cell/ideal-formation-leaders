@@ -73,8 +73,16 @@ export default function AdminDashboard() {
                 <p className="text-orange-200 text-xs">{user.nom} {user.prenom}</p>
               </div>
             </div>
-            <div className="flex gap-1">
-              <Link href="/dashboard" className="p-2.5 text-orange-200 hover:text-white rounded-lg hover:bg-white/10 text-base">🏠</Link>
+            <div className="flex gap-1 items-center">
+              {/* Bouton Voir l'App (vue utilisateur) */}
+              <Link
+                href="/dashboard"
+                className="px-3 py-1.5 text-xs font-bold text-white rounded-lg transition-all"
+                style={{ background: 'rgba(255,255,255,0.2)' }}
+                title="Voir l'application comme un utilisateur"
+              >
+                🏠 App
+              </Link>
               <button onClick={logout} className="p-2.5 text-orange-200 hover:text-white rounded-lg hover:bg-white/10">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
@@ -86,7 +94,7 @@ export default function AdminDashboard() {
 
         {/* Onglets de navigation */}
         <div className="max-w-lg mx-auto px-3 py-3">
-          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
             {tabs.map(t => (
               <button
                 key={t.id}
@@ -210,7 +218,7 @@ function AdminPayments({ getToken, onNotif }) {
                   <p className="text-white font-bold">{p.ifl_users?.prenom} {p.ifl_users?.nom}</p>
                   <p className="text-gray-400 text-sm">{p.ifl_users?.phone}</p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.valide ? 'bg-amber-800 text-amber-200' : 'bg-orange-800 text-orange-200'}`}>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.valide ? 'bg-amber-800 text-amber-200' : 'bg-orange-900 text-orange-200'}`}>
                   {p.valide ? '✅ Validé' : '⏳ En attente'}
                 </span>
               </div>
@@ -230,10 +238,14 @@ function AdminPayments({ getToken, onNotif }) {
               )}
               {!p.valide && (
                 <div className="flex gap-2">
-                  <button onClick={() => handleValidate(p, true)} className="flex-1 py-3 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#C4521A' }}>
+                  <button onClick={() => handleValidate(p, true)}
+                    className="flex-1 py-3 font-bold text-white rounded-xl text-sm active:scale-95"
+                    style={{ background: '#C4521A' }}>
                     ✅ Valider & Activer
                   </button>
-                  <button onClick={() => handleValidate(p, false)} className="px-4 py-3 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#8B0000' }}>
+                  <button onClick={() => handleValidate(p, false)}
+                    className="px-4 py-3 font-bold text-white rounded-xl text-sm active:scale-95"
+                    style={{ background: '#8B0000' }}>
                     ❌ Rejeter
                   </button>
                 </div>
@@ -279,26 +291,28 @@ function AdminUsers({ getToken, onNotif }) {
 
   if (loading) return <div className="py-16 text-center"><div className="spinner mx-auto"></div></div>
 
+  const nonAdminUsers = users.filter(u => !u.is_admin)
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4 mt-1">
-        <h2 className="text-white text-xl font-bold">👥 Utilisateurs ({users.filter(u => !u.is_admin).length})</h2>
+        <h2 className="text-white text-xl font-bold">👥 Utilisateurs ({nonAdminUsers.length})</h2>
         <button onClick={fetchUsers} className="text-gray-400 hover:text-white p-2">🔄</button>
       </div>
       <div className="space-y-3">
-        {users.filter(u => !u.is_admin).map(u => (
+        {nonAdminUsers.map(u => (
           <div key={u.id} className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <p className="text-white font-bold">{u.prenom} {u.nom}</p>
                 <p className="text-gray-400 text-sm">{u.phone}</p>
                 <div className="flex gap-2 mt-2 flex-wrap">
-                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${u.is_active ? 'bg-amber-800 text-amber-300' : 'bg-red-900 text-red-300'}`}>
-                    {u.is_active ? 'Actif' : 'Bloqué'}
+                  <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-800 text-amber-300">
+                    Actif
                   </span>
                   {u.abonnement_type && (
-                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-800 text-amber-300">
-                      {u.abonnement_type === 'direct' ? '📚 Directs' : '🎓 Professionnels'}
+                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-orange-800 text-orange-300">
+                      {u.abonnement_type === 'direct' ? '📚 Directs' : u.abonnement_type === 'professionnel' ? '🎓 Pro' : '🎯 Tout'}
                     </span>
                   )}
                   {u.abonnement_valide_jusqua && (
@@ -317,6 +331,12 @@ function AdminUsers({ getToken, onNotif }) {
             )}
           </div>
         ))}
+        {nonAdminUsers.length === 0 && (
+          <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-400">
+            <p className="text-3xl mb-2">👥</p>
+            <p>Aucun utilisateur inscrit</p>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -327,32 +347,31 @@ function UserEditForm({ user, onSave, onCancel }) {
     id: user.id,
     abonnement_type: user.abonnement_type || '',
     abonnement_valide_jusqua: user.abonnement_valide_jusqua ? new Date(user.abonnement_valide_jusqua).toISOString().split('T')[0] : '',
-    is_active: user.is_active !== false
+    is_active: true
   })
   return (
     <div className="space-y-3">
       <div>
         <label className="text-gray-400 text-xs mb-1 block">Type d'abonnement</label>
-        <select value={form.abonnement_type} onChange={e => setForm(p => ({ ...p, abonnement_type: e.target.value }))} className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm">
+        <select value={form.abonnement_type} onChange={e => setForm(p => ({ ...p, abonnement_type: e.target.value }))}
+          className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm">
           <option value="">Aucun abonnement</option>
-          <option value="direct">📚 Concours Directs</option>
-          <option value="professionnel">🎓 Concours Professionnels</option>
+          <option value="direct">📚 Concours Directs (5 000 FCFA)</option>
+          <option value="professionnel">🎓 Concours Professionnels (20 000 FCFA)</option>
           <option value="all">🎯 Les deux (direct + professionnel)</option>
         </select>
       </div>
       <div>
         <label className="text-gray-400 text-xs mb-1 block">Valide jusqu'au</label>
-        <input type="date" value={form.abonnement_valide_jusqua} onChange={e => setForm(p => ({ ...p, abonnement_valide_jusqua: e.target.value }))} className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" />
-      </div>
-      <div className="flex items-center gap-3">
-        <label className="text-gray-400 text-sm">Compte actif</label>
-        <button type="button" onClick={() => setForm(p => ({ ...p, is_active: !p.is_active }))}
-          className={`w-12 h-6 rounded-full transition-all relative ${form.is_active ? 'bg-amber-600' : 'bg-gray-600'}`}>
-          <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form.is_active ? 'left-6' : 'left-0.5'}`}></div>
-        </button>
+        <input type="date" value={form.abonnement_valide_jusqua}
+          onChange={e => setForm(p => ({ ...p, abonnement_valide_jusqua: e.target.value }))}
+          className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" />
       </div>
       <div className="flex gap-2">
-        <button onClick={() => onSave({ ...form, abonnement_valide_jusqua: form.abonnement_valide_jusqua ? new Date(form.abonnement_valide_jusqua).toISOString() : null })}
+        <button onClick={() => onSave({
+          ...form,
+          abonnement_valide_jusqua: form.abonnement_valide_jusqua ? new Date(form.abonnement_valide_jusqua).toISOString() : null
+        })}
           className="flex-1 py-2.5 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#C4521A' }}>
           ✅ Sauvegarder
         </button>
@@ -425,7 +444,9 @@ function AdminQuestions({ getToken, onNotif }) {
     <div>
       <div className="flex items-center justify-between mb-4 mt-1">
         <h2 className="text-white text-xl font-bold">❓ QCM ({questions.length})</h2>
-        <button onClick={() => { setShowForm(true); setEditQ(null) }} className="px-4 py-2 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#C4521A' }}>
+        <button onClick={() => { setShowForm(true); setEditQ(null) }}
+          className="px-4 py-2 font-bold text-white rounded-xl text-sm active:scale-95"
+          style={{ background: '#C4521A' }}>
           ➕ Ajouter
         </button>
       </div>
@@ -437,12 +458,17 @@ function AdminQuestions({ getToken, onNotif }) {
         ))}
       </select>
       {(showForm || editQ) && (
-        <QuestionForm initial={editQ} categories={categories} onSave={saveQuestion} onCancel={() => { setShowForm(false); setEditQ(null) }} />
+        <QuestionForm initial={editQ} categories={categories} onSave={saveQuestion}
+          onCancel={() => { setShowForm(false); setEditQ(null) }} />
       )}
       {loading ? <div className="py-8 text-center"><div className="spinner mx-auto"></div></div> : (
         <div className="space-y-3">
           {questions.length === 0 ? (
-            <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-400">Aucune question pour cette catégorie</div>
+            <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-400">
+              <p className="text-3xl mb-2">❓</p>
+              <p>Aucune question pour cette catégorie</p>
+              <p className="text-xs mt-2">Cliquez sur ➕ Ajouter pour créer des QCM</p>
+            </div>
           ) : questions.map(q => (
             <div key={q.id} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
               <p className="text-white text-sm font-medium mb-3 leading-relaxed">{q.question_text}</p>
@@ -469,27 +495,38 @@ function AdminQuestions({ getToken, onNotif }) {
 }
 
 function QuestionForm({ initial, categories, onSave, onCancel }) {
-  const [form, setForm] = useState(initial || { categorie_id:'', question_text:'', option_a:'', option_b:'', option_c:'', option_d:'', bonne_reponse:'A', explication:'' })
+  const [form, setForm] = useState(initial || {
+    categorie_id: '', question_text: '', option_a: '', option_b: '',
+    option_c: '', option_d: '', bonne_reponse: 'A', explication: ''
+  })
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
+
   return (
     <div className="bg-gray-800 rounded-2xl p-5 mb-4 border border-amber-800">
       <h3 className="text-white font-bold mb-4">{initial ? '✏️ Modifier la question' : '➕ Nouvelle question'}</h3>
       <div className="space-y-3">
         <div>
           <label className="text-gray-400 text-xs mb-1 block">Catégorie *</label>
-          <select value={form.categorie_id} onChange={e => set('categorie_id', e.target.value)} className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" required>
+          <select value={form.categorie_id} onChange={e => set('categorie_id', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" required>
             <option value="">Choisir une catégorie</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.type_concours === 'direct' ? '📚' : '🎓'} {c.nom}</option>)}
+            {categories.map(c => (
+              <option key={c.id} value={c.id}>{c.type_concours === 'direct' ? '📚' : '🎓'} {c.nom}</option>
+            ))}
           </select>
         </div>
         <div>
           <label className="text-gray-400 text-xs mb-1 block">Question *</label>
-          <textarea value={form.question_text} onChange={e => set('question_text', e.target.value)} className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm min-h-[80px]" placeholder="Texte de la question..." required />
+          <textarea value={form.question_text} onChange={e => set('question_text', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm min-h-[80px]"
+            placeholder="Texte de la question..." required />
         </div>
         {['a','b','c','d'].map(opt => (
           <div key={opt}>
             <label className="text-gray-400 text-xs mb-1 block">Option {opt.toUpperCase()} *</label>
-            <input type="text" value={form[`option_${opt}`]} onChange={e => set(`option_${opt}`, e.target.value)} className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" placeholder={`Réponse ${opt.toUpperCase()}`} required />
+            <input type="text" value={form[`option_${opt}`]} onChange={e => set(`option_${opt}`, e.target.value)}
+              className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm"
+              placeholder={`Réponse ${opt.toUpperCase()}`} required />
           </div>
         ))}
         <div>
@@ -506,10 +543,14 @@ function QuestionForm({ initial, categories, onSave, onCancel }) {
         </div>
         <div>
           <label className="text-gray-400 text-xs mb-1 block">Explication *</label>
-          <textarea value={form.explication} onChange={e => set('explication', e.target.value)} className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm min-h-[80px]" placeholder="Explication détaillée..." required />
+          <textarea value={form.explication} onChange={e => set('explication', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm min-h-[80px]"
+            placeholder="Explication détaillée..." required />
         </div>
         <div className="flex gap-2 pt-1">
-          <button onClick={() => onSave(form)} className="flex-1 py-3.5 font-bold text-white rounded-xl active:scale-95" style={{ background: '#C4521A' }}>
+          <button onClick={() => onSave(form)}
+            className="flex-1 py-3.5 font-bold text-white rounded-xl active:scale-95"
+            style={{ background: '#C4521A' }}>
             {initial ? '💾 Modifier' : '➕ Ajouter'}
           </button>
           <button onClick={onCancel} className="px-5 py-3.5 bg-gray-700 text-gray-300 rounded-xl font-semibold">Annuler</button>
@@ -566,8 +607,10 @@ function PriceEditor({ price, onSave }) {
   const [saved, setSaved] = useState(false)
   return (
     <div className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
-      <p className="text-white font-bold mb-1">{price.type_concours === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}</p>
-      <p className="text-gray-400 text-sm mb-4">{price.description}</p>
+      <p className="text-white font-bold mb-1">
+        {price.type_concours === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
+      </p>
+      <p className="text-gray-400 text-sm mb-4">Modifier le prix d'abonnement annuel</p>
       <div className="flex gap-3">
         <div className="flex-1">
           <label className="text-gray-400 text-xs mb-1 block">Prix (FCFA)</label>

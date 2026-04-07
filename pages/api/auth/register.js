@@ -2,6 +2,9 @@ export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { hashPassword, generateToken } from '../../../lib/auth'
 
+const SUPABASE_URL = 'https://cyasoaihjjochwhnhwqf.supabase.co'
+const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YXNvYWloampvY2h3aG5od3FmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM1OTIwNSwiZXhwIjoyMDg5OTM1MjA1fQ.Oz2_Mj-TOPCPLNBBum-th3X8ncM9tvr70hZSEVq9JuA'
+
 export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -53,148 +56,126 @@ export default async function handler(req) {
     const full_name = `${nom.toUpperCase().trim()} ${prenom.trim()}`
     const password_hash = await hashPassword(password)
 
-    const supabaseUrl = 'https://cyasoaihjjochwhnhwqf.supabase.co'
-    const serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YXNvYWloampvY2h3aG5od3FmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM1OTIwNSwiZXhwIjoyMDg5OTM1MjA1fQ.Oz2_Mj-TOPCPLNBBum-th3X8ncM9tvr70hZSEVq9JuA'
-
-    // 2. Créer l'utilisateur via Supabase Auth Admin API
-    const phoneDigits = normalizedPhone.replace('+', '')
-    const authResponse = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+    // 2. Créer un utilisateur dans Supabase Auth avec email fictif basé sur le téléphone
+    const fakeEmail = `${normalizedPhone.replace('+', '')}@ifl-burkina.app`
+    
+    const authResponse = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
       method: 'POST',
       headers: {
-        'apikey': serviceKey,
-        'Authorization': `Bearer ${serviceKey}`,
+        'apikey': SERVICE_KEY,
+        'Authorization': `Bearer ${SERVICE_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        phone: phoneDigits,
+        email: fakeEmail,
         password: password,
-        phone_confirm: true,
-        user_metadata: { full_name, nom: nom.toUpperCase().trim(), prenom: prenom.trim() }
+        email_confirm: true,
+        user_metadata: { full_name, nom: nom.toUpperCase().trim(), prenom: prenom.trim(), phone: normalizedPhone }
       })
     })
 
     const authData = await authResponse.json()
 
-    // Gérer les erreurs auth
+    let userId = null
+
     if (!authResponse.ok) {
-      // Téléphone déjà utilisé dans auth ?
-      if (authData.code === 'phone_exists' || authResponse.status === 422 ||
-          (authData.message && authData.message.includes('already been registered'))) {
-        // L'utilisateur existe dans auth mais pas dans profiles → récupérer son id
-        const listResponse = await fetch(`${supabaseUrl}/auth/v1/admin/users?phone=${encodeURIComponent(phoneDigits)}`, {
-          headers: {
-            'apikey': serviceKey,
-            'Authorization': `Bearer ${serviceKey}`
-          }
+      // Si l'email existe déjà dans Auth (re-inscription), chercher dans profiles
+      const { data: existingProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('phone', normalizedPhone)
+        .maybeSingle()
+      
+      if (existingProfile) {
+        return new Response(JSON.stringify({ error: 'Ce numéro de téléphone est déjà enregistré.' }), {
+          status: 400, headers: { 'Content-Type': 'application/json' }
         })
-        const listData = await listResponse.json()
-        const existingAuthUser = listData.users?.find(u => u.phone === phoneDigits)
-        if (!existingAuthUser) {
-          return new Response(JSON.stringify({ error: 'Ce numéro de téléphone est déjà enregistré.' }), {
-            status: 400, headers: { 'Content-Type': 'application/json' }
-          })
-        }
-        // Utiliser l'ID existant pour créer le profil
-        const userId = existingAuthUser.id
-        await createProfileAndToken(supabaseAdmin, userId, normalizedPhone, full_name, nom, prenom, password_hash)
-        const token = await generateToken(userId, false)
-        return new Response(JSON.stringify({
-          success: true, token,
-          user: buildUserObj(userId, normalizedPhone, nom, prenom, full_name, false)
-        }), { status: 201, headers: { 'Content-Type': 'application/json' } })
       }
-      return new Response(JSON.stringify({ error: 'Erreur création compte: ' + (authData.message || authData.msg || JSON.stringify(authData)) }), {
+      
+      return new Response(JSON.stringify({ error: 'Erreur création compte: ' + (authData.message || authData.msg || JSON.stringify(authData).substring(0, 100)) }), {
         status: 400, headers: { 'Content-Type': 'application/json' }
       })
     }
 
-    const userId = authData.id
+    userId = authData.id
     if (!userId) {
       return new Response(JSON.stringify({ error: 'Erreur: impossible de récupérer l\'identifiant utilisateur.' }), {
         status: 500, headers: { 'Content-Type': 'application/json' }
       })
     }
 
-    // 3. Créer le profil et stocker le hash
-    const profileError = await createProfileAndToken(supabaseAdmin, userId, normalizedPhone, full_name, nom, prenom, password_hash)
-    if (profileError) {
-      return new Response(JSON.stringify({ error: 'Erreur mise à jour profil: ' + profileError }), {
-        status: 400, headers: { 'Content-Type': 'application/json' }
-      })
+    // 3. Créer ou mettre à jour le profil
+    const { error: upsertError } = await supabaseAdmin
+      .from('profiles')
+      .upsert({
+        id: userId,
+        phone: normalizedPhone,
+        full_name,
+        role: 'user',
+        subscription_status: 'free',
+        subscription_type: null,
+        subscription_expires_at: null
+      }, { onConflict: 'id' })
+
+    if (upsertError) {
+      // Essayer un update
+      const { error: updateError } = await supabaseAdmin
+        .from('profiles')
+        .update({ phone: normalizedPhone, full_name, role: 'user', subscription_status: 'free' })
+        .eq('id', userId)
+      if (updateError) {
+        return new Response(JSON.stringify({ error: 'Erreur mise à jour profil: ' + updateError.message }), {
+          status: 500, headers: { 'Content-Type': 'application/json' }
+        })
+      }
     }
 
-    // 4. Générer le token JWT
+    // 4. Stocker le hash du mot de passe dans correction_requests
+    await supabaseAdmin
+      .from('correction_requests')
+      .delete()
+      .eq('user_id', userId)
+      .like('message', '%ifl_auth%')
+
+    await supabaseAdmin
+      .from('correction_requests')
+      .insert({
+        user_id: userId,
+        question_id: null,
+        message: JSON.stringify({
+          type: 'ifl_auth',
+          password_hash,
+          nom: nom.toUpperCase().trim(),
+          prenom: prenom.trim()
+        }),
+        status: 'pending',
+        admin_response: null
+      })
+
+    // 5. Générer le token JWT
     const token = await generateToken(userId, false)
 
     return new Response(JSON.stringify({
       success: true,
       token,
-      user: buildUserObj(userId, normalizedPhone, nom, prenom, full_name, false)
+      user: {
+        id: userId,
+        phone: normalizedPhone,
+        nom: nom.toUpperCase().trim(),
+        prenom: prenom.trim(),
+        full_name,
+        role: 'user',
+        is_admin: false,
+        abonnement_type: null,
+        abonnement_valide_jusqua: null,
+        subscription_status: 'free',
+        is_active: true
+      }
     }), { status: 201, headers: { 'Content-Type': 'application/json' } })
 
   } catch (error) {
     return new Response(JSON.stringify({ error: 'Erreur serveur: ' + (error.message || String(error)) }), {
       status: 500, headers: { 'Content-Type': 'application/json' }
     })
-  }
-}
-
-async function createProfileAndToken(supabaseAdmin, userId, phone, full_name, nom, prenom, password_hash) {
-  // Upsert profil (gère le cas où le trigger Supabase l'a déjà créé)
-  const { error: upsertError } = await supabaseAdmin
-    .from('profiles')
-    .upsert({
-      id: userId,
-      phone,
-      full_name,
-      role: 'user',
-      subscription_status: 'free',
-      subscription_type: null,
-      subscription_expires_at: null
-    }, { onConflict: 'id' })
-
-  if (upsertError) {
-    // Essayer un update si l'upsert échoue
-    const { error: updateError } = await supabaseAdmin
-      .from('profiles')
-      .update({ phone, full_name, role: 'user', subscription_status: 'free' })
-      .eq('id', userId)
-    if (updateError) return updateError.message
-  }
-
-  // Stocker le hash du mot de passe dans correction_requests
-  // Supprimer les anciens enregistrements ifl_auth pour cet utilisateur d'abord
-  await supabaseAdmin
-    .from('correction_requests')
-    .delete()
-    .eq('user_id', userId)
-    .filter('message', 'like', '%ifl_auth%')
-
-  await supabaseAdmin
-    .from('correction_requests')
-    .insert({
-      user_id: userId,
-      question_id: null,
-      message: JSON.stringify({ type: 'ifl_auth', password_hash, nom: nom.toUpperCase().trim(), prenom: prenom.trim() }),
-      status: 'pending',
-      admin_response: null
-    })
-
-  return null
-}
-
-function buildUserObj(userId, phone, nom, prenom, full_name, is_admin) {
-  return {
-    id: userId,
-    phone,
-    nom: nom.toUpperCase().trim(),
-    prenom: prenom.trim(),
-    full_name,
-    role: is_admin ? 'superadmin' : 'user',
-    is_admin,
-    abonnement_type: null,
-    abonnement_valide_jusqua: null,
-    subscription_status: 'free',
-    is_active: true
   }
 }

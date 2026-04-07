@@ -16,45 +16,47 @@ async function checkAdmin(req) {
 }
 
 export default async function handler(req) {
-  // Helper pour compatibilité Edge Runtime
-  let body = {}
-  if (req.method !== 'GET') {
-    try { body = await req.json() } catch {}
-  }
   const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
   const res = {
     status: (s) => ({ json: (d) => R(d, s) }),
     json: (d) => R(d, 200)
   }
-  const reqData = { body, method: req.method, query: {}, headers: req.headers }
+  let body = {}
+  if (req.method !== 'GET') {
+    try { body = await req.json() } catch {}
+  }
 
   const adminId = await checkAdmin(req)
   if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
 
   if (req.method === 'GET') {
+    // Récupérer tous les utilisateurs non-admin
     const { data: users, error } = await supabaseAdmin
       .from('profiles')
       .select('*')
-      .not('role', 'in', '("superadmin","admin")')
       .order('created_at', { ascending: false })
-      .limit(100)
+      .limit(200)
 
     if (error) return res.status(500).json({ error: error.message })
 
     return res.json({
       users: (users || []).map(u => {
-        const [nom, ...prenomParts] = (u.full_name || '').split(' ')
+        const parts = (u.full_name || '').trim().split(' ')
+        const nom = parts[0] || ''
+        const prenom = parts.slice(1).join(' ') || ''
+        const isAdmin = u.role === 'superadmin' || u.role === 'admin'
         return {
           id: u.id,
           phone: u.phone,
-          nom: nom || '',
-          prenom: prenomParts.join(' ') || '',
+          nom,
+          prenom,
           full_name: u.full_name,
           role: u.role,
-          is_admin: false,
+          is_admin: isAdmin,
           abonnement_type: u.subscription_type,
           subscription_status: u.subscription_status,
           abonnement_valide_jusqua: u.subscription_expires_at,
+          is_active: true,
           created_at: u.created_at
         }
       })
@@ -62,21 +64,37 @@ export default async function handler(req) {
   }
 
   if (req.method === 'PUT') {
-    const { id, subscription_type, subscription_status, subscription_expires_at } = req.body
+    const { id, abonnement_type, abonnement_valide_jusqua, is_active } = body
     if (!id) return res.status(400).json({ error: 'ID requis' })
 
     const updateData = {}
-    if (subscription_type !== undefined) updateData.subscription_type = subscription_type
-    if (subscription_status !== undefined) updateData.subscription_status = subscription_status
-    if (subscription_expires_at !== undefined) updateData.subscription_expires_at = subscription_expires_at
+    if (abonnement_type !== undefined) {
+      updateData.subscription_type = abonnement_type || null
+      updateData.subscription_status = abonnement_type ? 'active' : 'free'
+    }
+    if (abonnement_valide_jusqua !== undefined) updateData.subscription_expires_at = abonnement_valide_jusqua
 
-    const { error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('profiles')
       .update(updateData)
       .eq('id', id)
+      .select()
+      .single()
 
     if (error) return res.status(500).json({ error: error.message })
-    return res.json({ success: true })
+
+    const parts = (data?.full_name || '').trim().split(' ')
+    return res.json({
+      user: {
+        id: data.id,
+        nom: parts[0] || '',
+        prenom: parts.slice(1).join(' ') || '',
+        phone: data.phone,
+        abonnement_type: data.subscription_type,
+        subscription_status: data.subscription_status,
+        abonnement_valide_jusqua: data.subscription_expires_at
+      }
+    })
   }
 
   return res.status(405).json({ error: 'Method not allowed' })

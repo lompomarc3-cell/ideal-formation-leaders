@@ -25,8 +25,8 @@ export default function Login() {
       const data = await res.json()
       if (data.token) {
         login(data.user, data.token)
-        if (data.user.is_admin) router.push('/admin')
-        else router.push('/dashboard')
+        // Admin va au dashboard (peut accéder à /admin via le bouton)
+        router.push('/dashboard')
       } else {
         setError(data.error || 'Erreur de connexion')
       }

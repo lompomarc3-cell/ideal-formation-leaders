@@ -3,17 +3,11 @@ import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
 export default async function handler(req) {
-  // Helper pour compatibilité Edge Runtime
-  let body = {}
-  if (req.method !== 'GET') {
-    try { body = await req.json() } catch {}
-  }
   const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
   const res = {
     status: (s) => ({ json: (d) => R(d, s) }),
     json: (d) => R(d, 200)
   }
-  const reqData = { body, method: req.method, query: {}, headers: req.headers }
 
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
   if (!token) return res.status(401).json({ error: 'Non authentifié' })
@@ -22,7 +16,9 @@ export default async function handler(req) {
   if (!decoded) return res.status(401).json({ error: 'Token invalide' })
 
   if (req.method === 'GET') {
-    const { categorie_id, limit = 50 } = req.query
+    const url = new URL(req.url)
+    const categorie_id = url.searchParams.get('categorie_id')
+    const limit = parseInt(url.searchParams.get('limit') || '100')
 
     if (!categorie_id) {
       return res.status(400).json({ error: 'categorie_id requis' })
@@ -34,7 +30,7 @@ export default async function handler(req) {
       .eq('category_id', categorie_id)
       .eq('is_active', true)
       .order('created_at', { ascending: true })
-      .limit(parseInt(limit))
+      .limit(limit)
 
     if (error) return res.status(500).json({ error: error.message })
 

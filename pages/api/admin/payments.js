@@ -16,24 +16,22 @@ async function checkAdmin(req) {
 }
 
 export default async function handler(req) {
-  // Helper pour compatibilité Edge Runtime
-  let body = {}
-  if (req.method !== 'GET') {
-    try { body = await req.json() } catch {}
-  }
   const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
   const res = {
     status: (s) => ({ json: (d) => R(d, s) }),
     json: (d) => R(d, 200)
   }
-  const reqData = { body, method: req.method, query: {}, headers: req.headers }
+  let body = {}
+  if (req.method !== 'GET') {
+    try { body = await req.json() } catch {}
+  }
 
   const adminId = await checkAdmin(req)
   if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
 
   if (req.method === 'GET') {
     try {
-      // Récupérer les demandes de paiement depuis correction_requests
+      // Récupérer tous les paiements stockés dans correction_requests
       const { data: payments, error } = await supabaseAdmin
         .from('correction_requests')
         .select('id, user_id, message, status, admin_response, created_at')
@@ -47,30 +45,30 @@ export default async function handler(req) {
       for (const p of payments || []) {
         let paymentData = {}
         try { paymentData = JSON.parse(p.message) } catch {}
-        
+
         const { data: profile } = await supabaseAdmin
           .from('profiles')
           .select('full_name, phone')
           .eq('id', p.user_id)
           .single()
 
-        const [nom, ...prenomParts] = (profile?.full_name || '').split(' ')
-        
+        const parts = (profile?.full_name || '').trim().split(' ')
+        const nom = parts[0] || ''
+        const prenom = parts.slice(1).join(' ') || ''
+
         enriched.push({
           id: p.id,
           user_id: p.user_id,
           montant: paymentData.montant || 0,
           type_concours: paymentData.type_concours || 'direct',
-          capture_url: paymentData.capture_url || null,
           numero_paiement: paymentData.numero_paiement || null,
+          notes: paymentData.notes || null,
           valide: p.status === 'approved',
           date_demande: p.created_at,
-          date_validation: p.status === 'approved' ? p.updated_at : null,
-          notes_admin: p.admin_response,
           status: p.status,
-          profiles: {
-            nom: nom || '',
-            prenom: prenomParts.join(' ') || '',
+          ifl_users: {
+            nom,
+            prenom,
             phone: profile?.phone || ''
           }
         })
@@ -83,23 +81,23 @@ export default async function handler(req) {
   }
 
   if (req.method === 'PUT') {
-    const { id, valide, user_id, type_concours, notes_admin } = req.body
+    const { id, valide, user_id, type_concours } = body
     if (!id) return res.status(400).json({ error: 'ID requis' })
 
     try {
       const newStatus = valide ? 'approved' : 'rejected'
-      
+
       const { error: payErr } = await supabaseAdmin
         .from('correction_requests')
         .update({
           status: newStatus,
-          admin_response: notes_admin || (valide ? 'Validé par admin' : 'Rejeté par admin')
+          admin_response: valide ? 'Validé et abonnement activé' : 'Rejeté par admin'
         })
         .eq('id', id)
 
       if (payErr) return res.status(500).json({ error: payErr.message })
 
-      // Si validé, activer l'abonnement
+      // Si validé, activer l'abonnement de l'utilisateur
       if (valide && user_id && type_concours) {
         const expiresAt = new Date()
         expiresAt.setFullYear(expiresAt.getFullYear() + 1)
@@ -118,7 +116,7 @@ export default async function handler(req) {
 
       return res.json({
         success: true,
-        message: valide ? 'Paiement validé et abonnement activé !' : 'Paiement rejeté.'
+        message: valide ? '✅ Paiement validé et abonnement activé !' : '❌ Paiement rejeté.'
       })
     } catch (e) {
       return res.status(500).json({ error: e.message })
