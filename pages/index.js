@@ -1,14 +1,16 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import Image from 'next/image'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
 import { CATEGORIES_DIRECT, CATEGORIES_PRO } from '../lib/data'
 
+const APP_URL = 'https://ideal-formation-leaders.pages.dev'
+
 export default function Home() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [shareMsg, setShareMsg] = useState('')
 
   useEffect(() => {
     if (!loading && user && !user.is_admin) {
@@ -17,6 +19,21 @@ export default function Home() {
       router.push('/admin')
     }
   }, [user, loading, router])
+
+  const handleShare = async () => {
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs (5 000 FCFA)\n✅ Concours professionnels (20 000 FCFA)\n✅ 10 questions gratuites sans inscription\n\n👉 ${APP_URL}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'IFL – Idéale Formation of Leader', text, url: APP_URL })
+        setShareMsg('✅ Partagé !')
+      } catch (e) {
+        if (e.name !== 'AbortError') window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+      }
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+    }
+    setTimeout(() => setShareMsg(''), 3000)
+  }
 
   if (loading) {
     return (
@@ -49,7 +66,20 @@ export default function Home() {
                 <p className="text-orange-200 text-xs">Formation of Leader</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              {/* Bouton Partager */}
+              <button
+                onClick={handleShare}
+                className="p-2 text-orange-200 hover:text-white transition-colors"
+                title="Partager l'application"
+                aria-label="Partager"
+              >
+                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+              </button>
               <Link href="/login" className="px-4 py-2 text-sm font-semibold text-white border-2 border-amber-400 rounded-xl hover:bg-amber-400 transition-all">
                 Connexion
               </Link>
@@ -58,6 +88,9 @@ export default function Home() {
               </Link>
             </div>
           </div>
+          {shareMsg && (
+            <div className="text-center py-1 text-sm font-semibold text-amber-200">{shareMsg}</div>
+          )}
         </header>
 
         {/* Hero Section */}
@@ -81,6 +114,14 @@ export default function Home() {
               <Link href="/register" className="block w-full py-4 px-6 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 text-white" style={{ background: '#C4521A' }}>
                 🚀 S'inscrire Maintenant
               </Link>
+              {/* Bouton Partager dans Hero */}
+              <button
+                onClick={handleShare}
+                className="block w-full py-3 px-6 text-base font-bold rounded-2xl shadow-md transition-all active:scale-95 text-white border-2 border-white/40"
+                style={{ background: 'rgba(255,255,255,0.15)' }}
+              >
+                📤 Partager à vos amis
+              </button>
             </div>
           </div>
         </section>
@@ -173,6 +214,15 @@ export default function Home() {
               <p className="text-sm text-orange-100">USSD : <code className="bg-white/20 px-2 py-1 rounded">*144*2*1*76223962#</code></p>
               <p className="text-sm text-orange-100 mt-2">📸 Envoyez la capture par WhatsApp</p>
             </div>
+            <a
+              href="https://wa.me/22676223962"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-4 px-6 py-3 font-bold text-white rounded-xl shadow-md active:scale-95"
+              style={{ background: 'rgba(0,0,0,0.25)' }}
+            >
+              💬 Contacter sur WhatsApp
+            </a>
           </div>
         </section>
 
@@ -196,7 +246,7 @@ export default function Home() {
         </section>
 
         {/* CTA Footer */}
-        <section className="max-w-lg mx-auto px-4 pb-12 pt-4">
+        <section className="max-w-lg mx-auto px-4 pb-8 pt-4">
           <div className="text-center">
             <p className="text-gray-500 text-sm mb-4">Déjà inscrit ?</p>
             <Link href="/login" className="text-amber-700 font-bold text-lg hover:text-amber-800">
@@ -206,9 +256,19 @@ export default function Home() {
         </section>
 
         {/* Footer */}
-        <footer className="text-center py-6 text-gray-400 text-sm border-t border-amber-100">
-          <p>© 2025 IFL – Idéale Formation of Leader</p>
-          <p className="mt-1">Burkina Faso 🇧🇫 | Contact WhatsApp: +226 76 22 39 62</p>
+        <footer className="text-center py-6 text-gray-500 text-sm border-t border-amber-100" style={{ background: '#FFF0E0' }}>
+          <p className="font-semibold">© 2025 IFL – Idéale Formation of Leader 🇧🇫</p>
+          <p className="mt-1">
+            <a href="https://wa.me/22676223962" className="font-bold" style={{ color: '#C4521A' }}>
+              💬 WhatsApp : +226 76 22 39 62
+            </a>
+          </p>
+          <p className="mt-2 text-xs text-gray-400">Orange Money : +226 76 22 39 62</p>
+          <div className="flex justify-center gap-4 mt-3">
+            <Link href="/demo" className="text-amber-700 font-semibold text-sm hover:underline">🎯 Démo gratuite</Link>
+            <Link href="/help" className="text-amber-700 font-semibold text-sm hover:underline">❓ Aide</Link>
+            <button onClick={handleShare} className="font-semibold text-sm hover:underline" style={{ color: '#C4521A' }}>📤 Partager</button>
+          </div>
         </footer>
       </div>
     </>

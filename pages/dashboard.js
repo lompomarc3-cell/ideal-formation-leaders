@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
 
+const APP_URL = 'https://ideal-formation-leaders.pages.dev'
+
 export default function Dashboard() {
   const { user, loading, logout, getToken } = useAuth()
   const router = useRouter()
@@ -11,6 +13,22 @@ export default function Dashboard() {
   const [prices, setPrices] = useState({ direct: 5000, professionnel: 20000 })
   const [loadingData, setLoadingData] = useState(true)
   const [activeTab, setActiveTab] = useState('direct')
+  const [shareMsg, setShareMsg] = useState('')
+
+  const handleShare = async () => {
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs & professionnels\n✅ 10 questions gratuites sans inscription\n\n👉 ${APP_URL}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'IFL – Idéale Formation of Leader', text, url: APP_URL })
+        setShareMsg('✅ Partagé !')
+      } catch (e) {
+        if (e.name !== 'AbortError') window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+      }
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+    }
+    setTimeout(() => setShareMsg(''), 3000)
+  }
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
@@ -95,7 +113,21 @@ export default function Dashboard() {
                 <p className="text-orange-200 text-xs">{user.phone}</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <button onClick={handleShare} className="p-2 text-orange-200 hover:text-white transition-colors" title="Partager" aria-label="Partager l'application">
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+              </button>
+              <Link href="/help" className="p-2 text-orange-200 hover:text-white" title="Aide">
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </Link>
               <Link href="/demo" className="p-2 text-orange-200 hover:text-white">
                 <span className="text-xl">🎯</span>
               </Link>
@@ -106,6 +138,9 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
+          {shareMsg && (
+            <div className="text-center py-1 text-sm font-semibold text-amber-200">{shareMsg}</div>
+          )}
         </header>
 
         <div className="max-w-lg mx-auto px-4 py-5">
@@ -247,7 +282,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Démo gratuite */}
+          {/* Démo gratuite + Aide + Partager */}
           <div className="mt-6 bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 flex items-center justify-between">
             <div>
               <p className="font-bold text-amber-800">🎯 Démo gratuite</p>
@@ -256,6 +291,13 @@ export default function Dashboard() {
             <Link href="/demo" className="px-4 py-2 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#D4A017' }}>
               Essayer →
             </Link>
+          </div>
+
+          {/* Footer liens */}
+          <div className="mt-4 flex justify-center gap-4 text-sm">
+            <Link href="/help" className="font-semibold text-amber-700 hover:underline">❓ Aide</Link>
+            <a href="https://wa.me/22676223962" target="_blank" rel="noopener noreferrer" className="font-semibold text-amber-700 hover:underline">💬 WhatsApp</a>
+            <button onClick={handleShare} className="font-semibold hover:underline" style={{ color: '#C4521A' }}>📤 Partager</button>
           </div>
         </div>
       </div>
