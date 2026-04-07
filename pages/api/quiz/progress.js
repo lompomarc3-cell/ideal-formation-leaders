@@ -2,8 +2,20 @@ export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
-export default async function handler(req, res) {
-  const token = req.headers.authorization?.replace('Bearer ', '')
+export default async function handler(req) {
+  // Helper pour compatibilité Edge Runtime
+  let body = {}
+  if (req.method !== 'GET') {
+    try { body = await req.json() } catch {}
+  }
+  const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
+  const res = {
+    status: (s) => ({ json: (d) => R(d, s) }),
+    json: (d) => R(d, 200)
+  }
+  const reqData = { body, method: req.method, query: {}, headers: req.headers }
+
+  const token = req.headers.get('authorization')?.replace('Bearer ', '')
   if (!token) return res.status(401).json({ error: 'Non authentifié' })
 
   const decoded = await verifyToken(token)

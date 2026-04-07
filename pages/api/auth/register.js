@@ -2,17 +2,27 @@ export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { hashPassword, generateToken } from '../../../lib/auth'
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+export default async function handler(req) {
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405, headers: { 'Content-Type': 'application/json' }
+    })
+  }
 
-  const { phone, nom, prenom, password } = req.body
+  let body = {}
+  try { body = await req.json() } catch {}
+  const { phone, nom, prenom, password } = body
 
   if (!phone || !nom || !prenom || !password) {
-    return res.status(400).json({ error: 'Tous les champs sont obligatoires.' })
+    return new Response(JSON.stringify({ error: 'Tous les champs sont obligatoires.' }), {
+      status: 400, headers: { 'Content-Type': 'application/json' }
+    })
   }
 
   if (password.length < 6) {
-    return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères.' })
+    return new Response(JSON.stringify({ error: 'Le mot de passe doit contenir au moins 6 caractères.' }), {
+      status: 400, headers: { 'Content-Type': 'application/json' }
+    })
   }
 
   let normalizedPhone = phone.trim().replace(/\s/g, '')
@@ -21,11 +31,13 @@ export default async function handler(req, res) {
   }
 
   if (normalizedPhone.length < 12) {
-    return res.status(400).json({ error: 'Numéro de téléphone invalide. Format: +226XXXXXXXX' })
+    return new Response(JSON.stringify({ error: 'Numéro de téléphone invalide. Format: +226XXXXXXXX' }), {
+      status: 400, headers: { 'Content-Type': 'application/json' }
+    })
   }
 
   try {
-    // 1. Vérifier si le téléphone est déjà enregistré dans profiles
+    // 1. Vérifier si le téléphone est déjà enregistré
     const { data: existing } = await supabaseAdmin
       .from('profiles')
       .select('id')
@@ -33,18 +45,17 @@ export default async function handler(req, res) {
       .maybeSingle()
 
     if (existing) {
-      return res.status(400).json({ error: 'Ce numéro de téléphone est déjà enregistré.' })
+      return new Response(JSON.stringify({ error: 'Ce numéro de téléphone est déjà enregistré.' }), {
+        status: 400, headers: { 'Content-Type': 'application/json' }
+      })
     }
 
     const full_name = `${nom.toUpperCase().trim()} ${prenom.trim()}`
     const password_hash = await hashPassword(password)
 
     // 2. Créer l'utilisateur via Supabase Auth Admin API
-    // Ceci crée automatiquement un profil dans la table profiles via trigger
     const supabaseUrl = 'https://cyasoaihjjochwhnhwqf.supabase.co'
     const serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YXNvYWloampvY2h3aG5od3FmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM1OTIwNSwiZXhwIjoyMDg5OTM1MjA1fQ.Oz2_Mj-TOPCPLNBBum-th3X8ncM9tvr70hZSEVq9JuA'
-
-    // Numéro sans +226 pour Supabase Auth (il stocke sans +)
     const phoneForAuth = normalizedPhone.replace('+', '')
 
     const authResponse = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
@@ -56,50 +67,38 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         phone: phoneForAuth,
-        password: password, // mot de passe Supabase Auth (optionnel, on a notre propre hash)
+        password: password,
         phone_confirm: true,
-        user_metadata: {
-          full_name,
-          nom: nom.toUpperCase().trim(),
-          prenom: prenom.trim()
-        }
+        user_metadata: { full_name, nom: nom.toUpperCase().trim(), prenom: prenom.trim() }
       })
     })
 
     if (!authResponse.ok) {
       const authError = await authResponse.json()
-      // Si l'utilisateur Auth existe déjà mais pas dans profiles
-      if (authError.code === 'phone_exists' || authError.msg?.includes('already registered') || authResponse.status === 422) {
-        // Chercher l'utilisateur existant dans auth
-        const listResp = await fetch(`${supabaseUrl}/auth/v1/admin/users?filter=${phoneForAuth}`, {
-          headers: {
-            'apikey': serviceKey,
-            'Authorization': `Bearer ${serviceKey}`
-          }
+      if (authError.code === 'phone_exists' || authResponse.status === 422) {
+        return new Response(JSON.stringify({ error: 'Ce numéro de téléphone est déjà enregistré.' }), {
+          status: 400, headers: { 'Content-Type': 'application/json' }
         })
-        if (listResp.ok) {
-          const listData = await listResp.json()
-          const existingUser = listData.users?.find(u => u.phone === phoneForAuth)
-          if (existingUser) {
-            return res.status(400).json({ error: 'Ce numéro de téléphone est déjà enregistré.' })
-          }
-        }
-        return res.status(400).json({ error: 'Ce numéro est déjà utilisé. Veuillez vous connecter.' })
       }
-      return res.status(400).json({ error: 'Erreur création compte: ' + (authError.message || authError.msg || JSON.stringify(authError)) })
+      return new Response(JSON.stringify({ error: 'Erreur création compte: ' + (authError.message || authError.msg || JSON.stringify(authError)) }), {
+        status: 400, headers: { 'Content-Type': 'application/json' }
+      })
     }
 
     const authUser = await authResponse.json()
     const userId = authUser.id
 
     if (!userId) {
-      return res.status(500).json({ error: 'Erreur: impossible de récupérer l\'identifiant utilisateur.' })
+      return new Response(JSON.stringify({ error: 'Erreur: impossible de récupérer l\'identifiant utilisateur.' }), {
+        status: 500, headers: { 'Content-Type': 'application/json' }
+      })
     }
 
-    // 3. Mettre à jour le profil créé automatiquement par le trigger
-    const { error: updateError } = await supabaseAdmin
+    // 3. Upsert le profil
+    const { error: upsertError } = await supabaseAdmin
       .from('profiles')
-      .update({
+      .upsert({
+        id: userId,
         phone: normalizedPhone,
         full_name,
         role: 'user',
@@ -107,47 +106,28 @@ export default async function handler(req, res) {
         subscription_type: null,
         subscription_expires_at: null
       })
-      .eq('id', userId)
 
-    if (updateError) {
-      // Si la mise à jour échoue, essayer un upsert
-      const { error: upsertError } = await supabaseAdmin
-        .from('profiles')
-        .upsert({
-          id: userId,
-          phone: normalizedPhone,
-          full_name,
-          role: 'user',
-          subscription_status: 'free',
-          subscription_type: null,
-          subscription_expires_at: null
-        })
-
-      if (upsertError) {
-        return res.status(400).json({ error: 'Erreur mise à jour profil: ' + upsertError.message })
-      }
+    if (upsertError) {
+      return new Response(JSON.stringify({ error: 'Erreur mise à jour profil: ' + upsertError.message }), {
+        status: 400, headers: { 'Content-Type': 'application/json' }
+      })
     }
 
-    // 4. Stocker le hash du mot de passe dans correction_requests
+    // 4. Stocker le hash du mot de passe
     await supabaseAdmin
       .from('correction_requests')
       .insert({
         user_id: userId,
         question_id: null,
-        message: JSON.stringify({
-          type: 'ifl_auth',
-          password_hash,
-          nom: nom.toUpperCase().trim(),
-          prenom: prenom.trim()
-        }),
+        message: JSON.stringify({ type: 'ifl_auth', password_hash, nom: nom.toUpperCase().trim(), prenom: prenom.trim() }),
         status: 'pending',
         admin_response: null
       })
 
-    // 5. Générer le token JWT IFL
+    // 5. Générer le token JWT
     const token = await generateToken(userId, false)
 
-    return res.status(201).json({
+    return new Response(JSON.stringify({
       success: true,
       token,
       user: {
@@ -163,8 +143,11 @@ export default async function handler(req, res) {
         subscription_status: 'free',
         is_active: true
       }
-    })
+    }), { status: 201, headers: { 'Content-Type': 'application/json' } })
+
   } catch (error) {
-    return res.status(500).json({ error: 'Erreur serveur: ' + error.message })
+    return new Response(JSON.stringify({ error: 'Erreur serveur: ' + error.message }), {
+      status: 500, headers: { 'Content-Type': 'application/json' }
+    })
   }
 }

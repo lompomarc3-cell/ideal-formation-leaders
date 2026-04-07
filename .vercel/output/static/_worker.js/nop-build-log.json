@@ -1,5 +1,5 @@
 {
-  "timestamp": 1775554101173,
+  "timestamp": 1775560861195,
   "outputDir": ".vercel/output/static/_worker.js",
   "versions": {
     "@cloudflare/next-on-pages": "1.13.16"
@@ -19,14 +19,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -34,7 +34,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/admin/payments.func.js",
-          "outputByteSize": 30834
+          "outputByteSize": 31674
         },
         {
           "relativePath": "/api/admin/prices.func",
@@ -46,14 +46,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -61,7 +61,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/admin/prices.func.js",
-          "outputByteSize": 29697
+          "outputByteSize": 30537
         },
         {
           "relativePath": "/api/admin/questions.func",
@@ -73,14 +73,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -88,7 +88,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/admin/questions.func.js",
-          "outputByteSize": 31619
+          "outputByteSize": 32459
         },
         {
           "relativePath": "/api/admin/stats.func",
@@ -100,14 +100,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -115,7 +115,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/admin/stats.func.js",
-          "outputByteSize": 30135
+          "outputByteSize": 30973
         },
         {
           "relativePath": "/api/admin/users.func",
@@ -127,14 +127,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -142,7 +142,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/admin/users.func.js",
-          "outputByteSize": 30059
+          "outputByteSize": 30898
         },
         {
           "relativePath": "/api/admin/validate-payment.func",
@@ -154,14 +154,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -169,7 +169,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/admin/validate-payment.func.js",
-          "outputByteSize": 29832
+          "outputByteSize": 30672
         },
         {
           "relativePath": "/api/auth/login.func",
@@ -181,14 +181,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -196,7 +196,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/auth/login.func.js",
-          "outputByteSize": 30171
+          "outputByteSize": 31231
         },
         {
           "relativePath": "/api/auth/me.func",
@@ -208,14 +208,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -223,7 +223,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/auth/me.func.js",
-          "outputByteSize": 29545
+          "outputByteSize": 30386
         },
         {
           "relativePath": "/api/auth/register.func",
@@ -235,14 +235,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -250,7 +250,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/auth/register.func.js",
-          "outputByteSize": 31704
+          "outputByteSize": 32597
         },
         {
           "relativePath": "/api/auth/status.func",
@@ -262,14 +262,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -277,7 +277,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/auth/status.func.js",
-          "outputByteSize": 29300
+          "outputByteSize": 30388
         },
         {
           "relativePath": "/api/init-db.func",
@@ -289,14 +289,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -304,7 +304,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/init-db.func.js",
-          "outputByteSize": 7442
+          "outputByteSize": 8059
         },
         {
           "relativePath": "/api/payment/request.func",
@@ -316,14 +316,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -331,7 +331,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/payment/request.func.js",
-          "outputByteSize": 29609
+          "outputByteSize": 30433
         },
         {
           "relativePath": "/api/payments/create.func",
@@ -343,14 +343,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -358,7 +358,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/payments/create.func.js",
-          "outputByteSize": 29699
+          "outputByteSize": 30521
         },
         {
           "relativePath": "/api/quiz/categories.func",
@@ -370,14 +370,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -385,7 +385,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/quiz/categories.func.js",
-          "outputByteSize": 30165
+          "outputByteSize": 31005
         },
         {
           "relativePath": "/api/quiz/progress.func",
@@ -397,14 +397,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -412,7 +412,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/quiz/progress.func.js",
-          "outputByteSize": 29533
+          "outputByteSize": 30375
         },
         {
           "relativePath": "/api/quiz/questions.func",
@@ -424,14 +424,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -439,7 +439,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/quiz/questions.func.js",
-          "outputByteSize": 29604
+          "outputByteSize": 30444
         },
         {
           "relativePath": "/api/setup-db.func",
@@ -451,14 +451,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -466,7 +466,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/setup-db.func.js",
-          "outputByteSize": 32575
+          "outputByteSize": 33190
         },
         {
           "relativePath": "/api/setup.func",
@@ -478,14 +478,14 @@
             "assets": [],
             "framework": {
               "slug": "nextjs",
-              "version": "14.2.29"
+              "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "FxwKoIy_kIstjXESEY3lg",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "xKb0d9x4fZ1jAXWjCXosP0ds7sLLf2ohcPWvLIt+/p0=",
-              "__NEXT_PREVIEW_MODE_ID": "0891db0dab6e8a12be4dfb907b87d3bb",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0413f9720c02b589840f4954fb5901e3270409ceba4d445d78b51e88792fdb65",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6682cea5c936c48e73aca132915c735d29a7bd7a9bf576de1c6fbaf6a2526233"
+              "__NEXT_BUILD_ID": "tY1l2EykHHRsNIT3KUBFn",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "wvlI1hKcbpNKcte4sqjHh3k1dz/zDqjjEi+usrnpR0E=",
+              "__NEXT_PREVIEW_MODE_ID": "4c50450bec4c495a864b5a11b85dc265",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "0a770b34f039094bd57da42da9719f749bfb1355b06d03bb38d8e3c9ef1325c6",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2f479973851a34c8690b97ec1c7bcf8f3a8f7745da8b4eed5d450412a301306f"
             }
           },
           "route": {
@@ -493,7 +493,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/setup.func.js",
-          "outputByteSize": 29935
+          "outputByteSize": 30550
         }
       ],
       "prerendered": [],
@@ -502,30 +502,30 @@
     "staticAssets": [
       "/404.html",
       "/500.html",
-      "/_next/static/FxwKoIy_kIstjXESEY3lg/_buildManifest.js",
-      "/_next/static/FxwKoIy_kIstjXESEY3lg/_ssgManifest.js",
-      "/_next/static/chunks/111-7dde252b9d948e1b.js",
-      "/_next/static/chunks/6e8d85aa-b249c29896bb4cf9.js",
-      "/_next/static/chunks/873-d2f49458089b2e00.js",
-      "/_next/static/chunks/996-80bd74c565659df8.js",
-      "/_next/static/chunks/framework-64ad27b21261a9ce.js",
-      "/_next/static/chunks/main-626c22ce89ae8f23.js",
-      "/_next/static/chunks/pages/404-b8d1de8c8801dd12.js",
-      "/_next/static/chunks/pages/_app-a014e6ce163e690c.js",
-      "/_next/static/chunks/pages/_error-7a92967bea80186d.js",
-      "/_next/static/chunks/pages/admin-07bca967247a7f9d.js",
-      "/_next/static/chunks/pages/courses/[type]-e7a9dfab0e066917.js",
-      "/_next/static/chunks/pages/dashboard-f79af6fce8dadc05.js",
-      "/_next/static/chunks/pages/demo-bdedaebae62f6d18.js",
-      "/_next/static/chunks/pages/index-cd3e544f1d243b76.js",
-      "/_next/static/chunks/pages/login-e76b8ea3e34f19b5.js",
-      "/_next/static/chunks/pages/payment-26a0ba1c6b22bb2b.js",
-      "/_next/static/chunks/pages/quiz/[id]-29e8a3fa00714dfa.js",
-      "/_next/static/chunks/pages/register-2374530eb0591ec4.js",
+      "/_next/static/chunks/488-7e9175aa461fdacf.js",
+      "/_next/static/chunks/695-4568df259c13997f.js",
+      "/_next/static/chunks/773-6bdde7eaf68cafcd.js",
+      "/_next/static/chunks/dc553f02-2cb9ad6caa5cd12f.js",
+      "/_next/static/chunks/framework-ee17a4c43a44d3e2.js",
+      "/_next/static/chunks/main-99fa197f23f793be.js",
+      "/_next/static/chunks/pages/404-d7d1e720ece8b59c.js",
+      "/_next/static/chunks/pages/_app-8ab43ebbb57bcbbd.js",
+      "/_next/static/chunks/pages/_error-41608b100cc61246.js",
+      "/_next/static/chunks/pages/admin-61451c0f42e17b97.js",
+      "/_next/static/chunks/pages/courses/[type]-c5b7b6ab088a4d26.js",
+      "/_next/static/chunks/pages/dashboard-665b440fbaa8e7f4.js",
+      "/_next/static/chunks/pages/demo-5d7bc38c2def3292.js",
+      "/_next/static/chunks/pages/index-8cd047531924160e.js",
+      "/_next/static/chunks/pages/login-79f2d063d3c6cac7.js",
+      "/_next/static/chunks/pages/payment-6bb266b5903ded52.js",
+      "/_next/static/chunks/pages/quiz/[id]-7b22ea7752bc6bd3.js",
+      "/_next/static/chunks/pages/register-79fcee0c8e12ab31.js",
       "/_next/static/chunks/polyfills-42372ed130431b0a.js",
-      "/_next/static/chunks/webpack-ee7e63bc15b31913.js",
-      "/_next/static/css/0f8e516d2b7ed5aa.css",
+      "/_next/static/chunks/webpack-8cac0b4b405cede1.js",
+      "/_next/static/css/8e28cc7a07005397.css",
       "/_next/static/not-found.txt",
+      "/_next/static/tY1l2EykHHRsNIT3KUBFn/_buildManifest.js",
+      "/_next/static/tY1l2EykHHRsNIT3KUBFn/_ssgManifest.js",
       "/admin.html",
       "/courses/[type].html",
       "/dashboard.html",
@@ -541,11 +541,11 @@
       "wasm": {},
       "manifest": {},
       "webpack": {
-        "0": {
+        "13": {
           "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 3904,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 79,
           "consumersList": [
             "/api/admin/payments.func/index.js",
             "/api/admin/prices.func/index.js",
@@ -567,417 +567,1034 @@
             "/api/setup.func/index.js"
           ]
         },
-        "6": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 4379,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "36": {
+        "166": {
           "consumers": 1,
           "inlined": true,
-          "byteLength": 1092,
+          "byteLength": 1476,
           "consumersList": [
-            "/api/quiz/progress.func/index.js"
+            "/api/payments/create.func/index.js"
           ]
         },
-        "67": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 93,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "74": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 418,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "78": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 938,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "79": {
+        "184": {
           "consumers": 1,
           "inlined": true,
-          "byteLength": 334,
-          "consumersList": [
-            "/api/init-db.func/index.js"
-          ]
-        },
-        "84": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 17924,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "98": {
-          "consumers": 17,
-          "groupedPath": "35b2a283a0800ef6e912c0847cf20b3f",
-          "newDest": "__next-on-pages-dist__/webpack/35b2a283a0800ef6e912c0847cf20b3f.js",
-          "byteLength": 1250,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "158": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1739,
-          "consumersList": [
-            "/api/auth/login.func/index.js"
-          ]
-        },
-        "182": {
-          "consumers": 17,
-          "groupedPath": "35b2a283a0800ef6e912c0847cf20b3f",
-          "newDest": "__next-on-pages-dist__/webpack/35b2a283a0800ef6e912c0847cf20b3f.js",
-          "byteLength": 604,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "195": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 89,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "196": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1120,
-          "consumersList": [
-            "/api/auth/me.func/index.js"
-          ]
-        },
-        "202": {
-          "consumers": 17,
-          "groupedPath": "35b2a283a0800ef6e912c0847cf20b3f",
-          "newDest": "__next-on-pages-dist__/webpack/35b2a283a0800ef6e912c0847cf20b3f.js",
-          "byteLength": 191895,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "206": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1258,
-          "consumersList": [
-            "/api/admin/prices.func/index.js"
-          ]
-        },
-        "236": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1170,
-          "consumersList": [
-            "/api/payment/request.func/index.js"
-          ]
-        },
-        "263": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 4112,
-          "consumersList": [
-            "/api/setup-db.func/index.js"
-          ]
-        },
-        "277": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 16701,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "278": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 545,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "334": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 8427,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "349": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 1745,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "393": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 874,
-          "consumersList": [
-            "/api/auth/status.func/index.js"
-          ]
-        },
-        "401": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 3284,
+          "byteLength": 3561,
           "consumersList": [
             "/api/auth/register.func/index.js"
           ]
         },
-        "440": {
+        "209": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1533,
+          "consumersList": [
+            "/api/setup.func/index.js"
+          ]
+        },
+        "221": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 314,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "317": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1932,
+          "consumersList": [
+            "/api/admin/stats.func/index.js"
+          ]
+        },
+        "349": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 778,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "382": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 102,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "514": {
           "consumers": 17,
-          "groupedPath": "35b2a283a0800ef6e912c0847cf20b3f",
-          "newDest": "__next-on-pages-dist__/webpack/35b2a283a0800ef6e912c0847cf20b3f.js",
+          "groupedPath": "6fcd1a7cdc403167fa96b25bdbc47bac",
+          "newDest": "__next-on-pages-dist__/webpack/6fcd1a7cdc403167fa96b25bdbc47bac.js",
+          "byteLength": 22102,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "568": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 1258,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "934": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 422,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "957": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 5978,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "1087": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 2999,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "1121": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 519,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "1411": {
+          "consumers": 17,
+          "groupedPath": "6fcd1a7cdc403167fa96b25bdbc47bac",
+          "newDest": "__next-on-pages-dist__/webpack/6fcd1a7cdc403167fa96b25bdbc47bac.js",
+          "byteLength": 192001,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "1443": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 24490,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "1977": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 4986,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "2176": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 16221,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "2179": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1855,
+          "consumersList": [
+            "/api/admin/users.func/index.js"
+          ]
+        },
+        "2332": {
+          "consumers": 17,
+          "groupedPath": "6fcd1a7cdc403167fa96b25bdbc47bac",
+          "newDest": "__next-on-pages-dist__/webpack/6fcd1a7cdc403167fa96b25bdbc47bac.js",
+          "byteLength": 1252,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "2495": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 340,
+          "consumersList": [
+            "/api/init-db.func/index.js"
+          ]
+        },
+        "2800": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 2623,
+          "consumersList": [
+            "/api/admin/payments.func/index.js"
+          ]
+        },
+        "3259": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1595,
+          "consumersList": [
+            "/api/admin/validate-payment.func/index.js"
+          ]
+        },
+        "3282": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1353,
+          "consumersList": [
+            "/api/auth/me.func/index.js"
+          ]
+        },
+        "3325": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 1705,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "3814": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1955,
+          "consumersList": [
+            "/api/quiz/categories.func/index.js"
+          ]
+        },
+        "4378": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1325,
+          "consumersList": [
+            "/api/quiz/progress.func/index.js"
+          ]
+        },
+        "4410": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 169,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "4799": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 525,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "5325": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 1258,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "5356": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 90,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "5521": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 95,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "5662": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 589,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "5890": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 160,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "6265": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 4374,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "6696": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1391,
+          "consumersList": [
+            "/api/quiz/questions.func/index.js"
+          ]
+        },
+        "6729": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 4037,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "6816": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 1034,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "6846": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1356,
+          "consumersList": [
+            "/api/auth/status.func/index.js"
+          ]
+        },
+        "7031": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 1342,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "7129": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 127,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "7313": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 322,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "7411": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 14589,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "7465": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 4121,
+          "consumersList": [
+            "/api/setup-db.func/index.js"
+          ]
+        },
+        "7676": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 1888,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "7687": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 8738,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "8269": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1386,
+          "consumersList": [
+            "/api/payment/request.func/index.js"
+          ]
+        },
+        "8339": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 226,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "8475": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 3404,
+          "consumersList": [
+            "/api/admin/questions.func/index.js"
+          ]
+        },
+        "8575": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 2192,
+          "consumersList": [
+            "/api/auth/login.func/index.js"
+          ]
+        },
+        "8903": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1491,
+          "consumersList": [
+            "/api/admin/prices.func/index.js"
+          ]
+        },
+        "8944": {
+          "consumers": 17,
+          "groupedPath": "6fcd1a7cdc403167fa96b25bdbc47bac",
+          "newDest": "__next-on-pages-dist__/webpack/6fcd1a7cdc403167fa96b25bdbc47bac.js",
+          "byteLength": 606,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "9257": {
+          "consumers": 18,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 1528,
+          "consumersList": [
+            "/api/admin/payments.func/index.js",
+            "/api/admin/prices.func/index.js",
+            "/api/admin/questions.func/index.js",
+            "/api/admin/stats.func/index.js",
+            "/api/admin/users.func/index.js",
+            "/api/admin/validate-payment.func/index.js",
+            "/api/auth/login.func/index.js",
+            "/api/auth/me.func/index.js",
+            "/api/auth/register.func/index.js",
+            "/api/auth/status.func/index.js",
+            "/api/init-db.func/index.js",
+            "/api/payment/request.func/index.js",
+            "/api/payments/create.func/index.js",
+            "/api/quiz/categories.func/index.js",
+            "/api/quiz/progress.func/index.js",
+            "/api/quiz/questions.func/index.js",
+            "/api/setup-db.func/index.js",
+            "/api/setup.func/index.js"
+          ]
+        },
+        "9418": {
+          "consumers": 17,
+          "groupedPath": "6fcd1a7cdc403167fa96b25bdbc47bac",
+          "newDest": "__next-on-pages-dist__/webpack/6fcd1a7cdc403167fa96b25bdbc47bac.js",
           "byteLength": 276,
           "consumersList": [
             "/api/admin/payments.func/index.js",
@@ -999,11 +1616,11 @@
             "/api/setup.func/index.js"
           ]
         },
-        "442": {
+        "9799": {
           "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 2693,
+          "groupedPath": "ebff0d857acd6772af196169a46a8230",
+          "newDest": "__next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js",
+          "byteLength": 1925,
           "consumersList": [
             "/api/admin/payments.func/index.js",
             "/api/admin/prices.func/index.js",
@@ -1023,363 +1640,6 @@
             "/api/quiz/questions.func/index.js",
             "/api/setup-db.func/index.js",
             "/api/setup.func/index.js"
-          ]
-        },
-        "483": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 87,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "486": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 24500,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "525": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 313,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "542": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1722,
-          "consumersList": [
-            "/api/quiz/categories.func/index.js"
-          ]
-        },
-        "562": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1622,
-          "consumersList": [
-            "/api/admin/users.func/index.js"
-          ]
-        },
-        "565": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 1100,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "580": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1158,
-          "consumersList": [
-            "/api/quiz/questions.func/index.js"
-          ]
-        },
-        "581": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1524,
-          "consumersList": [
-            "/api/setup.func/index.js"
-          ]
-        },
-        "642": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 1704,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "649": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1260,
-          "consumersList": [
-            "/api/payments/create.func/index.js"
-          ]
-        },
-        "652": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 126,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "675": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 4998,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "683": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1362,
-          "consumersList": [
-            "/api/admin/validate-payment.func/index.js"
-          ]
-        },
-        "777": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 321,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "815": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 2390,
-          "consumersList": [
-            "/api/admin/payments.func/index.js"
-          ]
-        },
-        "844": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 561,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "893": {
-          "consumers": 17,
-          "groupedPath": "35b2a283a0800ef6e912c0847cf20b3f",
-          "newDest": "__next-on-pages-dist__/webpack/35b2a283a0800ef6e912c0847cf20b3f.js",
-          "byteLength": 22104,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "911": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 3171,
-          "consumersList": [
-            "/api/admin/questions.func/index.js"
-          ]
-        },
-        "946": {
-          "consumers": 18,
-          "groupedPath": "9f6a439d3c11e4750dd0797c02207535",
-          "newDest": "__next-on-pages-dist__/webpack/9f6a439d3c11e4750dd0797c02207535.js",
-          "byteLength": 1886,
-          "consumersList": [
-            "/api/admin/payments.func/index.js",
-            "/api/admin/prices.func/index.js",
-            "/api/admin/questions.func/index.js",
-            "/api/admin/stats.func/index.js",
-            "/api/admin/users.func/index.js",
-            "/api/admin/validate-payment.func/index.js",
-            "/api/auth/login.func/index.js",
-            "/api/auth/me.func/index.js",
-            "/api/auth/register.func/index.js",
-            "/api/auth/status.func/index.js",
-            "/api/init-db.func/index.js",
-            "/api/payment/request.func/index.js",
-            "/api/payments/create.func/index.js",
-            "/api/quiz/categories.func/index.js",
-            "/api/quiz/progress.func/index.js",
-            "/api/quiz/questions.func/index.js",
-            "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "988": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1699,
-          "consumersList": [
-            "/api/admin/stats.func/index.js"
           ]
         }
       }

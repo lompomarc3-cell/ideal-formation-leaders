@@ -3,7 +3,7 @@ import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
 async function checkAdmin(req) {
-  const token = req.headers.authorization?.replace('Bearer ', '')
+  const token = req.headers.get('authorization')?.replace('Bearer ', '')
   if (!token) return null
   const decoded = await verifyToken(token)
   if (!decoded) return null
@@ -15,7 +15,19 @@ async function checkAdmin(req) {
   return (profile?.role === 'superadmin' || profile?.role === 'admin') ? decoded.userId : null
 }
 
-export default async function handler(req, res) {
+export default async function handler(req) {
+  // Helper pour compatibilité Edge Runtime
+  let body = {}
+  if (req.method !== 'GET') {
+    try { body = await req.json() } catch {}
+  }
+  const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
+  const res = {
+    status: (s) => ({ json: (d) => R(d, s) }),
+    json: (d) => R(d, 200)
+  }
+  const reqData = { body, method: req.method, query: {}, headers: req.headers }
+
   const adminId = await checkAdmin(req)
   if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
 

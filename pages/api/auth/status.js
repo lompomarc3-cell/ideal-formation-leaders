@@ -2,14 +2,26 @@ export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
-export default async function handler(req, res) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+export default async function handler(req) {
+  if (req.method !== 'GET') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405, headers: { 'Content-Type': 'application/json' }
+    })
+  }
 
-  const token = req.headers.authorization?.replace('Bearer ', '')
-  if (!token) return res.json({ authenticated: false })
+  const token = req.headers.get('authorization')?.replace('Bearer ', '')
+  if (!token) {
+    return new Response(JSON.stringify({ authenticated: false }), {
+      status: 200, headers: { 'Content-Type': 'application/json' }
+    })
+  }
 
-  const decoded = verifyToken(token)
-  if (!decoded) return res.json({ authenticated: false })
+  const decoded = await verifyToken(token)
+  if (!decoded) {
+    return new Response(JSON.stringify({ authenticated: false }), {
+      status: 200, headers: { 'Content-Type': 'application/json' }
+    })
+  }
 
   try {
     const { data: profile } = await supabaseAdmin
@@ -18,15 +30,22 @@ export default async function handler(req, res) {
       .eq('id', decoded.userId)
       .single()
 
-    if (!profile) return res.json({ authenticated: false })
+    if (!profile) {
+      return new Response(JSON.stringify({ authenticated: false }), {
+        status: 200, headers: { 'Content-Type': 'application/json' }
+      })
+    }
 
-    return res.json({
+    return new Response(JSON.stringify({
       authenticated: true,
       is_admin: ['admin', 'superadmin'].includes(profile.role),
       subscription_status: profile.subscription_status,
       subscription_type: profile.subscription_type
-    })
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+
   } catch {
-    return res.json({ authenticated: false })
+    return new Response(JSON.stringify({ authenticated: false }), {
+      status: 200, headers: { 'Content-Type': 'application/json' }
+    })
   }
 }

@@ -3,14 +3,13 @@
   "target": "preview",
   "argv": [
     "/usr/bin/node",
-    "/opt/npm-cache/_npx/69f9afb961c37556/node_modules/.bin/vc",
+    "/home/user/ifl/node_modules/.bin/vercel",
     "build"
   ],
-  "cliVersion": "50.40.0",
   "builds": [
     {
       "require": "@vercel/next",
-      "requirePath": "/opt/npm-cache/_npx/69f9afb961c37556/node_modules/@vercel/next/dist/index",
+      "requirePath": "/home/user/ifl/node_modules/@vercel/next/dist/index",
       "apiVersion": 2,
       "src": "package.json",
       "use": "@vercel/next",
