@@ -44,7 +44,7 @@ export default function Login() {
       </Head>
       <div className="min-h-screen african-pattern flex flex-col" style={{ background: '#FFF8F0' }}>
         {/* Header */}
-        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }} className="py-4 px-5 flex items-center gap-3">
+        <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="py-4 px-5 flex items-center gap-3">
           <Link href="/" className="flex items-center gap-3">
             <div className="logo-header" style={{ width: 44, height: 44 }}>
               <img src="/logo.png" alt="IFL" style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 14 }} />
@@ -60,7 +60,7 @@ export default function Login() {
               <div className="logo-hero inline-block mb-4" style={{ borderRadius: 28 }}>
                 <img src="/logo.png" alt="IFL Logo" style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 28, display: 'block' }} />
               </div>
-              <h1 className="text-3xl font-extrabold" style={{ color: '#1A4731' }}>Connexion</h1>
+              <h1 className="text-3xl font-extrabold" style={{ color: '#8B2500' }}>Connexion</h1>
               <p className="text-gray-500 mt-1">Accédez à votre espace IFL</p>
             </div>
 
@@ -111,8 +111,19 @@ export default function Login() {
                       type="button"
                       onClick={() => setShowPwd(!showPwd)}
                       className="px-4 text-gray-400 hover:text-gray-600 bg-gray-50 border-l border-gray-200 transition-colors"
+                      aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                     >
-                      {showPwd ? '🙈' : '👁️'}
+                      {showPwd ? (
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                      ) : (
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -121,7 +132,7 @@ export default function Login() {
                   type="submit"
                   disabled={loading}
                   className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-60"
-                  style={{ background: loading ? '#999' : 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }}
+                  style={{ background: loading ? '#999' : 'linear-gradient(135deg, #C4521A 0%, #8B2500 100%)' }}
                 >
                   {loading ? <span className="flex items-center justify-center gap-2"><span className="spinner" style={{width:22,height:22,borderWidth:3}}></span> Connexion...</span> : '🔐 Se connecter'}
                 </button>

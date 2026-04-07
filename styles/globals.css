@@ -7,7 +7,7 @@
 :root {
   --primary: #C4521A;
   --secondary: #D4A017;
-  --dark-green: #1A4731;
+  --dark-green: #8B2500;
   --light-bg: #FFF8F0;
   --accent: #F5871F;
 }
@@ -90,7 +90,7 @@ body {
   font-size: 16px;
   line-height: 1.5;
 }
-.question-option.correct { @apply border-green-500 bg-green-50 text-green-900; }
+.question-option.correct { @apply border-amber-500 bg-amber-50 text-amber-900; }
 .question-option.wrong { @apply border-red-400 bg-red-50 text-red-800; }
 .question-option.disabled { pointer-events: none; }
 .question-option.selected { @apply border-amber-500 bg-amber-50; }
@@ -103,7 +103,7 @@ body {
   @apply fixed top-4 right-4 z-50 p-4 rounded-2xl shadow-xl text-white font-semibold text-sm max-w-sm;
   animation: slideIn 0.3s ease;
 }
-.notification.success { background: #16a34a; }
+.notification.success { background: #D4A017; }
 .notification.error { background: #dc2626; }
 .notification.info { background: #C4521A; }
 

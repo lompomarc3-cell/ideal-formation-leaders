@@ -71,7 +71,7 @@ export default function Payment() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#1A4731,#C4521A)' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
         <div className="text-center"><div className="spinner mx-auto mb-3"></div><p className="text-white font-semibold">Chargement...</p></div>
       </div>
     )
@@ -85,9 +85,9 @@ export default function Payment() {
       </Head>
       <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
         {/* Header */}
-        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }} className="sticky top-0 z-40 shadow-lg py-3 px-4">
+        <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg py-3 px-4">
           <div className="max-w-lg mx-auto flex items-center gap-3">
-            <button onClick={() => router.push('/dashboard')} className="text-green-200 hover:text-white p-1">
+            <button onClick={() => router.push('/dashboard')} className="text-orange-200 hover:text-white p-1">
               <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
@@ -104,20 +104,20 @@ export default function Payment() {
         <div className="max-w-lg mx-auto px-4 py-6">
           {success ? (
             <div className="text-center animate-popIn">
-              <div className="bg-white rounded-3xl shadow-xl p-8 border border-green-200">
+              <div className="bg-white rounded-3xl shadow-xl p-8 border border-amber-200">
                 <div className="text-7xl mb-4">✅</div>
-                <h2 className="text-2xl font-extrabold text-green-800 mb-2">Demande envoyée !</h2>
+                <h2 className="text-2xl font-extrabold text-amber-800 mb-2">Demande envoyée !</h2>
                 <p className="text-gray-600 mb-2">Votre demande de paiement a été transmise à l'administrateur.</p>
-                <div className="bg-green-50 rounded-2xl p-4 mb-6 text-left">
-                  <p className="font-bold text-green-800 mb-2">📋 Prochaines étapes :</p>
-                  <ol className="space-y-2 text-sm text-green-700">
+                <div className="bg-amber-50 rounded-2xl p-4 mb-6 text-left">
+                  <p className="font-bold text-amber-800 mb-2">📋 Prochaines étapes :</p>
+                  <ol className="space-y-2 text-sm text-amber-700">
                     <li>1️⃣ Effectuez le paiement Orange Money si ce n'est pas encore fait</li>
                     <li>2️⃣ Envoyez la capture d'écran sur WhatsApp au <strong>+226 76 22 39 62</strong></li>
                     <li>3️⃣ L'admin valide votre abonnement dans les 24h</li>
                     <li>4️⃣ Vous recevez accès immédiat à tous les QCM</li>
                   </ol>
                 </div>
-                <Link href="/dashboard" className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl shadow-md active:scale-95" style={{ background: '#1A4731' }}>
+                <Link href="/dashboard" className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl shadow-md active:scale-95" style={{ background: '#C4521A' }}>
                   🏠 Retour au tableau de bord
                 </Link>
               </div>
@@ -126,16 +126,16 @@ export default function Payment() {
             <div className="animate-fadeIn space-y-5">
               {/* Sélection du type */}
               <div>
-                <h2 className="text-2xl font-extrabold mb-4" style={{ color: '#1A4731' }}>Choisissez votre offre</h2>
+                <h2 className="text-2xl font-extrabold mb-4" style={{ color: '#8B2500' }}>Choisissez votre offre</h2>
                 <div className="grid grid-cols-1 gap-3">
                   <button
                     onClick={() => setSelectedType('direct')}
-                    className={`p-4 rounded-2xl border-3 text-left transition-all ${selectedType === 'direct' ? 'border-green-500 bg-green-50 shadow-md' : 'border-gray-200 bg-white'}`}
-                    style={{ borderWidth: 2.5, borderColor: selectedType === 'direct' ? '#1A4731' : '#e5e7eb' }}
+                    className={`p-4 rounded-2xl border-3 text-left transition-all ${selectedType === 'direct' ? 'border-amber-500 bg-amber-50 shadow-md' : 'border-gray-200 bg-white'}`}
+                    style={{ borderWidth: 2.5, borderColor: selectedType === 'direct' ? '#C4521A' : '#e5e7eb' }}
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-extrabold text-lg" style={{ color: '#1A4731' }}>📚 Concours Directs</p>
+                        <p className="font-extrabold text-lg" style={{ color: '#C4521A' }}>📚 Concours Directs</p>
                         <p className="text-gray-500 text-sm mt-0.5">10 dossiers complets</p>
                       </div>
                       <div className="text-right">
@@ -143,7 +143,7 @@ export default function Payment() {
                         <p className="text-gray-400 text-xs">FCFA / an</p>
                       </div>
                     </div>
-                    {selectedType === 'direct' && <div className="mt-2 flex items-center gap-1.5 text-green-700 text-xs font-semibold"><span>✅</span> Sélectionné</div>}
+                    {selectedType === 'direct' && <div className="mt-2 flex items-center gap-1.5 text-amber-700 text-xs font-semibold"><span>✅</span> Sélectionné</div>}
                   </button>
 
                   <button
@@ -222,8 +222,8 @@ export default function Payment() {
                   </div>
 
                   {/* Résumé */}
-                  <div className="rounded-xl p-4" style={{ background: selectedType === 'direct' ? '#E8F5EE' : '#FFF0E8' }}>
-                    <p className="font-bold text-sm mb-1" style={{ color: selectedType === 'direct' ? '#1A4731' : '#C4521A' }}>
+                  <div className="rounded-xl p-4" style={{ background: '#FFF0E8' }}>
+                    <p className="font-bold text-sm mb-1" style={{ color: '#C4521A' }}>
                       📋 Récapitulatif
                     </p>
                     <div className="flex justify-between text-sm mt-2">
@@ -244,7 +244,7 @@ export default function Payment() {
                     type="submit"
                     disabled={submitting}
                     className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg active:scale-95 disabled:opacity-60"
-                    style={{ background: submitting ? '#999' : selectedType === 'direct' ? 'linear-gradient(135deg,#1A4731,#2D6A4F)' : 'linear-gradient(135deg,#C4521A,#8B2500)' }}
+                    style={{ background: submitting ? '#999' : 'linear-gradient(135deg,#C4521A,#8B2500)' }}
                   >
                     {submitting
                       ? <span className="flex items-center justify-center gap-2"><span className="spinner" style={{width:22,height:22,borderWidth:3}}></span> Envoi...</span>

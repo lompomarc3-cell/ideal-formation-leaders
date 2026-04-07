@@ -64,7 +64,7 @@ export default function Dashboard() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#1A4731,#C4521A)' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
         <div className="text-center"><div className="spinner mx-auto mb-3"></div><p className="text-white font-semibold">Chargement...</p></div>
       </div>
     )
@@ -84,7 +84,7 @@ export default function Dashboard() {
       </Head>
       <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
         {/* Header */}
-        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }} className="sticky top-0 z-40 shadow-lg">
+        <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="logo-header" style={{ width: 44, height: 44 }}>
@@ -92,14 +92,14 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-white font-bold leading-tight">Bonjour, {user.prenom || user.nom} 👋</p>
-                <p className="text-green-200 text-xs">{user.phone}</p>
+                <p className="text-orange-200 text-xs">{user.phone}</p>
               </div>
             </div>
             <div className="flex gap-2">
-              <Link href="/demo" className="p-2 text-green-200 hover:text-white">
+              <Link href="/demo" className="p-2 text-orange-200 hover:text-white">
                 <span className="text-xl">🎯</span>
               </Link>
-              <button onClick={logout} className="p-2 text-green-200 hover:text-white">
+              <button onClick={logout} className="p-2 text-orange-200 hover:text-white">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
                 </svg>
@@ -120,17 +120,17 @@ export default function Dashboard() {
                 </Link>
               </div>
             ) : (
-              <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-4">
+              <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">✅</span>
                   <div>
-                    <p className="font-bold text-green-800">Abonnement actif</p>
-                    <p className="text-green-700 text-sm">
+                    <p className="font-bold text-amber-800">Abonnement actif</p>
+                    <p className="text-amber-700 text-sm">
                       {user.abonnement_type === 'all' ? 'Accès complet (direct + professionnel)' :
                        user.abonnement_type === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
                     </p>
                     {user.abonnement_valide_jusqua && (
-                      <p className="text-green-600 text-xs mt-0.5">
+                      <p className="text-amber-600 text-xs mt-0.5">
                         Expire le: {new Date(user.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}
                       </p>
                     )}
@@ -145,7 +145,7 @@ export default function Dashboard() {
             <button
               onClick={() => setActiveTab('direct')}
               className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'direct' ? 'text-white shadow-md' : 'text-gray-500'}`}
-              style={activeTab === 'direct' ? { background: '#1A4731' } : {}}
+              style={activeTab === 'direct' ? { background: '#C4521A' } : {}}
             >
               📚 Concours Directs
             </button>
@@ -166,7 +166,7 @@ export default function Dashboard() {
             <div className="animate-fadeIn">
               <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-8 text-center mb-5">
                 <div className="text-6xl mb-4">🔒</div>
-                <h3 className="text-xl font-extrabold mb-2" style={{ color: '#1A4731' }}>
+                <h3 className="text-xl font-extrabold mb-2" style={{ color: '#8B2500' }}>
                   {activeTab === 'direct' ? 'Concours Directs' : 'Concours Professionnels'}
                 </h3>
                 <p className="text-gray-500 mb-4">
@@ -179,7 +179,7 @@ export default function Dashboard() {
                 <Link
                   href={`/payment?type=${activeTab}&montant=${currentPrice}`}
                   className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl shadow-lg active:scale-95"
-                  style={{ background: activeTab === 'direct' ? '#1A4731' : '#C4521A' }}
+                  style={{ background: activeTab === 'direct' ? '#C4521A' : '#8B2500' }}
                 >
                   💳 S'abonner – {currentPrice.toLocaleString()} FCFA
                 </Link>
@@ -211,7 +211,7 @@ export default function Dashboard() {
                     className="card-african flex items-center gap-4 p-4 active:scale-98"
                   >
                     <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
-                      style={{ background: activeTab === 'direct' ? '#E8F5EE' : '#FFF0E8' }}>
+                      style={{ background: '#FFF0E8' }}>
                       {getCatIcon(cat.nom, activeTab)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -236,10 +236,10 @@ export default function Dashboard() {
                 </div>
               )}
               {activeTab === 'professionnel' && !directAccess && (
-                <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#1A4731,#2D6A4F)' }}>
+                <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
                   <p className="text-white font-bold mb-1">📚 Concours Directs</p>
-                  <p className="text-green-200 text-sm mb-3">{prices.direct.toLocaleString()} FCFA / an</p>
-                  <Link href={`/payment?type=direct&montant=${prices.direct}`} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#1A4731' }}>
+                  <p className="text-orange-200 text-sm mb-3">{prices.direct.toLocaleString()} FCFA / an</p>
+                  <Link href={`/payment?type=direct&montant=${prices.direct}`} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#C4521A' }}>
                     S'abonner →
                   </Link>
                 </div>

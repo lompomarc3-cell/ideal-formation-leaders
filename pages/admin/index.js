@@ -38,7 +38,7 @@ export default function AdminDashboard() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0F1A0F' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#1A0500' }}>
       <div className="text-center"><div className="spinner mx-auto"></div></div>
     </div>
   )
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
   return (
     <>
       <Head><title>Admin – IFL</title></Head>
-      <div className="min-h-screen" style={{ background: '#0F1A0F' }}>
+      <div className="min-h-screen" style={{ background: '#1A0500' }}>
         {/* Notification globale */}
         {notification.msg && (
           <div className={`notification ${notification.type}`}>{notification.msg}</div>
@@ -116,10 +116,10 @@ export default function AdminDashboard() {
 function AdminStats({ stats, recentUsers, loading, onRefresh }) {
   if (loading) return <div className="py-16 text-center"><div className="spinner mx-auto"></div></div>
   const cards = [
-    { label: 'Utilisateurs', value: stats?.totalUsers || 0, icon: '👥', color: '#1A4731' },
+    { label: 'Utilisateurs', value: stats?.totalUsers || 0, icon: '👥', color: '#C4521A' },
     { label: 'Abonnés actifs', value: stats?.activeSubscriptions || 0, icon: '✅', color: '#D4A017' },
     { label: 'Paiements en attente', value: stats?.pendingPayments || 0, icon: '⏳', color: '#C4521A' },
-    { label: 'Questions', value: stats?.totalQuestions || 0, icon: '❓', color: '#2D6A4F' },
+    { label: 'Questions', value: stats?.totalQuestions || 0, icon: '❓', color: '#D4A017' },
   ]
   return (
     <div>
@@ -146,7 +146,7 @@ function AdminStats({ stats, recentUsers, loading, onRefresh }) {
               <p className="text-white font-semibold">{u.prenom} {u.nom}</p>
               <p className="text-gray-400 text-sm">{u.phone}</p>
             </div>
-            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${u.abonnement_type ? 'bg-green-800 text-green-200' : 'bg-gray-700 text-gray-400'}`}>
+            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${u.abonnement_type ? 'bg-amber-800 text-amber-200' : 'bg-gray-700 text-gray-400'}`}>
               {u.abonnement_type || 'Gratuit'}
             </span>
           </div>
@@ -210,7 +210,7 @@ function AdminPayments({ getToken, onNotif }) {
                   <p className="text-white font-bold">{p.ifl_users?.prenom} {p.ifl_users?.nom}</p>
                   <p className="text-gray-400 text-sm">{p.ifl_users?.phone}</p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.valide ? 'bg-green-800 text-green-200' : 'bg-amber-800 text-amber-200'}`}>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.valide ? 'bg-amber-800 text-amber-200' : 'bg-orange-800 text-orange-200'}`}>
                   {p.valide ? '✅ Validé' : '⏳ En attente'}
                 </span>
               </div>
@@ -230,7 +230,7 @@ function AdminPayments({ getToken, onNotif }) {
               )}
               {!p.valide && (
                 <div className="flex gap-2">
-                  <button onClick={() => handleValidate(p, true)} className="flex-1 py-3 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#1A4731' }}>
+                  <button onClick={() => handleValidate(p, true)} className="flex-1 py-3 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#C4521A' }}>
                     ✅ Valider & Activer
                   </button>
                   <button onClick={() => handleValidate(p, false)} className="px-4 py-3 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#8B0000' }}>
@@ -293,7 +293,7 @@ function AdminUsers({ getToken, onNotif }) {
                 <p className="text-white font-bold">{u.prenom} {u.nom}</p>
                 <p className="text-gray-400 text-sm">{u.phone}</p>
                 <div className="flex gap-2 mt-2 flex-wrap">
-                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${u.is_active ? 'bg-green-800 text-green-300' : 'bg-red-900 text-red-300'}`}>
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${u.is_active ? 'bg-amber-800 text-amber-300' : 'bg-red-900 text-red-300'}`}>
                     {u.is_active ? 'Actif' : 'Bloqué'}
                   </span>
                   {u.abonnement_type && (
@@ -347,13 +347,13 @@ function UserEditForm({ user, onSave, onCancel }) {
       <div className="flex items-center gap-3">
         <label className="text-gray-400 text-sm">Compte actif</label>
         <button type="button" onClick={() => setForm(p => ({ ...p, is_active: !p.is_active }))}
-          className={`w-12 h-6 rounded-full transition-all relative ${form.is_active ? 'bg-green-600' : 'bg-gray-600'}`}>
+          className={`w-12 h-6 rounded-full transition-all relative ${form.is_active ? 'bg-amber-600' : 'bg-gray-600'}`}>
           <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form.is_active ? 'left-6' : 'left-0.5'}`}></div>
         </button>
       </div>
       <div className="flex gap-2">
         <button onClick={() => onSave({ ...form, abonnement_valide_jusqua: form.abonnement_valide_jusqua ? new Date(form.abonnement_valide_jusqua).toISOString() : null })}
-          className="flex-1 py-2.5 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#1A4731' }}>
+          className="flex-1 py-2.5 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#C4521A' }}>
           ✅ Sauvegarder
         </button>
         <button onClick={onCancel} className="px-4 py-2.5 bg-gray-700 text-gray-300 rounded-xl text-sm">Annuler</button>
@@ -448,7 +448,7 @@ function AdminQuestions({ getToken, onNotif }) {
               <p className="text-white text-sm font-medium mb-3 leading-relaxed">{q.question_text}</p>
               <div className="grid grid-cols-2 gap-1.5 mb-3">
                 {['A','B','C','D'].map(opt => (
-                  <p key={opt} className={`text-xs rounded-lg px-2 py-1.5 ${q.bonne_reponse === opt ? 'bg-green-800 text-green-200 font-bold' : 'bg-gray-700 text-gray-400'}`}>
+                  <p key={opt} className={`text-xs rounded-lg px-2 py-1.5 ${q.bonne_reponse === opt ? 'bg-amber-800 text-amber-200 font-bold' : 'bg-gray-700 text-gray-400'}`}>
                     <span className="font-bold">{opt}:</span> {q[`option_${opt.toLowerCase()}`]}
                   </p>
                 ))}
@@ -498,7 +498,7 @@ function QuestionForm({ initial, categories, onSave, onCancel }) {
             {['A','B','C','D'].map(opt => (
               <button key={opt} type="button" onClick={() => set('bonne_reponse', opt)}
                 className={`flex-1 py-3 font-extrabold rounded-xl text-sm transition-all ${form.bonne_reponse === opt ? 'text-white' : 'bg-gray-700 text-gray-400'}`}
-                style={form.bonne_reponse === opt ? { background: '#16a34a' } : {}}>
+                style={form.bonne_reponse === opt ? { background: '#D4A017' } : {}}>
                 {opt}
               </button>
             ))}
@@ -576,7 +576,7 @@ function PriceEditor({ price, onSave }) {
         </div>
         <button onClick={async () => { await onSave(price.type_concours, prix); setSaved(true) }}
           className="px-5 py-3 font-bold text-white rounded-xl active:scale-95 self-end"
-          style={{ background: saved ? '#1A4731' : '#C4521A' }}>
+          style={{ background: saved ? '#C4521A' : '#D4A017' }}>
           {saved ? '✅' : '💾'}
         </button>
       </div>

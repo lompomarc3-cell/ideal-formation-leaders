@@ -80,7 +80,7 @@ export default function QuizPage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#1A4731,#C4521A)' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
         <div className="text-center"><div className="spinner mx-auto mb-3"></div><p className="text-white font-semibold">Chargement...</p></div>
       </div>
     )
@@ -98,9 +98,9 @@ export default function QuizPage() {
       </Head>
       <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
         {/* Header */}
-        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }} className="sticky top-0 z-40 shadow-lg">
+        <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
-            <button onClick={() => router.push('/dashboard')} className="text-green-200 hover:text-white p-1">
+            <button onClick={() => router.push('/dashboard')} className="text-orange-200 hover:text-white p-1">
               <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
@@ -108,7 +108,7 @@ export default function QuizPage() {
             <div className="flex-1 min-w-0">
               <p className="text-white font-bold truncate leading-tight">{category?.nom || 'QCM'}</p>
               {!loadingQ && !error && (
-                <p className="text-green-200 text-xs">{total} question{total > 1 ? 's' : ''}</p>
+                <p className="text-orange-200 text-xs">{total} question{total > 1 ? 's' : ''}</p>
               )}
             </div>
             {!loadingQ && !error && (
@@ -118,7 +118,7 @@ export default function QuizPage() {
             )}
           </div>
           {!loadingQ && !error && !finished && (
-            <div className="h-1.5 bg-green-900">
+            <div className="h-1.5" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="h-full progress-bar" style={{ width: `${progress}%`, background: '#D4A017' }}></div>
             </div>
           )}
@@ -156,7 +156,7 @@ export default function QuizPage() {
               <div className="text-6xl mb-4">📭</div>
               <h3 className="text-xl font-bold text-gray-700 mb-2">Aucune question</h3>
               <p className="text-gray-500 mb-6">Les questions pour cette catégorie ne sont pas encore disponibles.</p>
-              <Link href="/dashboard" className="inline-block px-6 py-3 font-bold text-white rounded-xl" style={{ background: '#1A4731' }}>
+              <Link href="/dashboard" className="inline-block px-6 py-3 font-bold text-white rounded-xl" style={{ background: '#C4521A' }}>
                 ← Retour
               </Link>
             </div>
@@ -167,15 +167,15 @@ export default function QuizPage() {
             <div className="animate-popIn">
               <div className="bg-white rounded-3xl shadow-xl p-8 border border-amber-100 text-center">
                 <div className="text-7xl mb-4">{score >= total * 0.7 ? '🏆' : score >= total * 0.5 ? '👍' : '📚'}</div>
-                <h2 className="text-3xl font-extrabold mb-1" style={{ color: '#1A4731' }}>Terminé !</h2>
+                <h2 className="text-3xl font-extrabold mb-1" style={{ color: '#8B2500' }}>Terminé !</h2>
                 <p className="text-gray-500 mb-5">{category?.nom}</p>
-                <div className="rounded-2xl p-5 mb-6" style={{ background: 'linear-gradient(135deg,#1A4731,#2D6A4F)' }}>
+                <div className="rounded-2xl p-5 mb-6" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
                   <p className="text-white font-semibold mb-1">Votre score</p>
                   <p className="text-5xl font-extrabold text-white">{score}<span className="text-2xl opacity-70">/{total}</span></p>
-                  <div className="mt-3 h-2 bg-green-900 rounded-full overflow-hidden">
+                  <div className="mt-3 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.2)' }}>
                     <div className="h-full rounded-full" style={{ width: `${(score/total)*100}%`, background: '#D4A017', transition: 'width 1s ease' }}></div>
                   </div>
-                  <p className="text-green-200 text-sm mt-2">{Math.round((score/total)*100)}% de réussite</p>
+                  <p className="text-orange-200 text-sm mt-2">{Math.round((score/total)*100)}% de réussite</p>
                 </div>
                 <div className="space-y-3">
                   <button onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setFinished(false) }}
@@ -214,7 +214,7 @@ export default function QuizPage() {
                       <button key={opt} className={cls} onClick={() => handleSelect(opt)}>
                         <span className="inline-flex w-7 h-7 rounded-full items-center justify-center text-sm font-bold mr-3 flex-shrink-0"
                           style={{
-                            background: answered && opt === q.bonne_reponse ? '#16a34a' : answered && opt === selected ? '#dc2626' : '#f3f4f6',
+                            background: answered && opt === q.bonne_reponse ? '#D4A017' : answered && opt === selected ? '#dc2626' : '#f3f4f6',
                             color: answered && (opt === q.bonne_reponse || opt === selected) ? 'white' : '#374151'
                           }}>
                           {opt}
@@ -227,8 +227,8 @@ export default function QuizPage() {
 
                 {answered && (
                   <div className="mt-5 animate-fadeIn rounded-2xl p-4"
-                    style={{ background: selected === q.bonne_reponse ? '#F0FDF4' : '#FFF7F0', borderLeft: `4px solid ${selected === q.bonne_reponse ? '#16a34a' : '#C4521A'}` }}>
-                    <p className="font-bold mb-1.5 text-sm" style={{ color: selected === q.bonne_reponse ? '#16a34a' : '#C4521A' }}>
+                    style={{ background: selected === q.bonne_reponse ? '#FFF7E6' : '#FFF7F0', borderLeft: `4px solid ${selected === q.bonne_reponse ? '#D4A017' : '#C4521A'}` }}>
+                    <p className="font-bold mb-1.5 text-sm" style={{ color: selected === q.bonne_reponse ? '#D4A017' : '#C4521A' }}>
                       {selected === q.bonne_reponse ? '✅ Bonne réponse !' : `❌ Mauvaise – Bonne réponse : ${q.bonne_reponse}`}
                     </p>
                     <p className="text-gray-700 text-sm leading-relaxed">{q.explication}</p>
@@ -238,7 +238,7 @@ export default function QuizPage() {
 
               {answered && (
                 <button onClick={handleNext} className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg active:scale-95 animate-popIn"
-                  style={{ background: 'linear-gradient(135deg, #1A4731, #2D6A4F)' }}>
+                  style={{ background: 'linear-gradient(135deg, #C4521A, #8B2500)' }}>
                   {current + 1 >= total ? '📊 Voir mes résultats' : 'Question suivante →'}
                 </button>
               )}

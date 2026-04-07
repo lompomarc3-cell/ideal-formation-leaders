@@ -48,7 +48,7 @@ export default function Demo() {
       </Head>
       <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
         {/* Header */}
-        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }} className="sticky top-0 z-40 shadow-lg">
+        <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <div className="logo-header" style={{ width: 40, height: 40 }}>
@@ -61,7 +61,7 @@ export default function Demo() {
             </Link>
           </div>
           {/* Barre de progression */}
-          <div className="h-1.5 bg-green-900">
+          <div className="h-1.5" style={{ background: 'rgba(0,0,0,0.2)' }}>
             <div className="h-full progress-bar" style={{ width: `${progress}%`, background: '#D4A017' }}></div>
           </div>
         </header>
@@ -72,15 +72,15 @@ export default function Demo() {
             <div className="text-center animate-popIn">
               <div className="bg-white rounded-3xl shadow-xl p-8 border border-amber-100">
                 <div className="text-7xl mb-4">{score >= 7 ? '🏆' : score >= 5 ? '👍' : '📚'}</div>
-                <h2 className="text-3xl font-extrabold mb-2" style={{ color: '#1A4731' }}>Démo terminée !</h2>
+                <h2 className="text-3xl font-extrabold mb-2" style={{ color: '#8B2500' }}>Démo terminée !</h2>
                 <p className="text-gray-500 mb-6">Vous avez répondu à toutes les questions gratuites</p>
-                <div className="rounded-2xl p-6 mb-6" style={{ background: 'linear-gradient(135deg, #1A4731, #2D6A4F)' }}>
+                <div className="rounded-2xl p-6 mb-6" style={{ background: 'linear-gradient(135deg, #8B2500, #C4521A)' }}>
                   <p className="text-white text-lg font-semibold mb-1">Votre score</p>
                   <p className="text-5xl font-extrabold text-white">{score}<span className="text-2xl opacity-70">/{total}</span></p>
-                  <div className="mt-3 h-2 bg-green-900 rounded-full overflow-hidden">
+                  <div className="mt-3 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.2)' }}>
                     <div className="h-full rounded-full" style={{ width: `${(score/total)*100}%`, background: '#D4A017', transition: 'width 1s ease' }}></div>
                   </div>
-                  <p className="text-green-200 text-sm mt-2">{Math.round((score/total)*100)}% de réussite</p>
+                  <p className="text-orange-200 text-sm mt-2">{Math.round((score/total)*100)}% de réussite</p>
                 </div>
 
                 <div className="space-y-3">
@@ -101,7 +101,7 @@ export default function Demo() {
             <div className="animate-fadeIn">
               {/* Info question */}
               <div className="flex items-center justify-between mb-4">
-                <span className="px-3 py-1.5 rounded-lg text-sm font-bold" style={{ background: '#E8F5EE', color: '#1A4731' }}>
+                <span className="px-3 py-1.5 rounded-lg text-sm font-bold" style={{ background: '#FFF0E8', color: '#8B2500' }}>
                   🆓 Démo gratuite
                 </span>
                 <span className="text-gray-500 text-sm font-medium">
@@ -131,7 +131,7 @@ export default function Demo() {
                     return (
                       <button key={opt} className={cls} onClick={() => handleSelect(opt)}>
                         <span className="inline-flex w-7 h-7 rounded-full items-center justify-center text-sm font-bold mr-3 flex-shrink-0"
-                          style={{ background: answered && opt === q.bonne_reponse ? '#16a34a' : answered && opt === selected ? '#dc2626' : '#f3f4f6', color: answered && (opt === q.bonne_reponse || opt === selected) ? 'white' : '#374151' }}>
+                          style={{ background: answered && opt === q.bonne_reponse ? '#D4A017' : answered && opt === selected ? '#dc2626' : '#f3f4f6', color: answered && (opt === q.bonne_reponse || opt === selected) ? 'white' : '#374151' }}>
                           {opt}
                         </span>
                         {optText}
@@ -142,8 +142,8 @@ export default function Demo() {
 
                 {/* Explication */}
                 {answered && (
-                  <div className="mt-5 animate-fadeIn rounded-2xl p-4" style={{ background: selected === q.bonne_reponse ? '#F0FDF4' : '#FFF7F0', borderLeft: `4px solid ${selected === q.bonne_reponse ? '#16a34a' : '#C4521A'}` }}>
-                    <p className="font-bold mb-1.5 text-sm" style={{ color: selected === q.bonne_reponse ? '#16a34a' : '#C4521A' }}>
+                  <div className="mt-5 animate-fadeIn rounded-2xl p-4" style={{ background: selected === q.bonne_reponse ? '#FFF7E6' : '#FFF7F0', borderLeft: `4px solid ${selected === q.bonne_reponse ? '#D4A017' : '#C4521A'}` }}>
+                    <p className="font-bold mb-1.5 text-sm" style={{ color: selected === q.bonne_reponse ? '#D4A017' : '#C4521A' }}>
                       {selected === q.bonne_reponse ? '✅ Bonne réponse !' : `❌ Mauvaise réponse – La bonne réponse est ${q.bonne_reponse}`}
                     </p>
                     <p className="text-gray-700 text-sm leading-relaxed">{q.explication}</p>
@@ -156,7 +156,7 @@ export default function Demo() {
                 <button
                   onClick={handleNext}
                   className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg active:scale-95 animate-popIn"
-                  style={{ background: 'linear-gradient(135deg, #1A4731, #2D6A4F)' }}
+                  style={{ background: 'linear-gradient(135deg, #C4521A, #8B2500)' }}
                 >
                   {current + 1 >= total ? '📊 Voir mes résultats' : 'Question suivante →'}
                 </button>

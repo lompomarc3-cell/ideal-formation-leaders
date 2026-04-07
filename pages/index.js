@@ -20,7 +20,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1A4731 0%, #C4521A 100%)' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }}>
         <div className="text-center">
           <div className="spinner mx-auto mb-4"></div>
           <p className="text-white text-xl font-semibold">Chargement...</p>
@@ -38,7 +38,7 @@ export default function Home() {
 
       <div className="min-h-screen african-pattern" style={{ background: '#FFF8F0' }}>
         {/* Header */}
-        <header style={{ background: 'linear-gradient(135deg, #1A4731 0%, #1A2F20 100%)' }} className="sticky top-0 z-40 shadow-lg">
+        <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="logo-rounded overflow-hidden shadow-md" style={{ borderRadius: '16px', width: '52px', height: '52px' }}>
@@ -46,7 +46,7 @@ export default function Home() {
               </div>
               <div>
                 <h1 className="text-white font-bold text-lg leading-tight">IFL</h1>
-                <p className="text-green-200 text-xs">Formation of Leader</p>
+                <p className="text-orange-200 text-xs">Formation of Leader</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -61,7 +61,7 @@ export default function Home() {
         </header>
 
         {/* Hero Section */}
-        <section style={{ background: 'linear-gradient(160deg, #1A4731 0%, #2D6A4F 50%, #C4521A 100%)' }} className="relative overflow-hidden">
+        <section style={{ background: 'linear-gradient(160deg, #8B2500 0%, #C4521A 50%, #D4A017 100%)' }} className="relative overflow-hidden">
           <div className="absolute inset-0 african-pattern opacity-20"></div>
           <div className="relative max-w-lg mx-auto px-4 py-16 text-center text-white">
             <div className="logo-rounded overflow-hidden shadow-2xl mx-auto mb-6 border-4 border-amber-400" style={{ borderRadius: '24px', width: '110px', height: '110px', display: 'inline-block' }}>
@@ -71,8 +71,8 @@ export default function Home() {
               Idéale Formation<br />
               <span style={{ color: '#D4A017' }}>of Leader</span>
             </h1>
-            <p className="text-green-100 text-xl mb-2 font-medium">🇧🇫 Préparation aux concours du Burkina Faso</p>
-            <p className="text-green-200 text-base mb-8">Des milliers de QCM pour réussir vos concours directs et professionnels</p>
+            <p className="text-orange-100 text-xl mb-2 font-medium">🇧🇫 Préparation aux concours du Burkina Faso</p>
+            <p className="text-orange-200 text-base mb-8">Des milliers de QCM pour réussir vos concours directs et professionnels</p>
             
             <div className="flex flex-col gap-3 max-w-xs mx-auto">
               <Link href="/demo" className="block w-full py-4 px-6 text-lg font-bold rounded-2xl text-white shadow-lg hover:shadow-xl transition-all active:scale-95" style={{ background: '#D4A017' }}>
@@ -98,20 +98,20 @@ export default function Home() {
 
         {/* Offres */}
         <section className="max-w-lg mx-auto px-4 py-10">
-          <h2 className="text-3xl font-extrabold text-center mb-2" style={{ color: '#1A4731' }}>Nos Offres</h2>
+          <h2 className="text-3xl font-extrabold text-center mb-2" style={{ color: '#8B2500' }}>Nos Offres</h2>
           <p className="text-center text-gray-500 mb-8">Choisissez votre parcours de préparation</p>
 
           {/* Offre 1 - Concours Directs */}
           <div className="card-african mb-6 overflow-hidden">
-            <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #1A4731 0%, #2D6A4F 100%)' }}>
+            <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-green-300 uppercase tracking-wider">Offre 1</span>
+                  <span className="text-xs font-bold text-orange-300 uppercase tracking-wider">Offre 1</span>
                   <h3 className="text-white text-2xl font-extrabold mt-1">Concours Directs</h3>
                 </div>
                 <div className="text-right">
                   <p className="text-4xl font-extrabold" style={{ color: '#D4A017' }}>5 000</p>
-                  <p className="text-green-200 text-sm">FCFA / an</p>
+                  <p className="text-orange-200 text-sm">FCFA / an</p>
                 </div>
               </div>
             </div>
@@ -119,13 +119,13 @@ export default function Home() {
               <p className="text-gray-600 text-sm mb-4">Accès à tous les dossiers pour les concours directs</p>
               <div className="grid grid-cols-2 gap-2 mb-5">
                 {CATEGORIES_DIRECT.map((cat, i) => (
-                  <div key={i} className="flex items-center gap-2 bg-green-50 rounded-lg p-2">
+                  <div key={i} className="flex items-center gap-2 bg-amber-50 rounded-lg p-2">
                     <span className="text-xl">{cat.icone}</span>
-                    <span className="text-xs text-green-800 font-medium leading-tight">{cat.nom}</span>
+                    <span className="text-xs text-amber-800 font-medium leading-tight">{cat.nom}</span>
                   </div>
                 ))}
               </div>
-              <Link href="/register" className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl transition-all active:scale-95 shadow-md" style={{ background: '#1A4731' }}>
+              <Link href="/register" className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl transition-all active:scale-95 shadow-md" style={{ background: '#8B2500' }}>
                 S'abonner – 5 000 FCFA
               </Link>
             </div>
@@ -178,7 +178,7 @@ export default function Home() {
 
         {/* Features */}
         <section className="max-w-lg mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold text-center mb-6" style={{ color: '#1A4731' }}>Pourquoi choisir IFL ?</h2>
+          <h2 className="text-2xl font-bold text-center mb-6" style={{ color: '#8B2500' }}>Pourquoi choisir IFL ?</h2>
           <div className="grid grid-cols-2 gap-4">
             {[
               { icon: '📱', title: 'Mobile-first', desc: 'Apprenez depuis votre téléphone' },
