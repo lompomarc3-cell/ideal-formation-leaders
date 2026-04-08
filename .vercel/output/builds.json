@@ -3,13 +3,13 @@
   "target": "preview",
   "argv": [
     "/usr/bin/node",
-    "/home/user/ifl/node_modules/.bin/vercel",
+    "/home/user/ideal-formation-leaders/node_modules/.bin/vercel",
     "build"
   ],
   "builds": [
     {
       "require": "@vercel/next",
-      "requirePath": "/home/user/ifl/node_modules/@vercel/next/dist/index",
+      "requirePath": "/home/user/ideal-formation-leaders/node_modules/@vercel/next/dist/index",
       "apiVersion": 2,
       "src": "package.json",
       "use": "@vercel/next",
