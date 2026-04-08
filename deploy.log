@@ -1,0 +1,76 @@
+
+ ⛅️ wrangler 4.80.0 (update available 4.81.0)
+─────────────────────────────────────────────
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mWarning: Your working directory is a git repo and has uncommitted changes[0m
+
+  To silence this warning, pass in --commit-dirty=true
+
+
+Uploading... (20/38)
+Uploading... (26/38)
+Uploading... (32/38)
+Uploading... (38/38)
+✨ Success! Uploaded 18 files (20 already uploaded) (2.44 sec)
+
+✨ Uploading _headers
+Attaching additional modules:
+┌─────────────────────────────────────────────────────────────────────┬──────┬────────────┐
+│ Name                                                                │ Type │ Size       │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/cache/adaptor.js                             │ esm  │ 2.29 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/cache/cache-api.js                           │ esm  │ 0.43 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/cache/kv.js                                  │ esm  │ 0.35 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/admin/add-categories.func.js   │ esm  │ 9.77 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/admin/payments.func.js         │ esm  │ 31.44 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/admin/prices.func.js           │ esm  │ 30.52 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/admin/questions.func.js        │ esm  │ 32.54 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/admin/stats.func.js            │ esm  │ 30.61 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/admin/users.func.js            │ esm  │ 30.97 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/admin/validate-payment.func.js │ esm  │ 30.22 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/auth/login.func.js             │ esm  │ 30.76 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/auth/me.func.js                │ esm  │ 29.94 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/auth/register.func.js          │ esm  │ 32.42 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/auth/status.func.js            │ esm  │ 29.94 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/init-db.func.js                │ esm  │ 7.95 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/payment/request.func.js        │ esm  │ 30.28 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/payments/create.func.js        │ esm  │ 30.07 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/quiz/categories.func.js        │ esm  │ 31.15 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/quiz/progress.func.js          │ esm  │ 29.93 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/quiz/questions.func.js         │ esm  │ 30.25 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/setup-db.func.js               │ esm  │ 32.67 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/functions/api/setup.func.js                  │ esm  │ 30.10 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/webpack/69e9cf509a789521fa5200179a6e0423.js  │ esm  │ 184.35 KiB │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/webpack/af1ac913bf20d1e51fec4862cf5c11a7.js  │ esm  │ 23.05 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ __next-on-pages-dist__/webpack/ebff0d857acd6772af196169a46a8230.js  │ esm  │ 99.65 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼────────────┤
+│ Total (25 modules)                                                  │      │ 851.62 KiB │
+└─────────────────────────────────────────────────────────────────────┴──────┴────────────┘
+✨ Compiled Worker successfully
+✨ Uploading Worker bundle
+✨ Uploading _routes.json
+🌎 Deploying...
+✨ Deployment complete! Take a peek over at https://da0c8bff.ideal-formation-leaders.pages.dev
