@@ -91,7 +91,7 @@ export default function Payment() {
             <div className="space-y-3 text-left mb-6">
               <div className="flex items-start gap-3 bg-amber-50 p-3 rounded-xl">
                 <span className="text-xl">1️⃣</span>
-                <p className="text-sm text-amber-800 font-medium">Effectuez le paiement Orange Money : <strong>*144*2*1*76223962#</strong></p>
+                <p className="text-sm text-amber-800 font-medium">Effectuez le paiement Orange Money : <strong>*144*10*76223962#</strong></p>
               </div>
               <div className="flex items-start gap-3 bg-amber-50 p-3 rounded-xl">
                 <span className="text-xl">2️⃣</span>
@@ -182,7 +182,7 @@ export default function Payment() {
             </div>
             <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-3">
               <p className="text-sm font-bold text-orange-100 mb-1">Code USSD :</p>
-              <p className="text-2xl font-extrabold tracking-wider">*144*2*1*76223962#</p>
+              <p className="text-2xl font-extrabold tracking-wider">*144*10*76223962#</p>
             </div>
             <div className="flex items-center justify-between">
               <div>

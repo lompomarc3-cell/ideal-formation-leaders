@@ -21,12 +21,15 @@ const CATEGORIES_DIRECT = [
 
 const CATEGORIES_PRO = [
   { nom: 'Spécialités Vie Scolaire (CASU/AASU)', icone: '🏫' },
+  { nom: 'Actualités et Culture Générale', icone: '📰' },
   { nom: 'Spécialités CISU/AISU/ENAREF', icone: '🏛️' },
   { nom: 'Inspectorat (IES/IEPENF)', icone: '🔍' },
   { nom: 'Professeurs Agrégés', icone: '🎓' },
   { nom: 'CAPES – Toutes Options', icone: '📖' },
   { nom: 'Administrateur des Hôpitaux', icone: '🏥' },
   { nom: 'Spécialités Santé', icone: '💊' },
+  { nom: 'Justice', icone: '⚖️' },
+  { nom: 'Magistrature', icone: '🏛️' },
   { nom: 'Spécialités GSP', icone: '🛡️' },
   { nom: 'Spécialités Police', icone: '👮' },
   { nom: 'Administrateur Civil', icone: '📋' },
@@ -159,7 +162,7 @@ export default function Home() {
             <div className="bg-white rounded-2xl shadow-md border-2 border-amber-100 p-5 text-center">
               <div className="text-4xl mb-3">🎓</div>
               <h3 className="font-extrabold text-base mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
-              <p className="text-gray-500 text-xs mb-3">12 dossiers spécialisés</p>
+              <p className="text-gray-500 text-xs mb-3">15 dossiers spécialisés</p>
               <p className="text-2xl font-extrabold" style={{ color: '#C4521A' }}>20 000</p>
               <p className="text-gray-400 text-xs">FCFA / an</p>
             </div>
@@ -201,7 +204,7 @@ export default function Home() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xl font-extrabold" style={{ color: '#8B2500' }}>🎓 Professionnels</h2>
-              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">12 dossiers</span>
+              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">15 dossiers</span>
             </div>
             <p className="text-gray-400 text-xs mb-3">← Glissez pour voir tous les dossiers →</p>
             <div
@@ -240,7 +243,7 @@ export default function Home() {
             </div>
             <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
               <p className="text-sm text-orange-100">Code USSD :</p>
-              <p className="text-xl font-extrabold">*144*2*1*76223962#</p>
+              <p className="text-xl font-extrabold">*144*10*76223962#</p>
             </div>
             <p className="text-orange-100 text-sm">Bénéficiaire : <strong className="text-white">+226 76 22 39 62</strong></p>
           </div>

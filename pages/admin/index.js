@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '../_app'
+import BulkQCMAdd from '../../components/BulkQCMAdd'
 
 export default function AdminDashboard() {
   const { user, loading, logout, getToken } = useAuth()
@@ -387,6 +388,7 @@ function AdminQuestions({ getToken, onNotif }) {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [showBulkAdd, setShowBulkAdd] = useState(false)
   const [editQ, setEditQ] = useState(null)
   const [filterCat, setFilterCat] = useState('')
 
@@ -444,11 +446,18 @@ function AdminQuestions({ getToken, onNotif }) {
     <div>
       <div className="flex items-center justify-between mb-4 mt-1">
         <h2 className="text-white text-xl font-bold">❓ QCM ({questions.length})</h2>
-        <button onClick={() => { setShowForm(true); setEditQ(null) }}
-          className="px-4 py-2 font-bold text-white rounded-xl text-sm active:scale-95"
-          style={{ background: '#C4521A' }}>
-          ➕ Ajouter
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => { setShowBulkAdd(true); setShowForm(false); setEditQ(null) }}
+            className="px-4 py-2 font-bold text-white rounded-xl text-sm active:scale-95"
+            style={{ background: '#D4A017' }}>
+            📦 Ajout Massif
+          </button>
+          <button onClick={() => { setShowForm(true); setShowBulkAdd(false); setEditQ(null) }}
+            className="px-4 py-2 font-bold text-white rounded-xl text-sm active:scale-95"
+            style={{ background: '#C4521A' }}>
+            ➕ Ajouter 1
+          </button>
+        </div>
       </div>
       <select value={filterCat} onChange={e => { setFilterCat(e.target.value); fetchQuestions(e.target.value) }}
         className="w-full bg-gray-800 text-white rounded-xl px-4 py-3 mb-4 text-sm border border-gray-700">
@@ -457,6 +466,27 @@ function AdminQuestions({ getToken, onNotif }) {
           <option key={c.id} value={c.id}>{c.type_concours === 'direct' ? '📚' : '🎓'} {c.nom}</option>
         ))}
       </select>
+      {showBulkAdd && (
+        <div className="mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-white font-bold text-lg">📦 Ajout Massif de QCM</h3>
+            <button
+              onClick={() => setShowBulkAdd(false)}
+              className="text-white hover:text-gray-300"
+            >
+              ❌ Fermer
+            </button>
+          </div>
+          <BulkQCMAdd
+            token={getToken()}
+            onSuccess={() => {
+              setShowBulkAdd(false)
+              fetchQuestions(filterCat)
+              onNotif('✅ Questions ajoutées avec succès', 'success')
+            }}
+          />
+        </div>
+      )}
       {(showForm || editQ) && (
         <QuestionForm initial={editQ} categories={categories} onSave={saveQuestion}
           onCancel={() => { setShowForm(false); setEditQ(null) }} />

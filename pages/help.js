@@ -23,11 +23,11 @@ export default function Help() {
   const faqs = [
     {
       q: 'Comment m\'abonner ?',
-      a: '1. Connectez-vous ou créez un compte\n2. Allez dans "Paiement"\n3. Effectuez le paiement Orange Money : *144*2*1*76223962#\n4. Envoyez la capture via WhatsApp au +226 76 22 39 62\n5. Votre abonnement sera activé sous 24h'
+      a: '1. Connectez-vous ou créez un compte\n2. Allez dans "Paiement"\n3. Effectuez le paiement Orange Money : *144*10*76223962#\n4. Envoyez la capture via WhatsApp au +226 76 22 39 62\n5. Votre abonnement sera activé sous 24h'
     },
     {
       q: 'Comment effectuer le paiement Orange Money ?',
-      a: 'Composez *144*2*1*76223962# sur votre téléphone Orange, saisissez le montant (5 000 ou 20 000 FCFA), confirmez avec votre code secret.\nBénéficiaire : +226 76 22 39 62'
+      a: 'Composez *144*10*76223962# sur votre téléphone Orange, saisissez le montant (5 000 ou 20 000 FCFA), confirmez avec votre code secret.\nBénéficiaire : +226 76 22 39 62'
     },
     {
       q: 'Combien de temps dure l\'abonnement ?',
@@ -35,7 +35,7 @@ export default function Help() {
     },
     {
       q: 'Quelle est la différence entre les deux formules ?',
-      a: '📚 Concours Directs (5 000 FCFA/an) : 10 dossiers thématiques (Actualité, Français, Maths, SVT, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA/an) : 12 dossiers spécialisés (CASU, CAPES, Police, Santé, etc.)'
+      a: '📚 Concours Directs (5 000 FCFA/an) : 10 dossiers thématiques (Actualité, Français, Maths, SVT, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA/an) : 15 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)'
     },
     {
       q: 'Mon abonnement n\'est pas activé après paiement ?',
@@ -109,7 +109,7 @@ export default function Help() {
               </div>
               <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
                 <p className="text-orange-100 text-xs">Code USSD :</p>
-                <p className="text-xl font-extrabold tracking-wider">*144*2*1*76223962#</p>
+                <p className="text-xl font-extrabold tracking-wider">*144*10*76223962#</p>
               </div>
               <p className="text-orange-100 text-sm">Bénéficiaire : <strong className="text-white">+226 76 22 39 62</strong></p>
               <div className="flex gap-3 mt-3">
