@@ -216,43 +216,35 @@ export default function Dashboard() {
           {/* Contenu de l'onglet */}
           {loadingData ? (
             <div className="py-12 text-center"><div className="spinner mx-auto"></div></div>
-          ) : !hasCurrentAccess ? (
-            /* Pas d'accès → afficher le verrou */
-            <div className="animate-fadeIn">
-              <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-8 text-center mb-5">
-                <div className="text-6xl mb-4">🔒</div>
-                <h3 className="text-xl font-extrabold mb-2" style={{ color: '#8B2500' }}>
-                  {activeTab === 'direct' ? 'Concours Directs' : 'Concours Professionnels'}
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  Accédez à {catList.length || (activeTab === 'direct' ? 10 : 12)} dossiers avec des milliers de QCM
-                </p>
-                <p className="text-3xl font-extrabold mb-1" style={{ color: '#C4521A' }}>
-                  {currentPrice.toLocaleString()} FCFA
-                </p>
-                <p className="text-gray-400 text-sm mb-5">par an</p>
-                <Link
-                  href={`/payment?type=${activeTab}&montant=${currentPrice}`}
-                  className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl shadow-lg active:scale-95"
-                  style={{ background: '#C4521A' }}
-                >
-                  💳 S'abonner – {currentPrice.toLocaleString()} FCFA
-                </Link>
-              </div>
-
-              {/* Aperçu navigation horizontale des dossiers verrouillés */}
-              <h4 className="font-bold text-gray-700 mb-3 text-sm">📂 Dossiers inclus :</h4>
-              <HorizontalCategoryScroll categories={catList} locked={true} />
-            </div>
           ) : (
-            /* Accès débloqué → navigation horizontale */
+            /* Tous les utilisateurs connectés voient les dossiers (5 premières questions gratuites) */
             <div className="animate-fadeIn">
+              {/* Bannière abonnement si pas d'accès complet */}
+              {!hasCurrentAccess && !user.is_admin && (
+                <div className="mb-4 rounded-2xl p-4 border-2 border-amber-300" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)' }}>
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">🆓</span>
+                    <div className="flex-1">
+                      <p className="text-amber-800 font-bold text-sm">5 questions gratuites par dossier</p>
+                      <p className="text-amber-700 text-xs mt-0.5">Essayez chaque dossier gratuitement. Abonnez-vous pour tout débloquer.</p>
+                    </div>
+                    <Link href={`/payment?type=${activeTab}&montant=${currentPrice}`}
+                      className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0"
+                      style={{ background: '#C4521A' }}>
+                      {currentPrice.toLocaleString()} FCFA →
+                    </Link>
+                  </div>
+                </div>
+              )}
+
               <p className="text-sm text-gray-500 mb-4">
-                🎉 {catList.length} dossier{catList.length > 1 ? 's' : ''} disponible{catList.length > 1 ? 's' : ''}
+                {hasCurrentAccess || user.is_admin
+                  ? `🎉 ${catList.length} dossier${catList.length > 1 ? 's' : ''} disponible${catList.length > 1 ? 's' : ''}`
+                  : `📂 ${catList.length} dossier${catList.length > 1 ? 's' : ''} · 5 questions gratuites par dossier`}
               </p>
 
               {/* Navigation horizontale PRINCIPALE */}
-              <HorizontalCategoryScroll categories={catList} locked={false} />
+              <HorizontalCategoryScroll categories={catList} locked={false} hasAccess={hasCurrentAccess || user.is_admin} />
 
               {/* Bouton pour l'autre offre si pas d'accès */}
               {activeTab === 'direct' && !proAccess && !user.is_admin && (
@@ -312,7 +304,7 @@ export default function Dashboard() {
 }
 
 /* ===== COMPOSANT NAVIGATION HORIZONTALE ===== */
-function HorizontalCategoryScroll({ categories, locked }) {
+function HorizontalCategoryScroll({ categories, locked, hasAccess }) {
   const scrollRef = useRef(null)
 
   if (categories.length === 0) {
@@ -343,41 +335,17 @@ function HorizontalCategoryScroll({ categories, locked }) {
         }}
       >
         {categories.map((cat, i) => (
-          <CategoryCard key={cat.id || i} cat={cat} locked={locked} index={i} />
+          <CategoryCard key={cat.id || i} cat={cat} locked={locked} hasAccess={hasAccess} index={i} />
         ))}
       </div>
     </div>
   )
 }
 
-function CategoryCard({ cat, locked, index }) {
+function CategoryCard({ cat, locked, hasAccess, index }) {
   const icone = cat.icone || getCatIcon(cat.nom)
   
-  if (locked) {
-    return (
-      <div
-        className="flex-shrink-0 bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden"
-        style={{
-          scrollSnapAlign: 'start',
-          width: '180px',
-          minWidth: '180px',
-          opacity: 0.7
-        }}
-      >
-        <div className="p-4 text-center">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-4xl mx-auto mb-3 flex-shrink-0"
-            style={{ background: '#FFF0E8', fontSize: '40px' }}>
-            {icone}
-          </div>
-          <p className="text-xs font-semibold text-gray-600 leading-tight mb-2">{cat.nom}</p>
-          <div className="flex items-center justify-center gap-1">
-            <span className="text-gray-300 text-lg">🔒</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
+  // Tous les dossiers sont cliquables (pour accéder aux 5 questions gratuites)
   return (
     <Link
       href={`/quiz/${cat.id}`}
@@ -395,7 +363,13 @@ function CategoryCard({ cat, locked, index }) {
         </div>
         <p className="text-sm font-bold text-gray-800 leading-tight mb-2">{cat.nom}</p>
         <div className="flex items-center justify-center gap-1">
-          <span className="text-xs text-gray-400">{cat.question_count || 0} QCM</span>
+          {hasAccess ? (
+            <span className="text-xs text-gray-400">{cat.question_count || 0} QCM</span>
+          ) : (
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#FFF0E8', color: '#C4521A' }}>
+              🆓 5 gratuites
+            </span>
+          )}
           <span className="text-gray-300 ml-1">›</span>
         </div>
       </div>

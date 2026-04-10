@@ -1,5 +1,5 @@
 {
-  "timestamp": 1775651777227,
+  "timestamp": 1775854002459,
   "outputDir": ".vercel/output/static/_worker.js",
   "versions": {
     "@cloudflare/next-on-pages": "1.13.16"
@@ -22,11 +22,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -49,11 +49,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -76,11 +76,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -88,7 +88,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/admin/prices.func.js",
-          "outputByteSize": 31250
+          "outputByteSize": 31252
         },
         {
           "relativePath": "/api/admin/questions.func",
@@ -103,11 +103,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -115,7 +115,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/admin/questions.func.js",
-          "outputByteSize": 33317
+          "outputByteSize": 33319
         },
         {
           "relativePath": "/api/admin/stats.func",
@@ -130,11 +130,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -157,11 +157,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -184,11 +184,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -211,11 +211,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -223,7 +223,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/auth/login.func.js",
-          "outputByteSize": 31499
+          "outputByteSize": 31501
         },
         {
           "relativePath": "/api/auth/me.func",
@@ -238,11 +238,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -250,7 +250,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/auth/me.func.js",
-          "outputByteSize": 30656
+          "outputByteSize": 30654
         },
         {
           "relativePath": "/api/auth/register.func",
@@ -265,11 +265,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -292,11 +292,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -304,7 +304,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/auth/status.func.js",
-          "outputByteSize": 30659
+          "outputByteSize": 30657
         },
         {
           "relativePath": "/api/init-db.func",
@@ -319,11 +319,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -346,11 +346,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -373,11 +373,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -385,7 +385,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/payments/create.func.js",
-          "outputByteSize": 30793
+          "outputByteSize": 30791
         },
         {
           "relativePath": "/api/quiz/categories.func",
@@ -400,11 +400,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -412,7 +412,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/quiz/categories.func.js",
-          "outputByteSize": 31900
+          "outputByteSize": 32848
         },
         {
           "relativePath": "/api/quiz/progress.func",
@@ -427,11 +427,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -454,11 +454,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -466,7 +466,7 @@
             "overrides": []
           },
           "outputPath": "__next-on-pages-dist__/functions/api/quiz/questions.func.js",
-          "outputByteSize": 30972
+          "outputByteSize": 32205
         },
         {
           "relativePath": "/api/setup-db.func",
@@ -481,11 +481,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -508,11 +508,11 @@
               "version": "15.2.4"
             },
             "environment": {
-              "__NEXT_BUILD_ID": "buXqrqTANhNm2fXgfkPMp",
-              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ePCGmx4RwLMUMnQTQFCBkZwIf0Xsb3C1XOJ30NiacT0=",
-              "__NEXT_PREVIEW_MODE_ID": "04f417283983bcefcaf6aeca908876f7",
-              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "fee3c7635a40336a394a1b07f8ab2ca2d292b0c542ab3363ab687e365edecd37",
-              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "bdf52896a42e44ed5c631ac81ead95a20b8706397f1461b87be47e411be5ed99"
+              "__NEXT_BUILD_ID": "TZ2FlGooR8-NdJ7sf5I9X",
+              "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iaxO7drdh9KYu5fDbDsj46Hf+zREmFgxSQXvjKGaF/8=",
+              "__NEXT_PREVIEW_MODE_ID": "66b3f690de805de7d7dbabaff4eb7392",
+              "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c4fb0f6564ddfa04e825f83296ba91722120e331bb2370d179c5daccb8662da",
+              "__NEXT_PREVIEW_MODE_SIGNING_KEY": "274e378ce4b3629d742389506deefb6849d6f0c133779d54778be5ff1a6d5153"
             }
           },
           "route": {
@@ -529,8 +529,8 @@
     "staticAssets": [
       "/404.html",
       "/500.html",
-      "/_next/static/buXqrqTANhNm2fXgfkPMp/_buildManifest.js",
-      "/_next/static/buXqrqTANhNm2fXgfkPMp/_ssgManifest.js",
+      "/_next/static/TZ2FlGooR8-NdJ7sf5I9X/_buildManifest.js",
+      "/_next/static/TZ2FlGooR8-NdJ7sf5I9X/_ssgManifest.js",
       "/_next/static/chunks/622-995637aa1c663f66.js",
       "/_next/static/chunks/695-4568df259c13997f.js",
       "/_next/static/chunks/dc553f02-2cb9ad6caa5cd12f.js",
@@ -541,17 +541,17 @@
       "/_next/static/chunks/pages/_error-41608b100cc61246.js",
       "/_next/static/chunks/pages/admin-1423c36d7e4b6433.js",
       "/_next/static/chunks/pages/courses/[type]-00b4742de5772792.js",
-      "/_next/static/chunks/pages/dashboard-82fc2c94b6ce416f.js",
-      "/_next/static/chunks/pages/demo-74e1571c3badbd86.js",
+      "/_next/static/chunks/pages/dashboard-eb2dfd64bed7bec5.js",
+      "/_next/static/chunks/pages/demo-9d7fc991273e913e.js",
       "/_next/static/chunks/pages/help-ee9a7301b8d2c31e.js",
       "/_next/static/chunks/pages/index-303618bc34407350.js",
       "/_next/static/chunks/pages/login-cd6cf8a578450bb7.js",
       "/_next/static/chunks/pages/payment-24ccdc8efdd0ccd2.js",
-      "/_next/static/chunks/pages/quiz/[id]-3212e76c38ea10b8.js",
+      "/_next/static/chunks/pages/quiz/[id]-264d7a5872d05c27.js",
       "/_next/static/chunks/pages/register-9bd98f76cd1058c6.js",
       "/_next/static/chunks/polyfills-42372ed130431b0a.js",
       "/_next/static/chunks/webpack-8cac0b4b405cede1.js",
-      "/_next/static/css/5fbdfaa8cf6e684b.css",
+      "/_next/static/css/6c7f32a9a4c90f15.css",
       "/_next/static/not-found.txt",
       "/admin.html",
       "/courses/[type].html",
@@ -623,14 +623,6 @@
             "/api/setup.func/index.js"
           ]
         },
-        "289": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1935,
-          "consumersList": [
-            "/api/admin/prices.func/index.js"
-          ]
-        },
         "349": {
           "consumers": 19,
           "groupedPath": "ebff0d857acd6772af196169a46a8230",
@@ -685,20 +677,12 @@
             "/api/setup.func/index.js"
           ]
         },
-        "392": {
+        "481": {
           "consumers": 1,
           "inlined": true,
-          "byteLength": 2192,
+          "byteLength": 1476,
           "consumersList": [
-            "/api/auth/login.func/index.js"
-          ]
-        },
-        "411": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 3994,
-          "consumersList": [
-            "/api/admin/questions.func/index.js"
+            "/api/payments/create.func/index.js"
           ]
         },
         "514": {
@@ -753,6 +737,14 @@
             "/api/setup.func/index.js"
           ]
         },
+        "873": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1356,
+          "consumersList": [
+            "/api/auth/status.func/index.js"
+          ]
+        },
         "934": {
           "consumers": 19,
           "groupedPath": "ebff0d857acd6772af196169a46a8230",
@@ -805,6 +797,22 @@
             "/api/quiz/questions.func/index.js",
             "/api/setup-db.func/index.js",
             "/api/setup.func/index.js"
+          ]
+        },
+        "971": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1353,
+          "consumersList": [
+            "/api/auth/me.func/index.js"
+          ]
+        },
+        "1046": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 2034,
+          "consumersList": [
+            "/api/admin/stats.func/index.js"
           ]
         },
         "1087": {
@@ -887,6 +895,14 @@
             "/api/setup.func/index.js"
           ]
         },
+        "1434": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1923,
+          "consumersList": [
+            "/api/admin/add-categories.func/index.js"
+          ]
+        },
         "1443": {
           "consumers": 19,
           "groupedPath": "ebff0d857acd6772af196169a46a8230",
@@ -914,12 +930,20 @@
             "/api/setup.func/index.js"
           ]
         },
-        "1690": {
+        "1771": {
           "consumers": 1,
           "inlined": true,
-          "byteLength": 2034,
+          "byteLength": 1595,
           "consumersList": [
-            "/api/admin/stats.func/index.js"
+            "/api/admin/validate-payment.func/index.js"
+          ]
+        },
+        "1780": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 3566,
+          "consumersList": [
+            "/api/quiz/categories.func/index.js"
           ]
         },
         "1977": {
@@ -946,14 +970,6 @@
             "/api/quiz/progress.func/index.js",
             "/api/quiz/questions.func/index.js",
             "/api/setup-db.func/index.js",
-            "/api/setup.func/index.js"
-          ]
-        },
-        "2028": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1533,
-          "consumersList": [
             "/api/setup.func/index.js"
           ]
         },
@@ -1009,12 +1025,20 @@
             "/api/setup.func/index.js"
           ]
         },
-        "2375": {
+        "2484": {
           "consumers": 1,
           "inlined": true,
-          "byteLength": 2398,
+          "byteLength": 1533,
           "consumersList": [
-            "/api/admin/users.func/index.js"
+            "/api/setup.func/index.js"
+          ]
+        },
+        "2664": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1935,
+          "consumersList": [
+            "/api/admin/prices.func/index.js"
           ]
         },
         "3325": {
@@ -1044,22 +1068,6 @@
             "/api/setup.func/index.js"
           ]
         },
-        "3602": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1325,
-          "consumersList": [
-            "/api/quiz/progress.func/index.js"
-          ]
-        },
-        "3784": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 340,
-          "consumersList": [
-            "/api/init-db.func/index.js"
-          ]
-        },
         "4410": {
           "consumers": 19,
           "groupedPath": "ebff0d857acd6772af196169a46a8230",
@@ -1085,14 +1093,6 @@
             "/api/quiz/questions.func/index.js",
             "/api/setup-db.func/index.js",
             "/api/setup.func/index.js"
-          ]
-        },
-        "4673": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1595,
-          "consumersList": [
-            "/api/admin/validate-payment.func/index.js"
           ]
         },
         "4799": {
@@ -1230,6 +1230,14 @@
             "/api/setup.func/index.js"
           ]
         },
+        "5793": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1677,
+          "consumersList": [
+            "/api/payment/request.func/index.js"
+          ]
+        },
         "5890": {
           "consumers": 19,
           "groupedPath": "ebff0d857acd6772af196169a46a8230",
@@ -1284,12 +1292,12 @@
             "/api/setup.func/index.js"
           ]
         },
-        "6707": {
+        "6699": {
           "consumers": 1,
           "inlined": true,
-          "byteLength": 1677,
+          "byteLength": 2863,
           "consumersList": [
-            "/api/payment/request.func/index.js"
+            "/api/admin/payments.func/index.js"
           ]
         },
         "6729": {
@@ -1346,14 +1354,6 @@
             "/api/setup.func/index.js"
           ]
         },
-        "6988": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 2863,
-          "consumersList": [
-            "/api/admin/payments.func/index.js"
-          ]
-        },
         "7031": {
           "consumers": 19,
           "groupedPath": "ebff0d857acd6772af196169a46a8230",
@@ -1406,14 +1406,6 @@
             "/api/quiz/questions.func/index.js",
             "/api/setup-db.func/index.js",
             "/api/setup.func/index.js"
-          ]
-        },
-        "7132": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1476,
-          "consumersList": [
-            "/api/payments/create.func/index.js"
           ]
         },
         "7313": {
@@ -1470,22 +1462,6 @@
             "/api/setup.func/index.js"
           ]
         },
-        "7538": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 1353,
-          "consumersList": [
-            "/api/auth/me.func/index.js"
-          ]
-        },
-        "7612": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 4121,
-          "consumersList": [
-            "/api/setup-db.func/index.js"
-          ]
-        },
         "7676": {
           "consumers": 19,
           "groupedPath": "ebff0d857acd6772af196169a46a8230",
@@ -1540,6 +1516,22 @@
             "/api/setup.func/index.js"
           ]
         },
+        "8112": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 3994,
+          "consumersList": [
+            "/api/admin/questions.func/index.js"
+          ]
+        },
+        "8160": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 2398,
+          "consumersList": [
+            "/api/admin/users.func/index.js"
+          ]
+        },
         "8339": {
           "consumers": 19,
           "groupedPath": "ebff0d857acd6772af196169a46a8230",
@@ -1567,14 +1559,6 @@
             "/api/setup.func/index.js"
           ]
         },
-        "8398": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 3886,
-          "consumersList": [
-            "/api/auth/register.func/index.js"
-          ]
-        },
         "8944": {
           "consumers": 18,
           "groupedPath": "69e9cf509a789521fa5200179a6e0423",
@@ -1599,6 +1583,30 @@
             "/api/quiz/questions.func/index.js",
             "/api/setup-db.func/index.js",
             "/api/setup.func/index.js"
+          ]
+        },
+        "8971": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 3886,
+          "consumersList": [
+            "/api/auth/register.func/index.js"
+          ]
+        },
+        "9013": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 340,
+          "consumersList": [
+            "/api/init-db.func/index.js"
+          ]
+        },
+        "9224": {
+          "consumers": 1,
+          "inlined": true,
+          "byteLength": 1325,
+          "consumersList": [
+            "/api/quiz/progress.func/index.js"
           ]
         },
         "9257": {
@@ -1653,36 +1661,28 @@
             "/api/setup.func/index.js"
           ]
         },
-        "9427": {
+        "9500": {
           "consumers": 1,
           "inlined": true,
-          "byteLength": 1923,
+          "byteLength": 4121,
           "consumersList": [
-            "/api/admin/add-categories.func/index.js"
+            "/api/setup-db.func/index.js"
           ]
         },
-        "9573": {
+        "9502": {
           "consumers": 1,
           "inlined": true,
-          "byteLength": 1648,
+          "byteLength": 2894,
           "consumersList": [
             "/api/quiz/questions.func/index.js"
           ]
         },
-        "9612": {
+        "9793": {
           "consumers": 1,
           "inlined": true,
-          "byteLength": 1356,
+          "byteLength": 2192,
           "consumersList": [
-            "/api/auth/status.func/index.js"
-          ]
-        },
-        "9650": {
-          "consumers": 1,
-          "inlined": true,
-          "byteLength": 2612,
-          "consumersList": [
-            "/api/quiz/categories.func/index.js"
+            "/api/auth/login.func/index.js"
           ]
         },
         "9799": {
