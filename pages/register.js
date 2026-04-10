@@ -83,7 +83,7 @@ export default function Register() {
                   type="text"
                   value={nom}
                   onChange={e => setNom(e.target.value)}
-                  placeholder="Ex: NIAMPA"
+                  placeholder="Ex: OUEDRAOGO"
                   required
                   className="w-full px-4 py-3.5 text-lg border-2 border-gray-200 rounded-xl focus:border-amber-500 focus:outline-none transition-colors"
                   style={{ fontSize: '16px' }}
@@ -97,7 +97,7 @@ export default function Register() {
                   type="text"
                   value={prenom}
                   onChange={e => setPrenom(e.target.value)}
-                  placeholder="Ex: Issa"
+                  placeholder="Ex: Mariam"
                   required
                   className="w-full px-4 py-3.5 text-lg border-2 border-gray-200 rounded-xl focus:border-amber-500 focus:outline-none transition-colors"
                   style={{ fontSize: '16px' }}

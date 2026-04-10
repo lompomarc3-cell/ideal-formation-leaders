@@ -91,11 +91,11 @@ export default function Payment() {
             <div className="space-y-3 text-left mb-6">
               <div className="flex items-start gap-3 bg-amber-50 p-3 rounded-xl">
                 <span className="text-xl">1️⃣</span>
-                <p className="text-sm text-amber-800 font-medium">Effectuez le paiement Orange Money : <strong>*144*10*76223962#</strong></p>
+                <p className="text-sm text-amber-800 font-medium">Effectuez le paiement Orange Money : <button onClick={() => navigator.clipboard?.writeText('*144*10*76223962#')} className="font-extrabold underline decoration-dotted cursor-pointer" title="Copier">*144*10*76223962#</button></p>
               </div>
               <div className="flex items-start gap-3 bg-amber-50 p-3 rounded-xl">
                 <span className="text-xl">2️⃣</span>
-                <p className="text-sm text-amber-800 font-medium">Envoyez la capture d'écran via WhatsApp au <strong>+226 76 22 39 62</strong></p>
+                <p className="text-sm text-amber-800 font-medium">Envoyez la capture d'écran via WhatsApp au <a href="tel:+22676223962" className="font-extrabold underline">+226 76 22 39 62</a></p>
               </div>
               <div className="flex items-start gap-3 bg-amber-50 p-3 rounded-xl">
                 <span className="text-xl">3️⃣</span>
@@ -181,13 +181,13 @@ export default function Payment() {
               </div>
             </div>
             <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-3">
-              <p className="text-sm font-bold text-orange-100 mb-1">Code USSD :</p>
-              <p className="text-2xl font-extrabold tracking-wider">*144*10*76223962#</p>
+              <p className="text-sm font-bold text-orange-100 mb-1">Code USSD (appuyez pour copier) :</p>
+              <button onClick={() => navigator.clipboard?.writeText('*144*10*76223962#')} className="text-2xl font-extrabold tracking-wider underline decoration-dotted active:opacity-70" title="Copier le code USSD">*144*10*76223962#</button>
             </div>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-100 text-xs">Bénéficiaire</p>
-                <p className="font-bold">+226 76 22 39 62</p>
+                <a href="tel:+22676223962" className="font-bold underline">+226 76 22 39 62</a>
               </div>
               <div className="text-right">
                 <p className="text-orange-100 text-xs">Montant</p>

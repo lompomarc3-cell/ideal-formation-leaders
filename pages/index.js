@@ -242,10 +242,14 @@ export default function Home() {
               </div>
             </div>
             <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
-              <p className="text-sm text-orange-100">Code USSD :</p>
-              <p className="text-xl font-extrabold">*144*10*76223962#</p>
+              <p className="text-sm text-orange-100">Code USSD (appuyez pour copier) :</p>
+              <button
+                onClick={() => { navigator.clipboard?.writeText('*144*10*76223962#'); }}
+                className="text-xl font-extrabold underline decoration-dotted active:opacity-70"
+                title="Copier le code USSD"
+              >*144*10*76223962#</button>
             </div>
-            <p className="text-orange-100 text-sm">Bénéficiaire : <strong className="text-white">+226 76 22 39 62</strong></p>
+            <p className="text-orange-100 text-sm">Bénéficiaire : <a href="tel:+22676223962" className="font-extrabold text-white underline">+226 76 22 39 62</a></p>
           </div>
 
           {/* Fonctionnalités */}

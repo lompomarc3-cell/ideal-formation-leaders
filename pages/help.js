@@ -108,10 +108,10 @@ export default function Help() {
                 </div>
               </div>
               <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
-                <p className="text-orange-100 text-xs">Code USSD :</p>
-                <p className="text-xl font-extrabold tracking-wider">*144*10*76223962#</p>
+                <p className="text-orange-100 text-xs">Code USSD (appuyez pour copier) :</p>
+                <button onClick={() => navigator.clipboard?.writeText('*144*10*76223962#')} className="text-xl font-extrabold tracking-wider underline decoration-dotted active:opacity-70" title="Copier le code USSD">*144*10*76223962#</button>
               </div>
-              <p className="text-orange-100 text-sm">Bénéficiaire : <strong className="text-white">+226 76 22 39 62</strong></p>
+              <p className="text-orange-100 text-sm">Bénéficiaire : <a href="tel:+22676223962" className="font-extrabold text-white underline">+226 76 22 39 62</a></p>
               <div className="flex gap-3 mt-3">
                 <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center">
                   <p className="text-xs text-orange-100">Directs</p>

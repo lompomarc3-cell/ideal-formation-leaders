@@ -463,7 +463,7 @@ function AdminQuestions({ getToken, onNotif }) {
         className="w-full bg-gray-800 text-white rounded-xl px-4 py-3 mb-4 text-sm border border-gray-700">
         <option value="">📂 Toutes les catégories</option>
         {categories.map(c => (
-          <option key={c.id} value={c.id}>{c.type_concours === 'direct' ? '📚' : '🎓'} {c.nom}</option>
+          <option key={c.id} value={c.id}>{c.type === 'direct' ? '📚' : '🎓'} {c.nom}</option>
         ))}
       </select>
       {showBulkAdd && (
@@ -510,7 +510,7 @@ function AdminQuestions({ getToken, onNotif }) {
                 ))}
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-500 truncate max-w-[60%]">{q.ifl_categories?.nom}</span>
+                <span className="text-xs text-gray-500 truncate max-w-[60%]">{q.categorie_nom}</span>
                 <div className="flex gap-2">
                   <button onClick={() => { setEditQ(q); setShowForm(false) }} className="text-amber-400 hover:text-amber-300 p-1">✏️</button>
                   <button onClick={() => deleteQuestion(q.id)} className="text-red-400 hover:text-red-300 p-1">🗑️</button>
@@ -541,7 +541,7 @@ function QuestionForm({ initial, categories, onSave, onCancel }) {
             className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" required>
             <option value="">Choisir une catégorie</option>
             {categories.map(c => (
-              <option key={c.id} value={c.id}>{c.type_concours === 'direct' ? '📚' : '🎓'} {c.nom}</option>
+              <option key={c.id} value={c.id}>{c.type === 'direct' ? '📚' : '🎓'} {c.nom}</option>
             ))}
           </select>
         </div>
