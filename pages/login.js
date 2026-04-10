@@ -68,8 +68,8 @@ export default function Login() {
               {/* Téléphone */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1.5">📱 Numéro de téléphone</label>
-                <div className="flex">
-                  <span className="flex items-center px-3 rounded-l-xl border-2 border-r-0 border-gray-200 bg-gray-50 text-gray-600 font-semibold text-sm">
+                <div className="flex w-full" style={{ minWidth: 0 }}>
+                  <span className="flex items-center flex-shrink-0 px-3 rounded-l-xl border-2 border-r-0 border-gray-200 bg-gray-50 text-gray-600 font-semibold text-sm whitespace-nowrap" style={{ minWidth: 0 }}>
                     🇧🇫 +226
                   </span>
                   <input
@@ -78,8 +78,8 @@ export default function Login() {
                     onChange={e => setPhone(e.target.value)}
                     placeholder="70 00 00 00"
                     required
-                    className="flex-1 px-3 py-3.5 text-lg border-2 border-gray-200 rounded-r-xl focus:border-amber-500 focus:outline-none transition-colors"
-                    style={{ fontSize: '16px' }}
+                    className="min-w-0 flex-1 px-3 py-3.5 border-2 border-gray-200 rounded-r-xl focus:border-amber-500 focus:outline-none transition-colors"
+                    style={{ fontSize: '16px', width: '100%', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>

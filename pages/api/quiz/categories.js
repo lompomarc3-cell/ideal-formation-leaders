@@ -96,11 +96,13 @@ export default async function handler(req) {
     })
   }
 
-  // Vérifier l'authentification
+  // Vérifier l'authentification (optionnelle pour les catégories)
   const auth = req.headers.get('authorization') || ''
   const token = auth.replace('Bearer ', '')
+
+  // Si pas de token, utiliser l'API publique (renvoyer les catégories quand même)
   if (!token) {
-    return new Response(JSON.stringify({ error: 'Token requis' }), {
+    return new Response(JSON.stringify({ error: 'Token requis', redirect: '/api/quiz/public-categories' }), {
       status: 401, headers: { 'Content-Type': 'application/json' }
     })
   }

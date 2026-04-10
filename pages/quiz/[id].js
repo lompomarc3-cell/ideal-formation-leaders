@@ -22,8 +22,11 @@ export default function QuizPage() {
   const [showUpgrade, setShowUpgrade] = useState(false)
 
   useEffect(() => {
-    if (!loading && !user) router.push('/login')
-  }, [user, loading, router])
+    if (!loading && !user) {
+      // Rediriger vers la page quiz publique pour les visiteurs non connectés
+      if (id) router.replace(`/quiz/public/${id}`)
+    }
+  }, [user, loading, router, id])
 
   useEffect(() => {
     if (id && user) fetchQuestions()

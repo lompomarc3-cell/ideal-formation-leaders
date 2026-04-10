@@ -6,7 +6,8 @@ import { useAuth } from './_app'
 
 const APP_URL = 'https://ideal-formation-leaders.pages.dev'
 
-const CATEGORIES_DIRECT = [
+// Catégories statiques de fallback (si Supabase non disponible)
+const CATEGORIES_DIRECT_STATIC = [
   { nom: 'Actualité / Culture générale', icone: '🌍' },
   { nom: 'Français', icone: '📚' },
   { nom: 'Littérature et art', icone: '🎨' },
@@ -15,21 +16,25 @@ const CATEGORIES_DIRECT = [
   { nom: 'Psychotechniques', icone: '🧠' },
   { nom: 'Mathématiques', icone: '📐' },
   { nom: 'PC (Physique-Chimie)', icone: '⚗️' },
+  { nom: 'Droit', icone: '⚖️' },
+  { nom: 'Économie', icone: '💹' },
   { nom: 'Entraînement QCM', icone: '✏️' },
   { nom: 'Accompagnement final', icone: '🎯' }
 ]
 
-const CATEGORIES_PRO = [
+const CATEGORIES_PRO_STATIC = [
   { nom: 'Spécialités Vie Scolaire (CASU/AASU)', icone: '🏫' },
   { nom: 'Actualités et Culture Générale', icone: '📰' },
   { nom: 'Spécialités CISU/AISU/ENAREF', icone: '🏛️' },
-  { nom: 'Inspectorat (IES/IEPENF)', icone: '🔍' },
-  { nom: 'Professeurs Agrégés', icone: '🎓' },
-  { nom: 'CAPES – Toutes Options', icone: '📖' },
+  { nom: 'Inspectorat : IES', icone: '🔍' },
+  { nom: 'Inspectorat : IEPENF', icone: '🔎' },
+  { nom: 'CSAPÉ', icone: '🎓' },
+  { nom: 'Agrégés', icone: '📜' },
+  { nom: 'CAPES toutes options', icone: '📖' },
   { nom: 'Administrateur des Hôpitaux', icone: '🏥' },
   { nom: 'Spécialités Santé', icone: '💊' },
   { nom: 'Justice', icone: '⚖️' },
-  { nom: 'Magistrature', icone: '🏛️' },
+  { nom: 'Magistrature', icone: '👨‍⚖️' },
   { nom: 'Spécialités GSP', icone: '🛡️' },
   { nom: 'Spécialités Police', icone: '👮' },
   { nom: 'Administrateur Civil', icone: '📋' },
@@ -41,6 +46,10 @@ export default function Home() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [shareMsg, setShareMsg] = useState('')
+  const [categoriesDirect, setCategoriesDirect] = useState([])
+  const [categoriesPro, setCategoriesPro] = useState([])
+  const [loadingCats, setLoadingCats] = useState(true)
+  const [activeTab, setActiveTab] = useState('direct')
   const scrollDirectRef = useRef(null)
   const scrollProRef = useRef(null)
 
@@ -51,8 +60,40 @@ export default function Home() {
     }
   }, [user, loading, router])
 
+  // Charger les catégories publiques depuis Supabase (sans authentification)
+  useEffect(() => {
+    if (!loading && !user) {
+      loadPublicCategories()
+    }
+  }, [loading, user])
+
+  const loadPublicCategories = async () => {
+    try {
+      const [r1, r2] = await Promise.all([
+        fetch('/api/quiz/public-categories?type=direct'),
+        fetch('/api/quiz/public-categories?type=professionnel')
+      ])
+      const d1 = await r1.json()
+      const d2 = await r2.json()
+      if (d1.categories && d1.categories.length > 0) {
+        setCategoriesDirect(d1.categories)
+      } else {
+        setCategoriesDirect(CATEGORIES_DIRECT_STATIC)
+      }
+      if (d2.categories && d2.categories.length > 0) {
+        setCategoriesPro(d2.categories)
+      } else {
+        setCategoriesPro(CATEGORIES_PRO_STATIC)
+      }
+    } catch {
+      setCategoriesDirect(CATEGORIES_DIRECT_STATIC)
+      setCategoriesPro(CATEGORIES_PRO_STATIC)
+    }
+    setLoadingCats(false)
+  }
+
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs (5 000 FCFA/an)\n✅ Concours professionnels (20 000 FCFA/an)\n✅ 10 questions gratuites sans inscription\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA/an)\n✅ Concours professionnels – 17 dossiers (20 000 FCFA/an)\n✅ 5 questions gratuites par dossier sans inscription\n\n👉 ${APP_URL}`
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Formation Burkina Faso', text, url: APP_URL })
@@ -74,11 +115,13 @@ export default function Home() {
     )
   }
 
+  const currentCats = activeTab === 'direct' ? categoriesDirect : categoriesPro
+
   return (
     <>
       <Head>
         <title>IFL – Idéale Formation of Leaders | Concours Burkina Faso</title>
-        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Concours directs et professionnels." />
+        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. 5 questions gratuites par dossier sans inscription. Concours directs (12 dossiers) et professionnels (17 dossiers)." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
       <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
@@ -126,7 +169,7 @@ export default function Home() {
             </h1>
             <p className="text-orange-200 text-base mb-2">Des milliers de QCM pour vous préparer</p>
             <div className="inline-block bg-white bg-opacity-20 text-white text-xs font-bold px-3 py-1 rounded-full mb-6">
-              🎯 10 questions gratuites sans inscription
+              🆓 5 questions gratuites par dossier – sans inscription
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
@@ -151,85 +194,79 @@ export default function Home() {
 
           {/* Offres */}
           <h2 className="text-2xl font-extrabold mb-4" style={{ color: '#8B2500' }}>Nos offres</h2>
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-white rounded-2xl shadow-md border-2 border-amber-100 p-5 text-center">
               <div className="text-4xl mb-3">📚</div>
               <h3 className="font-extrabold text-base mb-1" style={{ color: '#8B2500' }}>Concours Directs</h3>
-              <p className="text-gray-500 text-xs mb-3">10 dossiers thématiques</p>
+              <p className="text-gray-500 text-xs mb-3">12 dossiers thématiques</p>
               <p className="text-2xl font-extrabold" style={{ color: '#C4521A' }}>5 000</p>
               <p className="text-gray-400 text-xs">FCFA / an</p>
             </div>
             <div className="bg-white rounded-2xl shadow-md border-2 border-amber-100 p-5 text-center">
               <div className="text-4xl mb-3">🎓</div>
               <h3 className="font-extrabold text-base mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
-              <p className="text-gray-500 text-xs mb-3">15 dossiers spécialisés</p>
+              <p className="text-gray-500 text-xs mb-3">17 dossiers spécialisés</p>
               <p className="text-2xl font-extrabold" style={{ color: '#C4521A' }}>20 000</p>
               <p className="text-gray-400 text-xs">FCFA / an</p>
             </div>
           </div>
 
-          {/* Dossiers Concours Directs - Scroll horizontal */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xl font-extrabold" style={{ color: '#8B2500' }}>📚 Concours Directs</h2>
-              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">10 dossiers</span>
-            </div>
-            <p className="text-gray-400 text-xs mb-3">← Glissez pour voir tous les dossiers →</p>
-            <div
-              ref={scrollDirectRef}
-              className="flex gap-3 overflow-x-auto pb-3"
-              style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {CATEGORIES_DIRECT.map((cat, i) => (
-                <div
-                  key={i}
-                  className="flex-shrink-0 bg-white rounded-2xl border-2 border-amber-100 shadow-sm overflow-hidden"
-                  style={{ scrollSnapAlign: 'start', width: '160px', minWidth: '160px', opacity: 0.85 }}
-                >
-                  <div className="p-4 text-center">
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3 flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE0C8)', minHeight: '64px', minWidth: '64px' }}>
-                      <span style={{ fontSize: '36px' }}>{cat.icone}</span>
-                    </div>
-                    <p className="text-xs font-bold text-gray-700 leading-tight mb-2">{cat.nom}</p>
-                    <span className="text-gray-300 text-sm">🔒</span>
-                  </div>
-                  <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }}></div>
-                </div>
-              ))}
+          {/* Bannière accès gratuit */}
+          <div className="rounded-2xl p-4 mb-6 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #D4A017' }}>
+            <span className="text-3xl flex-shrink-0">🆓</span>
+            <div>
+              <p className="font-extrabold text-amber-800 text-sm">5 questions gratuites par dossier</p>
+              <p className="text-amber-700 text-xs mt-0.5">Essayez chaque dossier sans créer de compte. Inscrivez-vous pour tout débloquer !</p>
             </div>
           </div>
 
-          {/* Dossiers Concours Professionnels - Scroll horizontal */}
+          {/* Onglets Directs / Professionnels */}
+          <div className="flex gap-2 mb-4 bg-gray-100 rounded-2xl p-1.5">
+            <button
+              onClick={() => setActiveTab('direct')}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'direct' ? 'text-white shadow-md' : 'text-gray-500'}`}
+              style={activeTab === 'direct' ? { background: '#C4521A' } : {}}
+            >
+              📚 Concours Directs <span className="text-xs opacity-70">(12)</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('professionnel')}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'professionnel' ? 'text-white shadow-md' : 'text-gray-500'}`}
+              style={activeTab === 'professionnel' ? { background: '#C4521A' } : {}}
+            >
+              🎓 Professionnels <span className="text-xs opacity-70">(17)</span>
+            </button>
+          </div>
+
+          {/* Section dossiers avec liens cliquables */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xl font-extrabold" style={{ color: '#8B2500' }}>🎓 Professionnels</h2>
-              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">15 dossiers</span>
+              <h2 className="text-xl font-extrabold" style={{ color: '#8B2500' }}>
+                {activeTab === 'direct' ? '📚 Concours Directs' : '🎓 Professionnels'}
+              </h2>
+              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
+                {activeTab === 'direct' ? '12 dossiers' : '17 dossiers'}
+              </span>
             </div>
             <p className="text-gray-400 text-xs mb-3">← Glissez pour voir tous les dossiers →</p>
-            <div
-              ref={scrollProRef}
-              className="flex gap-3 overflow-x-auto pb-3"
-              style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {CATEGORIES_PRO.map((cat, i) => (
-                <div
-                  key={i}
-                  className="flex-shrink-0 bg-white rounded-2xl border-2 border-amber-100 shadow-sm overflow-hidden"
-                  style={{ scrollSnapAlign: 'start', width: '160px', minWidth: '160px', opacity: 0.85 }}
-                >
-                  <div className="p-4 text-center">
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3 flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg,#F0E8FF,#E0C8FF)', minHeight: '64px', minWidth: '64px' }}>
-                      <span style={{ fontSize: '36px' }}>{cat.icone}</span>
-                    </div>
-                    <p className="text-xs font-bold text-gray-700 leading-tight mb-2">{cat.nom}</p>
-                    <span className="text-gray-300 text-sm">🔒</span>
-                  </div>
-                  <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg,#8B2500,#C4521A)' }}></div>
-                </div>
-              ))}
-            </div>
+            
+            {loadingCats ? (
+              <div className="flex gap-3 overflow-x-auto pb-3">
+                {[1,2,3].map(i => (
+                  <div key={i} className="flex-shrink-0 bg-white rounded-2xl border-2 border-gray-100 shadow-sm" style={{ width: '160px', minWidth: '160px', height: '140px', opacity: 0.5 }}></div>
+                ))}
+              </div>
+            ) : (
+              <div
+                ref={activeTab === 'direct' ? scrollDirectRef : scrollProRef}
+                className="flex gap-3 overflow-x-auto pb-3"
+                style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {currentCats.map((cat, i) => (
+                  <PublicCategoryCard key={cat.id || i} cat={cat} index={i} catType={activeTab} />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Orange Money paiement */}
@@ -244,7 +281,10 @@ export default function Home() {
             <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
               <p className="text-sm text-orange-100">Code USSD (appuyez pour copier) :</p>
               <button
-                onClick={() => { navigator.clipboard?.writeText('*144*10*76223962#'); }}
+                onClick={() => {
+                  navigator.clipboard?.writeText('*144*10*76223962#')
+                  alert('✅ Code copié : *144*10*76223962#')
+                }}
                 className="text-xl font-extrabold underline decoration-dotted active:opacity-70"
                 title="Copier le code USSD"
               >*144*10*76223962#</button>
@@ -312,5 +352,55 @@ export default function Home() {
         </a>
       </div>
     </>
+  )
+}
+
+// Carte de catégorie cliquable pour les visiteurs non connectés
+function PublicCategoryCard({ cat, index, catType }) {
+  const icone = cat.icone || '📋'
+  const bgDirect = 'linear-gradient(135deg,#FFF0E8,#FFE0C8)'
+  const bgPro = 'linear-gradient(135deg,#F0E8FF,#E0C8FF)'
+  const barDirect = 'linear-gradient(90deg,#C4521A,#D4A017)'
+  const barPro = 'linear-gradient(90deg,#8B2500,#C4521A)'
+
+  // Si la catégorie a un ID Supabase, on peut accéder aux 5 questions gratuites
+  if (cat.id) {
+    return (
+      <Link
+        href={`/quiz/public/${cat.id}`}
+        className="flex-shrink-0 bg-white rounded-2xl border-2 border-amber-100 shadow-sm overflow-hidden active:scale-95 transition-all hover:border-amber-400 hover:shadow-md"
+        style={{ scrollSnapAlign: 'start', width: '160px', minWidth: '160px' }}
+      >
+        <div className="p-4 text-center">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3 flex-shrink-0"
+            style={{ background: catType === 'direct' ? bgDirect : bgPro, minHeight: '64px', minWidth: '64px' }}>
+            <span style={{ fontSize: '36px' }}>{icone}</span>
+          </div>
+          <p className="text-xs font-bold text-gray-700 leading-tight mb-2">{cat.nom}</p>
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#FFF0E8', color: '#C4521A' }}>
+            🆓 5 gratuites
+          </span>
+        </div>
+        <div className="h-1 w-full" style={{ background: catType === 'direct' ? barDirect : barPro }}></div>
+      </Link>
+    )
+  }
+
+  // Catégorie statique (pas d'ID Supabase) → affichage sans lien
+  return (
+    <div
+      className="flex-shrink-0 bg-white rounded-2xl border-2 border-amber-100 shadow-sm overflow-hidden"
+      style={{ scrollSnapAlign: 'start', width: '160px', minWidth: '160px' }}
+    >
+      <div className="p-4 text-center">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3 flex-shrink-0"
+          style={{ background: catType === 'direct' ? bgDirect : bgPro, minHeight: '64px', minWidth: '64px' }}>
+          <span style={{ fontSize: '36px' }}>{icone}</span>
+        </div>
+        <p className="text-xs font-bold text-gray-700 leading-tight mb-2">{cat.nom}</p>
+        <span className="text-gray-400 text-xs">🔒 Bientôt</span>
+      </div>
+      <div className="h-1 w-full" style={{ background: catType === 'direct' ? barDirect : barPro }}></div>
+    </div>
   )
 }

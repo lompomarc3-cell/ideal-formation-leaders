@@ -151,8 +151,8 @@ export default function Payment() {
           
           <div className="grid grid-cols-2 gap-3 mb-6">
             {[
-              { key: 'direct', label: 'Concours Directs', icon: '📚', desc: '10 dossiers' },
-              { key: 'professionnel', label: 'Professionnels', icon: '🎓', desc: '12 dossiers' }
+              { key: 'direct', label: 'Concours Directs', icon: '📚', desc: '12 dossiers thématiques' },
+              { key: 'professionnel', label: 'Professionnels', icon: '🎓', desc: '17 dossiers spécialisés' }
             ].map(opt => (
               <button
                 key={opt.key}

@@ -160,6 +160,52 @@ button:active, a:active { transform: scale(0.97); }
   color: white !important;
 }
 
+/* === CHAMP TÉLÉPHONE AVEC PRÉFIXE PAYS – Correction débordement === */
+.phone-input-wrapper {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+.phone-input-wrapper .phone-prefix {
+  flex-shrink: 0;
+  white-space: nowrap;
+  border-radius: 0.75rem 0 0 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-right: none;
+  background: #f9fafb;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
+}
+.phone-input-wrapper input[type="tel"] {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0 0.75rem 0.75rem 0;
+  border: 2px solid #e5e7eb;
+  padding: 14px 12px;
+  font-size: 16px !important;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.phone-input-wrapper input[type="tel"]:focus {
+  border-color: #f59e0b;
+}
+
+/* === FIN CORRECTION TÉLÉPHONE === */
+
+/* Mobile - phone fix */
+@media (max-width: 480px) {
+  .phone-input-wrapper {
+    max-width: 100%;
+  }
+}
+
 /* Bouton WhatsApp flottant */
 .whatsapp-fab {
   position: fixed;
