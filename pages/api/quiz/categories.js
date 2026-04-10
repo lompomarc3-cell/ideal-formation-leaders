@@ -1,67 +1,58 @@
 export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
-
-// ============================================================
-// Ordre officiel des dossiers Concours Directs (12 dossiers)
-// ============================================================
-const DIRECT_ORDER = [
-  "actualit",        // 1 - Actualité / Culture générale
-  "fran",            // 2 - Français
-  "litt",            // 3 - Littérature et Art
-  "h-g",             // 4 - H-G (Histoire-Géographie)
-  "histoir",         // 4 - variante Histoire
-  "svt",             // 5 - SVT
-  "psycho",          // 6 - Psychotechniques
-  "math",            // 7 - Maths
-  "physique",        // 8 - Physique-Chimie
-  "pc (",            // 8 - variante PC
-  "droit",           // 9 - Droit
-  "conomie",         // 10 - Économie
-  "entra",           // 11 - Entraînement QCM
-  "accomp",          // 12 - Accompagnement Final
-]
-
-// ============================================================
-// Ordre officiel des dossiers Concours Professionnels (17 dossiers)
-// ============================================================
-const PRO_ORDER = [
-  "vie scolaire",    // 1 - Spécialités Vie scolaire (CASU-AASU)
-  "casu",            // 1 - variante
-  "actualit",        // 2 - Actualités et culture générale
-  "cisu",            // 3 - Spécialités CISU/AISU/ENAREF
-  "ies",             // 4 - Inspectorat : IES
-  "iepenf",          // 5 - Inspectorat : IEPENF
-  "csap",            // 6 - CSAPÉ
-  "agr",             // 7 - Agrégés
-  "capes",           // 8 - CAPES toutes options
-  "pital",           // 9 - Administrateur des hôpitaux
-  "sant",            // 10 - Spécialités santé
-  "justice",         // 11 - Justice
-  "magistr",         // 12 - Magistrature
-  "gsp",             // 13 - Spécialités GSP
-  "police",          // 14 - Spécialités police
-  "civil",           // 15 - Administrateur civil
-  "entra",           // 16 - Entraînement QCM
-  "accomp",          // 17 - Accompagnement final
-]
+// Mapping direct: nom partiel → ordre officiel
+const ORDRE_MAP = {
+  direct: [
+    { match: 'actualit', ordre: 1 },
+    { match: 'fran', ordre: 2 },
+    { match: 'litt', ordre: 3 },
+    { match: 'h-g', ordre: 4 },
+    { match: 'histoir', ordre: 4 },
+    { match: 'svt', ordre: 5 },
+    { match: 'psycho', ordre: 6 },
+    { match: 'math', ordre: 7 },
+    { match: 'physique', ordre: 8 },
+    { match: 'pc (', ordre: 8 },
+    { match: 'droit', ordre: 9 },
+    { match: 'conomie', ordre: 10 },
+    { match: 'entra', ordre: 11 },
+    { match: 'accomp', ordre: 12 },
+  ],
+  professionnel: [
+    { match: 'vie scolaire', ordre: 1 },
+    { match: 'casu', ordre: 1 },
+    { match: 'actualit', ordre: 2 },
+    { match: 'cisu', ordre: 3 },
+    { match: 'inspectorat : ies', ordre: 4 },
+    { match: ' ies', ordre: 4 },
+    { match: 'iepenf', ordre: 5 },
+    { match: 'csap', ordre: 6 },
+    { match: 'agrég', ordre: 7 },
+    { match: 'agr', ordre: 7 },
+    { match: 'capes', ordre: 8 },
+    { match: 'h\u00f4pital', ordre: 9 },
+    { match: 'hopital', ordre: 9 },
+    { match: 'administrateur des h', ordre: 9 },
+    { match: 'sant', ordre: 10 },
+    { match: 'justice', ordre: 11 },
+    { match: 'magistr', ordre: 12 },
+    { match: 'gsp', ordre: 13 },
+    { match: 'police', ordre: 14 },
+    { match: 'civil', ordre: 15 },
+    { match: 'entra', ordre: 16 },
+    { match: 'accomp', ordre: 17 },
+  ]
+}
 
 function getCatOrdre(nom, catType) {
   const n = (nom || '').toLowerCase()
-  const orderList = catType === 'direct' ? DIRECT_ORDER : PRO_ORDER
-
-  // Chercher la première correspondance dans la liste ordonnée
-  for (let i = 0; i < orderList.length; i++) {
-    if (n.includes(orderList[i].toLowerCase())) {
-      // Calculer l'ordre réel en tenant compte des doublons (plusieurs clés → même ordre)
-      // Pour 'direct': indices 0-1=ordre1, 2=2, 3-4=4, etc.
-      if (catType === 'direct') {
-        const directMap = { 0: 1, 1: 2, 2: 3, 3: 4, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 8, 10: 9, 11: 10, 12: 11, 13: 12 }
-        return directMap[i] || (i + 1)
-      } else {
-        const proMap = { 0: 1, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15, 16: 16, 17: 17 }
-        return proMap[i] || (i + 1)
-      }
+  const mapList = ORDRE_MAP[catType] || []
+  // Chercher la correspondance la plus longue en premier (pour éviter les conflits)
+  const sorted = [...mapList].sort((a, b) => b.match.length - a.match.length)
+  for (const entry of sorted) {
+    if (n.includes(entry.match.toLowerCase())) {
+      return entry.ordre
     }
   }
   return 99
