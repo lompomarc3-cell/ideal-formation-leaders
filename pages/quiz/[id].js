@@ -18,6 +18,8 @@ export default function QuizPage() {
   const [finished, setFinished] = useState(false)
   const [loadingQ, setLoadingQ] = useState(true)
   const [error, setError] = useState('')
+  const [hasFullAccess, setHasFullAccess] = useState(false)
+  const [showUpgrade, setShowUpgrade] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
@@ -31,7 +33,6 @@ export default function QuizPage() {
     setLoadingQ(true)
     try {
       const token = getToken()
-      // Récupérer les infos de la catégorie
       const [catRes, qRes] = await Promise.all([
         fetch('/api/quiz/categories', { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`/api/quiz/questions?categorie_id=${id}`, { headers: { Authorization: `Bearer ${token}` } })
@@ -39,10 +40,14 @@ export default function QuizPage() {
       const catData = await catRes.json()
       const qData = await qRes.json()
 
-      if (qData.error) {
+      if (qData.error && qRes.status === 403) {
+        // Pas d'accès du tout, rediriger vers paiement
+        setError(qData.error)
+      } else if (qData.error) {
         setError(qData.error)
       } else {
         setQuestions(qData.questions || [])
+        setHasFullAccess(qData.hasFullAccess || false)
         const cat = catData.categories?.find(c => c.id === id)
         setCategory(cat || null)
       }
@@ -57,7 +62,6 @@ export default function QuizPage() {
     setSelected(opt)
     setAnswered(true)
     if (opt === questions[current].bonne_reponse) setScore(s => s + 1)
-    // Sauvegarder la progression
     try {
       const token = getToken()
       fetch('/api/quiz/progress', {
@@ -69,10 +73,16 @@ export default function QuizPage() {
   }
 
   const handleNext = () => {
-    if (current + 1 >= questions.length) {
-      setFinished(true)
+    const nextIndex = current + 1
+    if (nextIndex >= questions.length) {
+      // Vérifier si on a terminé toutes les questions gratuites mais il y en a d'autres
+      if (!hasFullAccess) {
+        setShowUpgrade(true)
+      } else {
+        setFinished(true)
+      }
     } else {
-      setCurrent(c => c + 1)
+      setCurrent(nextIndex)
       setSelected(null)
       setAnswered(false)
     }
@@ -89,6 +99,8 @@ export default function QuizPage() {
   const q = questions[current]
   const total = questions.length
   const progress = total > 0 ? ((current + (answered ? 1 : 0)) / total) * 100 : 0
+  const catType = category?.type || 'direct'
+  const catPrice = catType === 'professionnel' ? 20000 : 5000
 
   return (
     <>
@@ -108,16 +120,20 @@ export default function QuizPage() {
             <div className="flex-1 min-w-0">
               <p className="text-white font-bold truncate leading-tight">{category?.nom || 'QCM'}</p>
               {!loadingQ && !error && (
-                <p className="text-orange-200 text-xs">{total} question{total > 1 ? 's' : ''}</p>
+                <p className="text-orange-200 text-xs">
+                  {hasFullAccess
+                    ? `${total} question${total > 1 ? 's' : ''}`
+                    : `${total} question${total > 1 ? 's' : ''} gratuites`}
+                </p>
               )}
             </div>
-            {!loadingQ && !error && (
+            {!loadingQ && !error && !showUpgrade && (
               <span className="text-white text-sm font-bold opacity-70 flex-shrink-0">
                 {current + 1}/{total}
               </span>
             )}
           </div>
-          {!loadingQ && !error && !finished && (
+          {!loadingQ && !error && !finished && !showUpgrade && (
             <div className="h-1.5" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="h-full progress-bar" style={{ width: `${progress}%`, background: '#D4A017' }}></div>
             </div>
@@ -133,7 +149,7 @@ export default function QuizPage() {
             </div>
           )}
 
-          {/* Erreur */}
+          {/* Erreur d'accès */}
           {error && !loadingQ && (
             <div className="animate-fadeIn">
               <div className="bg-white rounded-3xl shadow-md p-8 text-center border border-red-100">
@@ -141,7 +157,7 @@ export default function QuizPage() {
                 <h3 className="text-xl font-extrabold text-gray-800 mb-2">Accès restreint</h3>
                 <p className="text-gray-500 mb-6">{error}</p>
                 <Link href="/payment" className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl mb-3 shadow-md active:scale-95" style={{ background: '#C4521A' }}>
-                  💳 S'abonner maintenant
+                  💳 S&apos;abonner maintenant
                 </Link>
                 <Link href="/dashboard" className="block text-center text-gray-400 text-sm">
                   ← Retour au tableau de bord
@@ -162,8 +178,66 @@ export default function QuizPage() {
             </div>
           )}
 
-          {/* Résultats */}
-          {finished && !loadingQ && (
+          {/* Bannière "questions gratuites" si accès limité */}
+          {!loadingQ && !error && total > 0 && !hasFullAccess && !showUpgrade && !finished && (
+            <div className="mb-4 rounded-2xl p-3 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)' }}>
+              <span className="text-2xl">🆓</span>
+              <div className="flex-1">
+                <p className="text-amber-800 font-bold text-sm">Questions gratuites ({total} sur ce dossier)</p>
+                <p className="text-amber-700 text-xs">Abonnez-vous pour accéder à toutes les questions</p>
+              </div>
+              <Link href={`/payment?type=${catType}&montant=${catPrice}`} className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>
+                Débloquer
+              </Link>
+            </div>
+          )}
+
+          {/* Écran d'upgrade (fin des questions gratuites) */}
+          {showUpgrade && !loadingQ && (
+            <div className="animate-popIn">
+              <div className="bg-white rounded-3xl shadow-xl p-8 border border-amber-100 text-center">
+                <div className="text-7xl mb-4">🔓</div>
+                <h2 className="text-2xl font-extrabold mb-2" style={{ color: '#8B2500' }}>
+                  Vous avez terminé les questions gratuites !
+                </h2>
+                <p className="text-gray-500 mb-3">
+                  Dossier : <strong>{category?.nom}</strong>
+                </p>
+                <div className="rounded-2xl p-4 mb-5" style={{ background: '#FFF7E6' }}>
+                  <p className="text-amber-800 font-bold text-lg">Score sur les questions gratuites</p>
+                  <p className="text-4xl font-extrabold mt-1" style={{ color: '#C4521A' }}>
+                    {score}<span className="text-xl text-gray-400">/{total}</span>
+                  </p>
+                </div>
+                <div className="rounded-2xl p-5 mb-5" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
+                  <p className="text-orange-200 text-sm mb-1">Abonnez-vous pour accéder à</p>
+                  <p className="text-white font-bold text-lg mb-1">TOUTES les questions de ce dossier</p>
+                  <p className="text-2xl font-extrabold text-white">{catPrice.toLocaleString()} FCFA <span className="text-base font-normal opacity-80">/an</span></p>
+                </div>
+                <div className="space-y-3">
+                  <Link
+                    href={`/payment?type=${catType}&montant=${catPrice}`}
+                    className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl shadow-lg active:scale-95"
+                    style={{ background: '#C4521A' }}
+                  >
+                    💳 S&apos;abonner – {catPrice.toLocaleString()} FCFA
+                  </Link>
+                  <button
+                    onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setShowUpgrade(false) }}
+                    className="w-full py-3.5 font-bold rounded-xl border-2 border-amber-300 text-amber-800 active:scale-95"
+                  >
+                    🔄 Recommencer les questions gratuites
+                  </button>
+                  <Link href="/dashboard" className="block text-center text-gray-400 text-sm py-2">
+                    ← Retour aux dossiers
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Résultats (accès complet) */}
+          {finished && !loadingQ && !showUpgrade && (
             <div className="animate-popIn">
               <div className="bg-white rounded-3xl shadow-xl p-8 border border-amber-100 text-center">
                 <div className="text-7xl mb-4">{score >= total * 0.7 ? '🏆' : score >= total * 0.5 ? '👍' : '📚'}</div>
@@ -192,7 +266,7 @@ export default function QuizPage() {
           )}
 
           {/* Question */}
-          {!loadingQ && !error && !finished && q && (
+          {!loadingQ && !error && !finished && !showUpgrade && q && (
             <div className="animate-fadeIn">
               <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-6 mb-5">
                 <div className="flex items-start gap-3 mb-6">
@@ -239,7 +313,9 @@ export default function QuizPage() {
               {answered && (
                 <button onClick={handleNext} className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg active:scale-95 animate-popIn"
                   style={{ background: 'linear-gradient(135deg, #C4521A, #8B2500)' }}>
-                  {current + 1 >= total ? '📊 Voir mes résultats' : 'Question suivante →'}
+                  {current + 1 >= total
+                    ? (hasFullAccess ? '📊 Voir mes résultats' : '🔓 Voir le résumé')
+                    : 'Question suivante →'}
                 </button>
               )}
             </div>
