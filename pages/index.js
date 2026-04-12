@@ -271,7 +271,38 @@ const SVG_ICONS = {
 }
 
 function CatIcon({ name, color = 'white' }) {
-  const icon = SVG_ICONS[name] || SVG_ICONS['book']
+  // Mapping emoji DB → clé SVG moderne
+  const EMOJI_TO_SVG = {
+    '🌍': 'globe', '🌎': 'globe', '🌐': 'globe',
+    '📚': 'book', '📕': 'book', '📗': 'book', '📘': 'book',
+    '🎨': 'palette',
+    '🗺️': 'map', '🗺': 'map', '📍': 'map', '📌': 'map',
+    '🧬': 'leaf', '🌿': 'leaf', '🌱': 'leaf',
+    '🧠': 'brain',
+    '📐': 'calculator', '🔢': 'calculator', '🧮': 'calculator',
+    '⚗️': 'flask', '⚗': 'flask', '🔬': 'flask',
+    '⚖️': 'scale', '⚖': 'scale',
+    '💹': 'chart', '📊': 'chart', '📈': 'chart',
+    '✏️': 'pencil', '✏': 'pencil', '📝': 'pencil',
+    '🎯': 'target',
+    '🏫': 'school', '🏠': 'school',
+    '📰': 'newspaper',
+    '🏛️': 'building', '🏛': 'building',
+    '🔍': 'search',
+    '🔎': 'search2',
+    '🎓': 'graduation',
+    '📜': 'scroll',
+    '📖': 'openbook',
+    '🏥': 'hospital', '💉': 'hospital',
+    '💊': 'health', '❤️': 'health', '❤': 'health',
+    '👨‍⚖️': 'judge', '👩‍⚖️': 'judge',
+    '🛡️': 'shield', '🛡': 'shield',
+    '👮': 'badge', '👮‍♂️': 'badge',
+    '📋': 'clipboard', '📄': 'clipboard',
+  }
+  // Résoudre la clé : emoji → SVG ou clé directe
+  const key = EMOJI_TO_SVG[name] || name || 'book'
+  const icon = SVG_ICONS[key] || SVG_ICONS['book']
   return (
     <span style={{ color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {icon}
