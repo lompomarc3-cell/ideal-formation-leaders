@@ -224,20 +224,22 @@ export default function Dashboard() {
           </div>
 
           {/* Onglets Directs / Professionnels */}
-          <div className="flex gap-2 mb-5 bg-gray-100 rounded-2xl p-1.5">
+          <div className="flex gap-2 mb-5">
             <button
               onClick={() => setActiveTab('direct')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'direct' ? 'text-white shadow-md' : 'text-gray-500'}`}
-              style={activeTab === 'direct' ? { background: '#C4521A' } : {}}
+              className={`flex-1 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-1.5 ${activeTab === 'direct' ? 'text-white shadow-lg' : 'text-gray-500 bg-white border-2 border-gray-100'}`}
+              style={activeTab === 'direct' ? { background: 'linear-gradient(135deg,#8B2500,#C4521A)', boxShadow: '0 4px 12px rgba(196,82,26,0.3)' } : {}}
             >
-              📚 Concours Directs
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              Directs
             </button>
             <button
               onClick={() => setActiveTab('professionnel')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'professionnel' ? 'text-white shadow-md' : 'text-gray-500'}`}
-              style={activeTab === 'professionnel' ? { background: '#C4521A' } : {}}
+              className={`flex-1 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-1.5 ${activeTab === 'professionnel' ? 'text-white shadow-lg' : 'text-gray-500 bg-white border-2 border-gray-100'}`}
+              style={activeTab === 'professionnel' ? { background: 'linear-gradient(135deg,#0F2D5E,#1D5AB4)', boxShadow: '0 4px 12px rgba(29,90,180,0.3)' } : {}}
             >
-              🎓 Professionnels
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
+              Professionnels
             </button>
           </div>
 
@@ -328,31 +330,42 @@ export default function Dashboard() {
         </a>
 
         {/* ===== BARRE DE NAVIGATION PRINCIPALE EN BAS ===== */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-2xl" style={{ borderTop: '2px solid #FFE4CC' }}>
+        <div className="fixed bottom-0 left-0 right-0 z-50" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)', borderTop: '1.5px solid #FFE4CC', boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
           <div className="max-w-lg mx-auto flex">
-            <Link href="/" className="flex-1 flex flex-col items-center py-3 gap-0.5 transition-all text-gray-400">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9.5L12 3L21 9.5V20C21 20.5523 20.5523 21 20 21H15V15H9V21H4C3.44772 21 3 20.5523 3 20V9.5Z"/>
-              </svg>
-              <span className="text-xs font-bold">Accueil</span>
+            <Link href="/" className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all text-gray-400">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12L12 3l9 9"/>
+                  <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9"/>
+                </svg>
+              </div>
+              <span className="text-xs font-bold text-gray-400">Accueil</span>
             </Link>
             <button
-              className="flex-1 flex flex-col items-center py-3 gap-0.5 transition-all relative"
-              style={{ color: '#C4521A' }}
+              className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
             >
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 rounded-b-full" style={{ background: '#C4521A' }} />
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L9.5 8.5H2.5L8 12.5L5.5 19.5L12 15.5L18.5 19.5L16 12.5L21.5 8.5H14.5L12 2Z" fill="#FFE4CC"/>
-              </svg>
-              <span className="text-xs font-bold">Concours</span>
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                  <path d="M4 22h16"/>
+                  <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                  <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                  <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+                </svg>
+              </div>
+              <span className="text-xs font-bold" style={{ color: '#C4521A' }}>Concours</span>
             </button>
-            <Link href="/?tab=apropos" className="flex-1 flex flex-col items-center py-3 gap-0.5 transition-all text-gray-400">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 8V8.01" strokeWidth="2.5"/>
-                <path d="M12 11V16" strokeWidth="2"/>
-              </svg>
-              <span className="text-xs font-bold">À propos</span>
+            <Link href="/?tab=apropos" className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all text-gray-400">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 16v-4"/>
+                  <path d="M12 8h.01"/>
+                </svg>
+              </div>
+              <span className="text-xs font-bold text-gray-400">À propos</span>
             </Link>
           </div>
         </div>
