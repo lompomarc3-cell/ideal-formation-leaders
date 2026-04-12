@@ -250,7 +250,7 @@ export default function Dashboard() {
               {activeTab === 'direct' && !proAccess && !user.is_admin && (
                 <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#C4521A,#8B2500)' }}>
                   <p className="text-white font-bold mb-1">🎓 Concours Professionnels</p>
-                  <p className="text-orange-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA / an</p>
+                  <p className="text-orange-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA</p>
                   <Link href={`/payment?type=professionnel&montant=${prices.professionnel}`} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#C4521A' }}>
                     S'abonner →
                   </Link>
@@ -259,7 +259,7 @@ export default function Dashboard() {
               {activeTab === 'professionnel' && !directAccess && !user.is_admin && (
                 <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
                   <p className="text-white font-bold mb-1">📚 Concours Directs</p>
-                  <p className="text-orange-200 text-sm mb-3">{prices.direct.toLocaleString()} FCFA / an</p>
+                  <p className="text-orange-200 text-sm mb-3">{prices.direct.toLocaleString()} FCFA</p>
                   <Link href={`/payment?type=direct&montant=${prices.direct}`} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#C4521A' }}>
                     S'abonner →
                   </Link>

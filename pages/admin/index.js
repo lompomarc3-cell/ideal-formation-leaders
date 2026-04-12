@@ -51,6 +51,7 @@ export default function AdminDashboard() {
     { id: 'users', label: '👥 Utilisateurs' },
     { id: 'questions', label: '❓ QCM' },
     { id: 'prices', label: '💰 Prix' },
+    { id: 'password', label: '🔑 Mot de passe' },
   ]
 
   return (
@@ -115,6 +116,7 @@ export default function AdminDashboard() {
           {activeSection === 'users' && <AdminUsers getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'questions' && <AdminQuestions getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'prices' && <AdminPrices getToken={getToken} onNotif={showNotif} />}
+          {activeSection === 'password' && <AdminChangePassword getToken={getToken} onNotif={showNotif} user={user} />}
         </div>
       </div>
     </>
@@ -640,7 +642,7 @@ function PriceEditor({ price, onSave }) {
       <p className="text-white font-bold mb-1">
         {price.type_concours === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
       </p>
-      <p className="text-gray-400 text-sm mb-4">Modifier le prix d'abonnement annuel</p>
+      <p className="text-gray-400 text-sm mb-4">Modifier le prix d&apos;abonnement</p>
       <div className="flex gap-3">
         <div className="flex-1">
           <label className="text-gray-400 text-xs mb-1 block">Prix (FCFA)</label>
@@ -652,6 +654,146 @@ function PriceEditor({ price, onSave }) {
           style={{ background: saved ? '#C4521A' : '#D4A017' }}>
           {saved ? '✅' : '💾'}
         </button>
+      </div>
+    </div>
+  )
+}
+
+/* =================== MODIFICATION MOT DE PASSE =================== */
+function AdminChangePassword({ getToken, onNotif, user }) {
+  const [oldPwd, setOldPwd] = useState('')
+  const [newPwd, setNewPwd] = useState('')
+  const [confirmPwd, setConfirmPwd] = useState('')
+  const [showOld, setShowOld] = useState(false)
+  const [showNew, setShowNew] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (newPwd !== confirmPwd) {
+      onNotif('❌ Les nouveaux mots de passe ne correspondent pas', 'error')
+      return
+    }
+    if (newPwd.length < 6) {
+      onNotif('❌ Le mot de passe doit contenir au moins 6 caractères', 'error')
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd })
+      })
+      const data = await res.json()
+      if (data.success) {
+        onNotif('✅ Mot de passe modifié avec succès', 'success')
+        setOldPwd(''); setNewPwd(''); setConfirmPwd('')
+      } else {
+        onNotif(data.error || '❌ Erreur lors du changement', 'error')
+      }
+    } catch {
+      onNotif('❌ Erreur de connexion', 'error')
+    }
+    setLoading(false)
+  }
+
+  const EyeIcon = ({ show }) => show ? (
+    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+      <line x1="1" y1="1" x2="23" y2="23"/>
+    </svg>
+  ) : (
+    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  )
+
+  return (
+    <div>
+      <h2 className="text-white text-xl font-bold mb-5 mt-1">🔑 Modifier mon mot de passe</h2>
+      <div className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
+        <div className="flex items-center gap-3 mb-5 p-3 rounded-xl" style={{ background: 'rgba(196,82,26,0.2)' }}>
+          <span className="text-2xl">👤</span>
+          <div>
+            <p className="text-white font-bold text-sm">{user?.prenom} {user?.nom}</p>
+            <p className="text-gray-400 text-xs">{user?.phone}</p>
+          </div>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-gray-400 text-xs mb-1.5 block">Ancien mot de passe *</label>
+            <div className="relative">
+              <input
+                type={showOld ? 'text' : 'password'}
+                value={oldPwd}
+                onChange={e => setOldPwd(e.target.value)}
+                placeholder="Votre mot de passe actuel"
+                required
+                className="w-full bg-gray-700 text-white rounded-xl px-4 py-3 pr-12 text-sm"
+              />
+              <button type="button" onClick={() => setShowOld(!showOld)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                <EyeIcon show={showOld} />
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-gray-400 text-xs mb-1.5 block">Nouveau mot de passe *</label>
+            <div className="relative">
+              <input
+                type={showNew ? 'text' : 'password'}
+                value={newPwd}
+                onChange={e => setNewPwd(e.target.value)}
+                placeholder="Minimum 6 caractères"
+                required
+                className="w-full bg-gray-700 text-white rounded-xl px-4 py-3 pr-12 text-sm"
+              />
+              <button type="button" onClick={() => setShowNew(!showNew)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                <EyeIcon show={showNew} />
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-gray-400 text-xs mb-1.5 block">Confirmer le nouveau mot de passe *</label>
+            <div className="relative">
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                value={confirmPwd}
+                onChange={e => setConfirmPwd(e.target.value)}
+                placeholder="Répétez le nouveau mot de passe"
+                required
+                className="w-full bg-gray-700 text-white rounded-xl px-4 py-3 pr-12 text-sm"
+              />
+              <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                <EyeIcon show={showConfirm} />
+              </button>
+            </div>
+          </div>
+          {newPwd && confirmPwd && newPwd !== confirmPwd && (
+            <p className="text-red-400 text-xs">❌ Les mots de passe ne correspondent pas</p>
+          )}
+          {newPwd && confirmPwd && newPwd === confirmPwd && newPwd.length >= 6 && (
+            <p className="text-green-400 text-xs">✅ Les mots de passe correspondent</p>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 font-bold text-white rounded-xl active:scale-95 disabled:opacity-70 text-base"
+            style={{ background: loading ? '#555' : 'linear-gradient(135deg,#C4521A,#8B2500)' }}
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="spinner" style={{ width: 20, height: 20, borderWidth: 3 }}></span>
+                Modification...
+              </span>
+            ) : '🔑 Changer le mot de passe'}
+          </button>
+        </form>
       </div>
     </div>
   )

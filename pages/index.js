@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
 
-const APP_URL = 'https://ideal-formation-leaders.pages.dev'
+const APP_URL_LOCAL = 'https://ideal-formation-leaders.pages.dev'
 
 // Catégories statiques de fallback (si Supabase non disponible)
 const CATEGORIES_DIRECT_STATIC = [
@@ -50,6 +50,8 @@ export default function Home() {
   const [categoriesPro, setCategoriesPro] = useState([])
   const [loadingCats, setLoadingCats] = useState(true)
   const [activeTab, setActiveTab] = useState('direct')
+  const [activeMainTab, setActiveMainTab] = useState('accueil')
+  const [activeAboutTab, setActiveAboutTab] = useState('app')
   const scrollDirectRef = useRef(null)
   const scrollProRef = useRef(null)
 
@@ -93,10 +95,10 @@ export default function Home() {
   }
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA/an)\n✅ Concours professionnels – 17 dossiers (20 000 FCFA/an)\n✅ 5 questions gratuites par dossier sans inscription\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA)\n✅ Concours professionnels – 17 dossiers (20 000 FCFA)\n✅ 5 questions gratuites par dossier sans inscription\n\n👉 ${APP_URL_LOCAL}`
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
-        await navigator.share({ title: 'IFL – Formation Burkina Faso', text, url: APP_URL })
+        await navigator.share({ title: 'IFL – Formation Burkina Faso', text, url: APP_URL_LOCAL })
         setShareMsg('✅ Partagé !')
       } catch (e) {
         if (e.name !== 'AbortError') window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
@@ -124,7 +126,7 @@ export default function Home() {
         <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. 5 questions gratuites par dossier sans inscription. Concours directs (12 dossiers) et professionnels (17 dossiers)." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
-      <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
+      <div className="min-h-screen" style={{ background: '#FFF8F0', paddingBottom: 72 }}>
 
         {/* Header */}
         <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
@@ -190,6 +192,7 @@ export default function Home() {
           </div>
         </div>
 
+        {activeMainTab === 'accueil' && (
         <div className="max-w-lg mx-auto px-4 py-6">
 
           {/* Offres */}
@@ -200,14 +203,14 @@ export default function Home() {
               <h3 className="font-extrabold text-base mb-1" style={{ color: '#8B2500' }}>Concours Directs</h3>
               <p className="text-gray-500 text-xs mb-3">12 dossiers thématiques</p>
               <p className="text-2xl font-extrabold" style={{ color: '#C4521A' }}>5 000</p>
-              <p className="text-gray-400 text-xs">FCFA / an</p>
+              <p className="text-gray-400 text-xs">FCFA</p>
             </div>
             <div className="bg-white rounded-2xl shadow-md border-2 border-amber-100 p-5 text-center">
               <div className="text-4xl mb-3">🎓</div>
               <h3 className="font-extrabold text-base mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
               <p className="text-gray-500 text-xs mb-3">17 dossiers spécialisés</p>
               <p className="text-2xl font-extrabold" style={{ color: '#C4521A' }}>20 000</p>
-              <p className="text-gray-400 text-xs">FCFA / an</p>
+              <p className="text-gray-400 text-xs">FCFA</p>
             </div>
           </div>
 
@@ -338,13 +341,202 @@ export default function Home() {
             <p className="text-gray-400 text-xs">© 2025 IFL – Burkina Faso</p>
           </footer>
         </div>
+        )}
+
+        {/* ====== SECTION À PROPOS ====== */}
+        {activeMainTab === 'apropos' && (
+          <div className="max-w-lg mx-auto px-4 py-6">
+            {/* Sous-onglets À propos */}
+            <div className="flex gap-1.5 bg-gray-100 rounded-2xl p-1.5 mb-6">
+              {[
+                { id: 'app', label: "L'application" },
+                { id: 'equipe', label: "Notre équipe" },
+                { id: 'dev', label: "Développeur" }
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveAboutTab(t.id)}
+                  className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${activeAboutTab === t.id ? 'text-white shadow-md' : 'text-gray-500'}`}
+                  style={activeAboutTab === t.id ? { background: '#C4521A' } : {}}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Sous-onglet 1 : À propos de l'application */}
+            {activeAboutTab === 'app' && (
+              <div className="animate-fadeIn">
+                <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-6 mb-4">
+                  <div className="text-center mb-5">
+                    <div className="inline-block logo-rounded mb-4" style={{ width: 80, height: 80 }}>
+                      <img src="/logo.png" alt="IFL" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 18 }} />
+                    </div>
+                    <h2 className="font-extrabold text-xl mb-1" style={{ color: '#8B2500' }}>Idéale Formation of Leaders</h2>
+                    <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: '#FFF0E8', color: '#C4521A' }}>IFL</span>
+                  </div>
+                  <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                    <strong style={{ color: '#8B2500' }}>Idéale Formation of Leaders (IFL)</strong> est une application spécialisée dans la préparation aux concours directs et professionnels au Burkina Faso. Elle propose des milliers de QCM classés par sous-dossiers thématiques, avec un système de progression et des explications détaillées pour chaque question.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { icon: '📚', val: '12', label: 'Dossiers directs' },
+                      { icon: '🎓', val: '17', label: 'Dossiers pro' },
+                      { icon: '🆓', val: '5', label: 'Questions gratuites' },
+                      { icon: '🇧🇫', val: '100%', label: 'Burkina Faso' }
+                    ].map((s, i) => (
+                      <div key={i} className="rounded-xl p-3 text-center" style={{ background: '#FFF8F0', border: '1px solid #FFE4CC' }}>
+                        <p className="text-2xl mb-1">{s.icon}</p>
+                        <p className="font-extrabold text-sm" style={{ color: '#C4521A' }}>{s.val}</p>
+                        <p className="text-gray-500 text-xs">{s.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5">
+                  <h3 className="font-extrabold mb-3" style={{ color: '#8B2500' }}>📋 Nos offres</h3>
+                  <div className="space-y-3">
+                    <div className="rounded-2xl p-4 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)' }}>
+                      <span className="text-3xl">📚</span>
+                      <div>
+                        <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Directs</p>
+                        <p className="text-gray-500 text-xs">12 dossiers – <strong style={{ color: '#C4521A' }}>5 000 FCFA</strong></p>
+                      </div>
+                    </div>
+                    <div className="rounded-2xl p-4 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#F5E8FF,#ECD0FF)' }}>
+                      <span className="text-3xl">🎓</span>
+                      <div>
+                        <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Professionnels</p>
+                        <p className="text-gray-500 text-xs">17 dossiers – <strong style={{ color: '#C4521A' }}>20 000 FCFA</strong></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Sous-onglet 2 : Notre équipe */}
+            {activeAboutTab === 'equipe' && (
+              <div className="animate-fadeIn">
+                <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-6 mb-4">
+                  <div className="text-center mb-4">
+                    <span className="text-5xl mb-3 block">👨‍🏫</span>
+                    <h2 className="font-extrabold text-xl" style={{ color: '#8B2500' }}>Notre équipe</h2>
+                  </div>
+                  <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                    L&apos;équipe d&apos;<strong style={{ color: '#8B2500' }}>Idéale Formation of Leaders</strong> est composée d&apos;enseignants et de professionnels passionnés qui accompagnent chaque année des centaines de candidats burkinabè vers la réussite de leurs concours.
+                  </p>
+                  <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                    Notre équipe est également auteure de plusieurs documents, mémoires et livres spécialisés pour les concours directs. Notre mission est de mettre à la disposition des candidats des outils de qualité, accessibles et efficaces.
+                  </p>
+                  <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #D4A017' }}>
+                    <p className="font-extrabold text-amber-800 text-sm mb-2">📞 Contactez-nous</p>
+                    <a href="tel:+22676223962" className="flex items-center gap-3 mb-2 hover:opacity-80 transition-opacity">
+                      <span className="text-xl">📱</span>
+                      <span className="font-bold text-sm" style={{ color: '#C4521A' }}>+226 76 22 39 62</span>
+                    </a>
+                    <a href="https://wa.me/22676223962?text=Bonjour%20IFL" target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                      <span className="text-xl">💬</span>
+                      <span className="font-bold text-sm" style={{ color: '#25D366' }}>WhatsApp : +226 76 22 39 62</span>
+                    </a>
+                  </div>
+                </div>
+                <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5">
+                  <h3 className="font-extrabold mb-3" style={{ color: '#8B2500' }}>🎯 Notre mission</h3>
+                  {[
+                    { icon: '📊', text: 'Des milliers de QCM mis à jour régulièrement' },
+                    { icon: '💡', text: 'Explications détaillées pour chaque question' },
+                    { icon: '📱', text: 'Application mobile-friendly, disponible partout' },
+                    { icon: '🏆', text: 'Taux de réussite amélioré pour nos candidats' }
+                  ].map((f, i) => (
+                    <div key={i} className="flex items-center gap-3 mb-3">
+                      <span className="text-2xl">{f.icon}</span>
+                      <p className="text-gray-700 text-sm">{f.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sous-onglet 3 : Développeur */}
+            {activeAboutTab === 'dev' && (
+              <div className="animate-fadeIn">
+                <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-6 mb-4">
+                  <div className="text-center mb-5">
+                    <span className="text-6xl mb-3 block">💻</span>
+                    <h2 className="font-extrabold text-xl mb-1" style={{ color: '#8B2500' }}>Marc LOMPO</h2>
+                    <p className="text-sm font-semibold" style={{ color: '#C4521A' }}>Ingénieur Digital</p>
+                  </div>
+                  <p className="text-gray-700 text-sm leading-relaxed mb-5">
+                    Passionné par les technologies éducatives, <strong style={{ color: '#8B2500' }}>Marc LOMPO</strong> conçoit des applications sur mesure pour aider les apprenants à atteindre leurs objectifs. Disponible pour tout projet ou partenariat.
+                  </p>
+                  <div className="space-y-3">
+                    <a href="tel:+22672662161" className="flex items-center gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity active:scale-95"
+                      style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '1px solid #FFD0A0' }}>
+                      <span className="text-2xl">📱</span>
+                      <div>
+                        <p className="font-bold text-sm" style={{ color: '#8B2500' }}>Téléphone</p>
+                        <p className="font-extrabold" style={{ color: '#C4521A' }}>+226 72 66 21 61</p>
+                      </div>
+                    </a>
+                    <a href="https://wa.me/22672662161?text=Bonjour%20Marc%2C%20je%20vous%20contacte%20via%20l%27application%20IFL" target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity active:scale-95"
+                      style={{ background: 'linear-gradient(135deg,#E8FFF0,#C8FFD8)', border: '1px solid #A0FFB8' }}>
+                      <span className="text-2xl">💬</span>
+                      <div>
+                        <p className="font-bold text-sm text-green-800">WhatsApp</p>
+                        <p className="font-extrabold text-green-700">+226 72 66 21 61</p>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5">
+                  <h3 className="font-extrabold mb-3" style={{ color: '#8B2500' }}>🛠️ Services</h3>
+                  {[
+                    '🌐 Développement d\'applications web',
+                    '📱 Applications mobiles',
+                    '🎓 Plateformes éducatives',
+                    '💼 Solutions numériques sur mesure'
+                  ].map((s, i) => (
+                    <p key={i} className="text-gray-700 text-sm mb-2">{s}</p>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ====== BARRE DE NAVIGATION PRINCIPALE EN BAS ====== */}
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t-2 border-amber-100 shadow-lg">
+          <div className="max-w-lg mx-auto flex">
+            <button
+              onClick={() => setActiveMainTab('accueil')}
+              className={`flex-1 flex flex-col items-center py-3 gap-0.5 transition-all ${activeMainTab === 'accueil' ? 'text-orange-700' : 'text-gray-400'}`}
+            >
+              <span className="text-xl">🏠</span>
+              <span className="text-xs font-semibold">Accueil</span>
+            </button>
+            <button
+              onClick={() => setActiveMainTab('apropos')}
+              className={`flex-1 flex flex-col items-center py-3 gap-0.5 transition-all ${activeMainTab === 'apropos' ? 'text-orange-700' : 'text-gray-400'}`}
+            >
+              <span className="text-xl">ℹ️</span>
+              <span className="text-xs font-semibold">À propos</span>
+            </button>
+            <Link href="/login" className="flex-1 flex flex-col items-center py-3 gap-0.5 text-gray-400">
+              <span className="text-xl">👤</span>
+              <span className="text-xs font-semibold">Connexion</span>
+            </Link>
+          </div>
+        </div>
 
         {/* Bouton flottant WhatsApp */}
         <a
           href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20je%20voudrais%20des%20informations"
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-6 right-4 w-14 h-14 rounded-full flex items-center justify-center shadow-xl z-50 text-2xl"
+          className="fixed bottom-20 right-4 w-14 h-14 rounded-full flex items-center justify-center shadow-xl z-50 text-2xl"
           style={{ background: '#25D366' }}
           title="WhatsApp"
         >

@@ -60,6 +60,14 @@ export default function PublicQuizPage() {
     }
   }
 
+  const handlePrev = () => {
+    if (current > 0) {
+      setCurrent(c => c - 1)
+      setSelected(null)
+      setAnswered(false)
+    }
+  }
+
   const q = questions[current]
   const total = questions.length
   const progress = total > 0 ? ((current + (answered ? 1 : 0)) / total) * 100 : 0
@@ -177,7 +185,7 @@ export default function PublicQuizPage() {
                   <p className="text-orange-200 text-sm mb-1">Vous avez terminé les 5 questions gratuites</p>
                   <p className="text-white font-bold text-base mb-1">Inscrivez-vous pour accéder à</p>
                   <p className="text-white font-bold text-lg">TOUTES les questions de ce dossier</p>
-                  <p className="text-2xl font-extrabold text-white mt-2">{catPrice.toLocaleString()} FCFA <span className="text-base font-normal opacity-80">/an</span></p>
+                  <p className="text-2xl font-extrabold text-white mt-2">{catPrice.toLocaleString()} FCFA</p>
                 </div>
 
                 <div className="space-y-3">
@@ -208,6 +216,42 @@ export default function PublicQuizPage() {
           {/* Question */}
           {!loadingQ && !error && !finished && q && (
             <div className="animate-fadeIn">
+              {/* Flèches de navigation + compteur */}
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  onClick={handlePrev}
+                  disabled={current === 0}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
+                  style={{ background: current === 0 ? '#f3f4f6' : '#FFF0E8', color: current === 0 ? '#9ca3af' : '#C4521A' }}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path d="M15 18l-6-6 6-6"/>
+                  </svg>
+                  Précédente
+                </button>
+                <div className="text-center">
+                  <p className="text-sm font-bold" style={{ color: '#8B2500' }}>Question {current + 1} sur {total}</p>
+                  <div className="flex gap-1 mt-1 justify-center">
+                    {Array.from({ length: total }).map((_, i) => (
+                      <div key={i} className="w-2 h-2 rounded-full" style={{
+                        background: i < current ? '#D4A017' : i === current ? '#C4521A' : '#e5e7eb'
+                      }} />
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={answered ? handleNext : undefined}
+                  disabled={!answered}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
+                  style={{ background: !answered ? '#f3f4f6' : '#FFF0E8', color: !answered ? '#9ca3af' : '#C4521A' }}
+                >
+                  Suivante
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path d="M9 18l6-6-6-6"/>
+                  </svg>
+                </button>
+              </div>
+
               <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-6 mb-5">
                 <div className="flex items-start gap-3 mb-6">
                   <span className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"

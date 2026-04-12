@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '../_app'
 
+const PROGRESS_KEY = (userId, catId) => `ifl_progress_${userId || 'guest'}_${catId}`
+
 export default function QuizPage() {
   const { user, loading, getToken } = useAuth()
   const router = useRouter()
@@ -20,10 +22,10 @@ export default function QuizPage() {
   const [error, setError] = useState('')
   const [hasFullAccess, setHasFullAccess] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const [progressRestored, setProgressRestored] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
-      // Rediriger vers la page quiz publique pour les visiteurs non connectés
       if (id) router.replace(`/quiz/public/${id}`)
     }
   }, [user, loading, router, id])
@@ -31,6 +33,50 @@ export default function QuizPage() {
   useEffect(() => {
     if (id && user) fetchQuestions()
   }, [id, user])
+
+  // Sauvegarder la progression dans localStorage
+  const saveProgress = (questionIndex) => {
+    if (!id) return
+    const key = PROGRESS_KEY(user?.id, id)
+    try {
+      localStorage.setItem(key, JSON.stringify({
+        questionIndex,
+        savedAt: new Date().toISOString(),
+        categorie_id: id
+      }))
+    } catch {}
+  }
+
+  // Sauvegarder aussi côté serveur
+  const saveProgressServer = async (questionIndex) => {
+    if (!user || !id) return
+    try {
+      const token = getToken()
+      await fetch('/api/quiz/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          categorie_id: id,
+          derniere_question_index: questionIndex,
+          score
+        })
+      })
+    } catch {}
+  }
+
+  // Restaurer la progression
+  const restoreProgress = (questionsCount) => {
+    if (!id || progressRestored) return 0
+    setProgressRestored(true)
+    const key = PROGRESS_KEY(user?.id, id)
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) || 'null')
+      if (saved && saved.categorie_id === id && saved.questionIndex > 0 && saved.questionIndex < questionsCount) {
+        return saved.questionIndex
+      }
+    } catch {}
+    return 0
+  }
 
   const fetchQuestions = async () => {
     setLoadingQ(true)
@@ -44,15 +90,21 @@ export default function QuizPage() {
       const qData = await qRes.json()
 
       if (qData.error && qRes.status === 403) {
-        // Pas d'accès du tout, rediriger vers paiement
         setError(qData.error)
       } else if (qData.error) {
         setError(qData.error)
       } else {
-        setQuestions(qData.questions || [])
+        const qs = qData.questions || []
+        setQuestions(qs)
         setHasFullAccess(qData.hasFullAccess || false)
         const cat = catData.categories?.find(c => c.id === id)
         setCategory(cat || null)
+
+        // Restaurer progression
+        const savedIndex = restoreProgress(qs.length)
+        if (savedIndex > 0) {
+          setCurrent(savedIndex)
+        }
       }
     } catch {
       setError('Erreur de chargement des questions')
@@ -64,13 +116,22 @@ export default function QuizPage() {
     if (answered) return
     setSelected(opt)
     setAnswered(true)
-    if (opt === questions[current].bonne_reponse) setScore(s => s + 1)
+    const isCorrect = opt === questions[current].bonne_reponse
+    if (isCorrect) setScore(s => s + 1)
+
+    // Sauvegarder la progression
+    saveProgress(current)
+
     try {
       const token = getToken()
       fetch('/api/quiz/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ categorie_id: id, score: score + (opt === questions[current].bonne_reponse ? 1 : 0) })
+        body: JSON.stringify({
+          categorie_id: id,
+          score: score + (isCorrect ? 1 : 0),
+          derniere_question_index: current
+        })
       })
     } catch {}
   }
@@ -78,16 +139,29 @@ export default function QuizPage() {
   const handleNext = () => {
     const nextIndex = current + 1
     if (nextIndex >= questions.length) {
-      // Vérifier si on a terminé toutes les questions gratuites mais il y en a d'autres
       if (!hasFullAccess) {
         setShowUpgrade(true)
       } else {
         setFinished(true)
+        // Réinitialiser progression à la fin
+        saveProgress(0)
       }
     } else {
       setCurrent(nextIndex)
       setSelected(null)
       setAnswered(false)
+      saveProgress(nextIndex)
+      saveProgressServer(nextIndex)
+    }
+  }
+
+  const handlePrev = () => {
+    if (current > 0) {
+      const prevIndex = current - 1
+      setCurrent(prevIndex)
+      setSelected(null)
+      setAnswered(false)
+      saveProgress(prevIndex)
     }
   }
 
@@ -130,8 +204,8 @@ export default function QuizPage() {
                 </p>
               )}
             </div>
-            {!loadingQ && !error && !showUpgrade && (
-              <span className="text-white text-sm font-bold opacity-70 flex-shrink-0">
+            {!loadingQ && !error && !showUpgrade && !finished && (
+              <span className="text-white text-sm font-bold opacity-80 flex-shrink-0 bg-white bg-opacity-20 px-3 py-1 rounded-xl">
                 {current + 1}/{total}
               </span>
             )}
@@ -215,7 +289,7 @@ export default function QuizPage() {
                 <div className="rounded-2xl p-5 mb-5" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
                   <p className="text-orange-200 text-sm mb-1">Abonnez-vous pour accéder à</p>
                   <p className="text-white font-bold text-lg mb-1">TOUTES les questions de ce dossier</p>
-                  <p className="text-2xl font-extrabold text-white">{catPrice.toLocaleString()} FCFA <span className="text-base font-normal opacity-80">/an</span></p>
+                  <p className="text-2xl font-extrabold text-white">{catPrice.toLocaleString()} FCFA</p>
                 </div>
                 <div className="space-y-3">
                   <Link
@@ -226,7 +300,7 @@ export default function QuizPage() {
                     💳 S&apos;abonner – {catPrice.toLocaleString()} FCFA
                   </Link>
                   <button
-                    onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setShowUpgrade(false) }}
+                    onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setShowUpgrade(false); saveProgress(0) }}
                     className="w-full py-3.5 font-bold rounded-xl border-2 border-amber-300 text-amber-800 active:scale-95"
                   >
                     🔄 Recommencer les questions gratuites
@@ -255,7 +329,7 @@ export default function QuizPage() {
                   <p className="text-orange-200 text-sm mt-2">{Math.round((score/total)*100)}% de réussite</p>
                 </div>
                 <div className="space-y-3">
-                  <button onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setFinished(false) }}
+                  <button onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setFinished(false); saveProgress(0) }}
                     className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-md active:scale-95"
                     style={{ background: '#C4521A' }}>
                     🔄 Recommencer
@@ -271,6 +345,49 @@ export default function QuizPage() {
           {/* Question */}
           {!loadingQ && !error && !finished && !showUpgrade && q && (
             <div className="animate-fadeIn">
+              {/* Flèches de navigation + compteur */}
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  onClick={handlePrev}
+                  disabled={current === 0}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
+                  style={{ background: current === 0 ? '#f3f4f6' : '#FFF0E8', color: current === 0 ? '#9ca3af' : '#C4521A' }}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path d="M15 18l-6-6 6-6"/>
+                  </svg>
+                  Précédente
+                </button>
+
+                <div className="text-center">
+                  <p className="text-sm font-bold" style={{ color: '#8B2500' }}>
+                    Question {current + 1} sur {total}
+                  </p>
+                  <div className="flex gap-1 mt-1 justify-center">
+                    {Array.from({ length: Math.min(total, 10) }).map((_, i) => {
+                      const qIndex = total <= 10 ? i : Math.floor(i * total / 10)
+                      return (
+                        <div key={i} className="w-2 h-2 rounded-full" style={{
+                          background: qIndex < current ? '#D4A017' : qIndex === current ? '#C4521A' : '#e5e7eb'
+                        }} />
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <button
+                  onClick={answered ? handleNext : undefined}
+                  disabled={!answered}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
+                  style={{ background: !answered ? '#f3f4f6' : '#FFF0E8', color: !answered ? '#9ca3af' : '#C4521A' }}
+                >
+                  Suivante
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path d="M9 18l6-6-6-6"/>
+                  </svg>
+                </button>
+              </div>
+
               <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-6 mb-5">
                 <div className="flex items-start gap-3 mb-6">
                   <span className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"

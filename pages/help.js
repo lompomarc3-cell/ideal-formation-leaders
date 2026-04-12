@@ -12,7 +12,7 @@ export default function Help() {
   const [openFaq, setOpenFaq] = useState(null)
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs (5 000 FCFA/an)\n✅ Concours professionnels (20 000 FCFA/an)\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs (5 000 FCFA)\n✅ Concours professionnels (20 000 FCFA)\n\n👉 ${APP_URL}`
     if (typeof navigator !== 'undefined' && navigator.share) {
       try { await navigator.share({ title: 'IFL', text, url: APP_URL }) } catch {}
     } else {
@@ -35,7 +35,7 @@ export default function Help() {
     },
     {
       q: 'Quelle est la différence entre les deux formules ?',
-      a: '📚 Concours Directs (5 000 FCFA/an) : 10 dossiers thématiques (Actualité, Français, Maths, SVT, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA/an) : 15 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)'
+      a: '📚 Concours Directs (5 000 FCFA) : 10 dossiers thématiques (Actualité, Français, Maths, SVT, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA) : 15 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)'
     },
     {
       q: 'Mon abonnement n\'est pas activé après paiement ?',
