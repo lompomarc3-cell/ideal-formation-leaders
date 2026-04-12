@@ -44,9 +44,10 @@ export default async function handler(req) {
       })
     }
 
-    // 2. Récupérer UNIQUEMENT les questions gratuites (is_demo=true), limitées à 5
+    // 2. Récupérer les 5 premières questions gratuites de la catégorie
+    // D'abord essayer avec is_demo=true, sinon prendre les 5 premières
     const qRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/questions?category_id=eq.${categorieId}&is_demo=eq.true&is_active=eq.true&select=id,enonce,option_a,option_b,option_c,option_d,reponse_correcte,explication,is_demo&order=created_at.asc&limit=5`,
+      `${SUPABASE_URL}/rest/v1/questions?category_id=eq.${categorieId}&is_active=eq.true&select=id,enonce,option_a,option_b,option_c,option_d,reponse_correcte,explication,is_demo&order=created_at.asc&limit=5`,
       {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -71,7 +72,7 @@ export default async function handler(req) {
       is_demo: q.is_demo
     }))
 
-    // Si aucune question gratuite, renvoyer un message clair
+    // Si aucune question, renvoyer un message clair
     if (questionList.length === 0) {
       return new Response(JSON.stringify({
         questions: [],
@@ -79,7 +80,7 @@ export default async function handler(req) {
         isPublic: true,
         categoryName: category.nom,
         categoryType: category.type,
-        message: 'Aucune question gratuite disponible pour ce dossier'
+        message: 'Questions bientôt disponibles pour ce dossier'
       }), {
         status: 200,
         headers: {
