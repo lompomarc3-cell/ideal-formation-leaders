@@ -28,8 +28,9 @@ export default function Login() {
       const data = await res.json()
       if (data.token) {
         login(data.token, data.user)
-        if (data.user?.is_admin) router.push('/admin')
-        else router.push('/dashboard')
+        // Admin et utilisateurs normal arrivent tous sur /dashboard
+        // L'admin peut accéder au panel via le bouton ⚙️ Admin dans le dashboard
+        router.push('/dashboard')
       } else {
         setError(data.error || 'Identifiants incorrects')
       }
@@ -148,17 +149,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Bouton flottant WhatsApp */}
-        <a
-          href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20j'ai%20besoin%20d'aide%20pour%20me%20connecter"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed bottom-6 right-4 w-14 h-14 rounded-full flex items-center justify-center shadow-xl z-50 text-2xl"
-          style={{ background: '#25D366' }}
-          title="Aide WhatsApp"
-        >
-          💬
-        </a>
       </div>
     </>
   )

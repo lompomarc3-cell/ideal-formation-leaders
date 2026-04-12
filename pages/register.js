@@ -221,17 +221,6 @@ export default function Register() {
           </div>
         </div>
 
-        {/* Bouton flottant WhatsApp */}
-        <a
-          href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20j'ai%20besoin%20d'aide%20pour%20m'inscrire"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed bottom-6 right-4 w-14 h-14 rounded-full flex items-center justify-center shadow-xl z-50 text-2xl"
-          style={{ background: '#25D366' }}
-          title="Aide WhatsApp"
-        >
-          💬
-        </a>
       </div>
     </>
   )

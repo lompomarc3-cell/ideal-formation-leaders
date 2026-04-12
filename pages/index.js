@@ -320,41 +320,77 @@ function SkeletonCard() {
   )
 }
 
+// ===== PALETTE COULEURS INDIVIDUELLES PAR ICÔNE =====
+// Concours Directs : palette verte/émeraude/teal moderne
+const DIRECT_ICON_COLORS = {
+  globe:      { bg: 'linear-gradient(135deg,#0891B2,#06B6D4)', border: '#A5F3FC', tag: '#E0F7FF', tagText: '#0891B2' }, // cyan
+  book:       { bg: 'linear-gradient(135deg,#7C3AED,#A855F7)', border: '#DDD6FE', tag: '#F3E8FF', tagText: '#7C3AED' }, // violet
+  palette:    { bg: 'linear-gradient(135deg,#EC4899,#F472B6)', border: '#FBCFE8', tag: '#FDF2F8', tagText: '#EC4899' }, // rose
+  map:        { bg: 'linear-gradient(135deg,#059669,#10B981)', border: '#A7F3D0', tag: '#ECFDF5', tagText: '#059669' }, // vert émeraude
+  leaf:       { bg: 'linear-gradient(135deg,#16A34A,#22C55E)', border: '#BBF7D0', tag: '#F0FDF4', tagText: '#16A34A' }, // vert vif
+  brain:      { bg: 'linear-gradient(135deg,#DC2626,#EF4444)', border: '#FECACA', tag: '#FEF2F2', tagText: '#DC2626' }, // rouge
+  calculator: { bg: 'linear-gradient(135deg,#D97706,#F59E0B)', border: '#FDE68A', tag: '#FFFBEB', tagText: '#D97706' }, // ambre
+  flask:      { bg: 'linear-gradient(135deg,#2563EB,#3B82F6)', border: '#BFDBFE', tag: '#EFF6FF', tagText: '#2563EB' }, // bleu
+  scale:      { bg: 'linear-gradient(135deg,#B45309,#D97706)', border: '#FDE68A', tag: '#FFFBEB', tagText: '#B45309' }, // brun/or
+  chart:      { bg: 'linear-gradient(135deg,#0F766E,#14B8A6)', border: '#99F6E4', tag: '#F0FDFA', tagText: '#0F766E' }, // teal
+  pencil:     { bg: 'linear-gradient(135deg,#9333EA,#C084FC)', border: '#E9D5FF', tag: '#FAF5FF', tagText: '#9333EA' }, // pourpre
+  target:     { bg: 'linear-gradient(135deg,#C4521A,#D4A017)', border: '#FED7AA', tag: '#FFF7ED', tagText: '#C4521A' }, // orange IFL
+}
+
+// Concours Professionnels : palette marine/or/prestige
+const PRO_ICON_COLORS = {
+  school:     { bg: 'linear-gradient(135deg,#1E40AF,#3B82F6)', border: '#BFDBFE', tag: '#EFF6FF', tagText: '#1E40AF' }, // bleu royal
+  newspaper:  { bg: 'linear-gradient(135deg,#047857,#10B981)', border: '#A7F3D0', tag: '#ECFDF5', tagText: '#047857' }, // vert forêt
+  building:   { bg: 'linear-gradient(135deg,#1D4ED8,#2563EB)', border: '#BFDBFE', tag: '#EFF6FF', tagText: '#1D4ED8' }, // bleu admin
+  search:     { bg: 'linear-gradient(135deg,#6D28D9,#8B5CF6)', border: '#DDD6FE', tag: '#F5F3FF', tagText: '#6D28D9' }, // violet profond
+  search2:    { bg: 'linear-gradient(135deg,#7C3AED,#A78BFA)', border: '#EDE9FE', tag: '#F5F3FF', tagText: '#7C3AED' }, // violet moyen
+  graduation: { bg: 'linear-gradient(135deg,#B45309,#F59E0B)', border: '#FDE68A', tag: '#FFFBEB', tagText: '#B45309' }, // or diplôme
+  scroll:     { bg: 'linear-gradient(135deg,#92400E,#D97706)', border: '#FDE68A', tag: '#FFFBEB', tagText: '#92400E' }, // brun parchemin
+  openbook:   { bg: 'linear-gradient(135deg,#0369A1,#0EA5E9)', border: '#BAE6FD', tag: '#F0F9FF', tagText: '#0369A1' }, // bleu ciel
+  hospital:   { bg: 'linear-gradient(135deg,#DC2626,#F87171)', border: '#FECACA', tag: '#FEF2F2', tagText: '#DC2626' }, // rouge médical
+  health:     { bg: 'linear-gradient(135deg,#BE185D,#EC4899)', border: '#FBCFE8', tag: '#FDF2F8', tagText: '#BE185D' }, // rose santé
+  justice:    { bg: 'linear-gradient(135deg,#1E3A5F,#1D5AB4)', border: '#C7D2FE', tag: '#EEF2FF', tagText: '#1E3A5F' }, // bleu justice
+  judge:      { bg: 'linear-gradient(135deg,#374151,#6B7280)', border: '#D1D5DB', tag: '#F9FAFB', tagText: '#374151' }, // gris magistrat
+  shield:     { bg: 'linear-gradient(135deg,#1F2937,#374151)', border: '#D1D5DB', tag: '#F9FAFB', tagText: '#1F2937' }, // gris GSP
+  badge:      { bg: 'linear-gradient(135deg,#1E3A8A,#1D4ED8)', border: '#BFDBFE', tag: '#EFF6FF', tagText: '#1E3A8A' }, // bleu police
+  clipboard:  { bg: 'linear-gradient(135deg,#065F46,#059669)', border: '#A7F3D0', tag: '#ECFDF5', tagText: '#065F46' }, // vert admin
+  pencil:     { bg: 'linear-gradient(135deg,#9333EA,#C084FC)', border: '#E9D5FF', tag: '#FAF5FF', tagText: '#9333EA' }, // pourpre
+  target:     { bg: 'linear-gradient(135deg,#B45309,#D97706)', border: '#FDE68A', tag: '#FFFBEB', tagText: '#B45309' }, // or cible
+}
+
+function getIconStyle(iconName, catType) {
+  const isPro = catType === 'professionnel'
+  const palette = isPro ? PRO_ICON_COLORS : DIRECT_ICON_COLORS
+  return palette[iconName] || (isPro
+    ? { bg: 'linear-gradient(135deg,#1D5AB4,#2E7DD6)', border: '#A8C4F0', tag: '#EEF3FF', tagText: '#1D5AB4' }
+    : { bg: 'linear-gradient(135deg,#059669,#10B981)', border: '#A7F3D0', tag: '#ECFDF5', tagText: '#059669' }
+  )
+}
+
 // ===== CARTE CATÉGORIE PUBLIQUE =====
 function PublicCategoryCard({ cat, index, catType }) {
   const iconName = cat.icone || 'book'
-  // Directs : gradient bordeaux/orange chaud
-  const bgDirect = 'linear-gradient(135deg,#8B2500,#C4521A)'
-  // Professionnels : gradient bleu marine/royal distinctif
-  const bgPro = 'linear-gradient(135deg,#0F2D5E,#1D5AB4)'
-  const borderColorDirect = '#FFD0A8'
-  const borderColorPro = '#A8C4F0'
-  const accentDirect = '#C4521A'
-  const accentPro = '#1D5AB4'
-  const tagBgDirect = '#FFF0E8'
-  const tagBgPro = '#EEF3FF'
-  const tagColorDirect = '#C4521A'
-  const tagColorPro = '#1D5AB4'
   const isPro = catType === 'professionnel'
+  const style = getIconStyle(iconName, catType)
 
   if (cat.id) {
     return (
       <Link
         href={`/quiz/public/${cat.id}`}
-        className="flex-shrink-0 bg-white rounded-2xl overflow-hidden active:scale-95 transition-all"
-        style={{ scrollSnapAlign: 'start', width: '150px', minWidth: '150px', border: `2px solid ${isPro ? borderColorPro : borderColorDirect}`, boxShadow: isPro ? '0 2px 8px rgba(29,90,180,0.12)' : '0 2px 8px rgba(196,82,26,0.12)' }}
+        className="flex-shrink-0 bg-white rounded-2xl overflow-hidden active:scale-95 transition-all hover:shadow-lg"
+        style={{ scrollSnapAlign: 'start', width: '150px', minWidth: '150px', border: `2px solid ${style.border}`, boxShadow: `0 2px 8px ${style.border}80` }}
       >
         <div className="p-4 text-center">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-            style={{ background: isPro ? bgPro : bgDirect }}>
+            style={{ background: style.bg }}>
             <CatIcon name={iconName} color="white" />
           </div>
           <p className="text-xs font-bold text-gray-700 leading-tight mb-2 line-clamp-2">{cat.nom}</p>
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: isPro ? tagBgPro : tagBgDirect, color: isPro ? tagColorPro : tagColorDirect }}>
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: style.tag, color: style.tagText }}>
             🆓 5 gratuites
           </span>
         </div>
-        <div className="h-1.5 w-full" style={{ background: isPro ? bgPro : bgDirect }}></div>
+        <div className="h-1.5 w-full" style={{ background: style.bg }}></div>
       </Link>
     )
   }
@@ -364,7 +400,7 @@ function PublicCategoryCard({ cat, index, catType }) {
       style={{ scrollSnapAlign: 'start', width: '150px', minWidth: '150px', border: '2px solid #E5E7EB' }}>
       <div className="p-4 text-center">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-          style={{ background: isPro ? bgPro : bgDirect }}>
+          style={{ background: style.bg }}>
           <CatIcon name={iconName} color="white" />
         </div>
         <p className="text-xs font-bold text-gray-700 leading-tight mb-2 line-clamp-2">{cat.nom}</p>
@@ -389,8 +425,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && user) {
-      if (user.is_admin) router.push('/admin')
-      else router.push('/dashboard')
+      // Tous les utilisateurs (admin inclus) vont vers /dashboard
+      // L'admin peut accéder au panel admin via le bouton dans le dashboard
+      router.push('/dashboard')
     }
   }, [user, loading, router])
 
@@ -1176,26 +1213,27 @@ export default function Home() {
         <div className="fixed bottom-0 left-0 right-0 z-50" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)', borderTop: '1.5px solid #FFE4CC', boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
           <div className="max-w-lg mx-auto flex">
 
-            {/* Onglet Accueil */}
+            {/* Onglet Accueil - Bleu clair */}
             <button
               onClick={() => setActiveTab('accueil')}
               className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
             >
               {activeTab === 'accueil' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: '#60A5FA' }} />
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'accueil' ? 'shadow-sm' : ''}`}
-                style={{ background: activeTab === 'accueil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill={activeTab === 'accueil' ? '#C4521A' : 'none'}
-                  stroke={activeTab === 'accueil' ? '#C4521A' : '#9CA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                style={{ background: activeTab === 'accueil' ? 'linear-gradient(135deg,#EFF6FF,#DBEAFE)' : 'transparent' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24"
+                  fill={activeTab === 'accueil' ? '#3B82F6' : 'none'}
+                  stroke={activeTab === 'accueil' ? '#3B82F6' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 12L12 3l9 9"/>
                   <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9"/>
                 </svg>
               </div>
-              <span className="text-xs font-bold" style={{ color: activeTab === 'accueil' ? '#C4521A' : '#9CA3AF' }}>Accueil</span>
+              <span className="text-xs font-bold" style={{ color: activeTab === 'accueil' ? '#3B82F6' : '#9CA3AF' }}>Accueil</span>
             </button>
 
-            {/* Onglet Concours */}
+            {/* Onglet Concours - Orange IFL */}
             <button
               onClick={() => setActiveTab('concours')}
               className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
@@ -1206,7 +1244,7 @@ export default function Home() {
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'concours' ? 'shadow-sm' : ''}`}
                 style={{ background: activeTab === 'concours' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke={activeTab === 'concours' ? '#C4521A' : '#9CA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  stroke={activeTab === 'concours' ? '#C4521A' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
                   <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
                   <path d="M4 22h16"/>
@@ -1218,60 +1256,47 @@ export default function Home() {
               <span className="text-xs font-bold" style={{ color: activeTab === 'concours' ? '#C4521A' : '#9CA3AF' }}>Concours</span>
             </button>
 
-            {/* Onglet Profil */}
+            {/* Onglet Profil - Violet */}
             <button
               onClick={() => setActiveTab('profil')}
               className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
             >
               {activeTab === 'profil' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: '#A855F7' }} />
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'profil' ? 'shadow-sm' : ''}`}
-                style={{ background: activeTab === 'profil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
+                style={{ background: activeTab === 'profil' ? 'linear-gradient(135deg,#FAF5FF,#EDE9FE)' : 'transparent' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke={activeTab === 'profil' ? '#C4521A' : '#9CA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  stroke={activeTab === 'profil' ? '#A855F7' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="8" r="4"/>
                   <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/>
                 </svg>
               </div>
-              <span className="text-xs font-bold" style={{ color: activeTab === 'profil' ? '#C4521A' : '#9CA3AF' }}>Profil</span>
+              <span className="text-xs font-bold" style={{ color: activeTab === 'profil' ? '#A855F7' : '#9CA3AF' }}>Profil</span>
             </button>
 
-            {/* Onglet À propos */}
+            {/* Onglet À propos - Teal */}
             <button
               onClick={() => setActiveTab('apropos')}
               className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
             >
               {activeTab === 'apropos' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: '#14B8A6' }} />
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'apropos' ? 'shadow-sm' : ''}`}
-                style={{ background: activeTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
+                style={{ background: activeTab === 'apropos' ? 'linear-gradient(135deg,#F0FDFA,#CCFBF1)' : 'transparent' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke={activeTab === 'apropos' ? '#C4521A' : '#9CA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  stroke={activeTab === 'apropos' ? '#14B8A6' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/>
                   <path d="M12 16v-4"/>
-                  <path d="M12 8h.01"/>
+                  <circle cx="12" cy="8" r="0.5" fill={activeTab === 'apropos' ? '#14B8A6' : '#9CA3AF'}/>
                 </svg>
               </div>
-              <span className="text-xs font-bold" style={{ color: activeTab === 'apropos' ? '#C4521A' : '#9CA3AF' }}>À propos</span>
+              <span className="text-xs font-bold" style={{ color: activeTab === 'apropos' ? '#14B8A6' : '#9CA3AF' }}>À propos</span>
             </button>
 
           </div>
         </div>
-
-        {/* Bouton flottant WhatsApp */}
-        <a
-          href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20je%20voudrais%20des%20informations"
-          target="_blank" rel="noopener noreferrer"
-          className="fixed right-4 z-50 w-13 h-13 rounded-full flex items-center justify-center shadow-xl"
-          style={{ background: '#25D366', bottom: '88px', width: '52px', height: '52px' }}
-          title="WhatsApp"
-        >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
-          </svg>
-        </a>
 
       </div>
     </>
