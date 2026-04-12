@@ -209,18 +209,85 @@ button:active, a:active { transform: scale(0.97); }
 /* Bouton WhatsApp flottant */
 .whatsapp-fab {
   position: fixed;
-  bottom: 24px;
+  bottom: 88px; /* Au-dessus de la nav bar */
   right: 16px;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: #25D366;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
   box-shadow: 0 4px 20px rgba(37,211,102,0.5);
   z-index: 1000;
   text-decoration: none;
+}
+
+/* Barre de navigation principale */
+.nav-bar-main {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: white;
+  border-top: 2px solid #FFE4CC;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+}
+
+/* Onglet actif indicator */
+.nav-tab-active-indicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 4px;
+  border-radius: 0 0 4px 4px;
+  background: #C4521A;
+}
+
+/* Skeleton loading */
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 16px;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Transition onglets */
+.tab-transition {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* Amélioration scroll horizontal sur mobile */
+.scroll-x-smooth {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+}
+
+/* Optimisation performance */
+* { -webkit-tap-highlight-color: transparent; }
+img { max-width: 100%; height: auto; }
+
+/* Fix safe area pour mobiles avec encoche */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .nav-bar-main {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 

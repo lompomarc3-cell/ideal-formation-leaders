@@ -4,6 +4,32 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
 
+// Icône SVG pour les cartes de catégorie
+function getCatIconSVG(nom) {
+  const n = (nom || '').toLowerCase()
+  const color = '#C4521A'
+  if (n.includes('culture') || n.includes('actualit')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+  if (n.includes('français') || n.includes('franc')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+  if (n.includes('littérature') || n.includes('art')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill={color}/><circle cx="17.5" cy="10.5" r=".5" fill={color}/><circle cx="8.5" cy="7.5" r=".5" fill={color}/><circle cx="6.5" cy="12.5" r=".5" fill={color}/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+  if (n.includes('histoire') || n.includes('géographie') || n.includes('h-g')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+  if (n.includes('svt') || n.includes('science')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 8C8 10 5.9 16.17 3.82 19.44a.81.81 0 0 0-.17.78 1 1 0 0 0 .65.58c.17.06.34.07.5.03C5.82 20.35 8.31 19.85 10 19c1.63-.8 3.59-2.17 5-5 .96-1.9 2-5 2-5l-4 3c2.28-4.58 4-9 4-12-3.18.99-5.7 2.5-7 5z"/></svg>
+  if (n.includes('psycho')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.74z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.74z"/></svg>
+  if (n.includes('math')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+  if (n.includes('physique') || n.includes('chimie') || n.includes('pc')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3H15M9 3V13L4 20H20L15 13V3M9 3H15"/><path d="M7 18H17"/></svg>
+  if (n.includes('droit')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M5 21h14M17 8l4 6-4 0M7 8 3 14l4 0M3 14h4M17 14h4M7 8h10"/></svg>
+  if (n.includes('économ')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+  if (n.includes('qcm') || n.includes('entraîn')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+  if (n.includes('accompagn') || n.includes('final')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+  if (n.includes('vie scolaire') || n.includes('casu')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 22h20M6 22V10l6-6 6 6v12"/><path d="M12 6v6m-4 4h8M9 22v-4h6v4"/></svg>
+  if (n.includes('inspect')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  if (n.includes('agrég') || n.includes('capes')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
+  if (n.includes('hôpital') || n.includes('santé')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10M12 7v6m-3-3h6"/></svg>
+  if (n.includes('gsp') || n.includes('police')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  if (n.includes('justice') || n.includes('magistr')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M4 9l8 2 8-2M6 15l6 2 6-2"/></svg>
+  // default
+  return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+}
+
 const APP_URL = 'https://ideal-formation-leaders.pages.dev'
 
 export default function Dashboard() {
@@ -16,6 +42,8 @@ export default function Dashboard() {
   const [shareMsg, setShareMsg] = useState('')
   // Admin mode: 'user' pour voir l'app normale, 'admin' pour le panel
   const [adminViewMode, setAdminViewMode] = useState('user')
+
+  const [activeMainTab, setActiveMainTab] = useState('concours')
 
   const handleShare = async () => {
     const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs & professionnels\n✅ 10 questions gratuites sans inscription\n\n👉 ${APP_URL}`
@@ -102,7 +130,7 @@ export default function Dashboard() {
         <title>Mon Espace – IFL</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
-      <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
+      <div className="min-h-screen" style={{ background: '#FFF8F0', paddingBottom: 80 }}>
         {/* Header */}
         <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
@@ -292,12 +320,43 @@ export default function Dashboard() {
           href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20j'ai%20besoin%20d'aide"
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-6 right-4 w-14 h-14 rounded-full flex items-center justify-center shadow-xl z-50 text-2xl"
-          style={{ background: '#25D366' }}
+          className="fixed right-4 z-50 w-13 h-13 rounded-full flex items-center justify-center shadow-xl"
+          style={{ background: '#25D366', bottom: '88px', width: '52px', height: '52px' }}
           title="WhatsApp Assistance"
         >
-          💬
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
         </a>
+
+        {/* ===== BARRE DE NAVIGATION PRINCIPALE EN BAS ===== */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-2xl" style={{ borderTop: '2px solid #FFE4CC' }}>
+          <div className="max-w-lg mx-auto flex">
+            <Link href="/" className="flex-1 flex flex-col items-center py-3 gap-0.5 transition-all text-gray-400">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9.5L12 3L21 9.5V20C21 20.5523 20.5523 21 20 21H15V15H9V21H4C3.44772 21 3 20.5523 3 20V9.5Z"/>
+              </svg>
+              <span className="text-xs font-bold">Accueil</span>
+            </Link>
+            <button
+              className="flex-1 flex flex-col items-center py-3 gap-0.5 transition-all relative"
+              style={{ color: '#C4521A' }}
+            >
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 rounded-b-full" style={{ background: '#C4521A' }} />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L9.5 8.5H2.5L8 12.5L5.5 19.5L12 15.5L18.5 19.5L16 12.5L21.5 8.5H14.5L12 2Z" fill="#FFE4CC"/>
+              </svg>
+              <span className="text-xs font-bold">Concours</span>
+            </button>
+            <Link href="/?tab=apropos" className="flex-1 flex flex-col items-center py-3 gap-0.5 transition-all text-gray-400">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8V8.01" strokeWidth="2.5"/>
+                <path d="M12 11V16" strokeWidth="2"/>
+              </svg>
+              <span className="text-xs font-bold">À propos</span>
+            </Link>
+          </div>
+        </div>
+
       </div>
     </>
   )
@@ -343,26 +402,21 @@ function HorizontalCategoryScroll({ categories, locked, hasAccess }) {
 }
 
 function CategoryCard({ cat, locked, hasAccess, index }) {
-  const icone = cat.icone || getCatIcon(cat.nom)
+  const iconSVG = getCatIconSVG(cat.nom)
   
-  // Tous les dossiers sont cliquables (pour accéder aux 5 questions gratuites)
   return (
     <Link
       href={`/quiz/${cat.id}`}
-      className="flex-shrink-0 bg-white rounded-2xl border-2 border-amber-100 shadow-md overflow-hidden active:scale-95 transition-all hover:border-amber-400 hover:shadow-lg"
-      style={{
-        scrollSnapAlign: 'start',
-        width: '180px',
-        minWidth: '180px'
-      }}
+      className="flex-shrink-0 bg-white rounded-2xl border-2 border-amber-100 shadow-md overflow-hidden active:scale-95 transition-all hover:border-orange-300 hover:shadow-lg"
+      style={{ scrollSnapAlign: 'start', width: '160px', minWidth: '160px' }}
     >
       <div className="p-4 text-center">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3"
-          style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE0C8)', fontSize: '40px', minHeight: '64px' }}>
-          <span style={{ fontSize: '36px' }}>{icone}</span>
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+          style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' }}>
+          {iconSVG}
         </div>
-        <p className="text-sm font-bold text-gray-800 leading-tight mb-2">{cat.nom}</p>
-        <div className="flex items-center justify-center gap-1">
+        <p className="text-xs font-bold text-gray-800 leading-tight mb-2 line-clamp-2">{cat.nom}</p>
+        <div className="flex items-center justify-center">
           {hasAccess ? (
             <span className="text-xs text-gray-400">{cat.question_count || 0} QCM</span>
           ) : (
@@ -370,35 +424,9 @@ function CategoryCard({ cat, locked, hasAccess, index }) {
               🆓 5 gratuites
             </span>
           )}
-          <span className="text-gray-300 ml-1">›</span>
         </div>
       </div>
       <div className="h-1.5 w-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }}></div>
     </Link>
   )
-}
-
-function getCatIcon(nom) {
-  const n = (nom || '').toLowerCase()
-  if (n.includes('culture') || n.includes('actualit')) return '🌍'
-  if (n.includes('français') || n.includes('franc')) return '📚'
-  if (n.includes('littérature') || n.includes('art')) return '🎨'
-  if (n.includes('histoire') || n.includes('géographie') || n.includes('h-g')) return '🗺️'
-  if (n.includes('svt') || n.includes('science')) return '🧬'
-  if (n.includes('psycho')) return '🧠'
-  if (n.includes('math') || n.includes('match')) return '📐'
-  if (n.includes('physique') || n.includes('chimie') || n.includes('pc')) return '⚗️'
-  if (n.includes('qcm') || n.includes('entraîn')) return '✏️'
-  if (n.includes('accompagn') || n.includes('final')) return '🎯'
-  if (n.includes('vie scolaire') || n.includes('casu')) return '🏫'
-  if (n.includes('cisu') || n.includes('enaref')) return '🏛️'
-  if (n.includes('inspect')) return '🔍'
-  if (n.includes('agrég')) return '🎓'
-  if (n.includes('capes')) return '📖'
-  if (n.includes('hôpital')) return '🏥'
-  if (n.includes('santé')) return '💊'
-  if (n.includes('gsp')) return '🛡️'
-  if (n.includes('police')) return '👮'
-  if (n.includes('civil') || n.includes('admin')) return '📋'
-  return '📋'
 }
