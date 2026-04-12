@@ -421,7 +421,8 @@ export default function Home() {
   const [loadingCats, setLoadingCats] = useState(true)
   const [activeTab, setActiveTab] = useState('accueil')  // 'accueil' | 'concours' | 'profil' | 'apropos'
   const [activeConcoursTab, setActiveConcoursTab] = useState('direct')  // 'direct' | 'professionnel'
-  const [activeAboutTab, setActiveAboutTab] = useState('app')  // 'app' | 'equipe' | 'dev'
+  const [activeAboutTab, setActiveAboutTab] = useState('app')  // 'app' | 'equipe' | 'aide' | 'dev'
+  const [openFaq, setOpenFaq] = useState(null)
 
   useEffect(() => {
     if (!loading && user) {
@@ -581,37 +582,24 @@ export default function Home() {
                   <p className="text-xs mt-2 font-semibold" style={{ color: '#C4521A' }}>Voir les dossiers →</p>
                 </div>
                 <div className="bg-white rounded-2xl shadow-md border-2 p-5 text-center"
-                  style={{ borderColor: '#A8C4F0', cursor: 'pointer' }}
+                  style={{ borderColor: '#FFD0A8', cursor: 'pointer' }}
                   onClick={() => { setActiveTab('concours'); setActiveConcoursTab('professionnel') }}>
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
-                    style={{ background: 'linear-gradient(135deg,#0F2D5E,#1D5AB4)' }}>
+                    style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)' }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
                     </svg>
                   </div>
-                  <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#EEF3FF', color: '#1D5AB4' }}>🏅 Évolution de carrière</div>
-                  <h3 className="font-extrabold text-sm mb-1" style={{ color: '#0F2D5E' }}>Professionnels</h3>
+                  <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF7E8', color: '#B45309' }}>🏅 Évolution de carrière</div>
+                  <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
                   <p className="text-gray-500 text-xs mb-2">17 dossiers spécialisés</p>
-                  <p className="text-xl font-extrabold" style={{ color: '#1D5AB4' }}>20 000</p>
+                  <p className="text-xl font-extrabold" style={{ color: '#C4521A' }}>20 000</p>
                   <p className="text-gray-400 text-xs">FCFA</p>
-                  <p className="text-xs mt-2 font-semibold" style={{ color: '#1D5AB4' }}>Voir les dossiers →</p>
+                  <p className="text-xs mt-2 font-semibold" style={{ color: '#C4521A' }}>Voir les dossiers →</p>
                 </div>
               </div>
 
-              {/* Bannière 5 questions gratuites */}
-              <div className="rounded-2xl p-4 mb-6 flex items-center gap-3"
-                style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #D4A017' }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: '#D4A017' }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-extrabold text-amber-800 text-sm">5 questions gratuites par dossier</p>
-                  <p className="text-amber-700 text-xs mt-0.5">Essayez chaque dossier sans créer de compte. Inscrivez-vous pour tout débloquer !</p>
-                </div>
-              </div>
+
 
               {/* Paiement Orange Money */}
               <div className="rounded-2xl p-5 mb-6 text-white" style={{ background: 'linear-gradient(135deg,#FF6B00,#FF9500)' }}>
@@ -676,7 +664,7 @@ export default function Home() {
                 <div className="flex justify-center gap-4 text-sm text-gray-500 mb-2">
                   <Link href="/login" className="hover:underline">Connexion</Link>
                   <Link href="/register" className="hover:underline">Inscription</Link>
-                  <Link href="/help" className="hover:underline">Aide</Link>
+                  <button onClick={() => setActiveTab('apropos')} className="hover:underline">Aide</button>
                   <button onClick={handleShare} className="hover:underline">Partager</button>
                 </div>
                 <p className="text-gray-400 text-xs">© 2025 IFL – Burkina Faso</p>
@@ -743,7 +731,7 @@ export default function Home() {
                 <button
                   onClick={() => setActiveConcoursTab('professionnel')}
                   className={`flex-1 py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${activeConcoursTab === 'professionnel' ? 'text-white shadow-lg scale-105' : 'text-gray-500 bg-white border-2 border-gray-100'}`}
-                  style={activeConcoursTab === 'professionnel' ? { background: 'linear-gradient(135deg,#1A3A6B,#2D6BB0)', boxShadow: '0 4px 15px rgba(29,90,180,0.35)' } : {}}
+                  style={activeConcoursTab === 'professionnel' ? { background: 'linear-gradient(135deg,#8B2500,#D4A017)', boxShadow: '0 4px 15px rgba(180,83,9,0.35)' } : {}}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                     <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
@@ -827,7 +815,7 @@ export default function Home() {
               {activeConcoursTab === 'professionnel' && (
                 <div className="animate-fadeIn">
                   {/* Bandeau identitaire PROFESSIONNELS */}
-                  <div className="rounded-2xl mb-5 overflow-hidden shadow-md" style={{ background: 'linear-gradient(135deg,#0F2D5E 0%,#1D5AB4 60%,#2E7DD6 100%)' }}>
+                  <div className="rounded-2xl mb-5 overflow-hidden shadow-md" style={{ background: 'linear-gradient(135deg,#8B2500 0%,#C4521A 60%,#D4A017 100%)' }}>
                     <div className="p-4 flex items-center gap-4">
                       <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.2)' }}>
                         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -839,15 +827,15 @@ export default function Home() {
                           <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'rgba(255,255,255,0.25)', color: 'white' }}>🏅 ÉVOLUTION DE CARRIÈRE</span>
                         </div>
                         <h3 className="text-white font-extrabold text-lg leading-tight">Concours professionnels</h3>
-                        <p className="text-blue-100 text-xs">Pour les agents en poste qui veulent progresser</p>
+                        <p className="text-orange-100 text-xs">Pour les agents en poste qui veulent progresser</p>
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="text-white font-extrabold text-xl">20 000</p>
-                        <p className="text-blue-200 text-xs">FCFA</p>
+                        <p className="text-orange-200 text-xs">FCFA</p>
                       </div>
                     </div>
                     <div className="px-4 pb-3">
-                      <div className="flex items-center gap-2 text-blue-100 text-xs">
+                      <div className="flex items-center gap-2 text-orange-100 text-xs">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                         17 dossiers spécialisés · Santé · Justice · Police · Éducation
                       </div>
@@ -855,11 +843,11 @@ export default function Home() {
                   </div>
 
                   <div className="rounded-2xl p-3 mb-4 flex items-center gap-2"
-                    style={{ background: 'linear-gradient(135deg,#EEF3FF,#DBE8FF)', border: '1.5px solid #93B4E8' }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D5AB4" strokeWidth="2.5" strokeLinecap="round">
+                    style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '1.5px solid #D4A017' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4A017" strokeWidth="2.5" strokeLinecap="round">
                       <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
                     </svg>
-                    <p className="text-xs font-semibold" style={{ color: '#0F2D5E' }}>← Glissez horizontalement pour voir tous les dossiers →</p>
+                    <p className="text-xs font-semibold text-amber-800">← Glissez horizontalement pour voir tous les dossiers →</p>
                   </div>
 
                   {loadingCats ? (
@@ -875,20 +863,20 @@ export default function Home() {
                     </div>
                   )}
 
-                  <div className="mt-4 rounded-2xl p-4 flex items-center justify-between border-2 bg-white" style={{ borderColor: '#1D5AB4' }}>
+                  <div className="mt-4 rounded-2xl p-4 flex items-center justify-between border-2 bg-white" style={{ borderColor: '#C4521A' }}>
                     <div>
-                      <p className="font-bold text-sm" style={{ color: '#0F2D5E' }}>Accès complet</p>
+                      <p className="font-bold text-sm" style={{ color: '#8B2500' }}>Accès complet</p>
                       <p className="text-gray-500 text-xs">Débloquer tous les 17 dossiers</p>
                     </div>
                     <Link href="/payment?type=professionnel&montant=20000"
                       className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md"
-                      style={{ background: 'linear-gradient(135deg,#0F2D5E,#1D5AB4)' }}>
+                      style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
                       20 000 FCFA →
                     </Link>
                   </div>
 
                   <Link href="/register" className="block mt-3 text-center py-3 font-bold rounded-xl text-sm border-2"
-                    style={{ color: '#1D5AB4', background: '#EEF3FF', borderColor: '#93B4E8' }}>
+                    style={{ color: '#C4521A', background: '#FFF8F0', borderColor: '#FFD0A8' }}>
                     📝 Créer un compte gratuit
                   </Link>
                 </div>
@@ -1006,19 +994,20 @@ export default function Home() {
 
             <div className="max-w-lg mx-auto px-4 py-5">
               {/* Sous-onglets */}
-              <div className="flex gap-1.5 bg-gray-100 rounded-2xl p-1.5 mb-6 shadow-inner">
+              <div className="flex gap-1 bg-gray-100 rounded-2xl p-1.5 mb-6 shadow-inner overflow-x-auto">
                 {[
-                  { id: 'app', label: "L'application", svg: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/></svg> },
-                  { id: 'equipe', label: "Notre équipe", svg: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
-                  { id: 'dev', label: "Développeur", svg: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> }
+                  { id: 'app', label: "L'appli" },
+                  { id: 'equipe', label: "Équipe" },
+                  { id: 'aide', label: "Aide & FAQ" },
+                  { id: 'dev', label: "Développeur" }
                 ].map(t => (
                   <button
                     key={t.id}
                     onClick={() => setActiveAboutTab(t.id)}
-                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 ${activeAboutTab === t.id ? 'text-white shadow-md' : 'text-gray-500'}`}
+                    className={`flex-shrink-0 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeAboutTab === t.id ? 'text-white shadow-md' : 'text-gray-500'}`}
                     style={activeAboutTab === t.id ? { background: 'linear-gradient(135deg,#C4521A,#D4A017)' } : {}}
                   >
-                    {t.svg}{t.label}
+                    {t.label}
                   </button>
                 ))}
               </div>
@@ -1143,6 +1132,86 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Bloc Aide & FAQ */}
+              {activeAboutTab === 'aide' && (
+                <div className="animate-fadeIn">
+                  <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
+                    <h3 className="font-extrabold mb-4 text-sm" style={{ color: '#8B2500' }}>📞 Contactez-nous</h3>
+                    <div className="space-y-3">
+                      <a href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20j'ai%20besoin%20d'aide"
+                        target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-4 bg-amber-50 rounded-2xl p-4 border border-amber-100 active:scale-95 transition-all">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: '#E8F5E9' }}>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-gray-800">WhatsApp Assistance</p>
+                          <p className="text-gray-500 text-sm">+226 76 22 39 62</p>
+                        </div>
+                        <svg width="20" height="20" fill="none" stroke="#C4521A" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                      </a>
+                      <div className="rounded-2xl p-4 text-white" style={{ background: 'linear-gradient(135deg,#FF6B00,#FF9500)' }}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="text-2xl">📱</span>
+                          <div>
+                            <p className="font-extrabold">Paiement Orange Money</p>
+                            <p className="text-orange-100 text-xs">Pour votre abonnement</p>
+                          </div>
+                        </div>
+                        <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
+                          <p className="text-orange-100 text-xs">Code USSD (appuyez pour copier) :</p>
+                          <button onClick={() => { if(typeof navigator !== 'undefined') navigator.clipboard?.writeText('*144*10*76223962#'); }} className="text-xl font-extrabold tracking-wider underline decoration-dotted active:opacity-70">*144*10*76223962#</button>
+                        </div>
+                        <p className="text-orange-100 text-sm">Bénéficiaire : <a href="tel:+22676223962" className="font-extrabold text-white underline">+226 76 22 39 62</a></p>
+                        <div className="flex gap-3 mt-3">
+                          <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center">
+                            <p className="text-xs text-orange-100">Directs</p>
+                            <p className="font-extrabold">5 000 FCFA</p>
+                          </div>
+                          <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center">
+                            <p className="text-xs text-orange-100">Professionnels</p>
+                            <p className="font-extrabold">20 000 FCFA</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
+                    <h3 className="font-extrabold mb-4 text-sm" style={{ color: '#8B2500' }}>❓ Questions fréquentes</h3>
+                    <div className="space-y-2">
+                      {[
+                        { q: "Comment m'abonner ?", a: "1. Connectez-vous ou créez un compte\n2. Allez dans \"Paiement\"\n3. Effectuez le paiement Orange Money : *144*10*76223962#\n4. Envoyez la capture via WhatsApp au +226 76 22 39 62\n5. Votre abonnement sera activé sous 24h" },
+                        { q: "Comment effectuer le paiement Orange Money ?", a: "Composez *144*10*76223962# sur votre téléphone Orange, saisissez le montant (5 000 ou 20 000 FCFA), confirmez avec votre code secret.\nBénéficiaire : +226 76 22 39 62" },
+                        { q: "Quelle est la durée de l'abonnement ?", a: "L'abonnement est valable 1 an à partir de la date d'activation. Vous avez accès à tous les QCM de votre formule pendant cette période." },
+                        { q: "Quelle est la différence entre les deux formules ?", a: "📚 Concours Directs (5 000 FCFA) : 12 dossiers thématiques\n\n🎓 Concours Professionnels (20 000 FCFA) : 17 dossiers spécialisés" },
+                        { q: "Mon abonnement n'est pas activé après paiement ?", a: "Vérifiez que vous avez bien envoyé la capture de paiement via WhatsApp au +226 76 22 39 62. L'activation prend jusqu'à 24h après réception de la preuve." },
+                        { q: "Combien de questions gratuites par dossier ?", a: "5 questions gratuites sont disponibles par dossier, sans inscription requise." }
+                      ].map((faq, i) => (
+                        <div key={i} className="rounded-2xl border border-amber-100 overflow-hidden" style={{ background: '#FFFBF5' }}>
+                          <button
+                            onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                            className="w-full px-4 py-4 text-left flex items-center justify-between"
+                          >
+                            <p className="font-bold text-gray-800 text-sm pr-3">{faq.q}</p>
+                            <span className="text-amber-500 text-xl font-bold flex-shrink-0 transition-transform"
+                              style={{ transform: openFaq === i ? 'rotate(45deg)' : 'none' }}>
+                              +
+                            </span>
+                          </button>
+                          {openFaq === i && (
+                            <div className="px-4 pb-4">
+                              <div className="h-px bg-amber-100 mb-3"></div>
+                              <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{faq.a}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Bloc 3 : Le développeur */}
               {activeAboutTab === 'dev' && (
                 <div className="animate-fadeIn">
@@ -1213,24 +1282,24 @@ export default function Home() {
         <div className="fixed bottom-0 left-0 right-0 z-50" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)', borderTop: '1.5px solid #FFE4CC', boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
           <div className="max-w-lg mx-auto flex">
 
-            {/* Onglet Accueil - Bleu clair */}
+            {/* Onglet Accueil */}
             <button
               onClick={() => setActiveTab('accueil')}
               className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
             >
               {activeTab === 'accueil' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: '#60A5FA' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'accueil' ? 'shadow-sm' : ''}`}
-                style={{ background: activeTab === 'accueil' ? 'linear-gradient(135deg,#EFF6FF,#DBEAFE)' : 'transparent' }}>
+                style={{ background: activeTab === 'accueil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24"
-                  fill={activeTab === 'accueil' ? '#3B82F6' : 'none'}
-                  stroke={activeTab === 'accueil' ? '#3B82F6' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  fill={activeTab === 'accueil' ? '#C4521A' : 'none'}
+                  stroke={activeTab === 'accueil' ? '#C4521A' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 12L12 3l9 9"/>
                   <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9"/>
                 </svg>
               </div>
-              <span className="text-xs font-bold" style={{ color: activeTab === 'accueil' ? '#3B82F6' : '#9CA3AF' }}>Accueil</span>
+              <span className="text-xs font-bold" style={{ color: activeTab === 'accueil' ? '#C4521A' : '#9CA3AF' }}>Accueil</span>
             </button>
 
             {/* Onglet Concours - Orange IFL */}
@@ -1256,43 +1325,43 @@ export default function Home() {
               <span className="text-xs font-bold" style={{ color: activeTab === 'concours' ? '#C4521A' : '#9CA3AF' }}>Concours</span>
             </button>
 
-            {/* Onglet Profil - Violet */}
+            {/* Onglet Mon Profil */}
             <button
               onClick={() => setActiveTab('profil')}
               className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
             >
               {activeTab === 'profil' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: '#A855F7' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'profil' ? 'shadow-sm' : ''}`}
-                style={{ background: activeTab === 'profil' ? 'linear-gradient(135deg,#FAF5FF,#EDE9FE)' : 'transparent' }}>
+                style={{ background: activeTab === 'profil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke={activeTab === 'profil' ? '#A855F7' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  stroke={activeTab === 'profil' ? '#C4521A' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="8" r="4"/>
                   <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/>
                 </svg>
               </div>
-              <span className="text-xs font-bold" style={{ color: activeTab === 'profil' ? '#A855F7' : '#9CA3AF' }}>Profil</span>
+              <span className="text-xs font-bold" style={{ color: activeTab === 'profil' ? '#C4521A' : '#9CA3AF' }}>Mon Profil</span>
             </button>
 
-            {/* Onglet À propos - Teal */}
+            {/* Onglet À propos */}
             <button
               onClick={() => setActiveTab('apropos')}
               className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
             >
               {activeTab === 'apropos' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: '#14B8A6' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'apropos' ? 'shadow-sm' : ''}`}
-                style={{ background: activeTab === 'apropos' ? 'linear-gradient(135deg,#F0FDFA,#CCFBF1)' : 'transparent' }}>
+                style={{ background: activeTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke={activeTab === 'apropos' ? '#14B8A6' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  stroke={activeTab === 'apropos' ? '#C4521A' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/>
                   <path d="M12 16v-4"/>
-                  <circle cx="12" cy="8" r="0.5" fill={activeTab === 'apropos' ? '#14B8A6' : '#9CA3AF'}/>
+                  <circle cx="12" cy="8" r="0.5" fill={activeTab === 'apropos' ? '#C4521A' : '#9CA3AF'}/>
                 </svg>
               </div>
-              <span className="text-xs font-bold" style={{ color: activeTab === 'apropos' ? '#14B8A6' : '#9CA3AF' }}>À propos</span>
+              <span className="text-xs font-bold" style={{ color: activeTab === 'apropos' ? '#C4521A' : '#9CA3AF' }}>À propos</span>
             </button>
 
           </div>
