@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="pp1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4A148C"/><stop offset="100%" stop-color="#9C27B0"/></linearGradient>
+    <linearGradient id="pp2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1A237E"/><stop offset="100%" stop-color="#3F51B5"/></linearGradient>
+  </defs>
+  <rect x="10" y="10" width="44" height="44" rx="6" fill="#EDE7F6"/>
+  <rect x="16" y="18" width="6" height="6" rx="1" fill="#7E57C2" stroke="#4A148C" stroke-width="1.5"/>
+  <polyline points="20,21 21,22 24,19" fill="none" stroke="#43A047" stroke-width="2" stroke-linecap="round"/>
+  <rect x="16" y="28" width="6" height="6" rx="1" fill="none" stroke="#4A148C" stroke-width="1.5"/>
+  <rect x="16" y="38" width="6" height="6" rx="1" fill="#7E57C2" stroke="#4A148C" stroke-width="1.5"/>
+  <polyline points="20,41 21,42 24,39" fill="none" stroke="#43A047" stroke-width="2" stroke-linecap="round"/>
+  <line x1="26" y1="21" x2="44" y2="21" stroke="#7E57C2" stroke-width="2" stroke-linecap="round"/>
+  <line x1="26" y1="31" x2="40" y2="31" stroke="#9E9E9E" stroke-width="2" stroke-linecap="round"/>
+  <line x1="26" y1="41" x2="44" y2="41" stroke="#7E57C2" stroke-width="2" stroke-linecap="round"/>
+  <path d="M44,6 L58,20 L46,32 L32,32 L32,18 Z" fill="url(#pp1)"/>
+  <path d="M32,32 L30,38 L36,36 Z" fill="#1A237E"/>
+  <line x1="42" y1="8" x2="56" y2="22" stroke="#FFF" stroke-width="1.5" opacity="0.5"/>
+</svg>

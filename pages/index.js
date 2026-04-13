@@ -42,237 +42,57 @@ const CATEGORIES_PRO_STATIC = [
   { nom: 'Accompagnement final', icone: 'target' }
 ]
 
-// ===== ICÔNES SVG VECTORIELLES MODERNES =====
-const SVG_ICONS = {
-  // === ICÔNES DOSSIERS CONCOURS DIRECTS (thème chaud : bordeaux/orange) ===
-  globe: (
-    // Actualité / Culture générale – globe avec méridiens stylisés
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9.5"/>
-      <path d="M2.5 12h19M12 2.5c-2.5 3-4 6-4 9.5s1.5 6.5 4 9.5M12 2.5c2.5 3 4 6 4 9.5s-1.5 6.5-4 9.5"/>
-      <path d="M5 7.5h14M5 16.5h14"/>
-    </svg>
-  ),
-  book: (
-    // Français – livre ouvert avec signet
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 7c-1.5-2-4-3-7-3v15c3 0 5.5 1 7 3 1.5-2 4-3 7-3V4c-3 0-5.5 1-7 3z"/>
-      <path d="M12 7v16M8 4v3M16 4v3"/>
-    </svg>
-  ),
-  palette: (
-    // Littérature et art – palette d'artiste
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2a10 10 0 1 0 10 10c0-1.1-.9-2-2-2h-2a2 2 0 0 1-2-2V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/>
-      <circle cx="7.5" cy="10.5" r="1" fill="currentColor"/>
-      <circle cx="10.5" cy="7.5" r="1" fill="currentColor"/>
-      <circle cx="15" cy="7.5" r="1" fill="currentColor"/>
-    </svg>
-  ),
-  map: (
-    // Histoire-Géographie – carte avec épingle
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
-      <circle cx="12" cy="10" r="3"/>
-    </svg>
-  ),
-  leaf: (
-    // SVT – feuille + microscope stylisé
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22V12"/>
-      <path d="M5 12c0-5 3-9 7-10 4 1 7 5 7 10a7 7 0 0 1-14 0z"/>
-      <path d="M9 17c1-2 3-3 3-5"/>
-    </svg>
-  ),
-  brain: (
-    // Psychotechniques – cerveau stylisé
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 5a3 3 0 0 0-5.99.1A3 3 0 0 0 4 8a3.5 3.5 0 0 0 .5 6.5A3.5 3.5 0 0 0 8 18h4"/>
-      <path d="M12 5a3 3 0 0 1 5.99.1A3 3 0 0 1 20 8a3.5 3.5 0 0 1-.5 6.5A3.5 3.5 0 0 1 16 18h-4"/>
-      <path d="M12 5v13M9 9h2M13 9h2M9 13h2M13 13h2"/>
-    </svg>
-  ),
-  calculator: (
-    // Maths – sigma + chiffres
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="3"/>
-      <path d="M7 7h4M7 12h10M7 17h4"/>
-      <path d="M15 7l2 2.5L15 12"/>
-    </svg>
-  ),
-  flask: (
-    // Physique-Chimie – fiole + bulles
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 3h6M10 3v7L5 19a1 1 0 0 0 .9 1.4h12.2A1 1 0 0 0 19 19l-5-9V3"/>
-      <path d="M7.5 15h9"/>
-      <circle cx="10" cy="17" r="0.8" fill="currentColor"/>
-      <circle cx="13.5" cy="16" r="0.8" fill="currentColor"/>
-    </svg>
-  ),
-  scale: (
-    // Droit – balance de la justice
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3v18M5 21h14"/>
-      <path d="M5 7h7M12 7h7"/>
-      <path d="M2 11l3-4 3 4a3 3 0 0 1-6 0z"/>
-      <path d="M16 11l3-4 3 4a3 3 0 0 1-6 0z"/>
-    </svg>
-  ),
-  chart: (
-    // Économie – graphique tendance haussière
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-      <polyline points="16 7 22 7 22 13"/>
-      <path d="M3 20h18M3 20V5"/>
-    </svg>
-  ),
-  pencil: (
-    // Entraînement QCM – crayon + cases à cocher
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-      <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-    </svg>
-  ),
-  target: (
-    // Accompagnement final – cible avec flèche
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <circle cx="12" cy="12" r="6"/>
-      <circle cx="12" cy="12" r="2"/>
-      <path d="M20 4l-8 8"/>
-      <path d="M16 4h4v4"/>
-    </svg>
-  ),
-
-  // === ICÔNES DOSSIERS CONCOURS PROFESSIONNELS (thème riche : marine/or) ===
-  school: (
-    // Vie scolaire (CASU-AASU) – chapeau académique + bâtiment
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 10l10-5 10 5-10 5-10-5z"/>
-      <path d="M6 12v5.5c2 1.5 10 1.5 12 0V12"/>
-      <path d="M22 10v6"/>
-    </svg>
-  ),
-  newspaper: (
-    // Actualités et culture générale – journal avec colonnes
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/>
-      <path d="M7 8h10M7 12h10M7 16h6"/>
-      <path d="M15 12h2v4h-2z" fill="currentColor" fillOpacity="0.15"/>
-    </svg>
-  ),
-  building: (
-    // CISU/AISU/ENAREF – bâtiment administratif
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18z"/>
-      <path d="M2 22h20"/>
-      <path d="M9 6h2M13 6h2M9 10h2M13 10h2M9 14h2M13 14h2M9 18h6"/>
-    </svg>
-  ),
-  search: (
-    // Inspectorat IES – loupe + document
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-      <circle cx="11" cy="15" r="2.5"/>
-      <path d="M13 17l2.5 2.5"/>
-    </svg>
-  ),
-  search2: (
-    // Inspectorat IEPENF – loupe + enfant
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="10" cy="10" r="7"/>
-      <path d="M21 21l-4.35-4.35"/>
-      <path d="M7 10h6M10 7v6"/>
-    </svg>
-  ),
-  graduation: (
-    // CSAPÉ – toque de diplômé
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 10l10-5 10 5-10 5-10-5z"/>
-      <path d="M6 12.5v4c0 1.5 2.7 2.5 6 2.5s6-1 6-2.5v-4"/>
-      <path d="M22 10v4.5"/>
-      <circle cx="22" cy="15" r="1" fill="currentColor"/>
-    </svg>
-  ),
-  scroll: (
-    // Agrégés – parchemin/diplôme de haut niveau
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
-      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
-      <line x1="6" y1="1" x2="6" y2="4"/>
-      <line x1="10" y1="1" x2="10" y2="4"/>
-      <line x1="14" y1="1" x2="14" y2="4"/>
-    </svg>
-  ),
-  openbook: (
-    // CAPES toutes options – livre ouvert avec stylo
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-      <path d="M6 8h2M16 8h2M6 12h2M16 12h2"/>
-    </svg>
-  ),
-  hospital: (
-    // Administrateur des hôpitaux – croix médicale
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-      <path d="M9 22V12h6v10"/>
-      <path d="M10 7h4M12 5v6"/>
-    </svg>
-  ),
-  health: (
-    // Spécialités santé – ECG + cœur
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-      <path d="M12 17l-3-3a4 4 0 0 1 6-5.2A4 4 0 0 1 21 12c0 2.5-3 5-9 8"/>
-    </svg>
-  ),
-  justice: (
-    // Justice – marteau de juge
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14.5 2.5l7 7-12 12-7-7 12-12z"/>
-      <path d="M2 22l4.5-4.5"/>
-      <path d="M8 8l8 8"/>
-    </svg>
-  ),
-  judge: (
-    // Magistrature – balance + robe
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="6" r="3"/>
-      <path d="M12 9v13"/>
-      <path d="M5 21h14"/>
-      <path d="M9 15h6"/>
-      <path d="M3 11l9 3 9-3"/>
-    </svg>
-  ),
-  shield: (
-    // Spécialités GSP – bouclier avec étoile
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-      <polygon points="12 8 13.5 11.5 17 11.5 14.5 13.5 15.5 17 12 15 8.5 17 9.5 13.5 7 11.5 10.5 11.5" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="1.5"/>
-    </svg>
-  ),
-  badge: (
-    // Spécialités police – badge officiel
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76z"/>
-      <path d="M9 12l2 2 4-4"/>
-    </svg>
-  ),
-  clipboard: (
-    // Administrateur civil – dossier + tampon
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-      <rect x="9" y="3" width="6" height="4" rx="2"/>
-      <path d="M9 12h6M9 16h4"/>
-    </svg>
-  ),
+// ===== ICÔNES IMAGE MODERNES MULTICOLORES =====
+// Utilisation de vraies images SVG riches avec dégradés et plusieurs couleurs
+function CatIconImage({ src, alt, size = 28 }) {
+  return (
+    <img
+      src={src}
+      alt={alt || ''}
+      width={size}
+      height={size}
+      style={{ display: 'block', objectFit: 'contain' }}
+      draggable={false}
+    />
+  )
 }
 
-function CatIcon({ name, color = 'white' }) {
-  // Mapping emoji DB → clé SVG moderne
-  const EMOJI_TO_SVG = {
+// Mapping clé → chemin image SVG moderne multicolore
+const ICON_IMAGES = {
+  // Concours directs (12)
+  globe:      '/icons/direct_globe.svg',
+  book:       '/icons/direct_book.svg',
+  palette:    '/icons/direct_palette.svg',
+  map:        '/icons/direct_map.svg',
+  leaf:       '/icons/direct_leaf.svg',
+  brain:      '/icons/direct_brain.svg',
+  calculator: '/icons/direct_calculator.svg',
+  flask:      '/icons/direct_flask.svg',
+  scale:      '/icons/direct_scale.svg',
+  chart:      '/icons/direct_chart.svg',
+  pencil:     '/icons/direct_pencil.svg',
+  target:     '/icons/direct_target.svg',
+  // Concours professionnels (17)
+  school:     '/icons/pro_school.svg',
+  newspaper:  '/icons/pro_newspaper.svg',
+  building:   '/icons/pro_building.svg',
+  search:     '/icons/pro_search.svg',
+  search2:    '/icons/pro_search2.svg',
+  graduation: '/icons/pro_graduation.svg',
+  scroll:     '/icons/pro_scroll.svg',
+  openbook:   '/icons/pro_openbook.svg',
+  hospital:   '/icons/pro_hospital.svg',
+  health:     '/icons/pro_health.svg',
+  justice:    '/icons/pro_justice.svg',
+  judge:      '/icons/pro_judge.svg',
+  shield:     '/icons/pro_shield.svg',
+  badge:      '/icons/pro_badge.svg',
+  clipboard:  '/icons/pro_clipboard.svg',
+}
+
+function CatIcon({ name, color = 'white', size = 28 }) {
+  // Mapping emoji DB → clé image moderne
+  const EMOJI_TO_KEY = {
     '🌍': 'globe', '🌎': 'globe', '🌐': 'globe',
     '📚': 'book', '📕': 'book', '📗': 'book', '📘': 'book',
     '🎨': 'palette',
@@ -300,12 +120,12 @@ function CatIcon({ name, color = 'white' }) {
     '👮': 'badge', '👮‍♂️': 'badge',
     '📋': 'clipboard', '📄': 'clipboard',
   }
-  // Résoudre la clé : emoji → SVG ou clé directe
-  const key = EMOJI_TO_SVG[name] || name || 'book'
-  const icon = SVG_ICONS[key] || SVG_ICONS['book']
+  // Résoudre la clé : emoji → image ou clé directe
+  const key = EMOJI_TO_KEY[name] || name || 'book'
+  const src = ICON_IMAGES[key] || ICON_IMAGES['book']
   return (
-    <span style={{ color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      {icon}
+    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <CatIconImage src={src} alt={key} size={size} />
     </span>
   )
 }
@@ -381,9 +201,10 @@ function PublicCategoryCard({ cat, index, catType }) {
         style={{ scrollSnapAlign: 'start', width: '150px', minWidth: '150px', border: `2px solid ${style.border}`, boxShadow: `0 2px 8px ${style.border}80` }}
       >
         <div className="p-4 text-center">
+          {/* Image moderne multicolore sur fond blanc/transparent */}
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-            style={{ background: style.bg }}>
-            <CatIcon name={iconName} color="white" />
+            style={{ background: 'rgba(255,255,255,0.85)', border: `1.5px solid ${style.border}` }}>
+            <CatIcon name={iconName} size={36} />
           </div>
           <p className="text-xs font-bold text-gray-700 leading-tight mb-2 line-clamp-2">{cat.nom}</p>
           <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: style.tag, color: style.tagText }}>
@@ -399,9 +220,10 @@ function PublicCategoryCard({ cat, index, catType }) {
     <div className="flex-shrink-0 bg-white rounded-2xl overflow-hidden"
       style={{ scrollSnapAlign: 'start', width: '150px', minWidth: '150px', border: '2px solid #E5E7EB' }}>
       <div className="p-4 text-center">
+        {/* Image moderne multicolore sur fond blanc */}
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-          style={{ background: style.bg }}>
-          <CatIcon name={iconName} color="white" />
+          style={{ background: '#F9FAFB', border: '1.5px solid #E5E7EB' }}>
+          <CatIcon name={iconName} size={36} />
         </div>
         <p className="text-xs font-bold text-gray-700 leading-tight mb-2 line-clamp-2">{cat.nom}</p>
         <span className="text-gray-400 text-xs">🔒 Bientôt</span>
@@ -1292,12 +1114,7 @@ export default function Home() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'accueil' ? 'shadow-sm' : ''}`}
                 style={{ background: activeTab === 'accueil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24"
-                  fill={activeTab === 'accueil' ? '#C4521A' : 'none'}
-                  stroke={activeTab === 'accueil' ? '#C4521A' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 12L12 3l9 9"/>
-                  <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9"/>
-                </svg>
+                <img src="/icons/nav_home.svg" alt="Accueil" width="24" height="24" style={{ objectFit: 'contain', filter: activeTab === 'accueil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeTab === 'accueil' ? '#C4521A' : '#9CA3AF' }}>Accueil</span>
             </button>
@@ -1312,15 +1129,7 @@ export default function Home() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'concours' ? 'shadow-sm' : ''}`}
                 style={{ background: activeTab === 'concours' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke={activeTab === 'concours' ? '#C4521A' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-                  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-                  <path d="M4 22h16"/>
-                  <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-                  <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-                  <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
-                </svg>
+                <img src="/icons/nav_concours.svg" alt="Concours" width="24" height="24" style={{ objectFit: 'contain', filter: activeTab === 'concours' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeTab === 'concours' ? '#C4521A' : '#9CA3AF' }}>Concours</span>
             </button>
@@ -1335,11 +1144,7 @@ export default function Home() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'profil' ? 'shadow-sm' : ''}`}
                 style={{ background: activeTab === 'profil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke={activeTab === 'profil' ? '#C4521A' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="8" r="4"/>
-                  <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/>
-                </svg>
+                <img src="/icons/nav_profil.svg" alt="Profil" width="24" height="24" style={{ objectFit: 'contain', filter: activeTab === 'profil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeTab === 'profil' ? '#C4521A' : '#9CA3AF' }}>Mon Profil</span>
             </button>
@@ -1354,12 +1159,7 @@ export default function Home() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'apropos' ? 'shadow-sm' : ''}`}
                 style={{ background: activeTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke={activeTab === 'apropos' ? '#C4521A' : '#9CA3AF'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M12 16v-4"/>
-                  <circle cx="12" cy="8" r="0.5" fill={activeTab === 'apropos' ? '#C4521A' : '#9CA3AF'}/>
-                </svg>
+                <img src="/icons/nav_apropos.svg" alt="À propos" width="24" height="24" style={{ objectFit: 'contain', filter: activeTab === 'apropos' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeTab === 'apropos' ? '#C4521A' : '#9CA3AF' }}>À propos</span>
             </button>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="jd1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#212121"/><stop offset="100%" stop-color="#757575"/></linearGradient>
+    <linearGradient id="jd2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#FF8F00"/></linearGradient>
+  </defs>
+  <rect x="28" y="12" width="8" height="44" rx="3" fill="url(#jd1)"/>
+  <rect x="16" y="56" width="32" height="5" rx="2" fill="#212121"/>
+  <rect x="10" y="18" width="44" height="4" rx="2" fill="url(#jd1)"/>
+  <circle cx="32" cy="12" r="7" fill="url(#jd2)"/>
+  <circle cx="32" cy="12" r="4" fill="#FFD700"/>
+  <line x1="10" y1="20" x2="18" y2="34" stroke="#616161" stroke-width="2.5"/>
+  <line x1="54" y1="20" x2="46" y2="34" stroke="#616161" stroke-width="2.5"/>
+  <path d="M8,34 C8,40 14,44 18,44 C22,44 28,40 28,34 Z" fill="#C6A84B" opacity="0.8"/>
+  <path d="M36,34 C36,40 42,44 46,44 C50,44 56,40 56,34 Z" fill="#C6A84B" opacity="0.8"/>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="c1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E65100"/><stop offset="100%" stop-color="#FFCC02"/></linearGradient>
+    <linearGradient id="c2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#BF360C"/><stop offset="100%" stop-color="#FF7043"/></linearGradient>
+  </defs>
+  <rect x="10" y="8" width="44" height="48" rx="6" fill="url(#c1)"/>
+  <rect x="14" y="12" width="36" height="12" rx="3" fill="#FFF" opacity="0.9"/>
+  <rect x="14" y="28" width="10" height="10" rx="2" fill="url(#c2)"/>
+  <rect x="27" y="28" width="10" height="10" rx="2" fill="url(#c2)"/>
+  <rect x="40" y="28" width="10" height="10" rx="2" fill="#FFF3E0"/>
+  <rect x="14" y="42" width="10" height="10" rx="2" fill="url(#c2)"/>
+  <rect x="27" y="42" width="10" height="10" rx="2" fill="url(#c2)"/>
+  <rect x="40" y="42" width="10" height="10" rx="2" fill="#E64A19"/>
+  <text x="17" y="21" font-size="9" fill="#E65100" font-weight="bold">2+2=4</text>
+  <text x="17" y="36" font-size="8" fill="white">7</text>
+  <text x="30" y="36" font-size="8" fill="white">8</text>
+  <text x="43" y="36" font-size="8" fill="#BF360C">9</text>
+  <text x="17" y="50" font-size="8" fill="white">4</text>
+  <text x="30" y="50" font-size="8" fill="white">5</text>
+  <text x="42" y="50" font-size="8" fill="white">+</text>
+</svg>

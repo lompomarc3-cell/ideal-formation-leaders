@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="sc1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#795548"/><stop offset="100%" stop-color="#FFCC80"/></linearGradient>
+  </defs>
+  <rect x="12" y="12" width="40" height="44" rx="4" fill="#FFF9C4"/>
+  <rect x="12" y="12" width="40" height="44" rx="4" fill="none" stroke="url(#sc1)" stroke-width="2"/>
+  <ellipse cx="12" cy="34" rx="6" ry="22" fill="url(#sc1)"/>
+  <ellipse cx="52" cy="34" rx="6" ry="22" fill="url(#sc1)"/>
+  <ellipse cx="12" cy="34" rx="4" ry="18" fill="#FFCC80"/>
+  <ellipse cx="52" cy="34" rx="4" ry="18" fill="#FFCC80"/>
+  <line x1="20" y1="24" x2="44" y2="24" stroke="#8D6E63" stroke-width="1.5"/>
+  <line x1="20" y1="30" x2="44" y2="30" stroke="#8D6E63" stroke-width="1.5"/>
+  <line x1="20" y1="36" x2="44" y2="36" stroke="#8D6E63" stroke-width="1.5"/>
+  <line x1="20" y1="42" x2="36" y2="42" stroke="#8D6E63" stroke-width="1.5"/>
+  <polygon points="32,44 34,50 40,50 35,54 37,60 32,56 27,60 29,54 24,50 30,50" fill="#FFD700" transform="translate(0,-10) scale(0.8)" transform-origin="32 50"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="sh1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1A237E"/><stop offset="100%" stop-color="#283593"/></linearGradient>
+    <linearGradient id="sh2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1565C0"/><stop offset="100%" stop-color="#42A5F5"/></linearGradient>
+  </defs>
+  <path d="M32,4 L8,14 L8,34 C8,48 20,58 32,62 C44,58 56,48 56,34 L56,14 Z" fill="url(#sh1)"/>
+  <path d="M32,4 L8,14 L8,34 C8,48 20,58 32,62 Z" fill="url(#sh2)" opacity="0.5"/>
+  <path d="M32,10 L14,18 L14,34 C14,45 22,54 32,58 C42,54 50,45 50,34 L50,18 Z" fill="none" stroke="#42A5F5" stroke-width="1.5" opacity="0.6"/>
+  <polygon points="32,20 34.5,27.5 42,27.5 36,32 38.5,39.5 32,35 25.5,39.5 28,32 22,27.5 29.5,27.5" fill="#FFD700"/>
+</svg>

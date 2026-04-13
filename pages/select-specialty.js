@@ -35,25 +35,48 @@ const DOSSIERS_PRO = [
 // Dossiers qu'on peut choisir comme principal (hors dossiers d'accompagnement)
 const SPECIALITES_SELECTABLES = DOSSIERS_PRO.filter(d => !d.isAccompagnement)
 
-function getCatIcon(nom) {
+// Mapping nom de dossier → image SVG moderne multicolore
+const PRO_ICON_MAP = {
+  'vie scolaire': '/icons/pro_school.svg',
+  'casu': '/icons/pro_school.svg',
+  'actualit': '/icons/pro_newspaper.svg',
+  'culture': '/icons/pro_newspaper.svg',
+  'cisu': '/icons/pro_building.svg',
+  'aisu': '/icons/pro_building.svg',
+  'enaref': '/icons/pro_building.svg',
+  'ies': '/icons/pro_search.svg',
+  'iepenf': '/icons/pro_search2.svg',
+  'inspect': '/icons/pro_search.svg',
+  'csap': '/icons/pro_graduation.svg',
+  'agrég': '/icons/pro_scroll.svg',
+  'capes': '/icons/pro_openbook.svg',
+  'hôpital': '/icons/pro_hospital.svg',
+  'hopital': '/icons/pro_hospital.svg',
+  'santé': '/icons/pro_health.svg',
+  'sante': '/icons/pro_health.svg',
+  'justice': '/icons/pro_justice.svg',
+  'magistr': '/icons/pro_judge.svg',
+  'gsp': '/icons/pro_shield.svg',
+  'police': '/icons/pro_badge.svg',
+  'civil': '/icons/pro_clipboard.svg',
+  'administrateur': '/icons/pro_clipboard.svg',
+  'qcm': '/icons/pro_pencil.svg',
+  'entraîn': '/icons/pro_pencil.svg',
+  'accompagn': '/icons/pro_target.svg',
+  'final': '/icons/pro_target.svg',
+}
+
+function getCatIconSrc(nom) {
   const n = (nom || '').toLowerCase()
-  const color = 'white'
-  if (n.includes('vie scolaire') || n.includes('casu')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 22h20M6 22V10l6-6 6 6v12"/><path d="M12 6v6m-4 4h8M9 22v-4h6v4"/></svg>
-  if (n.includes('actualit') || n.includes('culture')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-  if (n.includes('cisu') || n.includes('aisu') || n.includes('enaref')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-  if (n.includes('inspect')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-  if (n.includes('csap')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
-  if (n.includes('agrég') || n.includes('capes')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
-  if (n.includes('hôpital') || n.includes('hopital')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10M12 7v6m-3-3h6"/></svg>
-  if (n.includes('santé') || n.includes('sante')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-  if (n.includes('justice') && !n.includes('magistr')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M4 9l8 2 8-2M6 15l6 2 6-2"/></svg>
-  if (n.includes('magistr')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M5 21h14M17 8l4 6-4 0M7 8 3 14l4 0M3 14h4M17 14h4M7 8h10"/></svg>
-  if (n.includes('gsp')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-  if (n.includes('police')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-  if (n.includes('civil') || n.includes('administrateur')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
-  if (n.includes('qcm') || n.includes('entraîn')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-  if (n.includes('accompagn') || n.includes('final')) return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-  return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+  for (const [key, src] of Object.entries(PRO_ICON_MAP)) {
+    if (n.includes(key)) return src
+  }
+  return '/icons/pro_clipboard.svg'
+}
+
+function getCatIcon(nom) {
+  const src = getCatIconSrc(nom)
+  return <img src={src} alt={nom} width="36" height="36" style={{ objectFit: 'contain', display: 'block' }} />
 }
 
 export default function SelectSpecialty() {
@@ -174,22 +197,6 @@ export default function SelectSpecialty() {
               {/* Grille des spécialités */}
               <div className="space-y-3">
                 {SPECIALITES_SELECTABLES.map((dossier, idx) => {
-                  // Déterminer la couleur de fond
-                  const n = dossier.nom.toLowerCase()
-                  let bg = 'linear-gradient(135deg,#8B2500,#C4521A)'
-                  if (n.includes('actualit') || n.includes('culture')) bg = 'linear-gradient(135deg,#B45309,#D97706)'
-                  else if (n.includes('cisu') || n.includes('aisu')) bg = 'linear-gradient(135deg,#6B3A00,#8B5A00)'
-                  else if (n.includes('inspect')) bg = 'linear-gradient(135deg,#8B2500,#B03000)'
-                  else if (n.includes('csap')) bg = 'linear-gradient(135deg,#D4A017,#F0B429)'
-                  else if (n.includes('agrég') || n.includes('capes')) bg = 'linear-gradient(135deg,#6B3A00,#9B5A00)'
-                  else if (n.includes('hôpital') || n.includes('hopital')) bg = 'linear-gradient(135deg,#8B2500,#B03000)'
-                  else if (n.includes('santé') || n.includes('sante')) bg = 'linear-gradient(135deg,#C4521A,#D4711A)'
-                  else if (n.includes('justice') && !n.includes('magistr')) bg = 'linear-gradient(135deg,#374151,#6B7280)'
-                  else if (n.includes('magistr')) bg = 'linear-gradient(135deg,#374151,#4B5563)'
-                  else if (n.includes('gsp')) bg = 'linear-gradient(135deg,#1F2937,#374151)'
-                  else if (n.includes('police')) bg = 'linear-gradient(135deg,#374151,#6B7280)'
-                  else if (n.includes('civil') || (n.includes('administrateur') && !n.includes('hôpital'))) bg = 'linear-gradient(135deg,#6B3A00,#8B5A00)'
-
                   return (
                     <button
                       key={idx}
@@ -202,9 +209,9 @@ export default function SelectSpecialty() {
                         overflow: 'hidden'
                       }}
                     >
-                      {/* Icône colorée */}
+                      {/* Image moderne multicolore sur fond blanc */}
                       <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ background: bg }}>
+                        style={{ background: '#FFF7ED', border: '1.5px solid #FFD0A8' }}>
                         {getCatIcon(dossier.nom)}
                       </div>
                       {/* Texte */}
@@ -237,7 +244,11 @@ export default function SelectSpecialty() {
               {/* Carte de confirmation */}
               <div className="bg-white rounded-3xl shadow-xl border-2 border-amber-200 p-6 mb-5">
                 <div className="text-center mb-5">
-                  <div className="text-5xl mb-3">{selected.icone}</div>
+                  {/* Image moderne multicolore - remplace emoji */}
+                  <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                    style={{ background: '#FFF7ED', border: '2px solid #FFD0A8', boxShadow: '0 4px 12px rgba(196,82,26,0.15)' }}>
+                    <img src={getCatIconSrc(selected.nom)} alt={selected.nom} width="52" height="52" style={{ objectFit: 'contain' }} />
+                  </div>
                   <h2 className="text-xl font-extrabold" style={{ color: '#8B2500' }}>Confirmez votre choix</h2>
                   <p className="text-gray-500 text-sm mt-1">Vous avez sélectionné :</p>
                 </div>
@@ -245,7 +256,11 @@ export default function SelectSpecialty() {
                 {/* Dossier principal */}
                 <div className="rounded-2xl p-4 mb-4" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE5CC)', border: '2px solid #C4521A' }}>
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{selected.icone}</span>
+                    {/* Image petite remplace emoji */}
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'white', border: '1.5px solid #FFD0A8' }}>
+                      <img src={getCatIconSrc(selected.nom)} alt={selected.nom} width="28" height="28" style={{ objectFit: 'contain' }} />
+                    </div>
                     <div>
                       <p className="text-xs text-amber-700 font-bold">📌 Votre dossier principal</p>
                       <p className="font-extrabold" style={{ color: '#8B2500' }}>{selected.nom}</p>
