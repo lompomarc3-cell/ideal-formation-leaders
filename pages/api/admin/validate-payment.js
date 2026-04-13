@@ -31,21 +31,21 @@ export default async function handler(req) {
       .from('correction_requests')
       .update({
         status: 'approved',
-        admin_response: `Validé par admin le ${new Date().toLocaleDateString('fr-FR')}`
+        admin_response: `Validé par admin le ${new Date().toLocaleDateString('fr-FR')}${dossier_principal ? ' | Dossier: ' + dossier_principal : ''}`
       })
       .eq('id', payment_id)
 
     if (updateErr) throw updateErr
 
-    // 2. Activer l'abonnement avec le format approprié
+    // 2. Activer l'abonnement
+    // La contrainte CHECK n'accepte que 'direct' et 'professionnel'
+    // Le dossier_principal est stocké dans correction_requests.admin_response
     const expiresAt = new Date()
     expiresAt.setFullYear(expiresAt.getFullYear() + 1) // 1 an
 
-    // Pour professionnel: stocker "professionnel:NomDuDossier"
-    let subscriptionTypeValue = type_concours || 'direct'
-    if (type_concours === 'professionnel' && dossier_principal) {
-      subscriptionTypeValue = `professionnel:${dossier_principal}`
-    }
+    const subscriptionTypeValue = type_concours || 'direct'
+    // Note: 'professionnel:dossier' n'est pas accepté par la contrainte DB
+    // On stocke juste 'professionnel', le dossier est dans correction_requests
 
     const { error: subErr } = await supabaseAdmin
       .from('profiles')
@@ -60,7 +60,7 @@ export default async function handler(req) {
 
     return R({ 
       success: true, 
-      message: `Paiement validé – abonnement ${type_concours}${dossier_principal ? ' (' + dossier_principal + ')' : ''} activé pour 1 an`
+      message: `✅ Paiement validé – abonnement ${type_concours}${dossier_principal ? ' (' + dossier_principal + ')' : ''} activé pour 1 an`
     })
   } catch (error) {
     return R({ error: error.message }, 500)

@@ -9,31 +9,6 @@ const DOSSIERS_ACCOMPAGNEMENT = [
   'Accompagnement final'
 ]
 
-// Décode le subscription_type et retourne les infos d'abonnement structurées
-function parseSubscriptionType(subscriptionType) {
-  if (!subscriptionType) return { type: null, dossier_principal: null }
-  
-  if (subscriptionType === 'direct') {
-    return { type: 'direct', dossier_principal: null }
-  }
-  
-  if (subscriptionType === 'all') {
-    return { type: 'all', dossier_principal: null }
-  }
-  
-  if (subscriptionType === 'professionnel') {
-    // Ancien format sans spécialité (rétrocompatibilité)
-    return { type: 'professionnel', dossier_principal: null }
-  }
-  
-  if (subscriptionType.startsWith('professionnel:')) {
-    const dossier = subscriptionType.substring('professionnel:'.length)
-    return { type: 'professionnel', dossier_principal: dossier }
-  }
-  
-  return { type: subscriptionType, dossier_principal: null }
-}
-
 // Calcule les dossiers débloqués pour un utilisateur professionnel
 function getDossiersDebloques(dossier_principal) {
   if (!dossier_principal) return DOSSIERS_ACCOMPAGNEMENT
@@ -69,13 +44,35 @@ export default async function handler(req) {
     const nom = nameParts[0] || ''
     const prenom = nameParts.slice(1).join(' ') || ''
 
-    // Parser le subscription_type pour extraire le type et le dossier principal
-    const { type: abonnementType, dossier_principal } = parseSubscriptionType(profile.subscription_type)
-    
+    const abonnementType = profile.subscription_type || null
+
+    // Pour les abonnements professionnels, récupérer le dossier_principal
+    // depuis le paiement approuvé (correction_requests)
+    let dossier_principal = null
+    if (abonnementType === 'professionnel' && profile.subscription_status === 'active') {
+      const { data: paymentRequests } = await supabaseAdmin
+        .from('correction_requests')
+        .select('message')
+        .eq('user_id', decoded.userId)
+        .eq('status', 'approved')
+        .like('message', '%ifl_payment%')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (paymentRequests && paymentRequests.length > 0) {
+        try {
+          const parsed = JSON.parse(paymentRequests[0].message)
+          if (parsed.type === 'ifl_payment' && parsed.type_concours === 'professionnel') {
+            dossier_principal = parsed.dossier_principal || null
+          }
+        } catch {}
+      }
+    }
+
     // Calculer les dossiers débloqués
     const dossiersDebloques = abonnementType === 'professionnel' 
       ? getDossiersDebloques(dossier_principal)
-      : null // null = soit tous (direct/all/admin), soit aucun
+      : null // null = soit tous (direct/admin), soit aucun
 
     return res.json({
       id: profile.id,
@@ -85,11 +82,11 @@ export default async function handler(req) {
       full_name: profile.full_name,
       role: profile.role,
       is_admin: isAdmin,
-      // Abonnement brut (compatibilité)
+      // Abonnement
       abonnement_type: abonnementType,
       abonnement_valide_jusqua: profile.subscription_expires_at,
       subscription_status: profile.subscription_status,
-      // Nouveau: dossier principal pour abonnement professionnel
+      // Dossier principal pour abonnement professionnel
       dossier_principal: dossier_principal,
       dossiers_debloques: dossiersDebloques,
       is_active: true

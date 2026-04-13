@@ -105,12 +105,10 @@ export default async function handler(req) {
         const expiresAt = new Date()
         expiresAt.setFullYear(expiresAt.getFullYear() + 1)
         
-        // Pour professionnel: stocker "professionnel:NomDuDossier"
-        // Pour direct: stocker "direct"
-        let subscriptionTypeValue = type_concours || 'direct'
-        if (type_concours === 'professionnel' && dossier_principal) {
-          subscriptionTypeValue = `professionnel:${dossier_principal}`
-        }
+        // IMPORTANT: La contrainte DB n'accepte que 'direct' et 'professionnel'
+        // Le dossier_principal est stocké dans correction_requests.message (JSON)
+        // et récupéré via l'API /me en cherchant le paiement approuvé
+        const subscriptionTypeValue = type_concours || 'direct'
 
         const { error: profileErr } = await supabaseAdmin
           .from('profiles')

@@ -35,16 +35,40 @@ export default async function handler(req) {
 
       if (error) throw error
 
-      const userList = (users || []).map(u => {
+      const userList = []
+      for (const u of (users || [])) {
         const nameParts = (u.full_name || '').trim().split(' ')
-        // Décoder le subscription_type (ex: 'professionnel:Magistrature')
         let abonnementType = u.subscription_type
         let dossierPrincipal = null
+        
+        // Pour les abonnés professionnels, récupérer le dossier depuis correction_requests
+        if (u.subscription_type === 'professionnel' && u.subscription_status === 'active') {
+          const { data: paidReq } = await supabaseAdmin
+            .from('correction_requests')
+            .select('message')
+            .eq('user_id', u.id)
+            .eq('status', 'approved')
+            .like('message', '%ifl_payment%')
+            .order('created_at', { ascending: false })
+            .limit(1)
+          
+          if (paidReq && paidReq.length > 0) {
+            try {
+              const parsed = JSON.parse(paidReq[0].message)
+              if (parsed.type === 'ifl_payment' && parsed.type_concours === 'professionnel') {
+                dossierPrincipal = parsed.dossier_principal || null
+              }
+            } catch {}
+          }
+        }
+        
+        // Rétro-compatibilité: si ancien format "professionnel:NomDossier"
         if (u.subscription_type && u.subscription_type.startsWith('professionnel:')) {
           abonnementType = 'professionnel'
           dossierPrincipal = u.subscription_type.substring('professionnel:'.length)
         }
-        return {
+        
+        userList.push({
           id: u.id,
           nom: nameParts[0] || '',
           prenom: nameParts.slice(1).join(' ') || '',
@@ -59,8 +83,8 @@ export default async function handler(req) {
           abonnement_valide_jusqua: u.subscription_expires_at,
           subscription_expires_at: u.subscription_expires_at,
           created_at: u.created_at
-        }
-      })
+        })
+      }
 
       return new Response(JSON.stringify({ users: userList }), {
         status: 200, headers: { 'Content-Type': 'application/json' }
@@ -83,13 +107,17 @@ export default async function handler(req) {
     try {
       const updates = {}
       
-      // Calculer le subscription_type correct en tenant compte du dossier_principal
+      // La contrainte DB n'accepte que 'direct' et 'professionnel'
+      // Le dossier_principal est géré via correction_requests (paiements)
+      // Pour l'activation manuelle par admin, si type est professionnel,
+      // on crée aussi un enregistrement dans correction_requests
       if (subscription_type !== undefined) {
-        if (subscription_type === 'professionnel' && dossier_principal) {
-          updates.subscription_type = `professionnel:${dossier_principal}`
-        } else {
-          updates.subscription_type = subscription_type || null
+        // Nettoyer le format ancien 'professionnel:xxx' si présent
+        let cleanType = subscription_type || null
+        if (cleanType && cleanType.startsWith('professionnel:')) {
+          cleanType = 'professionnel'
         }
+        updates.subscription_type = cleanType
       }
       if (subscription_status !== undefined) updates.subscription_status = subscription_status
       if (subscription_expires_at !== undefined) updates.subscription_expires_at = subscription_expires_at
@@ -102,6 +130,27 @@ export default async function handler(req) {
         .single()
 
       if (error) throw error
+
+      // Si activation manuelle d'un abonnement professionnel avec dossier_principal,
+      // créer un enregistrement dans correction_requests pour que /me puisse retrouver le dossier
+      if (subscription_type === 'professionnel' && dossier_principal && subscription_status === 'active') {
+        await supabaseAdmin
+          .from('correction_requests')
+          .insert({
+            user_id: id,
+            question_id: null,
+            message: JSON.stringify({
+              type: 'ifl_payment',
+              montant: 20000,
+              type_concours: 'professionnel',
+              dossier_principal: dossier_principal,
+              notes: 'Activation manuelle par admin',
+              date_demande: new Date().toISOString()
+            }),
+            status: 'approved',
+            admin_response: `Activé manuellement par admin le ${new Date().toLocaleDateString('fr-FR')} | Dossier: ${dossier_principal}`
+          })
+      }
 
       return new Response(JSON.stringify({ user: updated, success: true }), {
         status: 200, headers: { 'Content-Type': 'application/json' }
