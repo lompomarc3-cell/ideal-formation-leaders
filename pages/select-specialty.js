@@ -67,8 +67,8 @@ export default function SelectSpecialty() {
   }, [user, loading, router])
 
   useEffect(() => {
-    // Si l'utilisateur a déjà un abonnement pro actif, rediriger vers dashboard
-    if (user && user.subscription_status === 'active' && user.abonnement_type === 'professionnel') {
+    // Si l'utilisateur a déjà un abonnement pro actif avec dossier principal, rediriger vers dashboard
+    if (user && user.subscription_status === 'active' && user.abonnement_type === 'professionnel' && user.dossier_principal) {
       router.push('/dashboard')
     }
   }, [user, router])
