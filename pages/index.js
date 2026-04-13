@@ -866,9 +866,9 @@ export default function Home() {
                   <div className="mt-4 rounded-2xl p-4 flex items-center justify-between border-2 bg-white" style={{ borderColor: '#C4521A' }}>
                     <div>
                       <p className="font-bold text-sm" style={{ color: '#8B2500' }}>Accès complet</p>
-                      <p className="text-gray-500 text-xs">Débloquer tous les 17 dossiers</p>
+                      <p className="text-gray-500 text-xs">Choisir votre spécialité</p>
                     </div>
-                    <Link href="/payment?type=professionnel&montant=20000"
+                    <Link href="/select-specialty"
                       className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md"
                       style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
                       20 000 FCFA →

@@ -153,6 +153,16 @@ export default function Dashboard() {
     return active && notExpired && (sub === type || sub === 'all')
   }
 
+  // Vérifie si un dossier professionnel spécifique est débloqué pour cet utilisateur
+  const isDossierDebloqueForUser = (nomDossier) => {
+    if (!user) return false
+    if (user.is_admin) return true
+    if (!hasAccess('professionnel')) return false
+    // Si pas de liste dossiers_debloques (ancien format sans spécialité), tout est débloqué
+    if (!user.dossiers_debloques) return true
+    return user.dossiers_debloques.includes(nomDossier)
+  }
+
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
@@ -517,14 +527,22 @@ export default function Dashboard() {
                       : `📂 ${catList.length} dossier${catList.length > 1 ? 's' : ''} · 5 questions gratuites par dossier`}
                   </p>
 
-                  <HorizontalCategoryScroll categories={catList} locked={false} hasAccess={hasCurrentAccess || user.is_admin} catType={activeTab} />
+                  <HorizontalCategoryScroll 
+                    categories={catList} 
+                    locked={false} 
+                    hasAccess={hasCurrentAccess || user.is_admin} 
+                    catType={activeTab}
+                    isDossierDebloqueForUser={isDossierDebloqueForUser}
+                    dossierPrincipal={user.dossier_principal}
+                    isAdmin={user.is_admin}
+                  />
 
                   {activeTab === 'direct' && !proAccess && !user.is_admin && (
                     <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#C4521A,#8B2500)' }}>
                       <p className="text-white font-bold mb-1">🎓 Concours Professionnels</p>
                       <p className="text-orange-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA</p>
-                      <Link href={`/payment?type=professionnel&montant=${prices.professionnel}`} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#C4521A' }}>
-                        S'abonner →
+                      <Link href="/select-specialty" className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#C4521A' }}>
+                        Choisir ma spécialité →
                       </Link>
                     </div>
                   )}
@@ -535,6 +553,16 @@ export default function Dashboard() {
                       <Link href={`/payment?type=direct&montant=${prices.direct}`} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#C4521A' }}>
                         S'abonner →
                       </Link>
+                    </div>
+                  )}
+
+                  {/* Bannière dossier principal pour abonné professionnel */}
+                  {activeTab === 'professionnel' && proAccess && !user.is_admin && user.dossier_principal && (
+                    <div className="mt-4 rounded-2xl p-3" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE5CC)', border: '2px solid #C4521A' }}>
+                      <p className="text-xs font-bold text-amber-700 mb-1">📌 Votre dossier principal</p>
+                      <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>{user.dossier_principal}</p>
+                      <p className="text-xs text-green-700 mt-0.5">+ Actualités · Entraînement QCM · Accompagnement final (inclus)</p>
+                      <p className="text-xs text-gray-500 mt-1">🔒 Les {13} autres spécialités sont verrouillées</p>
                     </div>
                   )}
                 </div>
@@ -628,6 +656,9 @@ export default function Dashboard() {
                     {proAccess && (
                       <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #FFE68A' }}>
                         <p className="font-extrabold text-sm" style={{ color: '#B45309' }}>✅ Concours Professionnels</p>
+                        {user.dossier_principal && (
+                          <p className="text-xs mt-1" style={{ color: '#8B2500' }}>📌 Dossier : <strong>{user.dossier_principal}</strong></p>
+                        )}
                         {user.abonnement_valide_jusqua && (
                           <p className="text-gray-600 text-xs mt-1">Expire le {new Date(user.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}</p>
                         )}
@@ -1056,7 +1087,7 @@ export default function Dashboard() {
 }
 
 /* ===== COMPOSANT NAVIGATION HORIZONTALE ===== */
-function HorizontalCategoryScroll({ categories, locked, hasAccess, catType }) {
+function HorizontalCategoryScroll({ categories, locked, hasAccess, catType, isDossierDebloqueForUser, dossierPrincipal, isAdmin }) {
   const scrollRef = useRef(null)
 
   if (categories.length === 0) {
@@ -1083,24 +1114,84 @@ function HorizontalCategoryScroll({ categories, locked, hasAccess, catType }) {
           msOverflowStyle: 'none'
         }}
       >
-        {categories.map((cat, i) => (
-          <CategoryCard key={cat.id || i} cat={cat} locked={locked} hasAccess={hasAccess} index={i} catType={catType} />
-        ))}
+        {categories.map((cat, i) => {
+          // Pour les professionnels : vérifier si le dossier spécifique est débloqué
+          let catAccess = hasAccess
+          if (catType === 'professionnel' && hasAccess && !isAdmin && isDossierDebloqueForUser) {
+            catAccess = isDossierDebloqueForUser(cat.nom)
+          }
+          return (
+            <CategoryCard 
+              key={cat.id || i} 
+              cat={cat} 
+              locked={locked} 
+              hasAccess={catAccess} 
+              index={i} 
+              catType={catType}
+              isPrincipal={dossierPrincipal === cat.nom}
+              isLocked={catType === 'professionnel' && hasAccess && !isAdmin && isDossierDebloqueForUser && !isDossierDebloqueForUser(cat.nom)}
+            />
+          )
+        })}
       </div>
     </div>
   )
 }
 
-function CategoryCard({ cat, locked, hasAccess, index, catType }) {
+function CategoryCard({ cat, locked, hasAccess, index, catType, isPrincipal, isLocked }) {
   const iconSVG = getCatIconSVG(cat.nom)
   const colorStyle = getCatColorStyle(cat.nom, catType || 'direct')
+
+  // Un dossier verrouillé (abonné pro mais ce n'est pas son dossier)
+  if (isLocked) {
+    return (
+      <div
+        className="flex-shrink-0 bg-white rounded-2xl shadow-sm overflow-hidden"
+        style={{ scrollSnapAlign: 'start', width: '160px', minWidth: '160px', border: '2px dashed #D1D5DB', opacity: 0.7 }}
+      >
+        <div className="p-4 text-center">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 relative"
+            style={{ background: 'linear-gradient(135deg,#9CA3AF,#6B7280)' }}>
+            {iconSVG}
+            {/* Cadenas overlay */}
+            <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center"
+              style={{ background: '#374151' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+          </div>
+          <p className="text-xs font-bold text-gray-500 leading-tight mb-2 line-clamp-2">{cat.nom}</p>
+          <div className="flex items-center justify-center">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#F3F4F6', color: '#6B7280' }}>
+              🔒 Verrouillé
+            </span>
+          </div>
+        </div>
+        <div className="h-1.5 w-full" style={{ background: 'linear-gradient(135deg,#9CA3AF,#6B7280)' }}></div>
+      </div>
+    )
+  }
 
   return (
     <Link
       href={`/quiz/${cat.id}`}
       className="flex-shrink-0 bg-white rounded-2xl shadow-md overflow-hidden active:scale-95 transition-all hover:shadow-lg"
-      style={{ scrollSnapAlign: 'start', width: '160px', minWidth: '160px', border: `2px solid ${colorStyle.border}` }}
+      style={{ 
+        scrollSnapAlign: 'start', 
+        width: '160px', 
+        minWidth: '160px', 
+        border: isPrincipal ? '2px solid #C4521A' : `2px solid ${colorStyle.border}`,
+        position: 'relative'
+      }}
     >
+      {/* Badge 'Principal' pour le dossier principal */}
+      {isPrincipal && (
+        <div className="absolute top-2 right-2 z-10">
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded-lg text-white" style={{ background: '#C4521A' }}>📌</span>
+        </div>
+      )}
       <div className="p-4 text-center">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
           style={{ background: colorStyle.bg }}>

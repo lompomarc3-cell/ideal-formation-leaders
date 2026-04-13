@@ -189,7 +189,13 @@ function AdminPayments({ getToken, onNotif }) {
       const r = await fetch('/api/admin/payments', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ id: payment.id, valide, user_id: payment.user_id, type_concours: payment.type_concours })
+        body: JSON.stringify({ 
+          id: payment.id, 
+          valide, 
+          user_id: payment.user_id, 
+          type_concours: payment.type_concours,
+          dossier_principal: payment.dossier_principal || null
+        })
       })
       const d = await r.json()
       if (d.success) {
@@ -218,8 +224,8 @@ function AdminPayments({ getToken, onNotif }) {
             <div key={p.id} className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <p className="text-white font-bold">{p.ifl_users?.prenom} {p.ifl_users?.nom}</p>
-                  <p className="text-gray-400 text-sm">{p.ifl_users?.phone}</p>
+                  <p className="text-white font-bold">{p.full_name || `${p.prenom || ''} ${p.nom || ''}`.trim() || 'Utilisateur'}</p>
+                  <p className="text-gray-400 text-sm">{p.phone}</p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.valide ? 'bg-amber-800 text-amber-200' : 'bg-orange-900 text-orange-200'}`}>
                   {p.valide ? '✅ Validé' : '⏳ En attente'}
@@ -236,6 +242,19 @@ function AdminPayments({ getToken, onNotif }) {
                   {p.date_demande ? new Date(p.date_demande).toLocaleDateString('fr-FR') : ''}
                 </span>
               </div>
+              {/* Dossier principal pour abonnements professionnels */}
+              {p.type_concours === 'professionnel' && p.dossier_principal && (
+                <div className="mb-3 p-2.5 rounded-xl" style={{ background: 'rgba(196,82,26,0.15)', border: '1px solid rgba(196,82,26,0.3)' }}>
+                  <p className="text-xs text-orange-300 font-bold">📌 Dossier principal demandé :</p>
+                  <p className="text-white font-extrabold text-sm">{p.dossier_principal}</p>
+                  <p className="text-gray-400 text-xs mt-0.5">+ Actualités · Entraînement QCM · Accompagnement final (offerts)</p>
+                </div>
+              )}
+              {p.type_concours === 'professionnel' && !p.dossier_principal && (
+                <div className="mb-3 p-2 rounded-xl" style={{ background: 'rgba(212,160,23,0.15)', border: '1px dashed rgba(212,160,23,0.4)' }}>
+                  <p className="text-xs text-yellow-400">⚠️ Aucun dossier principal spécifié (ancien format)</p>
+                </div>
+              )}
               {p.numero_paiement && (
                 <p className="text-gray-400 text-sm mb-3">📱 {p.numero_paiement}</p>
               )}
@@ -281,10 +300,18 @@ function AdminUsers({ getToken, onNotif }) {
 
   const updateUser = async (updates) => {
     try {
+      // Convertir le format du formulaire vers le format API
+      const apiPayload = {
+        id: updates.id,
+        subscription_type: updates.abonnement_type, // déjà au bon format (ex: 'professionnel:Magistrature')
+        subscription_status: updates.abonnement_type ? 'active' : 'free',
+        subscription_expires_at: updates.abonnement_valide_jusqua || null,
+        is_active: updates.is_active
+      }
       const r = await fetch('/api/admin/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify(updates)
+        body: JSON.stringify(apiPayload)
       })
       const d = await r.json()
       if (d.user) { onNotif('✅ Utilisateur mis à jour', 'success'); fetchUsers(); setEditId(null) }
@@ -318,6 +345,11 @@ function AdminUsers({ getToken, onNotif }) {
                       {u.abonnement_type === 'direct' ? '📚 Directs' : u.abonnement_type === 'professionnel' ? '🎓 Pro' : '🎯 Tout'}
                     </span>
                   )}
+                  {u.dossier_principal && (
+                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-900 text-amber-300">
+                      📌 {u.dossier_principal.length > 20 ? u.dossier_principal.substring(0, 20) + '...' : u.dossier_principal}
+                    </span>
+                  )}
                   {u.abonnement_valide_jusqua && (
                     <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">
                       exp: {new Date(u.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}
@@ -345,18 +377,56 @@ function AdminUsers({ getToken, onNotif }) {
   )
 }
 
+const SPECIALITES_PRO = [
+  'Spécialités Vie scolaire (CASU-AASU)',
+  'Spécialités CISU/AISU/ENAREF',
+  'Inspectorat : IES',
+  'Inspectorat : IEPENF',
+  'CSAPÉ',
+  'Agrégés',
+  'CAPES toutes options',
+  'Administrateur des hôpitaux',
+  'Spécialités santé',
+  'Justice',
+  'Magistrature',
+  'Spécialités GSP',
+  'Spécialités police',
+  'Administrateur civil'
+]
+
 function UserEditForm({ user, onSave, onCancel }) {
+  // Extraire dossier_principal du format "professionnel:NomDossier"
+  const getCurrentDossier = () => {
+    const t = user.abonnement_type || ''
+    if (t.startsWith('professionnel:')) return t.substring('professionnel:'.length)
+    return ''
+  }
+  const getCurrentType = () => {
+    const t = user.abonnement_type || ''
+    if (t.startsWith('professionnel:')) return 'professionnel'
+    return t
+  }
+
   const [form, setForm] = useState({
     id: user.id,
-    abonnement_type: user.abonnement_type || '',
+    abonnement_type: getCurrentType(),
+    dossier_principal: getCurrentDossier(),
     abonnement_valide_jusqua: user.abonnement_valide_jusqua ? new Date(user.abonnement_valide_jusqua).toISOString().split('T')[0] : '',
     is_active: true
   })
+
+  const buildSubscriptionType = () => {
+    if (form.abonnement_type === 'professionnel' && form.dossier_principal) {
+      return `professionnel:${form.dossier_principal}`
+    }
+    return form.abonnement_type
+  }
+
   return (
     <div className="space-y-3">
       <div>
         <label className="text-gray-400 text-xs mb-1 block">Type d'abonnement</label>
-        <select value={form.abonnement_type} onChange={e => setForm(p => ({ ...p, abonnement_type: e.target.value }))}
+        <select value={form.abonnement_type} onChange={e => setForm(p => ({ ...p, abonnement_type: e.target.value, dossier_principal: '' }))}
           className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm">
           <option value="">Aucun abonnement</option>
           <option value="direct">📚 Concours Directs (5 000 FCFA)</option>
@@ -364,6 +434,24 @@ function UserEditForm({ user, onSave, onCancel }) {
           <option value="all">🎯 Les deux (direct + professionnel)</option>
         </select>
       </div>
+      
+      {/* Sélection du dossier principal pour professionnel */}
+      {form.abonnement_type === 'professionnel' && (
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">📌 Dossier principal (spécialité)</label>
+          <select value={form.dossier_principal} onChange={e => setForm(p => ({ ...p, dossier_principal: e.target.value }))}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm">
+            <option value="">-- Sélectionner une spécialité --</option>
+            {SPECIALITES_PRO.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          {form.dossier_principal && (
+            <p className="text-green-400 text-xs mt-1">✓ Accès : {form.dossier_principal} + Actualités + Entraînement QCM + Accompagnement</p>
+          )}
+        </div>
+      )}
+      
       <div>
         <label className="text-gray-400 text-xs mb-1 block">Valide jusqu'au</label>
         <input type="date" value={form.abonnement_valide_jusqua}
@@ -373,6 +461,7 @@ function UserEditForm({ user, onSave, onCancel }) {
       <div className="flex gap-2">
         <button onClick={() => onSave({
           ...form,
+          abonnement_type: buildSubscriptionType(),
           abonnement_valide_jusqua: form.abonnement_valide_jusqua ? new Date(form.abonnement_valide_jusqua).toISOString() : null
         })}
           className="flex-1 py-2.5 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#C4521A' }}>

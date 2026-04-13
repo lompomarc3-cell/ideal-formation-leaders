@@ -26,10 +26,17 @@ export default async function handler(req) {
 
   let body = {}
   try { body = await req.json() } catch {}
-  const { type_concours, montant, numero_paiement, notes } = body
+  const { type_concours, montant, numero_paiement, notes, dossier_principal } = body
 
   if (!type_concours) {
     return new Response(JSON.stringify({ error: 'type_concours requis (direct ou professionnel)' }), {
+      status: 400, headers: { 'Content-Type': 'application/json' }
+    })
+  }
+
+  // Validation: pour professionnel, dossier_principal obligatoire
+  if (type_concours === 'professionnel' && !dossier_principal) {
+    return new Response(JSON.stringify({ error: 'Le dossier principal est obligatoire pour un abonnement professionnel.' }), {
       status: 400, headers: { 'Content-Type': 'application/json' }
     })
   }
@@ -46,6 +53,7 @@ export default async function handler(req) {
           type: 'ifl_payment',
           montant: montant || expectedAmount,
           type_concours,
+          dossier_principal: dossier_principal || null,
           numero_paiement: numero_paiement || null,
           notes: notes || null,
           date_demande: new Date().toISOString()

@@ -43,7 +43,7 @@ export default async function handler(req) {
         // Récupérer infos utilisateur
         const { data: profile } = await supabaseAdmin
           .from('profiles')
-          .select('full_name, phone')
+          .select('full_name, phone, subscription_type')
           .eq('id', r.user_id)
           .maybeSingle()
 
@@ -53,6 +53,7 @@ export default async function handler(req) {
           user_id: r.user_id,
           montant: parsed.montant || 0,
           type_concours: parsed.type_concours || 'direct',
+          dossier_principal: parsed.dossier_principal || null,
           numero_paiement: parsed.numero_paiement || null,
           capture_url: parsed.capture_url || null,
           notes: parsed.notes || null,
@@ -62,7 +63,8 @@ export default async function handler(req) {
           nom: nameParts[0] || '',
           prenom: nameParts.slice(1).join(' ') || '',
           full_name: profile?.full_name || '',
-          phone: profile?.phone || ''
+          phone: profile?.phone || '',
+          current_subscription: profile?.subscription_type || null
         })
       }
 
@@ -78,7 +80,7 @@ export default async function handler(req) {
   if (req.method === 'PUT') {
     let body = {}
     try { body = await req.json() } catch {}
-    const { id, valide, user_id, type_concours, notes_admin } = body
+    const { id, valide, user_id, type_concours, dossier_principal, notes_admin } = body
 
     if (!id || !user_id || valide === undefined) {
       return new Response(JSON.stringify({ error: 'Paramètres manquants' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
@@ -92,7 +94,7 @@ export default async function handler(req) {
         .from('correction_requests')
         .update({
           status: newStatus,
-          admin_response: notes_admin || (valide ? 'Paiement validé par admin' : 'Paiement rejeté')
+          admin_response: notes_admin || (valide ? `Paiement validé par admin le ${new Date().toLocaleDateString('fr-FR')}` : 'Paiement rejeté')
         })
         .eq('id', id)
 
@@ -103,11 +105,18 @@ export default async function handler(req) {
         const expiresAt = new Date()
         expiresAt.setFullYear(expiresAt.getFullYear() + 1)
         
+        // Pour professionnel: stocker "professionnel:NomDuDossier"
+        // Pour direct: stocker "direct"
+        let subscriptionTypeValue = type_concours || 'direct'
+        if (type_concours === 'professionnel' && dossier_principal) {
+          subscriptionTypeValue = `professionnel:${dossier_principal}`
+        }
+
         const { error: profileErr } = await supabaseAdmin
           .from('profiles')
           .update({
             subscription_status: 'active',
-            subscription_type: type_concours,
+            subscription_type: subscriptionTypeValue,
             subscription_expires_at: expiresAt.toISOString()
           })
           .eq('id', user_id)
@@ -118,7 +127,7 @@ export default async function handler(req) {
       return new Response(JSON.stringify({
         success: true,
         message: valide
-          ? `✅ Paiement validé – abonnement ${type_concours} activé pour 1 an`
+          ? `✅ Paiement validé – abonnement ${type_concours}${dossier_principal ? ' (' + dossier_principal + ')' : ''} activé pour 1 an`
           : '❌ Paiement rejeté'
       }), { status: 200, headers: { 'Content-Type': 'application/json' } })
 

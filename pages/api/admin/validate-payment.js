@@ -12,25 +12,18 @@ async function checkAdmin(req) {
 }
 
 export default async function handler(req) {
-  // Helper pour compatibilité Edge Runtime
-  let body = {}
-  if (req.method !== 'GET') {
-    try { body = await req.json() } catch {}
-  }
   const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
-  const res = {
-    status: (s) => ({ json: (d) => R(d, s) }),
-    json: (d) => R(d, 200)
-  }
-  const reqData = { body, method: req.method, query: {}, headers: req.headers }
 
   const adminId = await checkAdmin(req)
-  if (!adminId) return res.status(403).json({ error: 'Accès refusé' })
+  if (!adminId) return R({ error: 'Accès refusé' }, 403)
 
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+  if (req.method !== 'POST') return R({ error: 'Method not allowed' }, 405)
 
-  const { payment_id, user_id, type_concours } = req.body
-  if (!payment_id || !user_id) return res.status(400).json({ error: 'Paramètres manquants' })
+  let body = {}
+  try { body = await req.json() } catch {}
+  
+  const { payment_id, user_id, type_concours, dossier_principal } = body
+  if (!payment_id || !user_id) return R({ error: 'Paramètres manquants' }, 400)
 
   try {
     // 1. Valider le paiement
@@ -44,23 +37,32 @@ export default async function handler(req) {
 
     if (updateErr) throw updateErr
 
-    // 2. Activer l'abonnement
+    // 2. Activer l'abonnement avec le format approprié
     const expiresAt = new Date()
     expiresAt.setFullYear(expiresAt.getFullYear() + 1) // 1 an
+
+    // Pour professionnel: stocker "professionnel:NomDuDossier"
+    let subscriptionTypeValue = type_concours || 'direct'
+    if (type_concours === 'professionnel' && dossier_principal) {
+      subscriptionTypeValue = `professionnel:${dossier_principal}`
+    }
 
     const { error: subErr } = await supabaseAdmin
       .from('profiles')
       .update({
         subscription_status: 'active',
-        subscription_type: type_concours || 'direct',
+        subscription_type: subscriptionTypeValue,
         subscription_expires_at: expiresAt.toISOString()
       })
       .eq('id', user_id)
 
     if (subErr) throw subErr
 
-    return res.json({ success: true, message: 'Paiement validé et abonnement activé' })
+    return R({ 
+      success: true, 
+      message: `Paiement validé – abonnement ${type_concours}${dossier_principal ? ' (' + dossier_principal + ')' : ''} activé pour 1 an`
+    })
   } catch (error) {
-    return res.status(500).json({ error: error.message })
+    return R({ error: error.message }, 500)
   }
 }

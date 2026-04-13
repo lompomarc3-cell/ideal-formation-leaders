@@ -2,6 +2,26 @@ export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 
+// Dossiers d'accompagnement automatiquement débloqués avec tout abonnement professionnel
+const DOSSIERS_ACCOMPAGNEMENT = [
+  'Actualités et culture générale',
+  'Entraînement QCM',
+  'Accompagnement final'
+]
+
+// Parse le subscription_type pour extraire le type et le dossier principal
+function parseSubscriptionType(subscriptionType) {
+  if (!subscriptionType) return { type: null, dossier_principal: null }
+  if (subscriptionType === 'direct') return { type: 'direct', dossier_principal: null }
+  if (subscriptionType === 'all') return { type: 'all', dossier_principal: null }
+  if (subscriptionType === 'professionnel') return { type: 'professionnel', dossier_principal: null }
+  if (subscriptionType.startsWith('professionnel:')) {
+    const dossier = subscriptionType.substring('professionnel:'.length)
+    return { type: 'professionnel', dossier_principal: dossier }
+  }
+  return { type: subscriptionType, dossier_principal: null }
+}
+
 export default async function handler(req) {
   if (req.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -52,7 +72,7 @@ export default async function handler(req) {
     }
 
     // ========================================================
-    // 2. Récupérer la catégorie pour connaître son type
+    // 2. Récupérer la catégorie pour connaître son type et nom
     // ========================================================
     const { data: category, error: catError } = await supabaseAdmin
       .from('categories')
@@ -69,12 +89,18 @@ export default async function handler(req) {
     // ========================================================
     // 3. Vérifier si l'utilisateur a accès complet
     //    Admin → accès total
-    //    Abonnement actif + non expiré + type correspondant → accès total
+    //    Abonnement direct actif + categorie.type === 'direct' → accès total
+    //    Abonnement professionnel actif :
+    //      - Dossier principal → accès total
+    //      - Dossiers d'accompagnement → accès total
+    //      - Autres dossiers pro → accès limité (5 questions gratuites seulement)
     //    Sinon → seulement les questions gratuites (is_demo=true)
     // ========================================================
     const isAdmin = profile.role === 'superadmin' || profile.role === 'admin'
     
     let hasFullAccess = false
+    let isLockedForThisUser = false // Dossier professionnel verrouillé pour cet utilisateur
+
     if (isAdmin) {
       hasFullAccess = true
     } else if (profile.subscription_status === 'active') {
@@ -86,15 +112,25 @@ export default async function handler(req) {
       const notExpired = !expiresAt || expiresAt > now
       
       if (notExpired) {
-        const subType = profile.subscription_type
-        // Accès si : type correspond ou abonnement 'all'
-        if (
-          subType === 'all' ||
-          subType === category.type ||
-          (subType === 'direct' && category.type === 'direct') ||
-          (subType === 'professionnel' && category.type === 'professionnel')
-        ) {
+        const { type: subType, dossier_principal } = parseSubscriptionType(profile.subscription_type)
+        
+        if (subType === 'all') {
           hasFullAccess = true
+        } else if (subType === 'direct' && category.type === 'direct') {
+          hasFullAccess = true
+        } else if (subType === 'professionnel' && category.type === 'professionnel') {
+          // Vérifier si c'est le dossier principal ou un dossier d'accompagnement
+          const isMainDossier = dossier_principal && category.nom === dossier_principal
+          const isAccompagnement = DOSSIERS_ACCOMPAGNEMENT.includes(category.nom)
+          const isOldFormatNoSpecialty = !dossier_principal // Ancien format sans spécialité = accès total (rétrocompat.)
+          
+          if (isMainDossier || isAccompagnement || isOldFormatNoSpecialty) {
+            hasFullAccess = true
+          } else {
+            // C'est un autre dossier professionnel = verrouillé
+            isLockedForThisUser = true
+            hasFullAccess = false
+          }
         }
       }
     }
@@ -130,6 +166,16 @@ export default async function handler(req) {
       is_demo: q.is_demo
     }))
 
+    // Si dossier verrouillé pour cet utilisateur (pro mais pas son dossier)
+    if (isLockedForThisUser && questionList.length === 0) {
+      return new Response(JSON.stringify({
+        error: `Ce dossier ne fait pas partie de votre abonnement. Votre spécialité est différente.`,
+        requiresSubscription: true,
+        isLockedSpecialty: true,
+        categoryType: category.type
+      }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+    }
+
     // Si pas d'accès et aucune question gratuite trouvée
     if (!hasFullAccess && questionList.length === 0) {
       return new Response(JSON.stringify({
@@ -142,8 +188,10 @@ export default async function handler(req) {
     return new Response(JSON.stringify({
       questions: questionList,
       hasFullAccess,
+      isLockedSpecialty: isLockedForThisUser,
       totalFree: hasFullAccess ? null : questionList.length,
-      categoryType: category.type
+      categoryType: category.type,
+      categoryName: category.nom
     }), { status: 200, headers: { 'Content-Type': 'application/json' } })
 
   } catch (err) {

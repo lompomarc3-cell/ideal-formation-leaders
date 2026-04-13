@@ -37,6 +37,13 @@ export default async function handler(req) {
 
       const userList = (users || []).map(u => {
         const nameParts = (u.full_name || '').trim().split(' ')
+        // Décoder le subscription_type (ex: 'professionnel:Magistrature')
+        let abonnementType = u.subscription_type
+        let dossierPrincipal = null
+        if (u.subscription_type && u.subscription_type.startsWith('professionnel:')) {
+          abonnementType = 'professionnel'
+          dossierPrincipal = u.subscription_type.substring('professionnel:'.length)
+        }
         return {
           id: u.id,
           nom: nameParts[0] || '',
@@ -45,8 +52,11 @@ export default async function handler(req) {
           phone: u.phone,
           role: u.role,
           is_admin: false,
-          abonnement_type: u.subscription_type,
+          abonnement_type: abonnementType,
+          dossier_principal: dossierPrincipal,
+          subscription_type_raw: u.subscription_type,
           subscription_status: u.subscription_status,
+          abonnement_valide_jusqua: u.subscription_expires_at,
           subscription_expires_at: u.subscription_expires_at,
           created_at: u.created_at
         }
@@ -64,7 +74,7 @@ export default async function handler(req) {
   if (req.method === 'PUT') {
     let body = {}
     try { body = await req.json() } catch {}
-    const { id, subscription_type, subscription_status, subscription_expires_at } = body
+    const { id, subscription_type, subscription_status, subscription_expires_at, dossier_principal } = body
 
     if (!id) {
       return new Response(JSON.stringify({ error: 'ID utilisateur manquant' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
@@ -72,7 +82,15 @@ export default async function handler(req) {
 
     try {
       const updates = {}
-      if (subscription_type !== undefined) updates.subscription_type = subscription_type
+      
+      // Calculer le subscription_type correct en tenant compte du dossier_principal
+      if (subscription_type !== undefined) {
+        if (subscription_type === 'professionnel' && dossier_principal) {
+          updates.subscription_type = `professionnel:${dossier_principal}`
+        } else {
+          updates.subscription_type = subscription_type || null
+        }
+      }
       if (subscription_status !== undefined) updates.subscription_status = subscription_status
       if (subscription_expires_at !== undefined) updates.subscription_expires_at = subscription_expires_at
 

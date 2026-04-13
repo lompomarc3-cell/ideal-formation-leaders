@@ -7,9 +7,10 @@ import { useAuth } from './_app'
 export default function Payment() {
   const { user, loading, getToken } = useAuth()
   const router = useRouter()
-  const { type, montant } = router.query
+  const { type, montant, specialty } = router.query
 
   const [selectedType, setSelectedType] = useState('direct')
+  const [selectedSpecialty, setSelectedSpecialty] = useState('')
   const [numeroPaiement, setNumeroPaiement] = useState('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -23,8 +24,10 @@ export default function Payment() {
 
   useEffect(() => {
     if (type === 'professionnel') setSelectedType('professionnel')
-    else setSelectedType('direct')
-  }, [type])
+    else if (type === 'direct') setSelectedType('direct')
+    
+    if (specialty) setSelectedSpecialty(decodeURIComponent(specialty))
+  }, [type, specialty])
 
   useEffect(() => {
     if (user) loadPrices()
@@ -43,9 +46,23 @@ export default function Payment() {
     } catch {}
   }
 
+  // Si type=professionnel et pas de spécialité, rediriger vers la sélection
+  useEffect(() => {
+    if (!loading && user && type === 'professionnel' && !specialty && router.isReady) {
+      router.replace('/select-specialty')
+    }
+  }, [type, specialty, loading, user, router])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    
+    // Validation: pour un abonnement professionnel, la spécialité est obligatoire
+    if (selectedType === 'professionnel' && !selectedSpecialty) {
+      setError('Veuillez d\'abord choisir votre dossier principal.')
+      return
+    }
+    
     setSubmitting(true)
     try {
       const token = getToken()
@@ -57,7 +74,8 @@ export default function Payment() {
           type_concours: selectedType,
           montant: currentPrice,
           numero_paiement: numeroPaiement || null,
-          notes: notes || null
+          notes: notes || null,
+          dossier_principal: selectedType === 'professionnel' ? selectedSpecialty : null
         })
       })
       const data = await res.json()
@@ -87,6 +105,12 @@ export default function Payment() {
           <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 text-center">
             <div className="text-6xl mb-4">✅</div>
             <h2 className="text-2xl font-extrabold mb-3" style={{ color: '#8B2500' }}>Demande envoyée !</h2>
+            {selectedType === 'professionnel' && selectedSpecialty && (
+              <div className="mb-4 p-3 rounded-2xl" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE5CC)', border: '2px solid #C4521A' }}>
+                <p className="text-xs text-amber-700 font-bold">📌 Dossier principal choisi</p>
+                <p className="font-extrabold" style={{ color: '#8B2500' }}>{selectedSpecialty}</p>
+              </div>
+            )}
             <p className="text-gray-600 mb-6">Votre demande de paiement a été reçue. Voici les prochaines étapes :</p>
             <div className="space-y-3 text-left mb-6">
               <div className="flex items-start gap-3 bg-amber-50 p-3 rounded-xl">
@@ -149,27 +173,65 @@ export default function Payment() {
           {/* Sélection offre */}
           <h2 className="text-xl font-extrabold mb-4" style={{ color: '#8B2500' }}>Choisir une offre</h2>
           
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            {[
-              { key: 'direct', label: 'Concours Directs', icon: '📚', desc: '12 dossiers thématiques' },
-              { key: 'professionnel', label: 'Professionnels', icon: '🎓', desc: '17 dossiers spécialisés' }
-            ].map(opt => (
-              <button
-                key={opt.key}
-                onClick={() => setSelectedType(opt.key)}
-                className={`p-4 rounded-2xl border-2 text-center transition-all active:scale-95 ${selectedType === opt.key ? 'border-amber-500 shadow-lg' : 'border-gray-200 bg-white'}`}
-                style={selectedType === opt.key ? { background: 'linear-gradient(135deg,#FFF0E0,#FFE5CC)', borderColor: '#C4521A' } : {}}
-              >
-                <div className="text-3xl mb-2">{opt.icon}</div>
-                <p className="font-bold text-sm leading-tight" style={{ color: '#8B2500' }}>{opt.label}</p>
-                <p className="text-gray-500 text-xs mt-1">{opt.desc}</p>
-                <p className="font-extrabold text-lg mt-2" style={{ color: '#C4521A' }}>
-                  {(prices[opt.key] || 0).toLocaleString()} FCFA
-                </p>
-                {selectedType === opt.key && <span className="text-xs font-bold" style={{ color: '#C4521A' }}>✓ Sélectionné</span>}
-              </button>
-            ))}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {/* Concours Directs */}
+            <button
+              onClick={() => { setSelectedType('direct'); setSelectedSpecialty('') }}
+              className={`p-4 rounded-2xl border-2 text-center transition-all active:scale-95 ${selectedType === 'direct' ? 'border-amber-500 shadow-lg' : 'border-gray-200 bg-white'}`}
+              style={selectedType === 'direct' ? { background: 'linear-gradient(135deg,#FFF0E0,#FFE5CC)', borderColor: '#C4521A' } : {}}
+            >
+              <div className="text-3xl mb-2">📚</div>
+              <p className="font-bold text-sm leading-tight" style={{ color: '#8B2500' }}>Concours Directs</p>
+              <p className="text-gray-500 text-xs mt-1">12 dossiers thématiques</p>
+              <p className="font-extrabold text-lg mt-2" style={{ color: '#C4521A' }}>
+                {(prices.direct || 5000).toLocaleString()} FCFA
+              </p>
+              {selectedType === 'direct' && <span className="text-xs font-bold" style={{ color: '#C4521A' }}>✓ Sélectionné</span>}
+            </button>
+
+            {/* Concours Professionnels */}
+            <button
+              onClick={() => { router.push('/select-specialty') }}
+              className={`p-4 rounded-2xl border-2 text-center transition-all active:scale-95 ${selectedType === 'professionnel' ? 'border-amber-500 shadow-lg' : 'border-gray-200 bg-white'}`}
+              style={selectedType === 'professionnel' ? { background: 'linear-gradient(135deg,#FFF0E0,#FFE5CC)', borderColor: '#C4521A' } : {}}
+            >
+              <div className="text-3xl mb-2">🎓</div>
+              <p className="font-bold text-sm leading-tight" style={{ color: '#8B2500' }}>Professionnels</p>
+              <p className="text-gray-500 text-xs mt-1">17 dossiers spécialisés</p>
+              <p className="font-extrabold text-lg mt-2" style={{ color: '#C4521A' }}>
+                {(prices.professionnel || 20000).toLocaleString()} FCFA
+              </p>
+              {selectedType === 'professionnel' ? (
+                <span className="text-xs font-bold" style={{ color: '#C4521A' }}>✓ Sélectionné</span>
+              ) : (
+                <span className="text-xs text-orange-600">→ Choisir spécialité</span>
+              )}
+            </button>
           </div>
+
+          {/* Affichage de la spécialité sélectionnée (pour professionnel) */}
+          {selectedType === 'professionnel' && selectedSpecialty && (
+            <div className="mb-4 rounded-2xl p-3 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE5CC)', border: '2px solid #C4521A' }}>
+              <div>
+                <p className="text-xs font-bold text-amber-700">📌 Dossier principal sélectionné</p>
+                <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>{selectedSpecialty}</p>
+                <p className="text-xs text-green-700 mt-0.5">+ Actualités · Entraînement QCM · Accompagnement final (offerts)</p>
+              </div>
+              <Link href="/select-specialty" className="ml-auto px-3 py-1.5 text-xs font-bold rounded-xl border" style={{ color: '#8B2500', borderColor: '#C4521A' }}>
+                Changer
+              </Link>
+            </div>
+          )}
+
+          {/* Alerte si professionnel sans spécialité */}
+          {selectedType === 'professionnel' && !selectedSpecialty && (
+            <div className="mb-4 p-3 rounded-xl text-sm font-semibold" style={{ background: '#FFF3CD', color: '#856404', border: '1px solid #FFD700' }}>
+              ⚠️ Pour les Concours Professionnels, vous devez d'abord choisir votre spécialité.
+              <Link href="/select-specialty" className="block mt-2 font-bold underline" style={{ color: '#C4521A' }}>
+                → Choisir ma spécialité maintenant
+              </Link>
+            </div>
+          )}
 
           {/* Instructions Orange Money */}
           <div className="rounded-2xl p-5 mb-5 text-white" style={{ background: 'linear-gradient(135deg,#FF6B00,#FF9500)' }}>
@@ -231,7 +293,7 @@ export default function Payment() {
               </div>
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || (selectedType === 'professionnel' && !selectedSpecialty)}
                 className="w-full py-4 text-white font-extrabold text-lg rounded-xl shadow-lg active:scale-95 transition-all disabled:opacity-70"
                 style={{ background: submitting ? '#aaa' : 'linear-gradient(135deg,#C4521A,#8B2500)' }}
               >
