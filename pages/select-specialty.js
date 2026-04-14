@@ -60,10 +60,10 @@ const PRO_ICON_MAP = {
   'police': '/icons/pro_badge.svg',
   'civil': '/icons/pro_clipboard.svg',
   'administrateur': '/icons/pro_clipboard.svg',
-  'qcm': '/icons/pro_pencil.svg',
-  'entraîn': '/icons/pro_pencil.svg',
-  'accompagn': '/icons/pro_target.svg',
-  'final': '/icons/pro_target.svg',
+  'qcm': '/icons/direct_pencil.svg',
+  'entraîn': '/icons/direct_pencil.svg',
+  'accompagn': '/icons/direct_target.svg',
+  'final': '/icons/direct_target.svg',
 }
 
 function getCatIconSrc(nom) {
@@ -89,12 +89,7 @@ export default function SelectSpecialty() {
     if (!loading && !user) router.push('/login')
   }, [user, loading, router])
 
-  useEffect(() => {
-    // Si l'utilisateur a déjà un abonnement pro actif avec dossier principal, rediriger vers dashboard
-    if (user && user.subscription_status === 'active' && user.abonnement_type === 'professionnel' && user.dossier_principal) {
-      router.push('/dashboard')
-    }
-  }, [user, router])
+  // Pas de redirection automatique : un utilisateur peut acheter plusieurs dossiers professionnels
 
   const handleSelect = (dossier) => {
     setSelected(dossier)
@@ -103,9 +98,21 @@ export default function SelectSpecialty() {
 
   const handleConfirm = () => {
     if (!selected) return
-    // Rediriger vers le paiement avec le dossier sélectionné
     const encodedSpecialty = encodeURIComponent(selected.nom)
     router.push(`/payment?type=professionnel&specialty=${encodedSpecialty}`)
+  }
+
+  // Vérifie si un dossier est déjà payé/débloqué pour l'utilisateur
+  const isDossierDebloqueForUser = (nomDossier) => {
+    if (!user) return false
+    if (user.is_admin) return true
+    if (!user.dossiers_debloques) {
+      // Ancien format : si abonné pro actif, on considère le dossier_principal débloqué
+      return user.subscription_status === 'active' && 
+             user.abonnement_type === 'professionnel' && 
+             user.dossier_principal === nomDossier
+    }
+    return user.dossiers_debloques.includes(nomDossier)
   }
 
   if (loading || !user) {
@@ -115,6 +122,10 @@ export default function SelectSpecialty() {
       </div>
     )
   }
+
+  // Compter les dossiers déjà débloqués
+  const dossiersDebloques = SPECIALITES_SELECTABLES.filter(d => isDossierDebloqueForUser(d.nom))
+  const nombreDebloques = dossiersDebloques.length
 
   return (
     <>
@@ -161,27 +172,45 @@ export default function SelectSpecialty() {
           {step === 1 && (
             <div>
               {/* Bannière d'info */}
-              <div className="rounded-2xl p-4 mb-5 border-2" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', borderColor: '#D4A017' }}>
+              <div className="rounded-2xl p-4 mb-4 border-2" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', borderColor: '#D4A017' }}>
                 <div className="flex gap-3 items-start">
                   <span className="text-2xl flex-shrink-0">🎓</span>
                   <div>
-                    <p className="font-extrabold text-amber-800">Concours Professionnels – 20 000 FCFA</p>
+                    <p className="font-extrabold text-amber-800">Concours Professionnels – 20 000 FCFA / dossier</p>
                     <p className="text-amber-700 text-sm mt-1">
-                      Choisissez <strong>1 dossier principal</strong> (votre spécialité). Vous recevrez automatiquement <strong>3 dossiers d'accompagnement</strong> offerts.
+                      Choisissez <strong>1 dossier</strong> à débloquer. Vous pouvez acheter <strong>plusieurs dossiers</strong> un par un, chacun à 20 000 FCFA.
                     </p>
                   </div>
                 </div>
               </div>
 
+              {/* Dossiers déjà débloqués (si applicable) */}
+              {nombreDebloques > 0 && (
+                <div className="bg-white rounded-2xl p-4 mb-4 border-2 border-green-200 shadow-sm">
+                  <p className="font-bold text-green-700 text-sm mb-2 flex items-center gap-2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Vos dossiers déjà débloqués ({nombreDebloques}) :
+                  </p>
+                  <div className="space-y-1.5">
+                    {dossiersDebloques.map((d, i) => (
+                      <div key={i} className="flex items-center gap-2 p-2 rounded-xl" style={{ background: '#F0FDF4' }}>
+                        <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: '#16a34a' }}>✓</span>
+                        <span className="text-sm font-semibold text-green-800">{d.nom}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Dossiers d'accompagnement inclus */}
-              <div className="bg-white rounded-2xl p-4 mb-5 border border-green-200 shadow-sm">
-                <p className="font-bold text-green-700 text-sm mb-3 flex items-center gap-2">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  Inclus automatiquement avec votre abonnement :
+              <div className="bg-white rounded-2xl p-4 mb-4 border border-green-200 shadow-sm">
+                <p className="font-bold text-green-700 text-sm mb-2 flex items-center gap-2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  3 dossiers d'accompagnement inclus avec chaque achat :
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {DOSSIERS_ACCOMPAGNEMENT.map((d, i) => (
-                    <div key={i} className="flex items-center gap-2.5 p-2 rounded-xl" style={{ background: '#F0FDF4' }}>
+                    <div key={i} className="flex items-center gap-2 p-2 rounded-xl" style={{ background: '#F0FDF4' }}>
                       <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: '#16a34a' }}>✓</span>
                       <span className="text-sm font-semibold text-green-800">{d}</span>
                     </div>
@@ -191,40 +220,67 @@ export default function SelectSpecialty() {
 
               {/* Titre liste spécialités */}
               <p className="font-extrabold text-base mb-3" style={{ color: '#8B2500' }}>
-                Choisissez votre dossier principal ({SPECIALITES_SELECTABLES.length} spécialités) :
+                {nombreDebloques > 0 ? `Choisissez un autre dossier (${SPECIALITES_SELECTABLES.length - nombreDebloques} disponibles) :` : `Choisissez votre dossier principal (${SPECIALITES_SELECTABLES.length} spécialités) :`}
               </p>
 
               {/* Grille des spécialités */}
               <div className="space-y-3">
                 {SPECIALITES_SELECTABLES.map((dossier, idx) => {
+                  const isDebloqueAlready = isDossierDebloqueForUser(dossier.nom)
                   return (
-                    <button
-                      key={idx}
-                      onClick={() => handleSelect(dossier)}
-                      className="w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-all active:scale-[0.98] shadow-md hover:shadow-lg"
-                      style={{
-                        background: 'white',
-                        border: '2px solid #FFD0A8',
-                        position: 'relative',
-                        overflow: 'hidden'
-                      }}
-                    >
-                      {/* Image moderne multicolore sur fond blanc */}
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ background: '#FFF7ED', border: '1.5px solid #FFD0A8' }}>
-                        {getCatIcon(dossier.nom)}
-                      </div>
-                      {/* Texte */}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-extrabold text-sm leading-tight" style={{ color: '#8B2500' }}>{dossier.nom}</p>
-                        <p className="text-gray-500 text-xs mt-0.5 truncate">{dossier.desc}</p>
-                        <p className="text-xs font-bold mt-1" style={{ color: '#C4521A' }}>20 000 FCFA → Choisir ce dossier</p>
-                      </div>
-                      {/* Flèche */}
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2.5" strokeLinecap="round" className="flex-shrink-0">
-                        <path d="M9 18l6-6-6-6"/>
-                      </svg>
-                    </button>
+                    <div key={idx}>
+                      {isDebloqueAlready ? (
+                        /* Dossier déjà débloqué */
+                        <div
+                          className="w-full flex items-center gap-4 p-4 rounded-2xl"
+                          style={{
+                            background: '#F0FDF4',
+                            border: '2px solid #86EFAC',
+                            opacity: 0.85
+                          }}
+                        >
+                          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                            style={{ background: '#DCFCE7', border: '1.5px solid #86EFAC' }}>
+                            {getCatIcon(dossier.nom)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-extrabold text-sm leading-tight text-green-800">{dossier.nom}</p>
+                            <p className="text-green-600 text-xs mt-0.5">{dossier.desc}</p>
+                          </div>
+                          <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                            <span className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: '#16a34a' }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            </span>
+                            <span className="text-xs font-bold text-green-700">Débloqué</span>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Dossier à acheter */
+                        <button
+                          onClick={() => handleSelect(dossier)}
+                          className="w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-all active:scale-[0.98] shadow-md hover:shadow-lg"
+                          style={{
+                            background: 'white',
+                            border: '2px solid #FFD0A8',
+                            position: 'relative',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                            style={{ background: '#FFF7ED', border: '1.5px solid #FFD0A8' }}>
+                            {getCatIcon(dossier.nom)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-extrabold text-sm leading-tight" style={{ color: '#8B2500' }}>{dossier.nom}</p>
+                            <p className="text-gray-500 text-xs mt-0.5 truncate">{dossier.desc}</p>
+                            <p className="text-xs font-bold mt-1" style={{ color: '#C4521A' }}>💳 20 000 FCFA → Payer ce dossier</p>
+                          </div>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2.5" strokeLinecap="round" className="flex-shrink-0">
+                            <path d="M9 18l6-6-6-6"/>
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   )
                 })}
               </div>
@@ -232,7 +288,7 @@ export default function SelectSpecialty() {
               {/* Note bas de page */}
               <div className="mt-5 p-4 rounded-2xl" style={{ background: '#FFF0E8', border: '1px solid #FFD0A8' }}>
                 <p className="text-xs text-amber-800 font-medium">
-                  ℹ️ <strong>Important :</strong> Votre choix de dossier principal est définitif. Les 13 autres spécialités professionnelles resteront verrouillées pour protéger l'intégrité des concours.
+                  ℹ️ <strong>Plusieurs dossiers possibles :</strong> Vous pouvez débloquer autant de dossiers professionnels que vous le souhaitez, chacun à 20 000 FCFA. Les 3 dossiers d'accompagnement sont inclus avec chaque achat.
                 </p>
               </div>
             </div>
@@ -244,25 +300,23 @@ export default function SelectSpecialty() {
               {/* Carte de confirmation */}
               <div className="bg-white rounded-3xl shadow-xl border-2 border-amber-200 p-6 mb-5">
                 <div className="text-center mb-5">
-                  {/* Image moderne multicolore - remplace emoji */}
                   <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-3"
                     style={{ background: '#FFF7ED', border: '2px solid #FFD0A8', boxShadow: '0 4px 12px rgba(196,82,26,0.15)' }}>
                     <img src={getCatIconSrc(selected.nom)} alt={selected.nom} width="52" height="52" style={{ objectFit: 'contain' }} />
                   </div>
                   <h2 className="text-xl font-extrabold" style={{ color: '#8B2500' }}>Confirmez votre choix</h2>
-                  <p className="text-gray-500 text-sm mt-1">Vous avez sélectionné :</p>
+                  <p className="text-gray-500 text-sm mt-1">Vous allez débloquer :</p>
                 </div>
 
                 {/* Dossier principal */}
                 <div className="rounded-2xl p-4 mb-4" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE5CC)', border: '2px solid #C4521A' }}>
                   <div className="flex items-center gap-3">
-                    {/* Image petite remplace emoji */}
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ background: 'white', border: '1.5px solid #FFD0A8' }}>
                       <img src={getCatIconSrc(selected.nom)} alt={selected.nom} width="28" height="28" style={{ objectFit: 'contain' }} />
                     </div>
                     <div>
-                      <p className="text-xs text-amber-700 font-bold">📌 Votre dossier principal</p>
+                      <p className="text-xs text-amber-700 font-bold">📌 Dossier à débloquer</p>
                       <p className="font-extrabold" style={{ color: '#8B2500' }}>{selected.nom}</p>
                       <p className="text-gray-500 text-xs">{selected.desc}</p>
                     </div>
@@ -280,16 +334,11 @@ export default function SelectSpecialty() {
                   ))}
                 </div>
 
-                {/* Dossiers verrouillés */}
-                <div className="p-3 rounded-xl mb-4" style={{ background: '#F8F8F8', border: '1px dashed #ccc' }}>
-                  <p className="text-xs text-gray-500 font-medium">🔒 {SPECIALITES_SELECTABLES.length - 1} autres spécialités seront verrouillées</p>
-                </div>
-
                 {/* Prix */}
                 <div className="text-center p-4 rounded-2xl" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #D4A017' }}>
                   <p className="text-gray-600 text-sm">Montant total</p>
                   <p className="text-3xl font-extrabold" style={{ color: '#C4521A' }}>20 000 FCFA</p>
-                  <p className="text-xs text-amber-700 mt-1">Paiement Orange Money · Accès immédiat après validation</p>
+                  <p className="text-xs text-amber-700 mt-1">Paiement Orange Money · Accès activé après validation par l'admin</p>
                 </div>
               </div>
 
@@ -308,13 +357,13 @@ export default function SelectSpecialty() {
                 className="w-full py-3 font-semibold rounded-2xl border-2 border-gray-200 bg-white"
                 style={{ color: '#8B2500' }}
               >
-                ← Changer de spécialité
+                ← Choisir un autre dossier
               </button>
 
-              {/* Avertissement */}
+              {/* Info paiement multiple */}
               <div className="mt-4 p-4 rounded-2xl" style={{ background: '#FFF0E8', border: '1px solid #FFD0A8' }}>
                 <p className="text-xs text-amber-800">
-                  ⚠️ <strong>Ce choix est définitif.</strong> Une fois votre paiement validé, votre dossier principal sera fixé et ne pourra pas être changé. Assurez-vous de choisir votre vraie spécialité de concours.
+                  💡 <strong>Paiements multiples possibles :</strong> Après validation, vous pourrez revenir ici pour débloquer d'autres dossiers professionnels (chacun à 20 000 FCFA).
                 </p>
               </div>
             </div>

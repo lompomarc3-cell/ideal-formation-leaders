@@ -40,8 +40,9 @@ export default async function handler(req) {
         const nameParts = (u.full_name || '').trim().split(' ')
         let abonnementType = u.subscription_type
         let dossierPrincipal = null
+        let dossiersTousLesDebloques = []
         
-        // Pour les abonnés professionnels, récupérer le dossier depuis correction_requests
+        // Pour les abonnés professionnels, récupérer TOUS les dossiers depuis correction_requests
         if (u.subscription_type === 'professionnel' && u.subscription_status === 'active') {
           const { data: paidReq } = await supabaseAdmin
             .from('correction_requests')
@@ -50,15 +51,23 @@ export default async function handler(req) {
             .eq('status', 'approved')
             .like('message', '%ifl_payment%')
             .order('created_at', { ascending: false })
-            .limit(1)
           
           if (paidReq && paidReq.length > 0) {
-            try {
-              const parsed = JSON.parse(paidReq[0].message)
-              if (parsed.type === 'ifl_payment' && parsed.type_concours === 'professionnel') {
-                dossierPrincipal = parsed.dossier_principal || null
-              }
-            } catch {}
+            const dossiersTrouves = []
+            for (const req of paidReq) {
+              try {
+                const parsed = JSON.parse(req.message)
+                if (parsed.type === 'ifl_payment' && parsed.type_concours === 'professionnel' && parsed.dossier_principal) {
+                  if (!dossiersTrouves.includes(parsed.dossier_principal)) {
+                    dossiersTrouves.push(parsed.dossier_principal)
+                  }
+                }
+              } catch {}
+            }
+            if (dossiersTrouves.length > 0) {
+              dossierPrincipal = dossiersTrouves[0]
+              dossiersTousLesDebloques = dossiersTrouves
+            }
           }
         }
         
@@ -66,6 +75,7 @@ export default async function handler(req) {
         if (u.subscription_type && u.subscription_type.startsWith('professionnel:')) {
           abonnementType = 'professionnel'
           dossierPrincipal = u.subscription_type.substring('professionnel:'.length)
+          dossiersTousLesDebloques = [dossierPrincipal]
         }
         
         userList.push({
@@ -78,6 +88,7 @@ export default async function handler(req) {
           is_admin: false,
           abonnement_type: abonnementType,
           dossier_principal: dossierPrincipal,
+          dossiers_principaux: dossiersTousLesDebloques,
           subscription_type_raw: u.subscription_type,
           subscription_status: u.subscription_status,
           abonnement_valide_jusqua: u.subscription_expires_at,

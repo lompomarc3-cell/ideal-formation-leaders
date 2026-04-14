@@ -37,23 +37,47 @@ export default async function handler(req) {
 
     if (updateErr) throw updateErr
 
-    // 2. Activer l'abonnement
-    // La contrainte CHECK n'accepte que 'direct' et 'professionnel'
-    // Le dossier_principal est stocké dans correction_requests.admin_response
+    // 2. Activer/mettre à jour l'abonnement de l'utilisateur
+    // Si c'est un abonnement professionnel supplémentaire, on ne change pas le subscription_type
+    // On met juste à jour subscription_status = 'active' et expires_at
     const expiresAt = new Date()
     expiresAt.setFullYear(expiresAt.getFullYear() + 1)
 
     const subscriptionTypeValue = type_concours || 'direct'
-    // Note: 'professionnel:dossier' n'est pas accepté par la contrainte DB
-    // On stocke juste 'professionnel', le dossier est dans correction_requests
+
+    // Vérifier si l'utilisateur a déjà un abonnement actif du même type
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('subscription_status, subscription_type, subscription_expires_at')
+      .eq('id', user_id)
+      .single()
+
+    // Pour un abonnement professionnel supplémentaire : conserver le type 'professionnel'
+    // et mettre à jour la date d'expiration seulement si elle est antérieure
+    let updateData = {
+      subscription_status: 'active',
+      subscription_type: subscriptionTypeValue,
+    }
+
+    // Si l'utilisateur a déjà un abonnement pro actif, on garde la date la plus lointaine
+    if (existingProfile && 
+        existingProfile.subscription_type === 'professionnel' && 
+        existingProfile.subscription_status === 'active' &&
+        type_concours === 'professionnel') {
+      const existingExpiry = existingProfile.subscription_expires_at 
+        ? new Date(existingProfile.subscription_expires_at) 
+        : new Date()
+      // Garde la date la plus lointaine
+      updateData.subscription_expires_at = expiresAt > existingExpiry 
+        ? expiresAt.toISOString() 
+        : existingProfile.subscription_expires_at
+    } else {
+      updateData.subscription_expires_at = expiresAt.toISOString()
+    }
 
     const { error: subErr } = await supabaseAdmin
       .from('profiles')
-      .update({
-        subscription_status: 'active',
-        subscription_type: subscriptionTypeValue,
-        subscription_expires_at: expiresAt.toISOString()
-      })
+      .update(updateData)
       .eq('id', user_id)
 
     if (subErr) throw subErr

@@ -386,13 +386,12 @@ export default function Dashboard() {
                         <p className="text-amber-700 text-sm">
                           {user.is_admin ? 'Accès illimité à toutes les ressources' :
                            user.abonnement_type === 'all' ? 'Accès complet (direct + professionnel)' :
-                           user.abonnement_type === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
+                           user.abonnement_type === 'direct' ? '📚 Concours Directs' :
+                           user.dossiers_debloques && user.dossiers_debloques.length > 1 
+                             ? `🎓 ${user.dossiers_debloques.length} dossiers professionnels débloqués`
+                             : '🎓 Concours Professionnels'}
                         </p>
-                        {!user.is_admin && user.abonnement_valide_jusqua && (
-                          <p className="text-amber-600 text-xs mt-0.5">
-                            Expire le: {new Date(user.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}
-                          </p>
-                        )}
+
                       </div>
                     </div>
                   </div>
@@ -678,13 +677,24 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  {/* Bannière dossier principal pour abonné professionnel */}
-                  {activeTab === 'professionnel' && proAccess && !user.is_admin && user.dossier_principal && (
+                  {/* Bannière dossier(s) débloqué(s) pour abonné professionnel */}
+                  {activeTab === 'professionnel' && proAccess && !user.is_admin && (
                     <div className="mt-4 rounded-2xl p-3" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE5CC)', border: '2px solid #C4521A' }}>
-                      <p className="text-xs font-bold text-amber-700 mb-1">📌 Votre dossier principal</p>
-                      <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>{user.dossier_principal}</p>
-                      <p className="text-xs text-green-700 mt-0.5">+ Actualités · Entraînement QCM · Accompagnement final (inclus)</p>
-                      <p className="text-xs text-gray-500 mt-1">🔒 Les {13} autres spécialités sont verrouillées</p>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-xs font-bold text-amber-700 mb-1">✅ Dossier(s) professionnel(s) actif(s)</p>
+                          {user.dossier_principal && (
+                            <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>{user.dossier_principal}</p>
+                          )}
+                          {user.dossiers_debloques && user.dossiers_debloques.length > 1 && (
+                            <p className="text-xs text-amber-700 mt-0.5">{user.dossiers_debloques.length} dossiers débloqués</p>
+                          )}
+                          <p className="text-xs text-green-700 mt-0.5">+ Actualités · Entraînement QCM · Accompagnement final (inclus)</p>
+                        </div>
+                        <Link href="/select-specialty" className="flex-shrink-0 px-3 py-1.5 text-xs font-bold text-white rounded-xl" style={{ background: '#C4521A' }}>
+                          + Dossier
+                        </Link>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -715,8 +725,53 @@ export default function Dashboard() {
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                   </svg>
                 </div>
-                <h2 className="text-white font-extrabold text-2xl mb-1">Mon Profil</h2>
-                <p className="text-orange-200 text-sm">{user.prenom} {user.nom}</p>
+                <h2 className="text-white font-extrabold text-2xl mb-0.5">Mon Profil</h2>
+                {/* Nom et prénom */}
+                <p className="text-orange-200 text-sm font-semibold mb-3">
+                  {user.prenom} {user.nom}
+                </p>
+                {/* ===== BARRE DE PROGRESSION (juste sous le nom/prénom) ===== */}
+                <div className="max-w-xs mx-auto">
+                  {loadingStats ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 rounded-full border-2 border-orange-200 border-t-transparent animate-spin"></div>
+                      <p className="text-orange-200 text-xs">Chargement...</p>
+                    </div>
+                  ) : userStats ? (
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-orange-200 text-xs font-semibold">Ma progression globale</span>
+                        <span className="text-white font-extrabold text-sm">{userStats.scoreGlobal}%</span>
+                      </div>
+                      <div className="w-full rounded-full" style={{ height: 8, background: 'rgba(255,255,255,0.2)' }}>
+                        <div className="rounded-full transition-all" style={{
+                          width: `${Math.max(userStats.scoreGlobal, 0)}%`,
+                          height: 8,
+                          background: userStats.scoreGlobal >= 70 
+                            ? 'linear-gradient(90deg,#22C55E,#4ADE80)' 
+                            : userStats.scoreGlobal >= 50 
+                              ? 'linear-gradient(90deg,#F59E0B,#FCD34D)' 
+                              : 'linear-gradient(90deg,#FFF,rgba(255,255,255,0.6))',
+                          minWidth: userStats.scoreGlobal > 0 ? 8 : 0
+                        }} />
+                      </div>
+                      <p className="text-orange-200 text-xs mt-1">
+                        {userStats.totalCorrect} bonne{userStats.totalCorrect > 1 ? 's' : ''} réponse{userStats.totalCorrect > 1 ? 's' : ''} sur {userStats.totalAnswered} question{userStats.totalAnswered > 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-orange-200 text-xs">Ma progression</span>
+                        <span className="text-orange-200 text-xs">—</span>
+                      </div>
+                      <div className="w-full rounded-full" style={{ height: 8, background: 'rgba(255,255,255,0.2)' }}>
+                        <div style={{ height: 8 }} />
+                      </div>
+                      <p className="text-orange-200 text-xs mt-1">Commencez un dossier pour voir votre score !</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -770,20 +825,29 @@ export default function Dashboard() {
                     {directAccess && (
                       <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '2px solid #FFD0A8' }}>
                         <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>✅ Concours Directs</p>
-                        {user.abonnement_valide_jusqua && (
-                          <p className="text-gray-600 text-xs mt-1">Expire le {new Date(user.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}</p>
-                        )}
+                        <p className="text-green-600 text-xs mt-1 font-semibold">🟢 Abonnement actif</p>
                       </div>
                     )}
                     {proAccess && (
                       <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #FFE68A' }}>
-                        <p className="font-extrabold text-sm" style={{ color: '#B45309' }}>✅ Concours Professionnels</p>
-                        {user.dossier_principal && (
-                          <p className="text-xs mt-1" style={{ color: '#8B2500' }}>📌 Dossier : <strong>{user.dossier_principal}</strong></p>
-                        )}
-                        {user.abonnement_valide_jusqua && (
-                          <p className="text-gray-600 text-xs mt-1">Expire le {new Date(user.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}</p>
-                        )}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <p className="font-extrabold text-sm" style={{ color: '#B45309' }}>✅ Concours Professionnels</p>
+                            {user.dossiers_debloques && user.dossiers_debloques.length > 0 ? (
+                              <div className="mt-1 space-y-0.5">
+                                {user.dossiers_debloques.map((d, i) => (
+                                  <p key={i} className="text-xs" style={{ color: '#8B2500' }}>📌 {d}</p>
+                                ))}
+                              </div>
+                            ) : user.dossier_principal ? (
+                              <p className="text-xs mt-1" style={{ color: '#8B2500' }}>📌 Dossier : <strong>{user.dossier_principal}</strong></p>
+                            ) : null}
+                            <p className="text-green-600 text-xs mt-1 font-semibold">🟢 Abonnement actif</p>
+                          </div>
+                          <Link href="/select-specialty" className="flex-shrink-0 px-2 py-1 text-xs font-bold text-white rounded-lg" style={{ background: '#C4521A' }}>
+                            + Dossier
+                          </Link>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -9,10 +9,12 @@ const DOSSIERS_ACCOMPAGNEMENT = [
   'Accompagnement final'
 ]
 
-// Calcule les dossiers débloqués pour un utilisateur professionnel
-function getDossiersDebloques(dossier_principal) {
-  if (!dossier_principal) return DOSSIERS_ACCOMPAGNEMENT
-  return [dossier_principal, ...DOSSIERS_ACCOMPAGNEMENT]
+// Calcule les dossiers débloqués pour un utilisateur professionnel (MULTI-DOSSIERS)
+function getDossiersDebloquesMulti(dossiers_principaux) {
+  if (!dossiers_principaux || dossiers_principaux.length === 0) return DOSSIERS_ACCOMPAGNEMENT
+  // Union des dossiers principaux + accompagnements (sans doublons)
+  const all = [...new Set([...dossiers_principaux, ...DOSSIERS_ACCOMPAGNEMENT])]
+  return all
 }
 
 export default async function handler(req) {
@@ -46,10 +48,12 @@ export default async function handler(req) {
 
     const abonnementType = profile.subscription_type || null
 
-    // Pour les abonnements professionnels, récupérer le dossier_principal
-    // depuis le paiement approuvé (correction_requests)
+    // Pour les abonnements professionnels, récupérer TOUS les dossiers payés et approuvés
     let dossier_principal = null
+    let dossiers_principaux = []
+    
     if (abonnementType === 'professionnel' && profile.subscription_status === 'active') {
+      // Récupérer TOUS les paiements professionnels approuvés (pas juste le dernier)
       const { data: paymentRequests } = await supabaseAdmin
         .from('correction_requests')
         .select('message')
@@ -57,21 +61,27 @@ export default async function handler(req) {
         .eq('status', 'approved')
         .like('message', '%ifl_payment%')
         .order('created_at', { ascending: false })
-        .limit(1)
 
       if (paymentRequests && paymentRequests.length > 0) {
-        try {
-          const parsed = JSON.parse(paymentRequests[0].message)
-          if (parsed.type === 'ifl_payment' && parsed.type_concours === 'professionnel') {
-            dossier_principal = parsed.dossier_principal || null
-          }
-        } catch {}
+        for (const req of paymentRequests) {
+          try {
+            const parsed = JSON.parse(req.message)
+            if (parsed.type === 'ifl_payment' && parsed.type_concours === 'professionnel' && parsed.dossier_principal) {
+              if (!dossiers_principaux.includes(parsed.dossier_principal)) {
+                dossiers_principaux.push(parsed.dossier_principal)
+              }
+            }
+          } catch {}
+        }
       }
+      
+      // dossier_principal = le premier dossier payé (ou le plus récent)
+      dossier_principal = dossiers_principaux.length > 0 ? dossiers_principaux[0] : null
     }
 
-    // Calculer les dossiers débloqués
+    // Calculer les dossiers débloqués (MULTI-DOSSIERS)
     const dossiersDebloques = abonnementType === 'professionnel' 
-      ? getDossiersDebloques(dossier_principal)
+      ? getDossiersDebloquesMulti(dossiers_principaux)
       : null // null = soit tous (direct/admin), soit aucun
 
     return res.json({
@@ -86,12 +96,15 @@ export default async function handler(req) {
       abonnement_type: abonnementType,
       abonnement_valide_jusqua: profile.subscription_expires_at,
       subscription_status: profile.subscription_status,
-      // Dossier principal pour abonnement professionnel
+      // Dossier principal pour abonnement professionnel (compatibilité rétro)
       dossier_principal: dossier_principal,
+      // Tous les dossiers débloqués (multi-dossiers)
       dossiers_debloques: dossiersDebloques,
+      dossiers_principaux: dossiers_principaux,
       is_active: true
     })
   } catch (error) {
     return res.status(500).json({ error: 'Erreur serveur: ' + error.message })
   }
 }
+
