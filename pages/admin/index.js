@@ -212,9 +212,21 @@ function AdminStats({ stats, recentUsers, questionsByCategory, loading, onRefres
               <p className="text-gray-400 text-xs">{u.phone}</p>
               {u.created_at && <p className="text-gray-600 text-xs mt-0.5">{new Date(u.created_at).toLocaleDateString('fr-FR')}</p>}
             </div>
-            <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0 ${u.subscription_status === 'active' ? 'bg-amber-800 text-amber-200' : 'bg-gray-700 text-gray-400'}`}>
-              {u.abonnement_type ? (u.abonnement_type === 'direct' ? '📚 Directs' : '🎓 Pro') : 'Gratuit'}
-            </span>
+            <div className="text-right">
+              {u.subscription_status === 'active' ? (
+                <span className={`px-2.5 py-1 rounded-full text-xs font-bold block mb-1 ${u.abonnement_type === 'direct' ? 'bg-blue-900 text-blue-200' : 'bg-amber-800 text-amber-200'}`}>
+                  {u.abonnement_type === 'direct' ? '📚 Directs' : '🎓 Pro'}
+                </span>
+              ) : (
+                <span className="px-2.5 py-1 rounded-full text-xs bg-gray-700 text-gray-400 block mb-1">Gratuit</span>
+              )}
+              {u.abonnement_type === 'professionnel' && u.dossiers_principaux && u.dossiers_principaux.length > 0 && (() => {
+                const acc = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
+                const dp = u.dossiers_principaux.filter(d => !acc.includes(d))
+                if (dp.length === 0) return null
+                return <span className="text-xs text-amber-300 block text-right">{dp.length >= 14 ? '17 dossiers' : dp.join(', ')}</span>
+              })()}
+            </div>
           </div>
         ))}
       </div>
@@ -376,14 +388,20 @@ function AdminUsers({ getToken, onNotif }) {
                 <div className="flex gap-2 mt-2 flex-wrap">
                   {u.abonnement_type ? (
                     <span className="px-2 py-0.5 rounded text-xs font-bold bg-orange-800 text-orange-300">
-                      {u.abonnement_type === 'direct' ? '📚 Directs' : u.abonnement_type === 'professionnel' ? '🎓 Pro' : '🎯 Tout'}
+                      {u.abonnement_type === 'direct' ? '📚 Concours directs (12 dossiers)' : u.abonnement_type === 'professionnel' ? '🎓 Professionnel' : '🎯 Tout'}
                     </span>
                   ) : (
                     <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">Gratuit</span>
                   )}
-                  {u.dossier_principal && (
-                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-900 text-amber-300">📌 {u.dossier_principal.length > 18 ? u.dossier_principal.substring(0, 18) + '…' : u.dossier_principal}</span>
-                  )}
+                  {u.abonnement_type === 'professionnel' && (() => {
+                    const acc = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
+                    const dp = (u.dossiers_principaux || []).filter(d => !acc.includes(d))
+                    if (dp.length >= 14) return <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-900 text-amber-300">🏆 17 dossiers (accès complet)</span>
+                    if (dp.length > 0) return (
+                      <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-900 text-amber-300">📌 {dp.join(' · ')}</span>
+                    )
+                    return <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">Dossier non précisé</span>
+                  })()}
                   {u.abonnement_valide_jusqua && (
                     <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-500">exp: {new Date(u.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}</span>
                   )}

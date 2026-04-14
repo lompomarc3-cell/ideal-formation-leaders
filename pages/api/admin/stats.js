@@ -87,10 +87,33 @@ export default async function handler(req) {
       }
     })
 
-    // 10 derniers inscrits
-    const recentUsers = (allUsers || []).slice(0, 10).map(u => {
+    // 10 derniers inscrits — avec dossiers pro débloqués
+    const recentUsersSlice = (allUsers || []).slice(0, 10)
+    const recentUsers = []
+    for (const u of recentUsersSlice) {
       const nameParts = (u.full_name || '').trim().split(' ')
-      return {
+      let dossiersPrincipaux = []
+      if (u.subscription_type === 'professionnel' && u.subscription_status === 'active') {
+        const { data: paidReq } = await supabaseAdmin
+          .from('correction_requests')
+          .select('message')
+          .eq('user_id', u.id)
+          .eq('status', 'approved')
+          .like('message', '%ifl_payment%')
+        if (paidReq) {
+          for (const r of paidReq) {
+            try {
+              const parsed = JSON.parse(r.message)
+              if (parsed.type === 'ifl_payment' && parsed.type_concours === 'professionnel' && parsed.dossier_principal) {
+                if (!dossiersPrincipaux.includes(parsed.dossier_principal)) {
+                  dossiersPrincipaux.push(parsed.dossier_principal)
+                }
+              }
+            } catch {}
+          }
+        }
+      }
+      recentUsers.push({
         id: u.id,
         nom: nameParts[0] || '',
         prenom: nameParts.slice(1).join(' ') || '',
@@ -98,9 +121,10 @@ export default async function handler(req) {
         phone: u.phone,
         abonnement_type: u.subscription_type,
         subscription_status: u.subscription_status,
+        dossiers_principaux: dossiersPrincipaux,
         created_at: u.created_at
-      }
-    })
+      })
+    }
 
     return new Response(JSON.stringify({
       stats: {

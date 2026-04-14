@@ -106,13 +106,19 @@ export default function SelectSpecialty() {
   const isDossierDebloqueForUser = (nomDossier) => {
     if (!user) return false
     if (user.is_admin) return true
-    if (!user.dossiers_debloques) {
-      // Ancien format : si abonné pro actif, on considère le dossier_principal débloqué
-      return user.subscription_status === 'active' && 
-             user.abonnement_type === 'professionnel' && 
-             user.dossier_principal === nomDossier
+    // Utiliser dossiers_principaux (liste des dossiers payés, sans accompagnements)
+    // ou dossiers_debloques (qui inclut aussi les accompagnements)
+    if (user.dossiers_debloques && user.dossiers_debloques.length > 0) {
+      return user.dossiers_debloques.includes(nomDossier)
     }
-    return user.dossiers_debloques.includes(nomDossier)
+    if (user.dossiers_principaux && user.dossiers_principaux.length > 0) {
+      return user.dossiers_principaux.includes(nomDossier)
+    }
+    // Rétro-compatibilité : ancien format avec dossier_principal unique
+    if (user.dossier_principal) {
+      return user.dossier_principal === nomDossier
+    }
+    return false
   }
 
   if (loading || !user) {

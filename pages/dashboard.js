@@ -246,9 +246,33 @@ export default function Dashboard() {
     if (!user) return false
     if (user.is_admin) return true
     if (!hasAccess('professionnel')) return false
-    // Si pas de liste dossiers_debloques (ancien format sans spécialité), tout est débloqué
-    if (!user.dossiers_debloques) return true
+    // CORRECTION CRITIQUE : Ne JAMAIS retourner true si la liste est vide/null
+    // Seuls les dossiers explicitement dans dossiers_debloques sont débloqués
+    if (!user.dossiers_debloques || user.dossiers_debloques.length === 0) return false
     return user.dossiers_debloques.includes(nomDossier)
+  }
+
+  // Génère le texte d'abonnement précis (jamais "Abonnement actif" seul)
+  const getAbonnementLabel = () => {
+    if (user.is_admin) return 'Accès complet (Administrateur)'
+    const hasDirect = hasAccess('direct')
+    const hasPro = hasAccess('professionnel')
+    const accompagnements = ['Actualités et culture générale', 'Entraînement QCM', 'Accompagnement final']
+    const dossiersProPrincipaux = (user.dossiers_principaux || []).filter(d => !accompagnements.includes(d))
+
+    const parts = []
+    if (hasDirect) parts.push('Concours directs (12 dossiers)')
+    if (hasPro) {
+      if (dossiersProPrincipaux.length === 0) {
+        parts.push('Concours professionnels (accompagnements)')
+      } else if (dossiersProPrincipaux.length >= 14) {
+        parts.push('Accès complet Concours professionnels (17 dossiers)')
+      } else {
+        parts.push(dossiersProPrincipaux.join(', '))
+      }
+    }
+    if (parts.length === 0) return null
+    return parts.join(' + ')
   }
 
   if (loading || !user) {
@@ -381,17 +405,12 @@ export default function Dashboard() {
                       <span className="text-2xl">{user.is_admin ? '👑' : '✅'}</span>
                       <div>
                         <p className="font-bold text-amber-800">
-                          {user.is_admin ? 'Accès complet (Administrateur)' : 'Abonnement actif'}
+                          {user.is_admin ? '👑 Accès complet (Administrateur)' : `✅ ${getAbonnementLabel() || 'Abonnement actif'}`}
                         </p>
                         <p className="text-amber-700 text-sm">
                           {user.is_admin ? 'Accès illimité à toutes les ressources' :
-                           user.abonnement_type === 'all' ? 'Accès complet (direct + professionnel)' :
-                           user.abonnement_type === 'direct' ? '📚 Concours Directs' :
-                           user.dossiers_debloques && user.dossiers_debloques.length > 1 
-                             ? `🎓 ${user.dossiers_debloques.length} dossiers professionnels débloqués`
-                             : '🎓 Concours Professionnels'}
+                           user.abonnement_valide_jusqua ? `Valide jusqu'au ${new Date(user.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}` : 'Abonnement actif'}
                         </p>
-
                       </div>
                     </div>
                   </div>
@@ -683,12 +702,13 @@ export default function Dashboard() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <p className="text-xs font-bold text-amber-700 mb-1">✅ Dossier(s) professionnel(s) actif(s)</p>
-                          {user.dossier_principal && (
-                            <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>{user.dossier_principal}</p>
-                          )}
-                          {user.dossiers_debloques && user.dossiers_debloques.length > 1 && (
-                            <p className="text-xs text-amber-700 mt-0.5">{user.dossiers_debloques.length} dossiers débloqués</p>
-                          )}
+                          {(() => {
+                            const acc = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
+                            const dp = (user.dossiers_principaux || []).filter(d => !acc.includes(d))
+                            if (dp.length >= 14) return <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>🏆 Accès complet (17 dossiers)</p>
+                            if (dp.length > 0) return <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>{dp.join(', ')}</p>
+                            return null
+                          })()}
                           <p className="text-xs text-green-700 mt-0.5">+ Actualités · Entraînement QCM · Accompagnement final (inclus)</p>
                         </div>
                         <Link href="/select-specialty" className="flex-shrink-0 px-3 py-1.5 text-xs font-bold text-white rounded-xl" style={{ background: '#C4521A' }}>
@@ -824,32 +844,42 @@ export default function Dashboard() {
                   <div className="space-y-3">
                     {directAccess && (
                       <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '2px solid #FFD0A8' }}>
-                        <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>✅ Concours Directs</p>
-                        <p className="text-green-600 text-xs mt-1 font-semibold">🟢 Abonnement actif</p>
+                        <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>✅ Concours directs (12 dossiers)</p>
+                        <p className="text-green-600 text-xs mt-1 font-semibold">🟢 Abonnement actif{user.abonnement_valide_jusqua ? ` · exp: ${new Date(user.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}` : ''}</p>
                       </div>
                     )}
-                    {proAccess && (
-                      <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #FFE68A' }}>
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            <p className="font-extrabold text-sm" style={{ color: '#B45309' }}>✅ Concours Professionnels</p>
-                            {user.dossiers_debloques && user.dossiers_debloques.length > 0 ? (
-                              <div className="mt-1 space-y-0.5">
-                                {user.dossiers_debloques.map((d, i) => (
-                                  <p key={i} className="text-xs" style={{ color: '#8B2500' }}>📌 {d}</p>
-                                ))}
-                              </div>
-                            ) : user.dossier_principal ? (
-                              <p className="text-xs mt-1" style={{ color: '#8B2500' }}>📌 Dossier : <strong>{user.dossier_principal}</strong></p>
-                            ) : null}
-                            <p className="text-green-600 text-xs mt-1 font-semibold">🟢 Abonnement actif</p>
+                    {proAccess && (() => {
+                      const accompagnements = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
+                      const dossiersPrincipaux = (user.dossiers_principaux || []).filter(d => !accompagnements.includes(d))
+                      return (
+                        <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #FFE68A' }}>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <p className="font-extrabold text-sm" style={{ color: '#B45309' }}>✅ Concours professionnels</p>
+                              {dossiersPrincipaux.length >= 14 ? (
+                                <p className="text-xs mt-1 font-bold" style={{ color: '#8B2500' }}>🏆 Accès complet Concours professionnels (17 dossiers)</p>
+                              ) : dossiersPrincipaux.length > 0 ? (
+                                <div className="mt-1.5">
+                                  <p className="text-xs font-bold text-gray-600 mb-0.5">📌 Dossiers débloqués :</p>
+                                  <div className="space-y-0.5">
+                                    {dossiersPrincipaux.map((d, i) => (
+                                      <p key={i} className="text-xs font-semibold" style={{ color: '#8B2500' }}>• {d}</p>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-xs mt-1 text-amber-700">Dossiers d'accompagnement inclus</p>
+                              )}
+                              <p className="text-xs text-green-700 mt-1 font-semibold">✓ + Actualités · Entraînement QCM · Accompagnement final</p>
+                              <p className="text-green-600 text-xs mt-1 font-semibold">🟢 Abonnement actif</p>
+                            </div>
+                            <Link href="/select-specialty" className="flex-shrink-0 px-2 py-1 text-xs font-bold text-white rounded-lg" style={{ background: '#C4521A' }}>
+                              + Dossier
+                            </Link>
                           </div>
-                          <Link href="/select-specialty" className="flex-shrink-0 px-2 py-1 text-xs font-bold text-white rounded-lg" style={{ background: '#C4521A' }}>
-                            + Dossier
-                          </Link>
                         </div>
-                      </div>
-                    )}
+                      )
+                    })()}
                   </div>
                 ) : (
                   <div>
