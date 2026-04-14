@@ -180,7 +180,9 @@ export default function Payment() {
               className={`p-4 rounded-2xl border-2 text-center transition-all active:scale-95 ${selectedType === 'direct' ? 'border-amber-500 shadow-lg' : 'border-gray-200 bg-white'}`}
               style={selectedType === 'direct' ? { background: 'linear-gradient(135deg,#FFF0E0,#FFE5CC)', borderColor: '#C4521A' } : {}}
             >
-              <div className="text-3xl mb-2">📚</div>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-2" style={{ background: selectedType === 'direct' ? '#FFF7ED' : '#F9FAFB', border: '1.5px solid #FFD0A8' }}>
+                <img src="/icons/direct_book.svg" alt="Directs" width="36" height="36" style={{ objectFit: 'contain' }} />
+              </div>
               <p className="font-bold text-sm leading-tight" style={{ color: '#8B2500' }}>Concours Directs</p>
               <p className="text-gray-500 text-xs mt-1">12 dossiers thématiques</p>
               <p className="font-extrabold text-lg mt-2" style={{ color: '#C4521A' }}>
@@ -195,7 +197,9 @@ export default function Payment() {
               className={`p-4 rounded-2xl border-2 text-center transition-all active:scale-95 ${selectedType === 'professionnel' ? 'border-amber-500 shadow-lg' : 'border-gray-200 bg-white'}`}
               style={selectedType === 'professionnel' ? { background: 'linear-gradient(135deg,#FFF0E0,#FFE5CC)', borderColor: '#C4521A' } : {}}
             >
-              <div className="text-3xl mb-2">🎓</div>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-2" style={{ background: selectedType === 'professionnel' ? '#FFF7ED' : '#F9FAFB', border: '1.5px solid #FFD0A8' }}>
+                <img src="/icons/pro_graduation.svg" alt="Professionnels" width="36" height="36" style={{ objectFit: 'contain' }} />
+              </div>
               <p className="font-bold text-sm leading-tight" style={{ color: '#8B2500' }}>Professionnels</p>
               <p className="text-gray-500 text-xs mt-1">17 dossiers spécialisés</p>
               <p className="font-extrabold text-lg mt-2" style={{ color: '#C4521A' }}>

@@ -846,8 +846,37 @@ function CategoryForm({ initial, onSave, onCancel }) {
     nom: '', type: 'direct', description: '', ordre: ''
   })
 
-  const ICONES = ['📚','🎓','📖','📝','✏️','📐','🧬','⚗️','⚖️','💹','🗺️','🏫','🏛️','💊','👮','🛡️','👨‍⚖️','📋','🎯','🌍','🧠','📜']
-  const [selectedIcon, setSelectedIcon] = useState('📚')
+  // Icônes modernes SVG multicolores (clé → chemin image)
+  const ICONES_SVG = [
+    { key: 'book', src: '/icons/direct_book.svg', label: 'Livre' },
+    { key: 'globe', src: '/icons/direct_globe.svg', label: 'Globe' },
+    { key: 'palette', src: '/icons/direct_palette.svg', label: 'Art' },
+    { key: 'map', src: '/icons/direct_map.svg', label: 'Carte' },
+    { key: 'leaf', src: '/icons/direct_leaf.svg', label: 'SVT' },
+    { key: 'brain', src: '/icons/direct_brain.svg', label: 'Psycho' },
+    { key: 'calculator', src: '/icons/direct_calculator.svg', label: 'Maths' },
+    { key: 'flask', src: '/icons/direct_flask.svg', label: 'Physique' },
+    { key: 'scale', src: '/icons/direct_scale.svg', label: 'Droit' },
+    { key: 'chart', src: '/icons/direct_chart.svg', label: 'Économie' },
+    { key: 'pencil', src: '/icons/direct_pencil.svg', label: 'QCM' },
+    { key: 'target', src: '/icons/direct_target.svg', label: 'Objectif' },
+    { key: 'school', src: '/icons/pro_school.svg', label: 'École' },
+    { key: 'newspaper', src: '/icons/pro_newspaper.svg', label: 'Actu' },
+    { key: 'building', src: '/icons/pro_building.svg', label: 'Admin' },
+    { key: 'search', src: '/icons/pro_search.svg', label: 'Inspect.' },
+    { key: 'search2', src: '/icons/pro_search2.svg', label: 'Inspect.2' },
+    { key: 'graduation', src: '/icons/pro_graduation.svg', label: 'Diplôme' },
+    { key: 'scroll', src: '/icons/pro_scroll.svg', label: 'Parchemin' },
+    { key: 'openbook', src: '/icons/pro_openbook.svg', label: 'Ouvrage' },
+    { key: 'hospital', src: '/icons/pro_hospital.svg', label: 'Hôpital' },
+    { key: 'health', src: '/icons/pro_health.svg', label: 'Santé' },
+    { key: 'justice', src: '/icons/pro_justice.svg', label: 'Justice' },
+    { key: 'judge', src: '/icons/pro_judge.svg', label: 'Magistr.' },
+    { key: 'shield', src: '/icons/pro_shield.svg', label: 'Sécurité' },
+    { key: 'badge', src: '/icons/pro_badge.svg', label: 'Police' },
+    { key: 'clipboard', src: '/icons/pro_clipboard.svg', label: 'Admin civil' },
+  ]
+  const [selectedIcon, setSelectedIcon] = useState('book')
 
   return (
     <div className="bg-gray-800 rounded-2xl p-5 mb-4 border border-amber-800">
@@ -883,17 +912,25 @@ function CategoryForm({ initial, onSave, onCancel }) {
         </div>
         {!initial && (
           <div>
-            <label className="text-gray-400 text-xs mb-2 block">Icône du dossier</label>
+            <label className="text-gray-400 text-xs mb-2 block">Icône du dossier (icônes modernes)</label>
             <div className="flex flex-wrap gap-2">
-              {ICONES.map(ic => (
-                <button key={ic} type="button" onClick={() => setSelectedIcon(ic)}
-                  className={`w-9 h-9 rounded-xl text-xl flex items-center justify-center transition-all ${selectedIcon === ic ? 'ring-2 ring-amber-400' : 'bg-gray-700'}`}
-                  style={selectedIcon === ic ? { background: 'rgba(196,82,26,0.3)' } : {}}>
-                  {ic}
+              {ICONES_SVG.map(ic => (
+                <button key={ic.key} type="button" onClick={() => setSelectedIcon(ic.key)}
+                  title={ic.label}
+                  className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all gap-0.5 ${selectedIcon === ic.key ? 'ring-2 ring-amber-400' : 'bg-gray-700'}`}
+                  style={selectedIcon === ic.key ? { background: 'rgba(255,255,255,0.15)' } : {}}>
+                  <img src={ic.src} alt={ic.label} width="28" height="28" style={{ objectFit: 'contain' }} />
                 </button>
               ))}
             </div>
-            <p className="text-gray-500 text-xs mt-1">Icône sélectionnée : {selectedIcon}</p>
+            <div className="flex items-center gap-2 mt-2">
+              {selectedIcon && ICONES_SVG.find(i => i.key === selectedIcon) && (
+                <>
+                  <img src={ICONES_SVG.find(i => i.key === selectedIcon).src} alt="" width="24" height="24" style={{ objectFit: 'contain' }} />
+                  <p className="text-gray-400 text-xs">Icône sélectionnée : <span className="text-white font-bold">{ICONES_SVG.find(i => i.key === selectedIcon)?.label}</span></p>
+                </>
+              )}
+            </div>
           </div>
         )}
         <div className="flex gap-2 pt-1">

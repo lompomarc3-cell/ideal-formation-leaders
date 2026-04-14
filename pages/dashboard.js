@@ -4,75 +4,124 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
 
-// ===== PALETTE COULEURS INDIVIDUELLES PAR NOM DE CATÉGORIE =====
+// ===== MAPPING ICÔNES MODERNES MULTICOLORES (identique à index.js) =====
+const ICON_IMAGES_DASH = {
+  globe:      '/icons/direct_globe.svg',
+  book:       '/icons/direct_book.svg',
+  palette:    '/icons/direct_palette.svg',
+  map:        '/icons/direct_map.svg',
+  leaf:       '/icons/direct_leaf.svg',
+  brain:      '/icons/direct_brain.svg',
+  calculator: '/icons/direct_calculator.svg',
+  flask:      '/icons/direct_flask.svg',
+  scale:      '/icons/direct_scale.svg',
+  chart:      '/icons/direct_chart.svg',
+  pencil:     '/icons/direct_pencil.svg',
+  target:     '/icons/direct_target.svg',
+  school:     '/icons/pro_school.svg',
+  newspaper:  '/icons/pro_newspaper.svg',
+  building:   '/icons/pro_building.svg',
+  search:     '/icons/pro_search.svg',
+  search2:    '/icons/pro_search2.svg',
+  graduation: '/icons/pro_graduation.svg',
+  scroll:     '/icons/pro_scroll.svg',
+  openbook:   '/icons/pro_openbook.svg',
+  hospital:   '/icons/pro_hospital.svg',
+  health:     '/icons/pro_health.svg',
+  justice:    '/icons/pro_justice.svg',
+  judge:      '/icons/pro_judge.svg',
+  shield:     '/icons/pro_shield.svg',
+  badge:      '/icons/pro_badge.svg',
+  clipboard:  '/icons/pro_clipboard.svg',
+}
+
+// Résout le nom de dossier vers le chemin de l'image SVG moderne
+function getCatIconSrcDash(nom) {
+  const n = (nom || '').toLowerCase()
+  const ICON_MAP = {
+    'culture': 'globe', 'actualit': 'globe',
+    'français': 'book', 'franc': 'book',
+    'littérature': 'palette', 'art': 'palette',
+    'histoire': 'map', 'géo': 'map',
+    'svt': 'leaf', 'science': 'leaf',
+    'psycho': 'brain',
+    'math': 'calculator',
+    'physique': 'flask', 'chimie': 'flask',
+    'droit': 'scale',
+    'économ': 'chart',
+    'vie scolaire': 'school', 'casu': 'school', 'aasu': 'school',
+    'cisu': 'building', 'aisu': 'building', 'enaref': 'building',
+    'ies': 'search', 'iepenf': 'search2',
+    'inspect': 'search',
+    'csap': 'graduation',
+    'agrég': 'scroll',
+    'capes': 'openbook',
+    'hôpital': 'hospital', 'hopital': 'hospital',
+    'santé': 'health', 'sante': 'health',
+    'justice': 'justice',
+    'magistr': 'judge',
+    'gsp': 'shield',
+    'police': 'badge',
+    'civil': 'clipboard', 'administrateur': 'clipboard',
+    'qcm': 'pencil', 'entraîn': 'pencil',
+    'accompagn': 'target', 'final': 'target',
+  }
+  for (const [key, iconKey] of Object.entries(ICON_MAP)) {
+    if (n.includes(key)) return ICON_IMAGES_DASH[iconKey] || '/icons/direct_book.svg'
+  }
+  return ICON_IMAGES_DASH[nom] || '/icons/direct_book.svg'
+}
+
+// Résout depuis le champ icone (clé directe) ou le nom
+function getCatIconSrcFull(nom, iconeKey) {
+  if (iconeKey && ICON_IMAGES_DASH[iconeKey]) return ICON_IMAGES_DASH[iconeKey]
+  return getCatIconSrcDash(nom)
+}
+
+// ===== PALETTE COULEURS HARMONISÉES (moins sombres, plus lisibles) =====
 function getCatColorStyle(nom, catType) {
   const n = (nom || '').toLowerCase()
   const isPro = catType === 'professionnel'
 
-  // DIRECTS - couleurs basées sur orange/ambré/gris
+  // DIRECTS - palette colorée harmonisée
   if (!isPro) {
-    if (n.includes('culture') || n.includes('actualit')) return { bg: 'linear-gradient(135deg,#C4521A,#D4711A)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#C4521A' }
-    if (n.includes('français') || n.includes('franc')) return { bg: 'linear-gradient(135deg,#8B2500,#C4521A)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#8B2500' }
-    if (n.includes('littérature') || n.includes('art')) return { bg: 'linear-gradient(135deg,#D4A017,#F0B429)', border: '#FFE68A', tag: '#FFFBEB', tagText: '#B45309' }
-    if (n.includes('histoire') || n.includes('géo')) return { bg: 'linear-gradient(135deg,#B45309,#D97706)', border: '#FFE68A', tag: '#FFFBEB', tagText: '#B45309' }
-    if (n.includes('svt') || n.includes('science')) return { bg: 'linear-gradient(135deg,#C4521A,#E07040)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#C4521A' }
-    if (n.includes('psycho')) return { bg: 'linear-gradient(135deg,#8B2500,#B03000)', border: '#FFCBA8', tag: '#FFF0E8', tagText: '#8B2500' }
-    if (n.includes('math')) return { bg: 'linear-gradient(135deg,#D4A017,#E8B820)', border: '#FFE68A', tag: '#FFFBEB', tagText: '#B45309' }
-    if (n.includes('physique') || n.includes('chimie')) return { bg: 'linear-gradient(135deg,#C4521A,#D47030)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#C4521A' }
-    if (n.includes('droit')) return { bg: 'linear-gradient(135deg,#6B3A00,#8B5A00)', border: '#FFE0A8', tag: '#FFF8E8', tagText: '#6B3A00' }
-    if (n.includes('économ')) return { bg: 'linear-gradient(135deg,#D4A017,#C4521A)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#C4521A' }
-    if (n.includes('qcm') || n.includes('entraîn')) return { bg: 'linear-gradient(135deg,#8B2500,#C4521A)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#8B2500' }
-    if (n.includes('accompagn') || n.includes('final')) return { bg: 'linear-gradient(135deg,#C4521A,#D4A017)', border: '#FFD0A8', tag: '#FFF7ED', tagText: '#C4521A' }
-    return { bg: 'linear-gradient(135deg,#C4521A,#D4711A)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#C4521A' }
+    if (n.includes('culture') || n.includes('actualit')) return { bg: '#0891B2', border: '#A5F3FC', tag: '#E0F7FF', tagText: '#0E7490' }
+    if (n.includes('français') || n.includes('franc')) return { bg: '#7C3AED', border: '#DDD6FE', tag: '#F3E8FF', tagText: '#6D28D9' }
+    if (n.includes('littérature') || n.includes('art')) return { bg: '#EC4899', border: '#FBCFE8', tag: '#FDF2F8', tagText: '#BE185D' }
+    if (n.includes('histoire') || n.includes('géo')) return { bg: '#059669', border: '#A7F3D0', tag: '#ECFDF5', tagText: '#047857' }
+    if (n.includes('svt') || n.includes('science')) return { bg: '#16A34A', border: '#BBF7D0', tag: '#F0FDF4', tagText: '#15803D' }
+    if (n.includes('psycho')) return { bg: '#DC2626', border: '#FECACA', tag: '#FEF2F2', tagText: '#B91C1C' }
+    if (n.includes('math')) return { bg: '#D97706', border: '#FDE68A', tag: '#FFFBEB', tagText: '#B45309' }
+    if (n.includes('physique') || n.includes('chimie')) return { bg: '#2563EB', border: '#BFDBFE', tag: '#EFF6FF', tagText: '#1D4ED8' }
+    if (n.includes('droit')) return { bg: '#B45309', border: '#FDE68A', tag: '#FFFBEB', tagText: '#92400E' }
+    if (n.includes('économ')) return { bg: '#0F766E', border: '#99F6E4', tag: '#F0FDFA', tagText: '#0D6563' }
+    if (n.includes('qcm') || n.includes('entraîn')) return { bg: '#9333EA', border: '#E9D5FF', tag: '#FAF5FF', tagText: '#7E22CE' }
+    if (n.includes('accompagn') || n.includes('final')) return { bg: '#C4521A', border: '#FED7AA', tag: '#FFF7ED', tagText: '#9A3412' }
+    return { bg: '#C4521A', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#9A3412' }
   }
 
-  // PROFESSIONNELS - palette marron/or/gris foncé
-  if (n.includes('vie scolaire') || n.includes('casu') || n.includes('aasu')) return { bg: 'linear-gradient(135deg,#8B2500,#C4521A)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#8B2500' }
-  if (n.includes('actualit') || n.includes('culture')) return { bg: 'linear-gradient(135deg,#B45309,#D97706)', border: '#FFE68A', tag: '#FFFBEB', tagText: '#B45309' }
-  if (n.includes('cisu') || n.includes('aisu') || n.includes('enaref')) return { bg: 'linear-gradient(135deg,#6B3A00,#8B5A00)', border: '#FFE0A8', tag: '#FFF8E8', tagText: '#6B3A00' }
-  if (n.includes('inspectorat') && n.includes('ies')) return { bg: 'linear-gradient(135deg,#8B2500,#B03000)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#8B2500' }
-  if (n.includes('inspectorat') || n.includes('iepenf')) return { bg: 'linear-gradient(135deg,#C4521A,#D4711A)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#C4521A' }
-  if (n.includes('csapé') || n.includes('csape')) return { bg: 'linear-gradient(135deg,#D4A017,#F0B429)', border: '#FFE68A', tag: '#FFFBEB', tagText: '#B45309' }
-  if (n.includes('agrég')) return { bg: 'linear-gradient(135deg,#6B3A00,#9B5A00)', border: '#FFE0A8', tag: '#FFF8E8', tagText: '#6B3A00' }
-  if (n.includes('capes')) return { bg: 'linear-gradient(135deg,#8B2500,#C4521A)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#8B2500' }
-  if (n.includes('hôpital') || n.includes('hopital')) return { bg: 'linear-gradient(135deg,#8B2500,#B03000)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#8B2500' }
-  if (n.includes('santé') || n.includes('sante')) return { bg: 'linear-gradient(135deg,#C4521A,#D4711A)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#C4521A' }
-  if (n.includes('justice') && !n.includes('magistr')) return { bg: 'linear-gradient(135deg,#374151,#6B7280)', border: '#D1D5DB', tag: '#F9FAFB', tagText: '#374151' }
-  if (n.includes('magistr')) return { bg: 'linear-gradient(135deg,#374151,#4B5563)', border: '#D1D5DB', tag: '#F9FAFB', tagText: '#374151' }
-  if (n.includes('gsp')) return { bg: 'linear-gradient(135deg,#1F2937,#374151)', border: '#D1D5DB', tag: '#F9FAFB', tagText: '#1F2937' }
-  if (n.includes('police')) return { bg: 'linear-gradient(135deg,#374151,#6B7280)', border: '#D1D5DB', tag: '#F9FAFB', tagText: '#374151' }
-  if (n.includes('civil') || n.includes('administrateur')) return { bg: 'linear-gradient(135deg,#6B3A00,#8B5A00)', border: '#FFE0A8', tag: '#FFF8E8', tagText: '#6B3A00' }
-  if (n.includes('qcm') || n.includes('entraîn')) return { bg: 'linear-gradient(135deg,#8B2500,#C4521A)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#8B2500' }
-  if (n.includes('accompagn') || n.includes('final')) return { bg: 'linear-gradient(135deg,#D4A017,#C4521A)', border: '#FFD0A8', tag: '#FFF7ED', tagText: '#B45309' }
-  return { bg: 'linear-gradient(135deg,#C4521A,#D4711A)', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#C4521A' }
+  // PROFESSIONNELS - palette colorée harmonisée
+  if (n.includes('vie scolaire') || n.includes('casu') || n.includes('aasu')) return { bg: '#1E40AF', border: '#BFDBFE', tag: '#EFF6FF', tagText: '#1E3A8A' }
+  if (n.includes('actualit') || n.includes('culture')) return { bg: '#047857', border: '#A7F3D0', tag: '#ECFDF5', tagText: '#065F46' }
+  if (n.includes('cisu') || n.includes('aisu') || n.includes('enaref')) return { bg: '#1D4ED8', border: '#BFDBFE', tag: '#EFF6FF', tagText: '#1E3A8A' }
+  if (n.includes('inspectorat') && n.includes('ies')) return { bg: '#6D28D9', border: '#DDD6FE', tag: '#F5F3FF', tagText: '#5B21B6' }
+  if (n.includes('inspectorat') || n.includes('iepenf')) return { bg: '#7C3AED', border: '#EDE9FE', tag: '#F5F3FF', tagText: '#6D28D9' }
+  if (n.includes('csapé') || n.includes('csape')) return { bg: '#B45309', border: '#FDE68A', tag: '#FFFBEB', tagText: '#92400E' }
+  if (n.includes('agrég')) return { bg: '#92400E', border: '#FDE68A', tag: '#FFFBEB', tagText: '#78350F' }
+  if (n.includes('capes')) return { bg: '#0369A1', border: '#BAE6FD', tag: '#F0F9FF', tagText: '#075985' }
+  if (n.includes('hôpital') || n.includes('hopital')) return { bg: '#DC2626', border: '#FECACA', tag: '#FEF2F2', tagText: '#B91C1C' }
+  if (n.includes('santé') || n.includes('sante')) return { bg: '#BE185D', border: '#FBCFE8', tag: '#FDF2F8', tagText: '#9D174D' }
+  if (n.includes('justice') && !n.includes('magistr')) return { bg: '#1E3A5F', border: '#C7D2FE', tag: '#EEF2FF', tagText: '#1E3A5F' }
+  if (n.includes('magistr')) return { bg: '#374151', border: '#D1D5DB', tag: '#F9FAFB', tagText: '#1F2937' }
+  if (n.includes('gsp')) return { bg: '#1F2937', border: '#D1D5DB', tag: '#F9FAFB', tagText: '#111827' }
+  if (n.includes('police')) return { bg: '#1E3A8A', border: '#BFDBFE', tag: '#EFF6FF', tagText: '#1E3A8A' }
+  if (n.includes('civil') || n.includes('administrateur')) return { bg: '#065F46', border: '#A7F3D0', tag: '#ECFDF5', tagText: '#064E3B' }
+  if (n.includes('qcm') || n.includes('entraîn')) return { bg: '#9333EA', border: '#E9D5FF', tag: '#FAF5FF', tagText: '#7E22CE' }
+  if (n.includes('accompagn') || n.includes('final')) return { bg: '#B45309', border: '#FDE68A', tag: '#FFFBEB', tagText: '#92400E' }
+  return { bg: '#C4521A', border: '#FFD0A8', tag: '#FFF0E8', tagText: '#9A3412' }
 }
 
-// Icône SVG pour les cartes de catégorie
-function getCatIconSVG(nom) {
-  const n = (nom || '').toLowerCase()
-  const color = 'white'
-  if (n.includes('culture') || n.includes('actualit')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-  if (n.includes('français') || n.includes('franc')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-  if (n.includes('littérature') || n.includes('art')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r="1" fill={color}/><circle cx="17.5" cy="10.5" r="1" fill={color}/><circle cx="8.5" cy="7.5" r="1" fill={color}/><circle cx="6.5" cy="12.5" r="1" fill={color}/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
-  if (n.includes('histoire') || n.includes('géographie') || n.includes('h-g')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-  if (n.includes('svt') || n.includes('science')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
-  if (n.includes('psycho')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.74z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.74z"/></svg>
-  if (n.includes('math')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
-  if (n.includes('physique') || n.includes('chimie') || n.includes('pc')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3H15M9 3V13L4 20H20L15 13V3M9 3H15"/><path d="M7 18H17"/></svg>
-  if (n.includes('droit')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M5 21h14M17 8l4 6-4 0M7 8 3 14l4 0M3 14h4M17 14h4M7 8h10"/></svg>
-  if (n.includes('économ')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-  if (n.includes('qcm') || n.includes('entraîn')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-  if (n.includes('accompagn') || n.includes('final')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-  if (n.includes('vie scolaire') || n.includes('casu')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 22h20M6 22V10l6-6 6 6v12"/><path d="M12 6v6m-4 4h8M9 22v-4h6v4"/></svg>
-  if (n.includes('inspect')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-  if (n.includes('agrég') || n.includes('capes')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
-  if (n.includes('hôpital') || n.includes('hopital') || n.includes('santé')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10M12 7v6m-3-3h6"/></svg>
-  if (n.includes('gsp') || n.includes('police')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-  if (n.includes('justice') || n.includes('magistr')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M4 9l8 2 8-2M6 15l6 2 6-2"/></svg>
-  if (n.includes('civil') || n.includes('administrateur')) return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
-  // default
-  return <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
-}
+// (getCatIconSVG remplacé par images modernes — voir getCatIconSrcFull ci-dessus)
 
 const APP_URL = 'https://ideal-formation-leaders.pages.dev'
 
@@ -188,11 +237,7 @@ export default function Dashboard() {
     },
     {
       q: "Quelle est la différence entre les deux formules ?",
-      a: "📚 Concours Directs (5 000 FCFA) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Informatique, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA) : 17 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)"
-    },
-    {
-      q: "Quelle est la différence entre les deux formules ?",
-      a: "📚 Concours Directs (5 000 FCFA) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA) : 17 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)"
+      a: "📚 Concours Directs (5 000 FCFA) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA) : 17 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)"
     },
     {
       q: "Mon abonnement n'est pas activé après paiement ?",
@@ -1002,13 +1047,7 @@ export default function Dashboard() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeMainTab === 'accueil' ? 'shadow-sm' : ''}`}
                 style={{ background: activeMainTab === 'accueil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24"
-                  fill={activeMainTab === 'accueil' ? '#C4521A' : 'none'}
-                  stroke={activeMainTab === 'accueil' ? '#C4521A' : '#9CA3AF'}
-                  strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 12L12 3l9 9"/>
-                  <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9"/>
-                </svg>
+                <img src="/icons/nav_home.svg" alt="Accueil" width="24" height="24" style={{ objectFit: 'contain', filter: activeMainTab === 'accueil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeMainTab === 'accueil' ? '#C4521A' : '#9CA3AF' }}>Accueil</span>
             </button>
@@ -1023,16 +1062,7 @@ export default function Dashboard() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeMainTab === 'concours' ? 'shadow-sm' : ''}`}
                 style={{ background: activeMainTab === 'concours' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke={activeMainTab === 'concours' ? '#C4521A' : '#9CA3AF'}
-                  strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-                  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-                  <path d="M4 22h16"/>
-                  <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-                  <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-                  <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
-                </svg>
+                <img src="/icons/nav_concours.svg" alt="Concours" width="24" height="24" style={{ objectFit: 'contain', filter: activeMainTab === 'concours' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeMainTab === 'concours' ? '#C4521A' : '#9CA3AF' }}>Concours</span>
             </button>
@@ -1047,12 +1077,7 @@ export default function Dashboard() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeMainTab === 'profil' ? 'shadow-sm' : ''}`}
                 style={{ background: activeMainTab === 'profil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke={activeMainTab === 'profil' ? '#C4521A' : '#9CA3AF'}
-                  strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="8" r="4"/>
-                  <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/>
-                </svg>
+                <img src="/icons/nav_profil.svg" alt="Profil" width="24" height="24" style={{ objectFit: 'contain', filter: activeMainTab === 'profil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeMainTab === 'profil' ? '#C4521A' : '#9CA3AF' }}>Mon Profil</span>
             </button>
@@ -1067,13 +1092,7 @@ export default function Dashboard() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeMainTab === 'apropos' ? 'shadow-sm' : ''}`}
                 style={{ background: activeMainTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke={activeMainTab === 'apropos' ? '#C4521A' : '#9CA3AF'}
-                  strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M12 16v-4"/>
-                  <circle cx="12" cy="8" r="0.5" fill={activeMainTab === 'apropos' ? '#C4521A' : '#9CA3AF'}/>
-                </svg>
+                <img src="/icons/nav_apropos.svg" alt="À propos" width="24" height="24" style={{ objectFit: 'contain', filter: activeMainTab === 'apropos' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeMainTab === 'apropos' ? '#C4521A' : '#9CA3AF' }}>À propos</span>
             </button>
@@ -1139,7 +1158,7 @@ function HorizontalCategoryScroll({ categories, locked, hasAccess, catType, isDo
 }
 
 function CategoryCard({ cat, locked, hasAccess, index, catType, isPrincipal, isLocked }) {
-  const iconSVG = getCatIconSVG(cat.nom)
+  const iconSrc = getCatIconSrcFull(cat.nom, cat.icone)
   const colorStyle = getCatColorStyle(cat.nom, catType || 'direct')
 
   // Un dossier verrouillé (abonné pro mais ce n'est pas son dossier)
@@ -1147,29 +1166,27 @@ function CategoryCard({ cat, locked, hasAccess, index, catType, isPrincipal, isL
     return (
       <div
         className="flex-shrink-0 bg-white rounded-2xl shadow-sm overflow-hidden"
-        style={{ scrollSnapAlign: 'start', width: '160px', minWidth: '160px', border: '2px dashed #D1D5DB', opacity: 0.7 }}
+        style={{ scrollSnapAlign: 'start', width: '155px', minWidth: '155px', border: '2px dashed #D1D5DB', opacity: 0.65 }}
       >
         <div className="p-4 text-center">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 relative"
-            style={{ background: 'linear-gradient(135deg,#9CA3AF,#6B7280)' }}>
-            {iconSVG}
+            style={{ background: '#F3F4F6', border: '1.5px solid #E5E7EB' }}>
+            <img src={iconSrc} alt={cat.nom} width="36" height="36" style={{ objectFit: 'contain', filter: 'grayscale(70%) opacity(0.6)' }} />
             {/* Cadenas overlay */}
             <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center"
-              style={{ background: '#374151' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+              style={{ background: '#6B7280' }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
           </div>
-          <p className="text-xs font-bold text-gray-500 leading-tight mb-2 line-clamp-2">{cat.nom}</p>
-          <div className="flex items-center justify-center">
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#F3F4F6', color: '#6B7280' }}>
-              🔒 Verrouillé
-            </span>
-          </div>
+          <p className="text-xs font-bold text-gray-400 leading-tight mb-2 line-clamp-2">{cat.nom}</p>
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#F3F4F6', color: '#6B7280' }}>
+            🔒 Verrouillé
+          </span>
         </div>
-        <div className="h-1.5 w-full" style={{ background: 'linear-gradient(135deg,#9CA3AF,#6B7280)' }}></div>
+        <div className="h-1 w-full" style={{ background: '#E5E7EB' }}></div>
       </div>
     )
   }
@@ -1180,9 +1197,10 @@ function CategoryCard({ cat, locked, hasAccess, index, catType, isPrincipal, isL
       className="flex-shrink-0 bg-white rounded-2xl shadow-md overflow-hidden active:scale-95 transition-all hover:shadow-lg"
       style={{ 
         scrollSnapAlign: 'start', 
-        width: '160px', 
-        minWidth: '160px', 
+        width: '155px', 
+        minWidth: '155px', 
         border: isPrincipal ? '2px solid #C4521A' : `2px solid ${colorStyle.border}`,
+        boxShadow: `0 2px 8px ${colorStyle.border}80`,
         position: 'relative'
       }}
     >
@@ -1193,9 +1211,10 @@ function CategoryCard({ cat, locked, hasAccess, index, catType, isPrincipal, isL
         </div>
       )}
       <div className="p-4 text-center">
+        {/* Image moderne multicolore sur fond blanc/claire */}
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-          style={{ background: colorStyle.bg }}>
-          {iconSVG}
+          style={{ background: 'rgba(255,255,255,0.9)', border: `1.5px solid ${colorStyle.border}` }}>
+          <img src={iconSrc} alt={cat.nom} width="36" height="36" style={{ objectFit: 'contain', display: 'block' }} />
         </div>
         <p className="text-xs font-bold text-gray-800 leading-tight mb-2 line-clamp-2">{cat.nom}</p>
         <div className="flex items-center justify-center">
