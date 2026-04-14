@@ -125,7 +125,7 @@ export default async function handler(req) {
       return new Response(JSON.stringify({
         success: true,
         message: valide
-          ? `✅ Paiement validé – abonnement ${type_concours}${dossier_principal ? ' (' + dossier_principal + ')' : ''} activé pour 1 an`
+          ? `✅ Paiement validé – abonnement ${type_concours}${dossier_principal ? ' (' + dossier_principal + ')' : ''} activé`
           : '❌ Paiement rejeté'
       }), { status: 200, headers: { 'Content-Type': 'application/json' } })
 

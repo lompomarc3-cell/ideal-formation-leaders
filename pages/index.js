@@ -1005,7 +1005,7 @@ export default function Home() {
                       {[
                         { q: "Comment m'abonner ?", a: "1. Connectez-vous ou créez un compte\n2. Allez dans \"Paiement\"\n3. Effectuez le paiement Orange Money : *144*10*76223962#\n4. Envoyez la capture via WhatsApp au +226 76 22 39 62\n5. Votre abonnement sera activé sous 24h" },
                         { q: "Comment effectuer le paiement Orange Money ?", a: "Composez *144*10*76223962# sur votre téléphone Orange, saisissez le montant (5 000 ou 20 000 FCFA), confirmez avec votre code secret.\nBénéficiaire : +226 76 22 39 62" },
-                        { q: "Quelle est la durée de l'abonnement ?", a: "L'abonnement est valable 1 an à partir de la date d'activation. Vous avez accès à tous les QCM de votre formule pendant cette période." },
+                        { q: "Quelle est la différence entre les deux formules ?", a: "📚 Concours Directs (5 000 FCFA) : 12 dossiers thématiques\n\n🎓 Concours Professionnels (20 000 FCFA) : 17 dossiers spécialisés" },
                         { q: "Quelle est la différence entre les deux formules ?", a: "📚 Concours Directs (5 000 FCFA) : 12 dossiers thématiques\n\n🎓 Concours Professionnels (20 000 FCFA) : 17 dossiers spécialisés" },
                         { q: "Mon abonnement n'est pas activé après paiement ?", a: "Vérifiez que vous avez bien envoyé la capture de paiement via WhatsApp au +226 76 22 39 62. L'activation prend jusqu'à 24h après réception de la preuve." },
                         { q: "Combien de questions gratuites par dossier ?", a: "5 questions gratuites sont disponibles par dossier, sans inscription requise." }

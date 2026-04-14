@@ -41,7 +41,7 @@ export default async function handler(req) {
     // La contrainte CHECK n'accepte que 'direct' et 'professionnel'
     // Le dossier_principal est stocké dans correction_requests.admin_response
     const expiresAt = new Date()
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1) // 1 an
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1)
 
     const subscriptionTypeValue = type_concours || 'direct'
     // Note: 'professionnel:dossier' n'est pas accepté par la contrainte DB
@@ -60,7 +60,7 @@ export default async function handler(req) {
 
     return R({ 
       success: true, 
-      message: `✅ Paiement validé – abonnement ${type_concours}${dossier_principal ? ' (' + dossier_principal + ')' : ''} activé pour 1 an`
+      message: `✅ Paiement validé – abonnement ${type_concours}${dossier_principal ? ' (' + dossier_principal + ')' : ''} activé`
     })
   } catch (error) {
     return R({ error: error.message }, 500)

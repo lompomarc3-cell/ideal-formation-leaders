@@ -37,28 +37,55 @@ export default async function handler(req) {
 
     const totalUsers = allUsers ? allUsers.length : 0
     const activeSubscriptions = allUsers ? allUsers.filter(u => u.subscription_status === 'active').length : 0
+    const directSubscribers = allUsers ? allUsers.filter(u => u.subscription_type === 'direct' && u.subscription_status === 'active').length : 0
+    const proSubscribers = allUsers ? allUsers.filter(u => u.subscription_type === 'professionnel' && u.subscription_status === 'active').length : 0
 
     // Total questions actives
     const { data: questions } = await supabaseAdmin
       .from('questions')
-      .select('id')
+      .select('id, category_id')
       .eq('is_active', true)
     const totalQuestions = questions ? questions.length : 0
 
-    // Total catégories actives
+    // Catégories actives avec comptage de questions
     const { data: cats } = await supabaseAdmin
       .from('categories')
-      .select('id')
+      .select('id, nom, type, question_count, is_active, ordre')
       .eq('is_active', true)
+      .order('type', { ascending: true })
+      .order('ordre', { ascending: true })
+    
     const totalCategories = cats ? cats.length : 0
+    const totalDirect = cats ? cats.filter(c => c.type === 'direct').length : 0
+    const totalPro = cats ? cats.filter(c => c.type === 'professionnel').length : 0
 
-    // Paiements en attente (depuis correction_requests)
+    // Paiements en attente
     const { data: pendingPayments } = await supabaseAdmin
       .from('correction_requests')
       .select('id')
       .eq('status', 'pending')
       .like('message', '%ifl_payment%')
     const pendingPaymentsCount = pendingPayments ? pendingPayments.length : 0
+
+    // Paiements validés total
+    const { data: approvedPayments } = await supabaseAdmin
+      .from('correction_requests')
+      .select('id')
+      .eq('status', 'approved')
+      .like('message', '%ifl_payment%')
+    const approvedPaymentsCount = approvedPayments ? approvedPayments.length : 0
+
+    // Questions par catégorie (enrichies)
+    const questionsByCategory = (cats || []).map(c => {
+      const qCount = questions ? questions.filter(q => q.category_id === c.id).length : 0
+      return {
+        id: c.id,
+        nom: c.nom,
+        type: c.type,
+        question_count: qCount,
+        ordre: c.ordre
+      }
+    })
 
     // 10 derniers inscrits
     const recentUsers = (allUsers || []).slice(0, 10).map(u => {
@@ -79,10 +106,16 @@ export default async function handler(req) {
       stats: {
         totalUsers,
         activeSubscriptions,
+        directSubscribers,
+        proSubscribers,
         pendingPayments: pendingPaymentsCount,
+        approvedPayments: approvedPaymentsCount,
         totalQuestions,
-        totalCategories
+        totalCategories,
+        totalDirect,
+        totalPro
       },
+      questionsByCategory,
       recentUsers
     }), { status: 200, headers: { 'Content-Type': 'application/json' } })
 

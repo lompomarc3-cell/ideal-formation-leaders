@@ -289,7 +289,7 @@ export default function SelectSpecialty() {
                 <div className="text-center p-4 rounded-2xl" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #D4A017' }}>
                   <p className="text-gray-600 text-sm">Montant total</p>
                   <p className="text-3xl font-extrabold" style={{ color: '#C4521A' }}>20 000 FCFA</p>
-                  <p className="text-xs text-amber-700 mt-1">Valable 1 an · Paiement Orange Money</p>
+                  <p className="text-xs text-amber-700 mt-1">Paiement Orange Money · Accès immédiat après validation</p>
                 </div>
               </div>
 

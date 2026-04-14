@@ -11,6 +11,7 @@ export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('dashboard')
   const [stats, setStats] = useState(null)
   const [recentUsers, setRecentUsers] = useState([])
+  const [questionsByCategory, setQuestionsByCategory] = useState([])
   const [loadingStats, setLoadingStats] = useState(true)
   const [notification, setNotification] = useState({ msg: '', type: '' })
 
@@ -33,7 +34,11 @@ export default function AdminDashboard() {
       const token = getToken()
       const res = await fetch('/api/admin/stats', { headers: { Authorization: `Bearer ${token}` } })
       const data = await res.json()
-      if (data.stats) { setStats(data.stats); setRecentUsers(data.recentUsers || []) }
+      if (data.stats) {
+        setStats(data.stats)
+        setRecentUsers(data.recentUsers || [])
+        setQuestionsByCategory(data.questionsByCategory || [])
+      }
     } catch {}
     setLoadingStats(false)
   }
@@ -46,19 +51,19 @@ export default function AdminDashboard() {
   if (!user?.is_admin) return null
 
   const tabs = [
-    { id: 'dashboard', label: '📊 Stats' },
-    { id: 'payments', label: '💳 Paiements' },
-    { id: 'users', label: '👥 Utilisateurs' },
-    { id: 'questions', label: '❓ QCM' },
-    { id: 'prices', label: '💰 Prix' },
-    { id: 'password', label: '🔑 Mot de passe' },
+    { id: 'dashboard', label: '📊 Stats', icon: '📊' },
+    { id: 'payments', label: '💳 Paiements', icon: '💳' },
+    { id: 'users', label: '👥 Utilisateurs', icon: '👥' },
+    { id: 'questions', label: '❓ QCM', icon: '❓' },
+    { id: 'categories', label: '📁 Dossiers', icon: '📁' },
+    { id: 'prices', label: '💰 Prix', icon: '💰' },
+    { id: 'password', label: '🔑 Mot de passe', icon: '🔑' },
   ]
 
   return (
     <>
       <Head><title>Admin – IFL</title></Head>
       <div className="min-h-screen" style={{ background: '#1A0500' }}>
-        {/* Notification globale */}
         {notification.msg && (
           <div className={`notification ${notification.type}`}>{notification.msg}</div>
         )}
@@ -76,13 +81,7 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="flex gap-1 items-center">
-              {/* Bouton Voir l'App (vue utilisateur) */}
-              <Link
-                href="/dashboard"
-                className="px-3 py-1.5 text-xs font-bold text-white rounded-lg transition-all"
-                style={{ background: 'rgba(255,255,255,0.2)' }}
-                title="Voir l'application comme un utilisateur"
-              >
+              <Link href="/dashboard" className="px-3 py-1.5 text-xs font-bold text-white rounded-lg transition-all" style={{ background: 'rgba(255,255,255,0.2)' }} title="Voir l'app utilisateur">
                 🏠 App
               </Link>
               <button onClick={logout} className="p-2.5 text-orange-200 hover:text-white rounded-lg hover:bg-white/10">
@@ -101,7 +100,7 @@ export default function AdminDashboard() {
               <button
                 key={t.id}
                 onClick={() => setActiveSection(t.id)}
-                className={`px-3 py-2 rounded-xl font-semibold text-sm whitespace-nowrap transition-all flex-shrink-0 ${activeSection === t.id ? 'text-white shadow-md' : 'text-gray-400 bg-gray-800 hover:bg-gray-700'}`}
+                className={`px-3 py-2 rounded-xl font-semibold text-xs whitespace-nowrap transition-all flex-shrink-0 ${activeSection === t.id ? 'text-white shadow-md' : 'text-gray-400 bg-gray-800 hover:bg-gray-700'}`}
                 style={activeSection === t.id ? { background: '#C4521A' } : {}}
               >
                 {t.label}
@@ -111,10 +110,11 @@ export default function AdminDashboard() {
         </div>
 
         <div className="max-w-lg mx-auto px-4 pb-10">
-          {activeSection === 'dashboard' && <AdminStats stats={stats} recentUsers={recentUsers} loading={loadingStats} onRefresh={fetchStats} />}
+          {activeSection === 'dashboard' && <AdminStats stats={stats} recentUsers={recentUsers} questionsByCategory={questionsByCategory} loading={loadingStats} onRefresh={fetchStats} />}
           {activeSection === 'payments' && <AdminPayments getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'users' && <AdminUsers getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'questions' && <AdminQuestions getToken={getToken} onNotif={showNotif} />}
+          {activeSection === 'categories' && <AdminCategories getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'prices' && <AdminPrices getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'password' && <AdminChangePassword getToken={getToken} onNotif={showNotif} user={user} />}
         </div>
@@ -124,41 +124,96 @@ export default function AdminDashboard() {
 }
 
 /* =================== STATS =================== */
-function AdminStats({ stats, recentUsers, loading, onRefresh }) {
+function AdminStats({ stats, recentUsers, questionsByCategory, loading, onRefresh }) {
+  const [showQByCat, setShowQByCat] = useState(false)
   if (loading) return <div className="py-16 text-center"><div className="spinner mx-auto"></div></div>
-  const cards = [
-    { label: 'Utilisateurs', value: stats?.totalUsers || 0, icon: '👥', color: '#C4521A' },
-    { label: 'Abonnés actifs', value: stats?.activeSubscriptions || 0, icon: '✅', color: '#D4A017' },
-    { label: 'Paiements en attente', value: stats?.pendingPayments || 0, icon: '⏳', color: '#C4521A' },
-    { label: 'Questions', value: stats?.totalQuestions || 0, icon: '❓', color: '#D4A017' },
+
+  const topCards = [
+    { label: 'Utilisateurs', value: stats?.totalUsers || 0, icon: '👥', color: '#C4521A', sub: `${stats?.activeSubscriptions || 0} abonné(s)` },
+    { label: 'Paiements en attente', value: stats?.pendingPayments || 0, icon: '⏳', color: stats?.pendingPayments > 0 ? '#D4A017' : '#374151', sub: `${stats?.approvedPayments || 0} validé(s)` },
+    { label: 'Abonnés Directs', value: stats?.directSubscribers || 0, icon: '📚', color: '#7C3AED', sub: `Concours directs` },
+    { label: 'Abonnés Pro', value: stats?.proSubscribers || 0, icon: '🎓', color: '#0F766E', sub: `Concours professionnels` },
+    { label: 'Questions', value: stats?.totalQuestions || 0, icon: '❓', color: '#C4521A', sub: `${stats?.totalCategories || 0} dossiers actifs` },
+    { label: 'Dossiers', value: `${stats?.totalDirect || 0} / ${stats?.totalPro || 0}`, icon: '📁', color: '#1D4ED8', sub: `Directs / Professionnels` },
   ]
+
+  const directCats = questionsByCategory.filter(c => c.type === 'direct')
+  const proCats = questionsByCategory.filter(c => c.type === 'professionnel')
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4 mt-1">
         <h2 className="text-white text-xl font-bold">📊 Tableau de bord</h2>
-        <button onClick={onRefresh} className="text-gray-400 hover:text-white p-2">🔄</button>
+        <button onClick={onRefresh} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800">🔄 Actualiser</button>
       </div>
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        {cards.map((c, i) => (
-          <div key={i} className="rounded-2xl p-5 text-white" style={{ background: c.color }}>
-            <div className="text-3xl mb-2">{c.icon}</div>
-            <div className="text-3xl font-extrabold">{c.value}</div>
-            <div className="text-sm opacity-80 mt-1">{c.label}</div>
+
+      {/* Cards statistiques */}
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        {topCards.map((c, i) => (
+          <div key={i} className="rounded-2xl p-4 text-white" style={{ background: c.color }}>
+            <div className="text-2xl mb-1">{c.icon}</div>
+            <div className="text-2xl font-extrabold leading-tight">{c.value}</div>
+            <div className="text-sm font-semibold mt-0.5 opacity-90">{c.label}</div>
+            <div className="text-xs opacity-70 mt-0.5">{c.sub}</div>
           </div>
         ))}
       </div>
+
+      {/* Questions par dossier */}
+      <div className="bg-gray-800 rounded-2xl p-4 mb-5 border border-gray-700">
+        <button
+          onClick={() => setShowQByCat(!showQByCat)}
+          className="w-full flex items-center justify-between text-white font-bold mb-1"
+        >
+          <span>📁 Questions par dossier</span>
+          <span className="text-gray-400 text-sm">{showQByCat ? '▲ Masquer' : '▼ Voir'}</span>
+        </button>
+        {showQByCat && (
+          <div className="mt-3 space-y-3">
+            {directCats.length > 0 && (
+              <div>
+                <p className="text-amber-400 text-xs font-bold mb-2 uppercase tracking-wider">📚 Concours Directs ({directCats.length} dossiers)</p>
+                <div className="space-y-1.5">
+                  {directCats.map(c => (
+                    <div key={c.id} className="flex items-center justify-between bg-gray-700 rounded-xl px-3 py-2">
+                      <span className="text-gray-200 text-xs truncate flex-1">{c.nom}</span>
+                      <span className="text-amber-400 text-xs font-bold ml-2 flex-shrink-0">{c.question_count} Q</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {proCats.length > 0 && (
+              <div>
+                <p className="text-emerald-400 text-xs font-bold mb-2 uppercase tracking-wider">🎓 Concours Professionnels ({proCats.length} dossiers)</p>
+                <div className="space-y-1.5">
+                  {proCats.map(c => (
+                    <div key={c.id} className="flex items-center justify-between bg-gray-700 rounded-xl px-3 py-2">
+                      <span className="text-gray-200 text-xs truncate flex-1">{c.nom}</span>
+                      <span className="text-emerald-400 text-xs font-bold ml-2 flex-shrink-0">{c.question_count} Q</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Derniers inscrits */}
       <h3 className="text-white font-bold mb-3">👤 Derniers inscrits</h3>
       <div className="space-y-2">
         {recentUsers.length === 0 ? (
           <div className="bg-gray-800 rounded-xl p-6 text-center text-gray-400">Aucun utilisateur inscrit</div>
         ) : recentUsers.map(u => (
-          <div key={u.id} className="bg-gray-800 rounded-xl p-4 flex items-center justify-between">
+          <div key={u.id} className="bg-gray-800 rounded-xl p-4 flex items-center justify-between border border-gray-700">
             <div>
-              <p className="text-white font-semibold">{u.prenom} {u.nom}</p>
-              <p className="text-gray-400 text-sm">{u.phone}</p>
+              <p className="text-white font-semibold text-sm">{u.prenom} {u.nom}</p>
+              <p className="text-gray-400 text-xs">{u.phone}</p>
+              {u.created_at && <p className="text-gray-600 text-xs mt-0.5">{new Date(u.created_at).toLocaleDateString('fr-FR')}</p>}
             </div>
-            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${u.abonnement_type ? 'bg-amber-800 text-amber-200' : 'bg-gray-700 text-gray-400'}`}>
-              {u.abonnement_type || 'Gratuit'}
+            <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0 ${u.subscription_status === 'active' ? 'bg-amber-800 text-amber-200' : 'bg-gray-700 text-gray-400'}`}>
+              {u.abonnement_type ? (u.abonnement_type === 'direct' ? '📚 Directs' : '🎓 Pro') : 'Gratuit'}
             </span>
           </div>
         ))}
@@ -171,6 +226,7 @@ function AdminStats({ stats, recentUsers, loading, onRefresh }) {
 function AdminPayments({ getToken, onNotif }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('all')
 
   useEffect(() => { fetchPayments() }, [])
 
@@ -189,87 +245,60 @@ function AdminPayments({ getToken, onNotif }) {
       const r = await fetch('/api/admin/payments', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ 
-          id: payment.id, 
-          valide, 
-          user_id: payment.user_id, 
-          type_concours: payment.type_concours,
-          dossier_principal: payment.dossier_principal || null
-        })
+        body: JSON.stringify({ id: payment.id, valide, user_id: payment.user_id, type_concours: payment.type_concours, dossier_principal: payment.dossier_principal || null })
       })
       const d = await r.json()
-      if (d.success) {
-        onNotif(d.message, 'success')
-        fetchPayments()
-      } else onNotif(d.error || 'Erreur', 'error')
+      if (d.success) { onNotif(d.message, 'success'); fetchPayments() }
+      else onNotif(d.error || 'Erreur', 'error')
     } catch {}
   }
+
+  const filtered = filter === 'pending' ? payments.filter(p => !p.valide) : filter === 'validated' ? payments.filter(p => p.valide) : payments
 
   if (loading) return <div className="py-16 text-center"><div className="spinner mx-auto"></div></div>
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4 mt-1">
-        <h2 className="text-white text-xl font-bold">💳 Demandes de paiement</h2>
+        <h2 className="text-white text-xl font-bold">💳 Paiements</h2>
         <button onClick={fetchPayments} className="text-gray-400 hover:text-white p-2">🔄</button>
       </div>
-      {payments.length === 0 ? (
-        <div className="bg-gray-800 rounded-2xl p-10 text-center">
-          <p className="text-4xl mb-3">📭</p>
-          <p className="text-gray-400">Aucune demande de paiement</p>
-        </div>
+      <div className="flex gap-2 mb-4">
+        {[['all','Tous'],['pending','En attente'],['validated','Validés']].map(([v,l]) => (
+          <button key={v} onClick={() => setFilter(v)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${filter === v ? 'text-white' : 'text-gray-400 bg-gray-800'}`} style={filter === v ? { background: '#C4521A' } : {}}>{l}</button>
+        ))}
+      </div>
+      {filtered.length === 0 ? (
+        <div className="bg-gray-800 rounded-2xl p-10 text-center"><p className="text-4xl mb-3">📭</p><p className="text-gray-400">Aucune demande</p></div>
       ) : (
         <div className="space-y-3">
-          {payments.map(p => (
+          {filtered.map(p => (
             <div key={p.id} className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <p className="text-white font-bold">{p.full_name || `${p.prenom || ''} ${p.nom || ''}`.trim() || 'Utilisateur'}</p>
                   <p className="text-gray-400 text-sm">{p.phone}</p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.valide ? 'bg-amber-800 text-amber-200' : 'bg-orange-900 text-orange-200'}`}>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.valide ? 'bg-green-900 text-green-300' : 'bg-orange-900 text-orange-200'}`}>
                   {p.valide ? '✅ Validé' : '⏳ En attente'}
                 </span>
               </div>
               <div className="flex flex-wrap gap-2 mb-3">
-                <span className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm font-bold">
-                  {(p.montant || 0).toLocaleString()} FCFA
-                </span>
-                <span className="bg-gray-700 text-gray-300 px-3 py-1 rounded-lg text-sm">
-                  {p.type_concours === 'direct' ? '📚 Directs' : '🎓 Professionnels'}
-                </span>
-                <span className="text-gray-500 text-xs self-center">
-                  {p.date_demande ? new Date(p.date_demande).toLocaleDateString('fr-FR') : ''}
-                </span>
+                <span className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm font-bold">{(p.montant || 0).toLocaleString()} FCFA</span>
+                <span className="bg-gray-700 text-gray-300 px-3 py-1 rounded-lg text-sm">{p.type_concours === 'direct' ? '📚 Directs' : '🎓 Professionnels'}</span>
+                <span className="text-gray-500 text-xs self-center">{p.date_demande ? new Date(p.date_demande).toLocaleDateString('fr-FR') : ''}</span>
               </div>
-              {/* Dossier principal pour abonnements professionnels */}
               {p.type_concours === 'professionnel' && p.dossier_principal && (
                 <div className="mb-3 p-2.5 rounded-xl" style={{ background: 'rgba(196,82,26,0.15)', border: '1px solid rgba(196,82,26,0.3)' }}>
-                  <p className="text-xs text-orange-300 font-bold">📌 Dossier principal demandé :</p>
+                  <p className="text-xs text-orange-300 font-bold">📌 Dossier principal :</p>
                   <p className="text-white font-extrabold text-sm">{p.dossier_principal}</p>
-                  <p className="text-gray-400 text-xs mt-0.5">+ Actualités · Entraînement QCM · Accompagnement final (offerts)</p>
                 </div>
               )}
-              {p.type_concours === 'professionnel' && !p.dossier_principal && (
-                <div className="mb-3 p-2 rounded-xl" style={{ background: 'rgba(212,160,23,0.15)', border: '1px dashed rgba(212,160,23,0.4)' }}>
-                  <p className="text-xs text-yellow-400">⚠️ Aucun dossier principal spécifié (ancien format)</p>
-                </div>
-              )}
-              {p.numero_paiement && (
-                <p className="text-gray-400 text-sm mb-3">📱 {p.numero_paiement}</p>
-              )}
+              {p.numero_paiement && <p className="text-gray-400 text-sm mb-3">📱 {p.numero_paiement}</p>}
               {!p.valide && (
                 <div className="flex gap-2">
-                  <button onClick={() => handleValidate(p, true)}
-                    className="flex-1 py-3 font-bold text-white rounded-xl text-sm active:scale-95"
-                    style={{ background: '#C4521A' }}>
-                    ✅ Valider & Activer
-                  </button>
-                  <button onClick={() => handleValidate(p, false)}
-                    className="px-4 py-3 font-bold text-white rounded-xl text-sm active:scale-95"
-                    style={{ background: '#8B0000' }}>
-                    ❌ Rejeter
-                  </button>
+                  <button onClick={() => handleValidate(p, true)} className="flex-1 py-3 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#C4521A' }}>✅ Valider & Activer</button>
+                  <button onClick={() => handleValidate(p, false)} className="px-4 py-3 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#8B0000' }}>❌ Rejeter</button>
                 </div>
               )}
             </div>
@@ -285,6 +314,7 @@ function AdminUsers({ getToken, onNotif }) {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [editId, setEditId] = useState(null)
+  const [search, setSearch] = useState('')
 
   useEffect(() => { fetchUsers() }, [])
 
@@ -300,10 +330,9 @@ function AdminUsers({ getToken, onNotif }) {
 
   const updateUser = async (updates) => {
     try {
-      // Convertir le format du formulaire vers le format API
       const apiPayload = {
         id: updates.id,
-        subscription_type: updates.abonnement_type, // déjà au bon format (ex: 'professionnel:Magistrature')
+        subscription_type: updates.abonnement_type,
         subscription_status: updates.abonnement_type ? 'active' : 'free',
         subscription_expires_at: updates.abonnement_valide_jusqua || null,
         is_active: updates.is_active
@@ -322,6 +351,7 @@ function AdminUsers({ getToken, onNotif }) {
   if (loading) return <div className="py-16 text-center"><div className="spinner mx-auto"></div></div>
 
   const nonAdminUsers = users.filter(u => !u.is_admin)
+  const filtered = search ? nonAdminUsers.filter(u => `${u.prenom} ${u.nom} ${u.phone}`.toLowerCase().includes(search.toLowerCase())) : nonAdminUsers
 
   return (
     <div>
@@ -329,31 +359,33 @@ function AdminUsers({ getToken, onNotif }) {
         <h2 className="text-white text-xl font-bold">👥 Utilisateurs ({nonAdminUsers.length})</h2>
         <button onClick={fetchUsers} className="text-gray-400 hover:text-white p-2">🔄</button>
       </div>
+      <input
+        type="text"
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        placeholder="🔍 Rechercher par nom ou téléphone..."
+        className="w-full bg-gray-800 text-white rounded-xl px-4 py-2.5 text-sm border border-gray-700 mb-4 focus:outline-none focus:border-amber-500"
+      />
       <div className="space-y-3">
-        {nonAdminUsers.map(u => (
+        {filtered.map(u => (
           <div key={u.id} className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <p className="text-white font-bold">{u.prenom} {u.nom}</p>
                 <p className="text-gray-400 text-sm">{u.phone}</p>
                 <div className="flex gap-2 mt-2 flex-wrap">
-                  <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-800 text-amber-300">
-                    Actif
-                  </span>
-                  {u.abonnement_type && (
+                  {u.abonnement_type ? (
                     <span className="px-2 py-0.5 rounded text-xs font-bold bg-orange-800 text-orange-300">
                       {u.abonnement_type === 'direct' ? '📚 Directs' : u.abonnement_type === 'professionnel' ? '🎓 Pro' : '🎯 Tout'}
                     </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">Gratuit</span>
                   )}
                   {u.dossier_principal && (
-                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-900 text-amber-300">
-                      📌 {u.dossier_principal.length > 20 ? u.dossier_principal.substring(0, 20) + '...' : u.dossier_principal}
-                    </span>
+                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-900 text-amber-300">📌 {u.dossier_principal.length > 18 ? u.dossier_principal.substring(0, 18) + '…' : u.dossier_principal}</span>
                   )}
                   {u.abonnement_valide_jusqua && (
-                    <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">
-                      exp: {new Date(u.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}
-                    </span>
+                    <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-500">exp: {new Date(u.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}</span>
                   )}
                 </div>
               </div>
@@ -366,10 +398,10 @@ function AdminUsers({ getToken, onNotif }) {
             )}
           </div>
         ))}
-        {nonAdminUsers.length === 0 && (
+        {filtered.length === 0 && (
           <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-400">
             <p className="text-3xl mb-2">👥</p>
-            <p>Aucun utilisateur inscrit</p>
+            <p>{search ? 'Aucun résultat pour cette recherche' : 'Aucun utilisateur inscrit'}</p>
           </div>
         )}
       </div>
@@ -395,7 +427,6 @@ const SPECIALITES_PRO = [
 ]
 
 function UserEditForm({ user, onSave, onCancel }) {
-  // Extraire dossier_principal du format "professionnel:NomDossier"
   const getCurrentDossier = () => {
     const t = user.abonnement_type || ''
     if (t.startsWith('professionnel:')) return t.substring('professionnel:'.length)
@@ -416,9 +447,7 @@ function UserEditForm({ user, onSave, onCancel }) {
   })
 
   const buildSubscriptionType = () => {
-    if (form.abonnement_type === 'professionnel' && form.dossier_principal) {
-      return `professionnel:${form.dossier_principal}`
-    }
+    if (form.abonnement_type === 'professionnel' && form.dossier_principal) return `professionnel:${form.dossier_principal}`
     return form.abonnement_type
   }
 
@@ -431,39 +460,27 @@ function UserEditForm({ user, onSave, onCancel }) {
           <option value="">Aucun abonnement</option>
           <option value="direct">📚 Concours Directs (5 000 FCFA)</option>
           <option value="professionnel">🎓 Concours Professionnels (20 000 FCFA)</option>
-          <option value="all">🎯 Les deux (direct + professionnel)</option>
+          <option value="all">🎯 Les deux</option>
         </select>
       </div>
-      
-      {/* Sélection du dossier principal pour professionnel */}
       {form.abonnement_type === 'professionnel' && (
         <div>
-          <label className="text-gray-400 text-xs mb-1 block">📌 Dossier principal (spécialité)</label>
+          <label className="text-gray-400 text-xs mb-1 block">📌 Dossier principal</label>
           <select value={form.dossier_principal} onChange={e => setForm(p => ({ ...p, dossier_principal: e.target.value }))}
             className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm">
-            <option value="">-- Sélectionner une spécialité --</option>
-            {SPECIALITES_PRO.map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
+            <option value="">-- Sélectionner --</option>
+            {SPECIALITES_PRO.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          {form.dossier_principal && (
-            <p className="text-green-400 text-xs mt-1">✓ Accès : {form.dossier_principal} + Actualités + Entraînement QCM + Accompagnement</p>
-          )}
         </div>
       )}
-      
       <div>
-        <label className="text-gray-400 text-xs mb-1 block">Valide jusqu'au</label>
+        <label className="text-gray-400 text-xs mb-1 block">Valide jusqu&apos;au</label>
         <input type="date" value={form.abonnement_valide_jusqua}
           onChange={e => setForm(p => ({ ...p, abonnement_valide_jusqua: e.target.value }))}
           className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" />
       </div>
       <div className="flex gap-2">
-        <button onClick={() => onSave({
-          ...form,
-          abonnement_type: buildSubscriptionType(),
-          abonnement_valide_jusqua: form.abonnement_valide_jusqua ? new Date(form.abonnement_valide_jusqua).toISOString() : null
-        })}
+        <button onClick={() => onSave({ ...form, abonnement_type: buildSubscriptionType(), abonnement_valide_jusqua: form.abonnement_valide_jusqua ? new Date(form.abonnement_valide_jusqua).toISOString() : null })}
           className="flex-1 py-2.5 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#C4521A' }}>
           ✅ Sauvegarder
         </button>
@@ -482,11 +499,9 @@ function AdminQuestions({ getToken, onNotif }) {
   const [showBulkAdd, setShowBulkAdd] = useState(false)
   const [editQ, setEditQ] = useState(null)
   const [filterCat, setFilterCat] = useState('')
+  const [search, setSearch] = useState('')
 
-  useEffect(() => {
-    fetchCategories()
-    fetchQuestions()
-  }, [])
+  useEffect(() => { fetchCategories(); fetchQuestions() }, [])
 
   const fetchCategories = async () => {
     try {
@@ -533,64 +548,54 @@ function AdminQuestions({ getToken, onNotif }) {
     } catch {}
   }
 
+  const filtered = search ? questions.filter(q => q.question_text?.toLowerCase().includes(search.toLowerCase())) : questions
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4 mt-1">
         <h2 className="text-white text-xl font-bold">❓ QCM ({questions.length})</h2>
         <div className="flex gap-2">
           <button onClick={() => { setShowBulkAdd(true); setShowForm(false); setEditQ(null) }}
-            className="px-4 py-2 font-bold text-white rounded-xl text-sm active:scale-95"
-            style={{ background: '#D4A017' }}>
-            📦 Ajout Massif
+            className="px-3 py-2 font-bold text-white rounded-xl text-xs active:scale-95" style={{ background: '#D4A017' }}>
+            📦 Massif
           </button>
           <button onClick={() => { setShowForm(true); setShowBulkAdd(false); setEditQ(null) }}
-            className="px-4 py-2 font-bold text-white rounded-xl text-sm active:scale-95"
-            style={{ background: '#C4521A' }}>
-            ➕ Ajouter 1
+            className="px-3 py-2 font-bold text-white rounded-xl text-xs active:scale-95" style={{ background: '#C4521A' }}>
+            ➕ Ajouter
           </button>
         </div>
       </div>
-      <select value={filterCat} onChange={e => { setFilterCat(e.target.value); fetchQuestions(e.target.value) }}
-        className="w-full bg-gray-800 text-white rounded-xl px-4 py-3 mb-4 text-sm border border-gray-700">
+
+      <select value={filterCat} onChange={e => { setFilterCat(e.target.value); fetchQuestions(e.target.value); setSearch('') }}
+        className="w-full bg-gray-800 text-white rounded-xl px-4 py-3 mb-3 text-sm border border-gray-700">
         <option value="">📂 Toutes les catégories</option>
-        {categories.map(c => (
-          <option key={c.id} value={c.id}>{c.type === 'direct' ? '📚' : '🎓'} {c.nom}</option>
-        ))}
+        {categories.map(c => <option key={c.id} value={c.id}>{c.type === 'direct' ? '📚' : '🎓'} {c.nom}</option>)}
       </select>
+
+      <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+        placeholder="🔍 Rechercher dans les questions..."
+        className="w-full bg-gray-800 text-white rounded-xl px-4 py-2.5 text-sm border border-gray-700 mb-4 focus:outline-none focus:border-amber-500" />
+
       {showBulkAdd && (
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-white font-bold text-lg">📦 Ajout Massif de QCM</h3>
-            <button
-              onClick={() => setShowBulkAdd(false)}
-              className="text-white hover:text-gray-300"
-            >
-              ❌ Fermer
-            </button>
+            <h3 className="text-white font-bold text-lg">📦 Ajout Massif</h3>
+            <button onClick={() => setShowBulkAdd(false)} className="text-gray-400 hover:text-white text-sm">✕ Fermer</button>
           </div>
-          <BulkQCMAdd
-            token={getToken()}
-            onSuccess={() => {
-              setShowBulkAdd(false)
-              fetchQuestions(filterCat)
-              onNotif('✅ Questions ajoutées avec succès', 'success')
-            }}
-          />
+          <BulkQCMAdd token={getToken()} onSuccess={() => { setShowBulkAdd(false); fetchQuestions(filterCat); onNotif('✅ Questions ajoutées', 'success') }} />
         </div>
       )}
       {(showForm || editQ) && (
-        <QuestionForm initial={editQ} categories={categories} onSave={saveQuestion}
-          onCancel={() => { setShowForm(false); setEditQ(null) }} />
+        <QuestionForm initial={editQ} categories={categories} onSave={saveQuestion} onCancel={() => { setShowForm(false); setEditQ(null) }} />
       )}
       {loading ? <div className="py-8 text-center"><div className="spinner mx-auto"></div></div> : (
         <div className="space-y-3">
-          {questions.length === 0 ? (
+          {filtered.length === 0 ? (
             <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-400">
               <p className="text-3xl mb-2">❓</p>
-              <p>Aucune question pour cette catégorie</p>
-              <p className="text-xs mt-2">Cliquez sur ➕ Ajouter pour créer des QCM</p>
+              <p>{search ? 'Aucun résultat' : 'Aucune question'}</p>
             </div>
-          ) : questions.map(q => (
+          ) : filtered.map(q => (
             <div key={q.id} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
               <p className="text-white text-sm font-medium mb-3 leading-relaxed">{q.question_text}</p>
               <div className="grid grid-cols-2 gap-1.5 mb-3">
@@ -603,8 +608,8 @@ function AdminQuestions({ getToken, onNotif }) {
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-500 truncate max-w-[60%]">{q.categorie_nom}</span>
                 <div className="flex gap-2">
-                  <button onClick={() => { setEditQ(q); setShowForm(false) }} className="text-amber-400 hover:text-amber-300 p-1">✏️</button>
-                  <button onClick={() => deleteQuestion(q.id)} className="text-red-400 hover:text-red-300 p-1">🗑️</button>
+                  <button onClick={() => { setEditQ(q); setShowForm(false); setShowBulkAdd(false) }} className="text-amber-400 hover:text-amber-300 p-1 rounded hover:bg-gray-700">✏️</button>
+                  <button onClick={() => deleteQuestion(q.id)} className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-gray-700">🗑️</button>
                 </div>
               </div>
             </div>
@@ -628,12 +633,10 @@ function QuestionForm({ initial, categories, onSave, onCancel }) {
       <div className="space-y-3">
         <div>
           <label className="text-gray-400 text-xs mb-1 block">Catégorie *</label>
-          <select value={form.categorie_id} onChange={e => set('categorie_id', e.target.value)}
+          <select value={form.categorie_id || form.category_id || ''} onChange={e => set('categorie_id', e.target.value)}
             className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" required>
             <option value="">Choisir une catégorie</option>
-            {categories.map(c => (
-              <option key={c.id} value={c.id}>{c.type === 'direct' ? '📚' : '🎓'} {c.nom}</option>
-            ))}
+            {categories.map(c => <option key={c.id} value={c.id}>{c.type === 'direct' ? '📚' : '🎓'} {c.nom}</option>)}
           </select>
         </div>
         <div>
@@ -663,16 +666,240 @@ function QuestionForm({ initial, categories, onSave, onCancel }) {
           </div>
         </div>
         <div>
-          <label className="text-gray-400 text-xs mb-1 block">Explication *</label>
+          <label className="text-gray-400 text-xs mb-1 block">Explication</label>
           <textarea value={form.explication} onChange={e => set('explication', e.target.value)}
             className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm min-h-[80px]"
-            placeholder="Explication détaillée..." required />
+            placeholder="Explication détaillée..." />
         </div>
         <div className="flex gap-2 pt-1">
-          <button onClick={() => onSave(form)}
-            className="flex-1 py-3.5 font-bold text-white rounded-xl active:scale-95"
-            style={{ background: '#C4521A' }}>
+          <button onClick={() => onSave(form)} className="flex-1 py-3.5 font-bold text-white rounded-xl active:scale-95" style={{ background: '#C4521A' }}>
             {initial ? '💾 Modifier' : '➕ Ajouter'}
+          </button>
+          <button onClick={onCancel} className="px-5 py-3.5 bg-gray-700 text-gray-300 rounded-xl font-semibold">Annuler</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* =================== DOSSIERS (CATÉGORIES) =================== */
+function AdminCategories({ getToken, onNotif }) {
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [editCat, setEditCat] = useState(null)
+  const [filterType, setFilterType] = useState('all')
+  const [confirmDelete, setConfirmDelete] = useState(null)
+
+  useEffect(() => { fetchCategories() }, [])
+
+  const fetchCategories = async () => {
+    setLoading(true)
+    try {
+      const r = await fetch('/api/admin/categories', { headers: { Authorization: `Bearer ${getToken()}` } })
+      const d = await r.json()
+      setCategories(d.categories || [])
+    } catch {}
+    setLoading(false)
+  }
+
+  const saveCategory = async (formData) => {
+    try {
+      const method = formData.id ? 'PUT' : 'POST'
+      const r = await fetch('/api/admin/categories', {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify(formData)
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif(formData.id ? '✅ Dossier modifié' : '✅ Dossier créé', 'success')
+        setShowForm(false); setEditCat(null)
+        fetchCategories()
+      } else onNotif(d.error || 'Erreur', 'error')
+    } catch {}
+  }
+
+  const handleDelete = async (cat, force = false) => {
+    try {
+      const url = `/api/admin/categories?id=${cat.id}${force ? '&force=true' : ''}`
+      const r = await fetch(url, { method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` } })
+      const d = await r.json()
+      if (d.success) {
+        onNotif(`🗑️ Dossier supprimé${d.deletedQuestions > 0 ? ` (${d.deletedQuestions} questions supprimées)` : ''}`, 'info')
+        setConfirmDelete(null)
+        fetchCategories()
+      } else if (d.requiresConfirmation) {
+        setConfirmDelete({ cat, count: d.questionCount })
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+        setConfirmDelete(null)
+      }
+    } catch {}
+  }
+
+  const filtered = filterType === 'all' ? categories : categories.filter(c => c.type === filterType)
+  const activeFiltered = filtered.filter(c => c.is_active)
+  const directCount = categories.filter(c => c.type === 'direct' && c.is_active).length
+  const proCount = categories.filter(c => c.type === 'professionnel' && c.is_active).length
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4 mt-1">
+        <h2 className="text-white text-xl font-bold">📁 Dossiers ({activeFiltered.length})</h2>
+        <div className="flex gap-2">
+          <button onClick={fetchCategories} className="text-gray-400 hover:text-white p-2">🔄</button>
+          <button onClick={() => { setShowForm(true); setEditCat(null) }}
+            className="px-3 py-2 font-bold text-white rounded-xl text-xs active:scale-95" style={{ background: '#C4521A' }}>
+            ➕ Nouveau
+          </button>
+        </div>
+      </div>
+
+      {/* Résumé */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="bg-gray-800 rounded-xl p-3 text-center border border-gray-700">
+          <p className="text-2xl font-extrabold text-amber-400">{directCount}</p>
+          <p className="text-xs text-gray-400 mt-0.5">📚 Dossiers Directs</p>
+        </div>
+        <div className="bg-gray-800 rounded-xl p-3 text-center border border-gray-700">
+          <p className="text-2xl font-extrabold text-emerald-400">{proCount}</p>
+          <p className="text-xs text-gray-400 mt-0.5">🎓 Dossiers Pro</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2 mb-4">
+        {[['all','Tous'],['direct','📚 Directs'],['professionnel','🎓 Pro']].map(([v,l]) => (
+          <button key={v} onClick={() => setFilterType(v)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${filterType === v ? 'text-white' : 'text-gray-400 bg-gray-800'}`} style={filterType === v ? { background: '#C4521A' } : {}}>{l}</button>
+        ))}
+      </div>
+
+      {(showForm || editCat) && (
+        <CategoryForm initial={editCat} onSave={saveCategory} onCancel={() => { setShowForm(false); setEditCat(null) }} />
+      )}
+
+      {/* Modal de confirmation de suppression */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 px-4">
+          <div className="bg-gray-800 rounded-2xl p-6 max-w-sm w-full border border-red-800">
+            <p className="text-white font-bold text-lg mb-2">⚠️ Confirmer la suppression</p>
+            <p className="text-gray-300 text-sm mb-1">Dossier : <strong className="text-white">{confirmDelete.cat.nom}</strong></p>
+            <p className="text-red-400 text-sm mb-4">Ce dossier contient <strong>{confirmDelete.count} question(s)</strong>. Toutes seront supprimées.</p>
+            <div className="flex gap-3">
+              <button onClick={() => handleDelete(confirmDelete.cat, true)}
+                className="flex-1 py-3 font-bold text-white rounded-xl text-sm" style={{ background: '#8B0000' }}>
+                🗑️ Supprimer tout
+              </button>
+              <button onClick={() => setConfirmDelete(null)}
+                className="px-4 py-3 bg-gray-700 text-gray-300 rounded-xl text-sm">
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {loading ? <div className="py-8 text-center"><div className="spinner mx-auto"></div></div> : (
+        <div className="space-y-2.5">
+          {activeFiltered.length === 0 ? (
+            <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-400">
+              <p className="text-3xl mb-2">📁</p>
+              <p>Aucun dossier pour cette catégorie</p>
+            </div>
+          ) : activeFiltered.map(c => (
+            <div key={c.id} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${c.type === 'direct' ? 'bg-amber-900 text-amber-300' : 'bg-emerald-900 text-emerald-300'}`}>
+                      {c.type === 'direct' ? '📚 Direct' : '🎓 Pro'}
+                    </span>
+                    <span className="text-xs text-gray-500">Ordre : {c.ordre || '—'}</span>
+                  </div>
+                  <p className="text-white font-semibold text-sm">{c.nom}</p>
+                  <div className="flex gap-3 mt-1">
+                    <span className="text-xs text-amber-400">{c.question_count_real !== undefined ? c.question_count_real : c.question_count || 0} questions</span>
+                    {c.prix && <span className="text-xs text-gray-400">{c.prix.toLocaleString()} FCFA</span>}
+                  </div>
+                </div>
+                <div className="flex gap-2 ml-3">
+                  <button onClick={() => { setEditCat(c); setShowForm(false) }} className="p-2 rounded-lg bg-gray-700 text-amber-400 hover:bg-gray-600 text-sm">✏️</button>
+                  <button onClick={() => handleDelete(c)} className="p-2 rounded-lg bg-gray-700 text-red-400 hover:bg-gray-600 text-sm">🗑️</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CategoryForm({ initial, onSave, onCancel }) {
+  const [form, setForm] = useState(initial ? {
+    id: initial.id,
+    nom: initial.nom || '',
+    type: initial.type || 'direct',
+    description: initial.description || '',
+    ordre: initial.ordre || '',
+  } : {
+    nom: '', type: 'direct', description: '', ordre: ''
+  })
+
+  const ICONES = ['📚','🎓','📖','📝','✏️','📐','🧬','⚗️','⚖️','💹','🗺️','🏫','🏛️','💊','👮','🛡️','👨‍⚖️','📋','🎯','🌍','🧠','📜']
+  const [selectedIcon, setSelectedIcon] = useState('📚')
+
+  return (
+    <div className="bg-gray-800 rounded-2xl p-5 mb-4 border border-amber-800">
+      <h3 className="text-white font-bold mb-4">{initial ? '✏️ Modifier le dossier' : '➕ Nouveau dossier'}</h3>
+      <div className="space-y-3">
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Nom du dossier *</label>
+          <input type="text" value={form.nom} onChange={e => setForm(p => ({ ...p, nom: e.target.value }))}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm"
+            placeholder="Ex: Droit administratif" required />
+        </div>
+        {!initial && (
+          <div>
+            <label className="text-gray-400 text-xs mb-1 block">Type *</label>
+            <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
+              className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm">
+              <option value="direct">📚 Concours Directs</option>
+              <option value="professionnel">🎓 Concours Professionnels</option>
+            </select>
+          </div>
+        )}
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Description</label>
+          <input type="text" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm"
+            placeholder="Description courte (optionnel)" />
+        </div>
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Ordre d&apos;affichage</label>
+          <input type="number" value={form.ordre} onChange={e => setForm(p => ({ ...p, ordre: e.target.value }))}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm"
+            placeholder="Ex: 13" min="1" />
+        </div>
+        {!initial && (
+          <div>
+            <label className="text-gray-400 text-xs mb-2 block">Icône du dossier</label>
+            <div className="flex flex-wrap gap-2">
+              {ICONES.map(ic => (
+                <button key={ic} type="button" onClick={() => setSelectedIcon(ic)}
+                  className={`w-9 h-9 rounded-xl text-xl flex items-center justify-center transition-all ${selectedIcon === ic ? 'ring-2 ring-amber-400' : 'bg-gray-700'}`}
+                  style={selectedIcon === ic ? { background: 'rgba(196,82,26,0.3)' } : {}}>
+                  {ic}
+                </button>
+              ))}
+            </div>
+            <p className="text-gray-500 text-xs mt-1">Icône sélectionnée : {selectedIcon}</p>
+          </div>
+        )}
+        <div className="flex gap-2 pt-1">
+          <button onClick={() => onSave({ ...form, icone: selectedIcon, ordre: form.ordre ? parseInt(form.ordre) : undefined })}
+            className="flex-1 py-3.5 font-bold text-white rounded-xl active:scale-95" style={{ background: '#C4521A' }}>
+            {initial ? '💾 Modifier' : '➕ Créer'}
           </button>
           <button onClick={onCancel} className="px-5 py-3.5 bg-gray-700 text-gray-300 rounded-xl font-semibold">Annuler</button>
         </div>
@@ -715,7 +942,8 @@ function AdminPrices({ getToken, onNotif }) {
 
   return (
     <div>
-      <h2 className="text-white text-xl font-bold mb-5 mt-1">💰 Configuration des prix</h2>
+      <h2 className="text-white text-xl font-bold mb-2 mt-1">💰 Configuration des prix</h2>
+      <p className="text-gray-400 text-sm mb-5">Les prix sont définis par l&apos;administrateur. Aucune durée n&apos;est affichée.</p>
       <div className="space-y-4">
         {prices.map(p => <PriceEditor key={p.id} price={p} onSave={updatePrice} />)}
       </div>
@@ -731,16 +959,16 @@ function PriceEditor({ price, onSave }) {
       <p className="text-white font-bold mb-1">
         {price.type_concours === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
       </p>
-      <p className="text-gray-400 text-sm mb-4">Modifier le prix d&apos;abonnement</p>
+      <p className="text-gray-400 text-sm mb-4">Prix actuel : <span className="text-amber-400 font-bold">{(price.prix || 0).toLocaleString()} FCFA</span></p>
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className="text-gray-400 text-xs mb-1 block">Prix (FCFA)</label>
+          <label className="text-gray-400 text-xs mb-1 block">Nouveau prix (FCFA)</label>
           <input type="number" value={prix} onChange={e => { setPrix(e.target.value); setSaved(false) }}
             className="w-full bg-gray-700 text-white rounded-xl px-4 py-3 text-lg font-bold" min="100" />
         </div>
         <button onClick={async () => { await onSave(price.type_concours, prix); setSaved(true) }}
           className="px-5 py-3 font-bold text-white rounded-xl active:scale-95 self-end"
-          style={{ background: saved ? '#C4521A' : '#D4A017' }}>
+          style={{ background: saved ? '#16a34a' : '#D4A017' }}>
           {saved ? '✅' : '💾'}
         </button>
       </div>
@@ -748,7 +976,7 @@ function PriceEditor({ price, onSave }) {
   )
 }
 
-/* =================== MODIFICATION MOT DE PASSE =================== */
+/* =================== MOT DE PASSE =================== */
 function AdminChangePassword({ getToken, onNotif, user }) {
   const [oldPwd, setOldPwd] = useState('')
   const [newPwd, setNewPwd] = useState('')
@@ -760,14 +988,8 @@ function AdminChangePassword({ getToken, onNotif, user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (newPwd !== confirmPwd) {
-      onNotif('❌ Les nouveaux mots de passe ne correspondent pas', 'error')
-      return
-    }
-    if (newPwd.length < 6) {
-      onNotif('❌ Le mot de passe doit contenir au moins 6 caractères', 'error')
-      return
-    }
+    if (newPwd !== confirmPwd) { onNotif('❌ Les mots de passe ne correspondent pas', 'error'); return }
+    if (newPwd.length < 6) { onNotif('❌ Minimum 6 caractères requis', 'error'); return }
     setLoading(true)
     try {
       const res = await fetch('/api/auth/change-password', {
@@ -776,15 +998,9 @@ function AdminChangePassword({ getToken, onNotif, user }) {
         body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd })
       })
       const data = await res.json()
-      if (data.success) {
-        onNotif('✅ Mot de passe modifié avec succès', 'success')
-        setOldPwd(''); setNewPwd(''); setConfirmPwd('')
-      } else {
-        onNotif(data.error || '❌ Erreur lors du changement', 'error')
-      }
-    } catch {
-      onNotif('❌ Erreur de connexion', 'error')
-    }
+      if (data.success) { onNotif('✅ Mot de passe modifié avec succès', 'success'); setOldPwd(''); setNewPwd(''); setConfirmPwd('') }
+      else onNotif(data.error || '❌ Erreur', 'error')
+    } catch { onNotif('❌ Erreur de connexion', 'error') }
     setLoading(false)
   }
 
@@ -795,8 +1011,7 @@ function AdminChangePassword({ getToken, onNotif, user }) {
     </svg>
   ) : (
     <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
     </svg>
   )
 
@@ -812,75 +1027,29 @@ function AdminChangePassword({ getToken, onNotif, user }) {
           </div>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-gray-400 text-xs mb-1.5 block">Ancien mot de passe *</label>
-            <div className="relative">
-              <input
-                type={showOld ? 'text' : 'password'}
-                value={oldPwd}
-                onChange={e => setOldPwd(e.target.value)}
-                placeholder="Votre mot de passe actuel"
-                required
-                className="w-full bg-gray-700 text-white rounded-xl px-4 py-3 pr-12 text-sm"
-              />
-              <button type="button" onClick={() => setShowOld(!showOld)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
-                <EyeIcon show={showOld} />
-              </button>
+          {[
+            { label: 'Ancien mot de passe', val: oldPwd, set: setOldPwd, show: showOld, setShow: setShowOld },
+            { label: 'Nouveau mot de passe', val: newPwd, set: setNewPwd, show: showNew, setShow: setShowNew, hint: 'Minimum 6 caractères' },
+            { label: 'Confirmer le nouveau mot de passe', val: confirmPwd, set: setConfirmPwd, show: showConfirm, setShow: setShowConfirm },
+          ].map((f, i) => (
+            <div key={i}>
+              <label className="text-gray-400 text-xs mb-1.5 block">{f.label} *</label>
+              <div className="relative">
+                <input type={f.show ? 'text' : 'password'} value={f.val} onChange={e => f.set(e.target.value)}
+                  placeholder={f.hint || f.label} required
+                  className="w-full bg-gray-700 text-white rounded-xl px-4 py-3 pr-12 text-sm" />
+                <button type="button" onClick={() => f.setShow(!f.show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                  <EyeIcon show={f.show} />
+                </button>
+              </div>
             </div>
-          </div>
-          <div>
-            <label className="text-gray-400 text-xs mb-1.5 block">Nouveau mot de passe *</label>
-            <div className="relative">
-              <input
-                type={showNew ? 'text' : 'password'}
-                value={newPwd}
-                onChange={e => setNewPwd(e.target.value)}
-                placeholder="Minimum 6 caractères"
-                required
-                className="w-full bg-gray-700 text-white rounded-xl px-4 py-3 pr-12 text-sm"
-              />
-              <button type="button" onClick={() => setShowNew(!showNew)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
-                <EyeIcon show={showNew} />
-              </button>
-            </div>
-          </div>
-          <div>
-            <label className="text-gray-400 text-xs mb-1.5 block">Confirmer le nouveau mot de passe *</label>
-            <div className="relative">
-              <input
-                type={showConfirm ? 'text' : 'password'}
-                value={confirmPwd}
-                onChange={e => setConfirmPwd(e.target.value)}
-                placeholder="Répétez le nouveau mot de passe"
-                required
-                className="w-full bg-gray-700 text-white rounded-xl px-4 py-3 pr-12 text-sm"
-              />
-              <button type="button" onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
-                <EyeIcon show={showConfirm} />
-              </button>
-            </div>
-          </div>
-          {newPwd && confirmPwd && newPwd !== confirmPwd && (
-            <p className="text-red-400 text-xs">❌ Les mots de passe ne correspondent pas</p>
-          )}
-          {newPwd && confirmPwd && newPwd === confirmPwd && newPwd.length >= 6 && (
-            <p className="text-green-400 text-xs">✅ Les mots de passe correspondent</p>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
+          ))}
+          {newPwd && confirmPwd && newPwd !== confirmPwd && <p className="text-red-400 text-xs">❌ Les mots de passe ne correspondent pas</p>}
+          {newPwd && confirmPwd && newPwd === confirmPwd && newPwd.length >= 6 && <p className="text-green-400 text-xs">✅ Les mots de passe correspondent</p>}
+          <button type="submit" disabled={loading}
             className="w-full py-4 font-bold text-white rounded-xl active:scale-95 disabled:opacity-70 text-base"
-            style={{ background: loading ? '#555' : 'linear-gradient(135deg,#C4521A,#8B2500)' }}
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="spinner" style={{ width: 20, height: 20, borderWidth: 3 }}></span>
-                Modification...
-              </span>
-            ) : '🔑 Changer le mot de passe'}
+            style={{ background: loading ? '#555' : 'linear-gradient(135deg,#C4521A,#8B2500)' }}>
+            {loading ? <span className="flex items-center justify-center gap-2"><span className="spinner" style={{ width: 20, height: 20, borderWidth: 3 }}></span>Modification...</span> : '🔑 Changer le mot de passe'}
           </button>
         </form>
       </div>

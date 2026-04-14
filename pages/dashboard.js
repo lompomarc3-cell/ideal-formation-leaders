@@ -187,8 +187,8 @@ export default function Dashboard() {
       a: "Composez *144*10*76223962# sur votre téléphone Orange, saisissez le montant (5 000 ou 20 000 FCFA), confirmez avec votre code secret.\nBénéficiaire : +226 76 22 39 62"
     },
     {
-      q: "Quelle est la durée de l'abonnement ?",
-      a: "L'abonnement est valable 1 an à partir de la date d'activation. Vous avez accès à tous les QCM de votre formule pendant cette période."
+      q: "Quelle est la différence entre les deux formules ?",
+      a: "📚 Concours Directs (5 000 FCFA) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Informatique, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA) : 17 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)"
     },
     {
       q: "Quelle est la différence entre les deux formules ?",

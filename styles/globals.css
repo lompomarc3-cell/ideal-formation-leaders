@@ -102,10 +102,11 @@ body {
 .notification {
   @apply fixed top-4 right-4 z-50 p-4 rounded-2xl shadow-xl text-white font-semibold text-sm max-w-sm;
   animation: slideIn 0.3s ease;
+  backdrop-filter: blur(8px);
 }
-.notification.success { background: #D4A017; }
-.notification.error { background: #dc2626; }
-.notification.info { background: #C4521A; }
+.notification.success { background: linear-gradient(135deg, #D4A017, #B8860B); }
+.notification.error { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+.notification.info { background: linear-gradient(135deg, #C4521A, #8B2500); }
 
 /* Progress bar */
 .progress-bar { transition: width 0.5s ease; }
@@ -117,8 +118,54 @@ body {
 }
 input, select, textarea { font-size: 16px !important; }
 
-/* Boutons actifs */
-button:active, a:active { transform: scale(0.97); }
+/* Amélioration boutons */
+button:active, a:active { transform: scale(0.97); transition: transform 0.1s ease; }
+
+/* Focus visible pour accessibilité */
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #C4521A;
+  outline-offset: 2px;
+}
+
+/* Cards harmonisées */
+.card-elevated {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  border: 1px solid rgba(255,225,200,0.6);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.card-elevated:active {
+  box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+  transform: scale(0.98);
+}
+
+/* Badge styles */
+.badge-direct {
+  background: linear-gradient(135deg, #FFF0E0, #FFE0C0);
+  color: #8B2500;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(196,82,26,0.2);
+}
+.badge-pro {
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  color: #1B5E20;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(27,94,32,0.2);
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #FFE4CC, transparent);
+  margin: 16px 0;
+}
 
 /* Tab navigation */
 .tab-active {
