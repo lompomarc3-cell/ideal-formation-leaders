@@ -5,6 +5,152 @@ import { useRouter } from 'next/router'
 const AuthContext = createContext(null)
 export const useAuth = () => useContext(AuthContext)
 
+// ===== ÉCRAN DE BIENVENUE =====
+function WelcomeScreen({ onDone }) {
+  const [phase, setPhase] = useState(0) // 0=invisible, 1=visible
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setPhase(1), 80)
+    return () => clearTimeout(t1)
+  }, [])
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9998,
+      background: 'linear-gradient(160deg, #FFFBF5 0%, #FFF0E0 50%, #FFF8F0 100%)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: '24px 24px 40px',
+      opacity: phase === 1 ? 1 : 0,
+      transition: 'opacity 0.5s ease'
+    }}>
+      {/* Cercles décoratifs */}
+      <div style={{ position: 'absolute', width: 280, height: 280, borderRadius: '50%', background: 'rgba(196,82,26,0.05)', top: -80, right: -80, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', width: 200, height: 200, borderRadius: '50%', background: 'rgba(212,160,23,0.06)', bottom: 60, left: -60, pointerEvents: 'none' }} />
+
+      {/* Logo */}
+      <div style={{
+        opacity: phase === 1 ? 1 : 0,
+        transform: phase === 1 ? 'translateY(0) scale(1)' : 'translateY(-20px) scale(0.9)',
+        transition: 'all 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.1s',
+        marginBottom: 28
+      }}>
+        <div style={{
+          width: 96, height: 96, borderRadius: 28,
+          overflow: 'hidden',
+          boxShadow: '0 12px 40px rgba(196,82,26,0.25), 0 0 0 3px rgba(212,160,23,0.3)',
+          animation: 'welcomeFloat 3s ease-in-out infinite'
+        }}>
+          <img src="/logo.png" alt="IFL" style={{ width: 96, height: 96, objectFit: 'cover', display: 'block' }} />
+        </div>
+      </div>
+
+      {/* Titre */}
+      <div style={{
+        opacity: phase === 1 ? 1 : 0,
+        transform: phase === 1 ? 'translateY(0)' : 'translateY(20px)',
+        transition: 'all 0.6s ease 0.3s',
+        textAlign: 'center', marginBottom: 20, maxWidth: 340
+      }}>
+        <h1 style={{
+          fontSize: 24, fontWeight: 900, lineHeight: 1.2,
+          fontFamily: 'Poppins, sans-serif',
+          background: 'linear-gradient(135deg, #8B2500, #C4521A)',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          marginBottom: 8
+        }}>
+          Bienvenue sur notre plateforme d&apos;apprentissage
+        </h1>
+        <div style={{
+          width: 48, height: 3, borderRadius: 2,
+          background: 'linear-gradient(90deg,#C4521A,#D4A017)',
+          margin: '0 auto'
+        }} />
+      </div>
+
+      {/* Message */}
+      <div style={{
+        opacity: phase === 1 ? 1 : 0,
+        transform: phase === 1 ? 'translateY(0)' : 'translateY(20px)',
+        transition: 'all 0.6s ease 0.5s',
+        textAlign: 'center', maxWidth: 360, marginBottom: 36
+      }}>
+        <div style={{
+          background: 'white',
+          borderRadius: 20,
+          padding: '20px 22px',
+          boxShadow: '0 4px 20px rgba(196,82,26,0.1)',
+          border: '1.5px solid #FFE4CC'
+        }}>
+          <p style={{
+            color: '#374151', fontSize: 14, lineHeight: 1.75,
+            fontFamily: 'Poppins, sans-serif', fontWeight: 400
+          }}>
+            Vous êtes sur <strong style={{ color: '#8B2500', fontWeight: 700 }}>Idéale Formation of Leaders</strong> — une communauté d&apos;instructeurs engagés pour une même cause : la réussite des candidats aux concours directs et professionnels de la <strong style={{ color: '#C4521A' }}>fonction publique du Burkina Faso</strong>.
+          </p>
+          <div style={{ height: 1, background: '#FFE4CC', margin: '14px 0' }} />
+          <p style={{
+            color: '#6B7280', fontSize: 13, lineHeight: 1.65,
+            fontFamily: 'Poppins, sans-serif', fontWeight: 400
+          }}>
+            Chaque année, nous accompagnons des milliers de candidats — des premières révisions jusqu&apos;à l&apos;épreuve finale.
+          </p>
+        </div>
+      </div>
+
+      {/* Bouton Commencer */}
+      <div style={{
+        opacity: phase === 1 ? 1 : 0,
+        transform: phase === 1 ? 'translateY(0)' : 'translateY(20px)',
+        transition: 'all 0.6s ease 0.7s',
+        width: '100%', maxWidth: 320
+      }}>
+        <button
+          onClick={onDone}
+          style={{
+            width: '100%',
+            padding: '16px 32px',
+            background: 'linear-gradient(135deg, #8B2500, #C4521A, #D4A017)',
+            color: 'white',
+            fontWeight: 800,
+            fontSize: 16,
+            borderRadius: 18,
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 8px 24px rgba(196,82,26,0.4)',
+            fontFamily: 'Poppins, sans-serif',
+            letterSpacing: 0.5,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            transition: 'transform 0.15s, box-shadow 0.15s'
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(196,82,26,0.5)' }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(196,82,26,0.4)' }}
+        >
+          <span>🎓</span>
+          <span>Commencer</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+        <p style={{ textAlign: 'center', marginTop: 12, color: '#9CA3AF', fontSize: 12, fontFamily: 'Poppins, sans-serif' }}>
+          5 questions gratuites par dossier — sans inscription
+        </p>
+      </div>
+
+      <style>{`
+        @keyframes welcomeFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
+      `}</style>
+    </div>
+  )
+}
+
 // ===== SPLASH SCREEN AMÉLIORÉ =====
 function SplashScreen({ onDone }) {
   const [phase, setPhase] = useState(0) // 0=logo, 1=texte, 2=fadeout
@@ -120,7 +266,7 @@ function SplashScreen({ onDone }) {
         transition: 'opacity 0.6s ease 0.6s'
       }}>
         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10, fontFamily: 'Poppins, sans-serif', letterSpacing: 1 }}>
-          Burkina Faso • 2025
+          Burkina Faso
         </p>
       </div>
 
@@ -146,7 +292,23 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [splashDone, setSplashDone] = useState(false)
+  const [welcomeDone, setWelcomeDone] = useState(false)
   const router = useRouter()
+
+  // Vérifier si l'utilisateur a déjà vu l'écran de bienvenue
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const seen = localStorage.getItem('ifl_welcome_seen')
+      if (seen) setWelcomeDone(true)
+    }
+  }, [])
+
+  const handleWelcomeDone = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ifl_welcome_seen', '1')
+    }
+    setWelcomeDone(true)
+  }
 
   useEffect(() => {
     const token = localStorage.getItem('ifl_token')
@@ -199,7 +361,8 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, getToken, refreshUser }}>
       {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
-      <div style={{ opacity: splashDone ? 1 : 0, transition: 'opacity 0.4s ease', minHeight: '100vh' }}>
+      {splashDone && !welcomeDone && !user && <WelcomeScreen onDone={handleWelcomeDone} />}
+      <div style={{ opacity: (splashDone && (welcomeDone || !!user)) ? 1 : 0, transition: 'opacity 0.4s ease', minHeight: '100vh' }}>
         {children}
       </div>
     </AuthContext.Provider>

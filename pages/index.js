@@ -636,6 +636,26 @@ export default function Home() {
               {/* Section Concours Professionnels */}
               {activeConcoursTab === 'professionnel' && (
                 <div className="animate-fadeIn">
+                  {/* === BANDEAU INFO OFFRE CONCOURS PROFESSIONNELS === */}
+                  <div className="rounded-2xl p-4 mb-4" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', border: '1.5px solid #BFDBFE' }}>
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                      </div>
+                      <div>
+                        <p className="text-white font-extrabold text-sm mb-1">Notre offre Concours Professionnels</p>
+                        <p className="text-blue-100 text-xs leading-relaxed">
+                          <strong className="text-white">14 dossiers professionnels disponibles.</strong> Pour chaque dossier choisi, vous bénéficiez <strong className="text-yellow-300">gratuitement de 3 dossiers d'accompagnement :</strong>
+                        </p>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {['📰 Actualités & culture générale', '📝 Entraînement QCM', '🎯 Accompagnement final'].map((item, i) => (
+                            <span key={i} className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>{item}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Bandeau identitaire PROFESSIONNELS */}
                   <div className="rounded-2xl mb-5 overflow-hidden shadow-md" style={{ background: 'linear-gradient(135deg,#8B2500 0%,#C4521A 60%,#D4A017 100%)' }}>
                     <div className="p-4 flex items-center gap-4">
@@ -820,7 +840,7 @@ export default function Home() {
                 {[
                   { id: 'app', label: "L'appli" },
                   { id: 'equipe', label: "Équipe" },
-                  { id: 'aide', label: "Aide & FAQ" },
+                  { id: 'aide', label: "Assistance" },
                   { id: 'dev', label: "Développeur" }
                 ].map(t => (
                   <button
@@ -954,9 +974,10 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Bloc Aide & FAQ */}
+              {/* ===== BLOC ASSISTANCE ===== */}
               {activeAboutTab === 'aide' && (
                 <div className="animate-fadeIn">
+                  {/* Contact rapide */}
                   <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
                     <h3 className="font-extrabold mb-4 text-sm" style={{ color: '#8B2500' }}>📞 Contactez-nous</h3>
                     <div className="space-y-3">
@@ -999,37 +1020,106 @@ export default function Home() {
                     </div>
                   </div>
 
+                  {/* 1. Bouton Noter sur Play Store */}
                   <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
-                    <h3 className="font-extrabold mb-4 text-sm" style={{ color: '#8B2500' }}>❓ Questions fréquentes</h3>
-                    <div className="space-y-2">
-                      {[
-                        { q: "Comment m'abonner ?", a: "1. Connectez-vous ou créez un compte\n2. Allez dans \"Paiement\"\n3. Effectuez le paiement Orange Money : *144*10*76223962#\n4. Envoyez la capture via WhatsApp au +226 76 22 39 62\n5. Votre abonnement sera activé sous 24h" },
-                        { q: "Comment effectuer le paiement Orange Money ?", a: "Composez *144*10*76223962# sur votre téléphone Orange, saisissez le montant (5 000 ou 20 000 FCFA), confirmez avec votre code secret.\nBénéficiaire : +226 76 22 39 62" },
-                        { q: "Quelle est la différence entre les deux formules ?", a: "📚 Concours Directs (5 000 FCFA) : 12 dossiers thématiques\n\n🎓 Concours Professionnels (20 000 FCFA) : 17 dossiers spécialisés" },
-                        { q: "Mon abonnement n'est pas activé après paiement ?", a: "Vérifiez que vous avez bien envoyé la capture de paiement via WhatsApp au +226 76 22 39 62. L'activation prend jusqu'à 24h après réception de la preuve." },
-                        { q: "Combien de questions gratuites par dossier ?", a: "5 questions gratuites sont disponibles par dossier, sans inscription requise." }
-                      ].map((faq, i) => (
-                        <div key={i} className="rounded-2xl border border-amber-100 overflow-hidden" style={{ background: '#FFFBF5' }}>
-                          <button
-                            onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                            className="w-full px-4 py-4 text-left flex items-center justify-between"
-                          >
-                            <p className="font-bold text-gray-800 text-sm pr-3">{faq.q}</p>
-                            <span className="text-amber-500 text-xl font-bold flex-shrink-0 transition-transform"
-                              style={{ transform: openFaq === i ? 'rotate(45deg)' : 'none' }}>
-                              +
-                            </span>
-                          </button>
-                          {openFaq === i && (
-                            <div className="px-4 pb-4">
-                              <div className="h-px bg-amber-100 mb-3"></div>
-                              <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{faq.a}</p>
-                            </div>
-                          )}
+                    <h3 className="font-extrabold mb-3 text-sm flex items-center gap-2" style={{ color: '#8B2500' }}>
+                      <span className="text-lg">⭐</span> Évaluez l&apos;application
+                    </h3>
+                    <a
+                      href="https://play.google.com/store/apps/details?id=com.ifl.app"
+                      target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-4 rounded-2xl p-4 active:scale-95 transition-all"
+                      style={{ background: 'linear-gradient(135deg,#1B7E3E,#34A853)', border: '1.5px solid #A7F3D0' }}>
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M3 0L15 12 3 24V0zM3 0l18 7.5L15 12M3 24l18-7.5L15 12"/></svg>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-extrabold text-white text-sm">Noter sur Google Play Store</p>
+                        <p className="text-green-100 text-xs mt-0.5">Votre avis nous aide à améliorer IFL</p>
+                        <div className="flex gap-0.5 mt-1">
+                          {[1,2,3,4,5].map(s => <span key={s} style={{ color: '#FFD700', fontSize: 14 }}>★</span>)}
                         </div>
-                      ))}
+                      </div>
+                      <svg width="20" height="20" fill="none" stroke="white" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </a>
+                  </div>
+
+                  {/* 2. Politique de confidentialité & règles communautaires */}
+                  <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
+                    <h3 className="font-extrabold mb-3 text-sm flex items-center gap-2" style={{ color: '#8B2500' }}>
+                      <span className="text-lg">📋</span> Politique & règles communautaires
+                    </h3>
+                    <div className="space-y-2">
+                      {/* Politique de confidentialité */}
+                      <details className="rounded-2xl border border-amber-100 overflow-hidden" style={{ background: '#FFFBF5' }}>
+                        <summary className="px-4 py-3.5 font-bold text-gray-800 text-sm cursor-pointer flex items-center justify-between list-none">
+                          <span className="flex items-center gap-2">
+                            <span>🔒</span> Politique de confidentialité
+                          </span>
+                          <span style={{ color: '#C4521A', fontSize: 18, fontWeight: 700 }}>+</span>
+                        </summary>
+                        <div className="px-4 pb-4 pt-2">
+                          <div className="h-px bg-amber-100 mb-3"></div>
+                          <div className="text-gray-600 text-xs leading-relaxed space-y-2">
+                            <p><strong className="text-gray-800">1. Données collectées</strong><br/>IFL collecte uniquement les informations nécessaires à la création et à la gestion de votre compte : numéro de téléphone, nom, prénom et données de progression dans les dossiers.</p>
+                            <p><strong className="text-gray-800">2. Utilisation des données</strong><br/>Vos données sont utilisées exclusivement pour gérer votre abonnement, sauvegarder votre progression et améliorer nos services. Elles ne sont jamais vendues ni partagées avec des tiers.</p>
+                            <p><strong className="text-gray-800">3. Sécurité</strong><br/>Vos informations sont stockées de manière sécurisée. Votre mot de passe est chiffré et inaccessible à notre équipe.</p>
+                            <p><strong className="text-gray-800">4. Suppression du compte</strong><br/>Vous pouvez demander la suppression de votre compte à tout moment en contactant notre équipe via WhatsApp au +226 76 22 39 62.</p>
+                            <p><strong className="text-gray-800">5. Contact</strong><br/>Pour toute question relative à vos données personnelles, contactez-nous au +226 76 22 39 62.</p>
+                          </div>
+                        </div>
+                      </details>
+
+                      {/* Règles communautaires */}
+                      <details className="rounded-2xl border border-amber-100 overflow-hidden" style={{ background: '#FFFBF5' }}>
+                        <summary className="px-4 py-3.5 font-bold text-gray-800 text-sm cursor-pointer flex items-center justify-between list-none">
+                          <span className="flex items-center gap-2">
+                            <span>🤝</span> Règles communautaires
+                          </span>
+                          <span style={{ color: '#C4521A', fontSize: 18, fontWeight: 700 }}>+</span>
+                        </summary>
+                        <div className="px-4 pb-4 pt-2">
+                          <div className="h-px bg-amber-100 mb-3"></div>
+                          <div className="text-gray-600 text-xs leading-relaxed space-y-2">
+                            <p><strong className="text-gray-800">1. Respect et bienveillance</strong><br/>Traitez chaque membre de la communauté IFL avec respect. Toute forme de discrimination, d'insulte ou de harcèlement est strictement interdite.</p>
+                            <p><strong className="text-gray-800">2. Pas de partage de contenu payant</strong><br/>Il est interdit de partager, copier ou diffuser les questions, dossiers ou contenus payants de la plateforme. Cela nuit aux instructeurs et à la communauté.</p>
+                            <p><strong className="text-gray-800">3. Honnêteté dans la progression</strong><br/>Utilisez la plateforme pour apprendre sincèrement. Ne cherchez pas à contourner les systèmes de vérification.</p>
+                            <p><strong className="text-gray-800">4. Signalement des abus</strong><br/>Si vous constatez un contenu ou un comportement inapproprié, signalez-le à notre équipe via WhatsApp.</p>
+                            <p><strong className="text-gray-800">5. Utilisation légale</strong><br/>Vous vous engagez à utiliser IFL uniquement à des fins personnelles et légales de préparation aux concours.</p>
+                          </div>
+                        </div>
+                      </details>
                     </div>
                   </div>
+
+                  {/* 3. Bouton Partager */}
+                  <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
+                    <h3 className="font-extrabold mb-3 text-sm flex items-center gap-2" style={{ color: '#8B2500' }}>
+                      <span className="text-lg">📤</span> Partager l&apos;application
+                    </h3>
+                    <p className="text-gray-500 text-xs mb-4">Partagez IFL avec vos amis et collègues qui préparent un concours.</p>
+                    <button
+                      onClick={handleShare}
+                      className="w-full py-3.5 rounded-2xl font-bold text-white flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all"
+                      style={{ background: 'linear-gradient(135deg,#C4521A,#D4A017)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                      </svg>
+                      Partager avec un ami
+                    </button>
+                    {shareMsg && <p className="text-center text-green-600 text-xs mt-2 font-semibold">{shareMsg}</p>}
+                    <div className="mt-3 rounded-xl p-3 flex items-center gap-2" style={{ background: '#F5F5F5' }}>
+                      <span className="text-xs text-gray-500 flex-1 truncate font-mono">{APP_URL}</span>
+                      <button
+                        onClick={() => { if(typeof navigator !== 'undefined') { navigator.clipboard?.writeText(APP_URL); } }}
+                        className="text-xs font-bold px-3 py-1.5 rounded-lg flex-shrink-0"
+                        style={{ background: '#C4521A', color: 'white' }}>
+                        Copier
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
               )}
 

@@ -136,6 +136,10 @@ export default function Dashboard() {
   const [activeMainTab, setActiveMainTab] = useState('accueil')
   const [activeAboutTab, setActiveAboutTab] = useState('app')
   const [openFaq, setOpenFaq] = useState(null)
+  // Stats et progression
+  const [userStats, setUserStats] = useState(null)
+  const [loadingStats, setLoadingStats] = useState(false)
+  const [localProgress, setLocalProgress] = useState({}) // Progression localStorage par catégorie
 
   const handleShare = async () => {
     const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA)\n✅ Concours professionnels – 17 dossiers (20 000 FCFA)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
@@ -162,6 +166,28 @@ export default function Dashboard() {
       loadPrices()
     }
   }, [user])
+
+  // Charger les stats quand on ouvre l'onglet profil
+  useEffect(() => {
+    if (activeMainTab === 'profil' && user && !userStats) {
+      loadUserStats()
+    }
+  }, [activeMainTab, user])
+
+  // Charger la progression localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && user) {
+      try {
+        const progressKeys = Object.keys(localStorage).filter(k => k.startsWith('ifl_progress_'))
+        const prog = {}
+        progressKeys.forEach(k => {
+          const catId = k.replace('ifl_progress_', '')
+          try { prog[catId] = JSON.parse(localStorage.getItem(k)) } catch {}
+        })
+        setLocalProgress(prog)
+      } catch {}
+    }
+  }, [user, activeMainTab])
 
   const loadCategories = async () => {
     try {
@@ -191,6 +217,19 @@ export default function Dashboard() {
         setPrices(prev => ({ ...prev, ...priceMap }))
       }
     } catch {}
+  }
+
+  const loadUserStats = async () => {
+    setLoadingStats(true)
+    try {
+      const token = getToken()
+      const res = await fetch('/api/quiz/user-stats', { headers: { Authorization: `Bearer ${token}` } })
+      const data = await res.json()
+      if (data.success) {
+        setUserStats(data.stats)
+      }
+    } catch {}
+    setLoadingStats(false)
   }
 
   const hasAccess = (type) => {
@@ -466,6 +505,21 @@ export default function Dashboard() {
                 </svg>
                 Partager l'application
               </button>
+
+              {/* Encart note vers Mon Profil */}
+              <button
+                onClick={() => setActiveMainTab('profil')}
+                className="w-full rounded-2xl p-4 flex items-center gap-3 mb-4 active:scale-95 transition-all"
+                style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '1.5px solid #BFDBFE' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#2563EB' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-sm text-blue-800">Votre progression &amp; votre score</p>
+                  <p className="text-blue-600 text-xs">Consultez vos statistiques détaillées dans <strong>Mon Profil</strong></p>
+                </div>
+                <svg width="18" height="18" fill="none" stroke="#2563EB" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
             </div>
           </div>
         )}
@@ -549,6 +603,29 @@ export default function Dashboard() {
                 <div className="py-12 text-center"><div className="spinner mx-auto"></div></div>
               ) : (
                 <div className="animate-fadeIn">
+
+                  {/* === BANDEAU INFO OFFRE CONCOURS PROFESSIONNELS === */}
+                  {activeTab === 'professionnel' && (
+                    <div className="rounded-2xl p-4 mb-4" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', border: '1.5px solid #BFDBFE' }}>
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                        </div>
+                        <div>
+                          <p className="text-white font-extrabold text-sm mb-1">Notre offre Concours Professionnels</p>
+                          <p className="text-blue-100 text-xs leading-relaxed">
+                            <strong className="text-white">14 dossiers professionnels disponibles.</strong> Pour chaque dossier choisi, vous bénéficiez <strong className="text-yellow-300">gratuitement de 3 dossiers d'accompagnement :</strong>
+                          </p>
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {['📰 Actualités & culture générale', '📝 Entraînement QCM', '🎯 Accompagnement final'].map((item, i) => (
+                              <span key={i} className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>{item}</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {!hasCurrentAccess && !user.is_admin && (
                     <div className="mb-4 rounded-2xl p-4 border-2 border-amber-300" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)' }}>
                       <div className="flex items-start gap-3">
@@ -724,6 +801,105 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* === PROGRESSION ET SCORE === */}
+              <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
+                <h3 className="font-extrabold mb-4 flex items-center gap-2 text-sm" style={{ color: '#8B2500' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2.5" strokeLinecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                  Ma progression & mon score
+                </h3>
+
+                {loadingStats ? (
+                  <div className="text-center py-6"><div className="spinner mx-auto mb-2"></div><p className="text-gray-400 text-xs">Chargement...</p></div>
+                ) : userStats ? (
+                  <div>
+                    {/* Score global */}
+                    <div className="rounded-2xl p-4 mb-4" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '2px solid #FFD0A8' }}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Score global</p>
+                          <p className="text-gray-500 text-xs">{userStats.totalCorrect} bonnes réponses sur {userStats.totalAnswered} questions</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-extrabold text-3xl" style={{ color: userStats.scoreGlobal >= 70 ? '#16A34A' : userStats.scoreGlobal >= 50 ? '#D97706' : '#DC2626' }}>
+                            {userStats.scoreGlobal}%
+                          </p>
+                          <p className="text-xs font-semibold" style={{ color: userStats.scoreGlobal >= 70 ? '#16A34A' : userStats.scoreGlobal >= 50 ? '#D97706' : '#DC2626' }}>
+                            {userStats.scoreGlobal >= 70 ? '🏆 Excellent' : userStats.scoreGlobal >= 50 ? '📈 Bien' : userStats.totalAnswered > 0 ? '💪 En progression' : '🚀 Commencez !'}
+                          </p>
+                        </div>
+                      </div>
+                      {/* Barre de progression globale */}
+                      <div className="w-full bg-white rounded-full" style={{ height: 10, background: 'rgba(255,255,255,0.6)' }}>
+                        <div className="rounded-full transition-all" style={{
+                          width: `${userStats.scoreGlobal}%`,
+                          height: 10,
+                          background: userStats.scoreGlobal >= 70 ? 'linear-gradient(90deg,#16A34A,#22C55E)' : userStats.scoreGlobal >= 50 ? 'linear-gradient(90deg,#D97706,#F59E0B)' : 'linear-gradient(90deg,#C4521A,#D4A017)',
+                          minWidth: userStats.scoreGlobal > 0 ? 10 : 0
+                        }} />
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-xs text-gray-400">0%</span>
+                        <span className="text-xs text-gray-400">100%</span>
+                      </div>
+                    </div>
+
+                    {/* Progression par dossier */}
+                    {userStats.parDossier && userStats.parDossier.length > 0 ? (
+                      <div>
+                        <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Par dossier</p>
+                        <div className="space-y-2">
+                          {userStats.parDossier.slice(0, 8).map((d, i) => (
+                            <div key={i} className="rounded-xl p-3" style={{ background: '#FFF8F0', border: '1px solid #FFE4CC' }}>
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="font-semibold text-xs text-gray-700 flex-1 pr-2 truncate">{d.nom}</p>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <span className="text-xs text-gray-500">{d.totalCorrect}/{d.totalAnswered}</span>
+                                  <span className="font-extrabold text-xs px-2 py-0.5 rounded-full"
+                                    style={{
+                                      background: d.score >= 70 ? '#DCFCE7' : d.score >= 50 ? '#FEF3C7' : '#FEE2E2',
+                                      color: d.score >= 70 ? '#16A34A' : d.score >= 50 ? '#D97706' : '#DC2626'
+                                    }}>
+                                    {d.score}%
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="w-full rounded-full" style={{ height: 5, background: '#FFE4CC' }}>
+                                <div className="rounded-full" style={{
+                                  width: `${d.score}%`,
+                                  height: 5,
+                                  background: d.score >= 70 ? '#16A34A' : d.score >= 50 ? '#D97706' : '#C4521A',
+                                  minWidth: d.score > 0 ? 6 : 0
+                                }} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-400 text-sm">Aucune réponse enregistrée pour le moment.</p>
+                        <p className="text-gray-400 text-xs mt-1">Commencez un dossier pour voir votre score ici !</p>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={loadUserStats}
+                      className="mt-3 w-full py-2.5 rounded-xl text-xs font-bold border-2 flex items-center justify-center gap-2"
+                      style={{ borderColor: '#FFD0A8', color: '#C4521A', background: '#FFF8F0' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                      Actualiser les statistiques
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-gray-400 text-sm mb-3">Chargement de vos statistiques...</p>
+                    <button onClick={loadUserStats} className="px-4 py-2 rounded-xl text-sm font-bold text-white" style={{ background: '#C4521A' }}>
+                      Charger mes stats
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Actions */}
               <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
                 <h3 className="font-extrabold mb-4 flex items-center gap-2 text-sm" style={{ color: '#8B2500' }}>
@@ -789,7 +965,7 @@ export default function Dashboard() {
                 {[
                   { id: 'app', label: "L'application" },
                   { id: 'equipe', label: "Équipe" },
-                  { id: 'aide', label: "Aide & FAQ" },
+                  { id: 'aide', label: "Assistance" },
                   { id: 'dev', label: "Développeur" }
                 ].map(t => (
                   <button
@@ -902,7 +1078,7 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* Bloc Aide & FAQ */}
+              {/* ===== BLOC ASSISTANCE ===== */}
               {activeAboutTab === 'aide' && (
                 <div className="animate-fadeIn">
                   {/* Contact rapide */}
@@ -955,32 +1131,99 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* FAQ */}
+                  {/* 1. Bouton Noter sur Play Store */}
                   <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
-                    <h3 className="font-extrabold mb-4 text-sm" style={{ color: '#8B2500' }}>❓ Questions fréquentes</h3>
-                    <div className="space-y-2">
-                      {faqs.map((faq, i) => (
-                        <div key={i} className="rounded-2xl border border-amber-100 overflow-hidden" style={{ background: '#FFFBF5' }}>
-                          <button
-                            onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                            className="w-full px-4 py-4 text-left flex items-center justify-between"
-                          >
-                            <p className="font-bold text-gray-800 text-sm pr-3">{faq.q}</p>
-                            <span className="text-amber-500 text-xl font-bold flex-shrink-0 transition-transform"
-                              style={{ transform: openFaq === i ? 'rotate(45deg)' : 'none' }}>
-                              +
-                            </span>
-                          </button>
-                          {openFaq === i && (
-                            <div className="px-4 pb-4">
-                              <div className="h-px bg-amber-100 mb-3"></div>
-                              <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{faq.a}</p>
-                            </div>
-                          )}
+                    <h3 className="font-extrabold mb-3 text-sm flex items-center gap-2" style={{ color: '#8B2500' }}>
+                      <span className="text-lg">⭐</span> Évaluez l&apos;application
+                    </h3>
+                    <a
+                      href="https://play.google.com/store/apps/details?id=com.ifl.app"
+                      target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-4 rounded-2xl p-4 active:scale-95 transition-all"
+                      style={{ background: 'linear-gradient(135deg,#1B7E3E,#34A853)', border: '1.5px solid #A7F3D0' }}>
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M3 0L15 12 3 24V0zM3 0l18 7.5L15 12M3 24l18-7.5L15 12"/></svg>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-extrabold text-white text-sm">Noter sur Google Play Store</p>
+                        <p className="text-green-100 text-xs mt-0.5">Votre avis nous aide à améliorer IFL</p>
+                        <div className="flex gap-0.5 mt-1">
+                          {[1,2,3,4,5].map(s => <span key={s} style={{ color: '#FFD700', fontSize: 14 }}>★</span>)}
                         </div>
-                      ))}
+                      </div>
+                      <svg width="20" height="20" fill="none" stroke="white" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </a>
+                  </div>
+
+                  {/* 2. Politique de confidentialité & règles communautaires */}
+                  <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
+                    <h3 className="font-extrabold mb-3 text-sm flex items-center gap-2" style={{ color: '#8B2500' }}>
+                      <span className="text-lg">📋</span> Politique & règles communautaires
+                    </h3>
+                    <div className="space-y-2">
+                      <details className="rounded-2xl border border-amber-100 overflow-hidden" style={{ background: '#FFFBF5' }}>
+                        <summary className="px-4 py-3.5 font-bold text-gray-800 text-sm cursor-pointer flex items-center justify-between list-none">
+                          <span className="flex items-center gap-2"><span>🔒</span> Politique de confidentialité</span>
+                          <span style={{ color: '#C4521A', fontSize: 18, fontWeight: 700 }}>+</span>
+                        </summary>
+                        <div className="px-4 pb-4 pt-2">
+                          <div className="h-px bg-amber-100 mb-3"></div>
+                          <div className="text-gray-600 text-xs leading-relaxed space-y-2">
+                            <p><strong className="text-gray-800">1. Données collectées</strong><br/>IFL collecte uniquement les informations nécessaires à la création et à la gestion de votre compte : numéro de téléphone, nom, prénom et données de progression dans les dossiers.</p>
+                            <p><strong className="text-gray-800">2. Utilisation des données</strong><br/>Vos données sont utilisées exclusivement pour gérer votre abonnement, sauvegarder votre progression et améliorer nos services. Elles ne sont jamais vendues ni partagées avec des tiers.</p>
+                            <p><strong className="text-gray-800">3. Sécurité</strong><br/>Vos informations sont stockées de manière sécurisée. Votre mot de passe est chiffré et inaccessible à notre équipe.</p>
+                            <p><strong className="text-gray-800">4. Suppression du compte</strong><br/>Vous pouvez demander la suppression de votre compte à tout moment en contactant notre équipe via WhatsApp au +226 76 22 39 62.</p>
+                            <p><strong className="text-gray-800">5. Contact</strong><br/>Pour toute question relative à vos données personnelles, contactez-nous au +226 76 22 39 62.</p>
+                          </div>
+                        </div>
+                      </details>
+                      <details className="rounded-2xl border border-amber-100 overflow-hidden" style={{ background: '#FFFBF5' }}>
+                        <summary className="px-4 py-3.5 font-bold text-gray-800 text-sm cursor-pointer flex items-center justify-between list-none">
+                          <span className="flex items-center gap-2"><span>🤝</span> Règles communautaires</span>
+                          <span style={{ color: '#C4521A', fontSize: 18, fontWeight: 700 }}>+</span>
+                        </summary>
+                        <div className="px-4 pb-4 pt-2">
+                          <div className="h-px bg-amber-100 mb-3"></div>
+                          <div className="text-gray-600 text-xs leading-relaxed space-y-2">
+                            <p><strong className="text-gray-800">1. Respect et bienveillance</strong><br/>Traitez chaque membre de la communauté IFL avec respect. Toute forme de discrimination, d'insulte ou de harcèlement est strictement interdite.</p>
+                            <p><strong className="text-gray-800">2. Pas de partage de contenu payant</strong><br/>Il est interdit de partager, copier ou diffuser les questions, dossiers ou contenus payants de la plateforme. Cela nuit aux instructeurs et à la communauté.</p>
+                            <p><strong className="text-gray-800">3. Honnêteté dans la progression</strong><br/>Utilisez la plateforme pour apprendre sincèrement. Ne cherchez pas à contourner les systèmes de vérification.</p>
+                            <p><strong className="text-gray-800">4. Signalement des abus</strong><br/>Si vous constatez un contenu ou un comportement inapproprié, signalez-le à notre équipe via WhatsApp.</p>
+                            <p><strong className="text-gray-800">5. Utilisation légale</strong><br/>Vous vous engagez à utiliser IFL uniquement à des fins personnelles et légales de préparation aux concours.</p>
+                          </div>
+                        </div>
+                      </details>
                     </div>
                   </div>
+
+                  {/* 3. Bouton Partager */}
+                  <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
+                    <h3 className="font-extrabold mb-3 text-sm flex items-center gap-2" style={{ color: '#8B2500' }}>
+                      <span className="text-lg">📤</span> Partager l&apos;application
+                    </h3>
+                    <p className="text-gray-500 text-xs mb-4">Partagez IFL avec vos amis et collègues qui préparent un concours.</p>
+                    <button
+                      onClick={handleShare}
+                      className="w-full py-3.5 rounded-2xl font-bold text-white flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all"
+                      style={{ background: 'linear-gradient(135deg,#C4521A,#D4A017)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                      </svg>
+                      Partager avec un ami
+                    </button>
+                    {shareMsg && <p className="text-center text-green-600 text-xs mt-2 font-semibold">{shareMsg}</p>}
+                    <div className="mt-3 rounded-xl p-3 flex items-center gap-2" style={{ background: '#F5F5F5' }}>
+                      <span className="text-xs text-gray-500 flex-1 truncate font-mono">{APP_URL}</span>
+                      <button
+                        onClick={() => { navigator.clipboard?.writeText(APP_URL); }}
+                        className="text-xs font-bold px-3 py-1.5 rounded-lg flex-shrink-0"
+                        style={{ background: '#C4521A', color: 'white' }}>
+                        Copier
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
               )}
 
