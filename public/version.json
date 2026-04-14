@@ -1,0 +1,16 @@
+{
+  "version": "1.5.0",
+  "date": "2025-01-01",
+  "description": "Import massif questions IFL - 605 questions directes",
+  "questions_count": {
+    "Actualite_Culture_Generale": 176,
+    "Francais": 25,
+    "Histoire_Geographie": 198,
+    "Litterature_Art": 137,
+    "Maths": 13,
+    "Physique_Chimie": 23,
+    "Psychotechniques": 21,
+    "SVT": 12,
+    "total": 605
+  }
+}
