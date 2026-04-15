@@ -489,7 +489,7 @@ export default function Home() {
                   <button onClick={() => setActiveTab('apropos')} className="hover:underline">Aide</button>
                   <button onClick={handleShare} className="hover:underline">Partager</button>
                 </div>
-                <p className="text-gray-400 text-xs">© 2025 IFL – Burkina Faso</p>
+                <p className="text-gray-400 text-xs">© IFL Burkina Faso – Version 3</p>
               </footer>
             </div>
           </div>
@@ -1248,7 +1248,7 @@ export default function Home() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'apropos' ? 'shadow-sm' : ''}`}
                 style={{ background: activeTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_apropos.svg" alt="À propos" width="24" height="24" style={{ objectFit: 'contain', filter: activeTab === 'apropos' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+                <img src="/logo.png" alt="À propos" width="28" height="28" style={{ objectFit: 'cover', borderRadius: 8, filter: activeTab === 'apropos' ? 'none' : 'grayscale(40%) opacity(0.65)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeTab === 'apropos' ? '#C4521A' : '#9CA3AF' }}>À propos</span>
             </button>

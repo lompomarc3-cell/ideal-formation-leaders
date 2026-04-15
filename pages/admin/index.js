@@ -224,7 +224,8 @@ function AdminStats({ stats, recentUsers, questionsByCategory, loading, onRefres
                 const acc = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
                 const dp = u.dossiers_principaux.filter(d => !acc.includes(d))
                 if (dp.length === 0) return null
-                return <span className="text-xs text-amber-300 block text-right">{dp.length >= 14 ? '17 dossiers' : dp.join(', ')}</span>
+                if (dp.length >= 14) return <span className="text-xs font-bold block text-right" style={{ color: '#D4A017' }}>🏆 17 dossiers</span>
+                return <span className="text-xs text-amber-300 block text-right">{dp.map(d => `🎓 ${d}`).join(', ')}</span>
               })()}
             </div>
           </div>
@@ -396,15 +397,20 @@ function AdminUsers({ getToken, onNotif }) {
                   {u.abonnement_type === 'professionnel' && (() => {
                     const acc = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
                     const dp = (u.dossiers_principaux || []).filter(d => !acc.includes(d))
-                    if (dp.length >= 14) return <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-900 text-amber-300">🏆 17 dossiers (accès complet)</span>
-                    if (dp.length > 0) return (
-                      <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-900 text-amber-300">📌 {dp.join(' · ')}</span>
+                    if (dp.length >= 14) return (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)', color: 'white' }}>
+                        🏆 Accès complet (17 dossiers)
+                      </span>
                     )
-                    return <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">Dossier non précisé</span>
+                    if (dp.length > 0) return (
+                      <div className="flex flex-wrap gap-1">
+                        {dp.map((d, i) => (
+                          <span key={i} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#C4521A,#D4A017)', color: 'white' }}>🎓 {d}</span>
+                        ))}
+                      </div>
+                    )
+                    return <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">Accompagnements inclus</span>
                   })()}
-                  {u.abonnement_valide_jusqua && (
-                    <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-500">exp: {new Date(u.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}</span>
-                  )}
                 </div>
               </div>
               <button onClick={() => setEditId(editId === u.id ? null : u.id)} className="ml-3 p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 text-sm">✏️</button>
@@ -492,7 +498,7 @@ function UserEditForm({ user, onSave, onCancel }) {
         </div>
       )}
       <div>
-        <label className="text-gray-400 text-xs mb-1 block">Valide jusqu&apos;au</label>
+        <label className="text-gray-400 text-xs mb-1 block">Date d&apos;activation (optionnel, usage interne)</label>
         <input type="date" value={form.abonnement_valide_jusqua}
           onChange={e => setForm(p => ({ ...p, abonnement_valide_jusqua: e.target.value }))}
           className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" />

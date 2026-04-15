@@ -401,18 +401,56 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-start gap-2 mb-2">
                       <span className="text-2xl">{user.is_admin ? '👑' : '✅'}</span>
-                      <div>
-                        <p className="font-bold text-amber-800">
-                          {user.is_admin ? '👑 Accès complet (Administrateur)' : `✅ ${getAbonnementLabel() || 'Abonnement actif'}`}
-                        </p>
-                        <p className="text-amber-700 text-sm">
-                          {user.is_admin ? 'Accès illimité à toutes les ressources' :
-                           user.abonnement_valide_jusqua ? `Valide jusqu'au ${new Date(user.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}` : 'Abonnement actif'}
-                        </p>
-                      </div>
+                      <p className="font-bold text-amber-800">
+                        {user.is_admin ? '👑 Accès complet (Administrateur)' : 'Abonnement actif'}
+                      </p>
                     </div>
+                    {!user.is_admin && (() => {
+                      const accompagnements = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
+                      return (
+                        <div className="space-y-2">
+                          {directAccess && (
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>📚 Concours directs</span>
+                              <span className="text-xs text-gray-500">(12 dossiers)</span>
+                            </div>
+                          )}
+                          {proAccess && (() => {
+                            const dp = (user.dossiers_principaux || []).filter(d => !accompagnements.includes(d))
+                            return (
+                              <div>
+                                <div className="flex items-center gap-1.5 mb-1">
+                                  <span className="text-xs font-semibold text-amber-800">🎓 Concours professionnel :</span>
+                                </div>
+                                {dp.length >= 14 ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)' }}>
+                                    🏆 Accès complet (17 dossiers)
+                                  </span>
+                                ) : dp.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1">
+                                    {dp.map((d, i) => (
+                                      <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg,#C4521A,#D4A017)' }}>
+                                        🎓 {d}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-amber-700">Accompagnements inclus</span>
+                                )}
+                                <p className="text-xs text-green-700 mt-1">
+                                  <span className="font-semibold">Bonus :</span> 📰 Actualités · 📝 Entraînement · 🎯 Accompagnement
+                                </p>
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      )
+                    })()}
+                    {user.is_admin && (
+                      <p className="text-amber-700 text-sm">Accès illimité à toutes les ressources</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -701,15 +739,29 @@ export default function Dashboard() {
                     <div className="mt-4 rounded-2xl p-3" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE5CC)', border: '2px solid #C4521A' }}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
-                          <p className="text-xs font-bold text-amber-700 mb-1">✅ Dossier(s) professionnel(s) actif(s)</p>
+                          <p className="text-xs font-bold text-amber-700 mb-1.5">✅ Concours professionnel : dossier(s) actif(s)</p>
                           {(() => {
                             const acc = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
                             const dp = (user.dossiers_principaux || []).filter(d => !acc.includes(d))
-                            if (dp.length >= 14) return <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>🏆 Accès complet (17 dossiers)</p>
-                            if (dp.length > 0) return <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>{dp.join(', ')}</p>
+                            if (dp.length >= 14) return (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)', color: 'white' }}>
+                                🏆 Accès complet (17 dossiers)
+                              </span>
+                            )
+                            if (dp.length > 0) return (
+                              <div className="flex flex-wrap gap-1.5 mb-1">
+                                {dp.map((d, i) => (
+                                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#C4521A,#D4A017)', color: 'white' }}>
+                                    🎓 {d}
+                                  </span>
+                                ))}
+                              </div>
+                            )
                             return null
                           })()}
-                          <p className="text-xs text-green-700 mt-0.5">+ Actualités · Entraînement QCM · Accompagnement final (inclus)</p>
+                          <p className="text-xs text-green-700 mt-1.5">
+                            <span className="font-semibold">Bonus inclus :</span> 📰 Actualités · 📝 Entraînement QCM · 🎯 Accompagnement final
+                          </p>
                         </div>
                         <Link href="/select-specialty" className="flex-shrink-0 px-3 py-1.5 text-xs font-bold text-white rounded-xl" style={{ background: '#C4521A' }}>
                           + Dossier
@@ -845,7 +897,7 @@ export default function Dashboard() {
                     {directAccess && (
                       <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '2px solid #FFD0A8' }}>
                         <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>✅ Concours directs (12 dossiers)</p>
-                        <p className="text-green-600 text-xs mt-1 font-semibold">🟢 Abonnement actif{user.abonnement_valide_jusqua ? ` · exp: ${new Date(user.abonnement_valide_jusqua).toLocaleDateString('fr-FR')}` : ''}</p>
+                        <p className="text-green-600 text-xs mt-1 font-semibold">🟢 Abonnement actif</p>
                       </div>
                     )}
                     {proAccess && (() => {
@@ -855,23 +907,31 @@ export default function Dashboard() {
                         <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #FFE68A' }}>
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1">
-                              <p className="font-extrabold text-sm" style={{ color: '#B45309' }}>✅ Concours professionnels</p>
+                              <p className="font-extrabold text-sm mb-2" style={{ color: '#B45309' }}>✅ Concours professionnel</p>
                               {dossiersPrincipaux.length >= 14 ? (
-                                <p className="text-xs mt-1 font-bold" style={{ color: '#8B2500' }}>🏆 Accès complet Concours professionnels (17 dossiers)</p>
+                                <div>
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)', color: 'white' }}>
+                                    🏆 Accès complet (17 dossiers)
+                                  </span>
+                                </div>
                               ) : dossiersPrincipaux.length > 0 ? (
-                                <div className="mt-1.5">
-                                  <p className="text-xs font-bold text-gray-600 mb-0.5">📌 Dossiers débloqués :</p>
-                                  <div className="space-y-0.5">
-                                    {dossiersPrincipaux.map((d, i) => (
-                                      <p key={i} className="text-xs font-semibold" style={{ color: '#8B2500' }}>• {d}</p>
-                                    ))}
-                                  </div>
+                                <div className="flex flex-wrap gap-1.5 mb-2">
+                                  {dossiersPrincipaux.map((d, i) => (
+                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#C4521A,#D4A017)', color: 'white' }}>
+                                      🎓 {d}
+                                    </span>
+                                  ))}
                                 </div>
                               ) : (
-                                <p className="text-xs mt-1 text-amber-700">Dossiers d'accompagnement inclus</p>
+                                <p className="text-xs mb-2 text-amber-700">Dossiers d'accompagnement inclus</p>
                               )}
-                              <p className="text-xs text-green-700 mt-1 font-semibold">✓ + Actualités · Entraînement QCM · Accompagnement final</p>
-                              <p className="text-green-600 text-xs mt-1 font-semibold">🟢 Abonnement actif</p>
+                              <p className="text-xs font-semibold mt-1.5 mb-1" style={{ color: '#065F46' }}>Bonus inclus :</p>
+                              <div className="flex flex-wrap gap-1">
+                                {['📰 Actualités', '📝 Entraînement QCM', '🎯 Accompagnement final'].map((b, i) => (
+                                  <span key={i} className="px-1.5 py-0.5 rounded text-xs font-semibold" style={{ background: '#D1FAE5', color: '#065F46' }}>{b}</span>
+                                ))}
+                              </div>
+                              <p className="text-green-600 text-xs mt-2 font-semibold">🟢 Actif</p>
                             </div>
                             <Link href="/select-specialty" className="flex-shrink-0 px-2 py-1 text-xs font-bold text-white rounded-lg" style={{ background: '#C4521A' }}>
                               + Dossier
@@ -1429,7 +1489,7 @@ export default function Dashboard() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeMainTab === 'apropos' ? 'shadow-sm' : ''}`}
                 style={{ background: activeMainTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_apropos.svg" alt="À propos" width="24" height="24" style={{ objectFit: 'contain', filter: activeMainTab === 'apropos' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+                <img src="/logo.png" alt="À propos" width="28" height="28" style={{ objectFit: 'cover', borderRadius: 8, filter: activeMainTab === 'apropos' ? 'none' : 'grayscale(40%) opacity(0.65)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeMainTab === 'apropos' ? '#C4521A' : '#9CA3AF' }}>À propos</span>
             </button>
@@ -1502,28 +1562,29 @@ function CategoryCard({ cat, locked, hasAccess, index, catType, isPrincipal, isL
   if (isLocked) {
     return (
       <div
-        className="flex-shrink-0 bg-white rounded-2xl shadow-sm overflow-hidden"
-        style={{ scrollSnapAlign: 'start', width: '155px', minWidth: '155px', border: '2px dashed #D1D5DB', opacity: 0.65 }}
+        className="flex-shrink-0 bg-white rounded-2xl shadow-sm overflow-hidden cursor-pointer active:scale-95 transition-all"
+        style={{ scrollSnapAlign: 'start', width: '155px', minWidth: '155px', border: `2px solid ${colorStyle.border}` }}
+        onClick={() => alert('🔒 Abonnez-vous pour accéder à ce dossier')}
       >
         <div className="p-4 text-center">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 relative"
-            style={{ background: '#F3F4F6', border: '1.5px solid #E5E7EB' }}>
-            <img src={iconSrc} alt={cat.nom} width="36" height="36" style={{ objectFit: 'contain', filter: 'grayscale(70%) opacity(0.6)' }} />
+            style={{ background: 'rgba(255,255,255,0.85)', border: `1.5px solid ${colorStyle.border}` }}>
+            <img src={iconSrc} alt={cat.nom} width="36" height="36" style={{ objectFit: 'contain', filter: 'grayscale(20%) opacity(0.8)' }} />
             {/* Cadenas overlay */}
-            <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center"
-              style={{ background: '#6B7280' }}>
+            <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center shadow-sm"
+              style={{ background: 'linear-gradient(135deg,#C4521A,#D4A017)' }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
           </div>
-          <p className="text-xs font-bold text-gray-400 leading-tight mb-2 line-clamp-2">{cat.nom}</p>
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#F3F4F6', color: '#6B7280' }}>
-            🔒 Verrouillé
+          <p className="text-xs font-bold text-gray-700 leading-tight mb-2 line-clamp-2">{cat.nom}</p>
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: colorStyle.tag, color: colorStyle.tagText }}>
+            🔒 Débloquer
           </span>
         </div>
-        <div className="h-1 w-full" style={{ background: '#E5E7EB' }}></div>
+        <div className="h-1.5 w-full" style={{ background: colorStyle.bg }}></div>
       </div>
     )
   }
