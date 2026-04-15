@@ -141,6 +141,17 @@ export default function Dashboard() {
   const [loadingStats, setLoadingStats] = useState(false)
   const [localProgress, setLocalProgress] = useState({}) // Progression localStorage par catégorie
 
+  // Lire les paramètres URL pour retour depuis QCM
+  useEffect(() => {
+    if (!router.isReady) return
+    const { tab, catType } = router.query
+    if (tab === 'concours') {
+      setActiveMainTab('concours')
+      if (catType === 'professionnel') setActiveTab('professionnel')
+      else setActiveTab('direct')
+    }
+  }, [router.isReady, router.query])
+
   const handleShare = async () => {
     const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA)\n✅ Concours professionnels – 17 dossiers (20 000 FCFA)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
     if (navigator.share) {
@@ -647,7 +658,7 @@ export default function Dashboard() {
                 <button
                   onClick={() => setActiveTab('professionnel')}
                   className={`flex-1 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-1.5 ${activeTab === 'professionnel' ? 'text-white shadow-lg' : 'text-gray-500 bg-white border-2 border-gray-100'}`}
-                  style={activeTab === 'professionnel' ? { background: 'linear-gradient(135deg,#8B2500,#D4A017)', boxShadow: '0 4px 12px rgba(180,83,9,0.3)' } : {}}
+                  style={activeTab === 'professionnel' ? { background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', boxShadow: '0 4px 12px rgba(37,99,235,0.35)' } : {}}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
                   Professionnels
@@ -683,19 +694,15 @@ export default function Dashboard() {
                   )}
 
                   {!hasCurrentAccess && !user.is_admin && (
-                    <div className="mb-4 rounded-2xl p-4 border-2 border-amber-300" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)' }}>
-                      <div className="flex items-start gap-3">
-                        <span className="text-2xl">🆓</span>
-                        <div className="flex-1">
-                          <p className="text-amber-800 font-bold text-sm">5 questions gratuites par dossier</p>
-                          <p className="text-amber-700 text-xs mt-0.5">Essayez chaque dossier gratuitement. Abonnez-vous pour tout débloquer.</p>
-                        </div>
-                        <Link href={`/payment?type=${activeTab}&montant=${currentPrice}`}
-                          className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0"
-                          style={{ background: '#C4521A' }}>
-                          {currentPrice.toLocaleString()} FCFA →
-                        </Link>
-                      </div>
+                    <div className="mb-3 rounded-xl px-3 py-2 flex items-center gap-2"
+                      style={{ background: activeTab === 'professionnel' ? 'linear-gradient(135deg,#EFF6FF,#DBEAFE)' : 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: `1px solid ${activeTab === 'professionnel' ? '#BFDBFE' : '#FDE68A'}` }}>
+                      <span className="text-base">🆓</span>
+                      <p className="text-xs font-semibold flex-1" style={{ color: activeTab === 'professionnel' ? '#1D4ED8' : '#92400E' }}>5 questions gratuites par dossier · Abonnez-vous pour tout débloquer</p>
+                      <Link href={`/payment?type=${activeTab}&montant=${currentPrice}`}
+                        className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0"
+                        style={{ background: activeTab === 'professionnel' ? '#1D4ED8' : '#C4521A' }}>
+                        {currentPrice.toLocaleString()} FCFA
+                      </Link>
                     </div>
                   )}
 
@@ -716,10 +723,10 @@ export default function Dashboard() {
                   />
 
                   {activeTab === 'direct' && !proAccess && !user.is_admin && (
-                    <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#C4521A,#8B2500)' }}>
+                    <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
                       <p className="text-white font-bold mb-1">🎓 Concours Professionnels</p>
-                      <p className="text-orange-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA</p>
-                      <Link href="/select-specialty" className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#C4521A' }}>
+                      <p className="text-blue-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA</p>
+                      <Link href="/select-specialty" className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#1D4ED8' }}>
                         Choisir ma spécialité →
                       </Link>
                     </div>
@@ -897,7 +904,7 @@ export default function Dashboard() {
                     {directAccess && (
                       <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '2px solid #FFD0A8' }}>
                         <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>✅ Concours directs (12 dossiers)</p>
-                        <p className="text-green-600 text-xs mt-1 font-semibold">🟢 Abonnement actif</p>
+                        <p className="text-green-600 text-xs mt-1 font-semibold">✅ Actif</p>
                       </div>
                     )}
                     {proAccess && (() => {
@@ -931,7 +938,7 @@ export default function Dashboard() {
                                   <span key={i} className="px-1.5 py-0.5 rounded text-xs font-semibold" style={{ background: '#D1FAE5', color: '#065F46' }}>{b}</span>
                                 ))}
                               </div>
-                              <p className="text-green-600 text-xs mt-2 font-semibold">🟢 Actif</p>
+                              <p className="text-green-600 text-xs mt-2 font-semibold">✅ Actif</p>
                             </div>
                             <Link href="/select-specialty" className="flex-shrink-0 px-2 py-1 text-xs font-bold text-white rounded-lg" style={{ background: '#C4521A' }}>
                               + Dossier
@@ -1568,12 +1575,12 @@ function CategoryCard({ cat, locked, hasAccess, index, catType, isPrincipal, isL
       >
         <div className="p-4 text-center">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 relative"
-            style={{ background: 'rgba(255,255,255,0.85)', border: `1.5px solid ${colorStyle.border}` }}>
-            <img src={iconSrc} alt={cat.nom} width="36" height="36" style={{ objectFit: 'contain', filter: 'grayscale(20%) opacity(0.8)' }} />
-            {/* Cadenas overlay */}
-            <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center shadow-sm"
-              style={{ background: 'linear-gradient(135deg,#C4521A,#D4A017)' }}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+            style={{ background: 'rgba(255,255,255,0.9)', border: `1.5px solid ${colorStyle.border}` }}>
+            <img src={iconSrc} alt={cat.nom} width="36" height="36" style={{ objectFit: 'contain' }} />
+            {/* Cadenas overlay bien visible */}
+            <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-md"
+              style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', border: '2px solid white' }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>

@@ -246,6 +246,17 @@ export default function Home() {
   const [activeAboutTab, setActiveAboutTab] = useState('app')  // 'app' | 'equipe' | 'aide' | 'dev'
   const [openFaq, setOpenFaq] = useState(null)
 
+  // Lire les paramètres URL pour retour depuis QCM
+  useEffect(() => {
+    if (!router.isReady) return
+    const { tab, catType } = router.query
+    if (tab === 'concours') {
+      setActiveTab('concours')
+      if (catType === 'professionnel') setActiveConcoursTab('professionnel')
+      else setActiveConcoursTab('direct')
+    }
+  }, [router.isReady, router.query])
+
   useEffect(() => {
     if (!loading && user) {
       // Tous les utilisateurs (admin inclus) vont vers /dashboard
@@ -553,7 +564,7 @@ export default function Home() {
                 <button
                   onClick={() => setActiveConcoursTab('professionnel')}
                   className={`flex-1 py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${activeConcoursTab === 'professionnel' ? 'text-white shadow-lg scale-105' : 'text-gray-500 bg-white border-2 border-gray-100'}`}
-                  style={activeConcoursTab === 'professionnel' ? { background: 'linear-gradient(135deg,#8B2500,#D4A017)', boxShadow: '0 4px 15px rgba(180,83,9,0.35)' } : {}}
+                  style={activeConcoursTab === 'professionnel' ? { background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', boxShadow: '0 4px 15px rgba(37,99,235,0.35)' } : {}}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                     <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
@@ -565,40 +576,11 @@ export default function Home() {
               {/* Section Concours Directs */}
               {activeConcoursTab === 'direct' && (
                 <div className="animate-fadeIn">
-                  {/* Bandeau identitaire DIRECTS */}
-                  <div className="rounded-2xl mb-5 overflow-hidden shadow-md" style={{ background: 'linear-gradient(135deg,#8B2500 0%,#C4521A 60%,#D4A017 100%)' }}>
-                    <div className="p-4 flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.2)' }}>
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'rgba(255,255,255,0.25)', color: 'white' }}>🎯 ENTRÉE INITIALE</span>
-                        </div>
-                        <h3 className="text-white font-extrabold text-lg leading-tight">Concours directs</h3>
-                        <p className="text-orange-100 text-xs">Pour les candidats au premier concours</p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-white font-extrabold text-xl">5 000</p>
-                        <p className="text-orange-200 text-xs">FCFA</p>
-                      </div>
-                    </div>
-                    <div className="px-4 pb-3">
-                      <div className="flex items-center gap-2 text-orange-100 text-xs">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        12 dossiers thématiques · Culture générale · Sciences · Droit · Maths
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl p-3 mb-4 flex items-center gap-2"
-                    style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '1.5px solid #D4A017' }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4A017" strokeWidth="2.5" strokeLinecap="round">
-                      <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
-                    </svg>
-                    <p className="text-amber-800 text-xs font-semibold">← Glissez horizontalement pour voir tous les dossiers →</p>
+                  {/* Compact info bar directs */}
+                  <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '1px solid #FFD0A8' }}>
+                    <span className="text-sm">🆓</span>
+                    <p className="text-xs font-semibold flex-1" style={{ color: '#8B2500' }}>5 questions gratuites par dossier · Glissez pour voir tous les dossiers</p>
+                    <Link href="/payment?type=direct&montant=5000" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>5 000 FCFA</Link>
                   </div>
 
                   {loadingCats ? (
@@ -636,60 +618,16 @@ export default function Home() {
               {/* Section Concours Professionnels */}
               {activeConcoursTab === 'professionnel' && (
                 <div className="animate-fadeIn">
-                  {/* === BANDEAU INFO OFFRE CONCOURS PROFESSIONNELS === */}
-                  <div className="rounded-2xl p-4 mb-4" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', border: '1.5px solid #BFDBFE' }}>
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(255,255,255,0.2)' }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-                      </div>
-                      <div>
-                        <p className="text-white font-extrabold text-sm mb-1">Notre offre Concours Professionnels</p>
-                        <p className="text-blue-100 text-xs leading-relaxed">
-                          <strong className="text-white">14 dossiers professionnels disponibles.</strong> Pour chaque dossier choisi, vous bénéficiez <strong className="text-yellow-300">gratuitement de 3 dossiers d'accompagnement :</strong>
-                        </p>
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {['📰 Actualités & culture générale', '📝 Entraînement QCM', '🎯 Accompagnement final'].map((item, i) => (
-                            <span key={i} className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>{item}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                  {/* Bandeau info bleu offre professionnels */}
+                  <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '1px solid #BFDBFE' }}>
+                    <span className="text-sm">🆓</span>
+                    <p className="text-xs font-semibold flex-1" style={{ color: '#1D4ED8' }}>5 questions gratuites · 14 dossiers pro + 3 bonus inclus</p>
+                    <Link href="/select-specialty" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#1D4ED8' }}>20 000 FCFA</Link>
                   </div>
-
-                  {/* Bandeau identitaire PROFESSIONNELS */}
-                  <div className="rounded-2xl mb-5 overflow-hidden shadow-md" style={{ background: 'linear-gradient(135deg,#8B2500 0%,#C4521A 60%,#D4A017 100%)' }}>
-                    <div className="p-4 flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.2)' }}>
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'rgba(255,255,255,0.25)', color: 'white' }}>🏅 ÉVOLUTION DE CARRIÈRE</span>
-                        </div>
-                        <h3 className="text-white font-extrabold text-lg leading-tight">Concours professionnels</h3>
-                        <p className="text-orange-100 text-xs">Pour les agents en poste qui veulent progresser</p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-white font-extrabold text-xl">20 000</p>
-                        <p className="text-orange-200 text-xs">FCFA</p>
-                      </div>
-                    </div>
-                    <div className="px-4 pb-3">
-                      <div className="flex items-center gap-2 text-orange-100 text-xs">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        17 dossiers spécialisés · Santé · Justice · Police · Éducation
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl p-3 mb-4 flex items-center gap-2"
-                    style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '1.5px solid #D4A017' }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4A017" strokeWidth="2.5" strokeLinecap="round">
-                      <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
-                    </svg>
-                    <p className="text-xs font-semibold text-amber-800">← Glissez horizontalement pour voir tous les dossiers →</p>
+                  <div className="rounded-xl px-3 py-1.5 mb-3 flex flex-wrap gap-1">
+                    {['📰 Actualités', '📝 Entraînement QCM', '🎯 Accompagnement final'].map((item, i) => (
+                      <span key={i} className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>{item}</span>
+                    ))}
                   </div>
 
                   {loadingCats ? (
@@ -705,20 +643,20 @@ export default function Home() {
                     </div>
                   )}
 
-                  <div className="mt-4 rounded-2xl p-4 flex items-center justify-between border-2 bg-white" style={{ borderColor: '#C4521A' }}>
+                  <div className="mt-4 rounded-2xl p-4 flex items-center justify-between border-2 bg-white" style={{ borderColor: '#1D4ED8' }}>
                     <div>
-                      <p className="font-bold text-sm" style={{ color: '#8B2500' }}>Accès complet</p>
-                      <p className="text-gray-500 text-xs">Choisir votre spécialité</p>
+                      <p className="font-bold text-sm" style={{ color: '#1D4ED8' }}>Choisir votre spécialité</p>
+                      <p className="text-gray-500 text-xs">14 dossiers spécialisés disponibles</p>
                     </div>
                     <Link href="/select-specialty"
                       className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md"
-                      style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
+                      style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
                       20 000 FCFA →
                     </Link>
                   </div>
 
                   <Link href="/register" className="block mt-3 text-center py-3 font-bold rounded-xl text-sm border-2"
-                    style={{ color: '#C4521A', background: '#FFF8F0', borderColor: '#FFD0A8' }}>
+                    style={{ color: '#1D4ED8', background: '#EFF6FF', borderColor: '#BFDBFE' }}>
                     📝 Créer un compte gratuit
                   </Link>
                 </div>

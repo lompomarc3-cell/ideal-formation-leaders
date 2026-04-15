@@ -146,12 +146,110 @@ export default async function handler(req) {
       .order('created_at', { ascending: true })
       .limit(limit)
 
-    // Si pas d'accès complet, ne montrer que les questions gratuites
+    // Si pas d'accès complet, ne montrer que les questions gratuites (is_demo=true ou les 5 premières)
     if (!hasFullAccess) {
-      query = query.eq('is_demo', true)
+      // D'abord essayer avec is_demo=true
+      const { data: demoQuestions, error: demoError } = await supabaseAdmin
+        .from('questions')
+        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo')
+        .eq('category_id', categorieId)
+        .eq('is_active', true)
+        .eq('is_demo', true)
+        .order('created_at', { ascending: true })
+        .limit(5)
+
+      if (!demoError && demoQuestions && demoQuestions.length >= 1) {
+        // On a des questions is_demo=true, les utiliser (max 5)
+        const questionList = demoQuestions.slice(0, 5).map(q => ({
+          id: q.id,
+          question_text: q.enonce,
+          option_a: q.option_a,
+          option_b: q.option_b,
+          option_c: q.option_c,
+          option_d: q.option_d,
+          bonne_reponse: q.reponse_correcte,
+          explication: q.explication,
+          is_demo: q.is_demo
+        }))
+
+        if (isLockedForThisUser && questionList.length === 0) {
+          return new Response(JSON.stringify({
+            error: `Ce dossier ne fait pas partie de votre abonnement. Votre spécialité est différente.`,
+            requiresSubscription: true,
+            isLockedSpecialty: true,
+            categoryType: category.type
+          }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+        }
+
+        return new Response(JSON.stringify({
+          questions: questionList,
+          hasFullAccess: false,
+          isLockedSpecialty: isLockedForThisUser,
+          totalFree: questionList.length,
+          categoryType: category.type,
+          categoryName: category.nom
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+      }
+
+      // Fallback : prendre les 5 premières questions actives
+      const { data: first5, error: first5Error } = await supabaseAdmin
+        .from('questions')
+        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo')
+        .eq('category_id', categorieId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+        .limit(5)
+
+      if (!first5Error && first5 && first5.length > 0) {
+        const questionList = first5.map(q => ({
+          id: q.id,
+          question_text: q.enonce,
+          option_a: q.option_a,
+          option_b: q.option_b,
+          option_c: q.option_c,
+          option_d: q.option_d,
+          bonne_reponse: q.reponse_correcte,
+          explication: q.explication,
+          is_demo: q.is_demo
+        }))
+
+        return new Response(JSON.stringify({
+          questions: questionList,
+          hasFullAccess: false,
+          isLockedSpecialty: isLockedForThisUser,
+          totalFree: questionList.length,
+          categoryType: category.type,
+          categoryName: category.nom
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+      }
+
+      // Si dossier verrouillé et aucune question
+      if (isLockedForThisUser) {
+        return new Response(JSON.stringify({
+          error: `Ce dossier ne fait pas partie de votre abonnement. Votre spécialité est différente.`,
+          requiresSubscription: true,
+          isLockedSpecialty: true,
+          categoryType: category.type
+        }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+      }
+
+      // Aucune question disponible
+      return new Response(JSON.stringify({
+        error: `Abonnez-vous pour accéder aux QCM de "${category.nom}"`,
+        requiresSubscription: true,
+        categoryType: category.type
+      }), { status: 403, headers: { 'Content-Type': 'application/json' } })
     }
 
-    const { data: questions, error } = await query
+    // Accès complet : récupérer toutes les questions
+    const { data: questions, error } = await supabaseAdmin
+      .from('questions')
+      .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo')
+      .eq('category_id', categorieId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
+      .limit(limit)
+
     if (error) throw error
 
     const questionList = (questions || []).map(q => ({
@@ -166,30 +264,11 @@ export default async function handler(req) {
       is_demo: q.is_demo
     }))
 
-    // Si dossier verrouillé pour cet utilisateur (pro mais pas son dossier)
-    if (isLockedForThisUser && questionList.length === 0) {
-      return new Response(JSON.stringify({
-        error: `Ce dossier ne fait pas partie de votre abonnement. Votre spécialité est différente.`,
-        requiresSubscription: true,
-        isLockedSpecialty: true,
-        categoryType: category.type
-      }), { status: 403, headers: { 'Content-Type': 'application/json' } })
-    }
-
-    // Si pas d'accès et aucune question gratuite trouvée
-    if (!hasFullAccess && questionList.length === 0) {
-      return new Response(JSON.stringify({
-        error: `Abonnez-vous pour accéder aux QCM de "${category.nom}"`,
-        requiresSubscription: true,
-        categoryType: category.type
-      }), { status: 403, headers: { 'Content-Type': 'application/json' } })
-    }
-
     return new Response(JSON.stringify({
       questions: questionList,
-      hasFullAccess,
-      isLockedSpecialty: isLockedForThisUser,
-      totalFree: hasFullAccess ? null : questionList.length,
+      hasFullAccess: true,
+      isLockedSpecialty: false,
+      totalFree: null,
       categoryType: category.type,
       categoryName: category.nom
     }), { status: 200, headers: { 'Content-Type': 'application/json' } })

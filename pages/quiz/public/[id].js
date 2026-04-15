@@ -83,7 +83,7 @@ export default function PublicQuizPage() {
         {/* Header */}
         <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
-            <button onClick={() => router.push('/')} className="text-orange-200 hover:text-white p-1">
+            <button onClick={() => router.push(`/?tab=concours&catType=${categoryType}`)} className="text-orange-200 hover:text-white p-1">
               <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
@@ -128,9 +128,9 @@ export default function PublicQuizPage() {
                   <Link href="/register" className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl shadow-md active:scale-95" style={{ background: '#C4521A' }}>
                     🚀 S'inscrire gratuitement
                   </Link>
-                  <Link href="/" className="block text-center text-gray-400 text-sm">
-                    ← Retour à l'accueil
-                  </Link>
+                  <button onClick={() => router.push(`/?tab=concours&catType=${categoryType}`)} className="block w-full text-center text-gray-400 text-sm">
+                    ← Retour aux dossiers
+                  </button>
                 </div>
               </div>
             </div>
@@ -205,9 +205,9 @@ export default function PublicQuizPage() {
                   >
                     🔄 Recommencer
                   </button>
-                  <Link href="/" className="block text-center text-gray-400 text-sm py-2">
-                    ← Retour à l'accueil
-                  </Link>
+                  <button onClick={() => router.push(`/?tab=concours&catType=${categoryType}`)} className="block w-full text-center text-gray-400 text-sm py-2">
+                    ← Retour aux dossiers
+                  </button>
                 </div>
               </div>
             </div>
