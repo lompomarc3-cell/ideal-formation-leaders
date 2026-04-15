@@ -528,22 +528,22 @@ export default function Home() {
                     </svg>
                   </div>
                 </div>
-                {/* Cartes résumé rapide */}
+                {/* Résumé rapide */}
                 <div className="flex gap-3 mt-4">
-                  <div className="flex-1 rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                  <button className="flex-1 rounded-xl p-3 flex items-center gap-2 active:scale-95 transition-all" style={{ background: activeConcoursTab === 'direct' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)' }} onClick={() => setActiveConcoursTab('direct')}>
                     <span className="text-xl">📚</span>
                     <div>
                       <p className="text-white font-bold text-xs">Directs</p>
                       <p className="text-orange-200 text-xs">12 dossiers · 5 000 FCFA</p>
                     </div>
-                  </div>
-                  <div className="flex-1 rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                  </button>
+                  <button className="flex-1 rounded-xl p-3 flex items-center gap-2 active:scale-95 transition-all" style={{ background: activeConcoursTab === 'professionnel' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)' }} onClick={() => setActiveConcoursTab('professionnel')}>
                     <span className="text-xl">🎓</span>
                     <div>
                       <p className="text-white font-bold text-xs">Professionnels</p>
                       <p className="text-orange-200 text-xs">17 dossiers · 20 000 FCFA</p>
                     </div>
-                  </div>
+                  </button>
                 </div>
               </div>
             </div>
@@ -663,16 +663,15 @@ export default function Home() {
               )}
 
               {/* Bannière démo gratuite en bas */}
-              <div className="mt-6 mb-4 rounded-2xl p-4 flex items-center gap-3"
-                style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #D4A017' }}>
-                <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round">
+              <div className="mt-4 mb-4 rounded-2xl p-3 flex items-center gap-3"
+                style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '1.5px solid #D4A017' }}>
+                <div className="w-9 h-9 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-amber-800 text-sm">Démo gratuite disponible</p>
-                  <p className="text-amber-700 text-xs">10 questions d'entraînement</p>
+                  <p className="font-bold text-amber-800 text-sm">Démo gratuite – 10 questions</p>
                 </div>
                 <Link href="/demo" className="px-4 py-2 font-bold text-white rounded-xl text-xs active:scale-95"
                   style={{ background: '#D4A017' }}>
@@ -1186,7 +1185,7 @@ export default function Home() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'apropos' ? 'shadow-sm' : ''}`}
                 style={{ background: activeTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/logo.png" alt="À propos" width="28" height="28" style={{ objectFit: 'cover', borderRadius: 8, filter: activeTab === 'apropos' ? 'none' : 'grayscale(40%) opacity(0.65)' }} />
+                <img src="/icons/nav_apropos.svg" alt="À propos" width="24" height="24" style={{ objectFit: 'contain', filter: activeTab === 'apropos' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeTab === 'apropos' ? '#C4521A' : '#9CA3AF' }}>À propos</span>
             </button>

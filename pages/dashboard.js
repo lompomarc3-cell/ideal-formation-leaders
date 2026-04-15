@@ -248,7 +248,7 @@ export default function Dashboard() {
     if (user.is_admin) return true
     const sub = user.abonnement_type
     const active = user.subscription_status === 'active'
-    const notExpired = !user.abonnement_valide_jusqua || new Date(user.abonnement_valide_jusqua) > new Date()
+    const notExpired = true // Pas de vérification de durée
     return active && notExpired && (sub === type || sub === 'all')
   }
 
@@ -613,20 +613,20 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="flex gap-3 mt-4">
-                  <div className="flex-1 rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                  <button className="flex-1 rounded-xl p-3 flex items-center gap-2 active:scale-95 transition-all" style={{ background: activeTab === 'direct' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)' }} onClick={() => setActiveTab('direct')}>
                     <span className="text-xl">📚</span>
                     <div>
                       <p className="text-white font-bold text-xs">Directs</p>
                       <p className="text-orange-200 text-xs">12 dossiers · 5 000 FCFA</p>
                     </div>
-                  </div>
-                  <div className="flex-1 rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                  </button>
+                  <button className="flex-1 rounded-xl p-3 flex items-center gap-2 active:scale-95 transition-all" style={{ background: activeTab === 'professionnel' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)' }} onClick={() => setActiveTab('professionnel')}>
                     <span className="text-xl">🎓</span>
                     <div>
                       <p className="text-white font-bold text-xs">Professionnels</p>
                       <p className="text-orange-200 text-xs">17 dossiers · 20 000 FCFA</p>
                     </div>
-                  </div>
+                  </button>
                 </div>
               </div>
             </div>
@@ -743,22 +743,22 @@ export default function Dashboard() {
 
                   {/* Bannière dossier(s) débloqué(s) pour abonné professionnel */}
                   {activeTab === 'professionnel' && proAccess && !user.is_admin && (
-                    <div className="mt-4 rounded-2xl p-3" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE5CC)', border: '2px solid #C4521A' }}>
+                    <div className="mt-4 rounded-2xl p-3" style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '2px solid #1D4ED8' }}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
-                          <p className="text-xs font-bold text-amber-700 mb-1.5">✅ Concours professionnel : dossier(s) actif(s)</p>
+                          <p className="text-xs font-bold mb-1.5" style={{ color: '#1D4ED8' }}>✅ Concours professionnel : dossier(s) actif(s)</p>
                           {(() => {
                             const acc = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
                             const dp = (user.dossiers_principaux || []).filter(d => !acc.includes(d))
                             if (dp.length >= 14) return (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)', color: 'white' }}>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
                                 🏆 Accès complet (17 dossiers)
                               </span>
                             )
                             if (dp.length > 0) return (
                               <div className="flex flex-wrap gap-1.5 mb-1">
                                 {dp.map((d, i) => (
-                                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#C4521A,#D4A017)', color: 'white' }}>
+                                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
                                     🎓 {d}
                                   </span>
                                 ))}
@@ -770,7 +770,7 @@ export default function Dashboard() {
                             <span className="font-semibold">Bonus inclus :</span> 📰 Actualités · 📝 Entraînement QCM · 🎯 Accompagnement final
                           </p>
                         </div>
-                        <Link href="/select-specialty" className="flex-shrink-0 px-3 py-1.5 text-xs font-bold text-white rounded-xl" style={{ background: '#C4521A' }}>
+                        <Link href="/select-specialty" className="flex-shrink-0 px-3 py-1.5 text-xs font-bold text-white rounded-xl" style={{ background: '#1D4ED8' }}>
                           + Dossier
                         </Link>
                       </div>
@@ -904,27 +904,27 @@ export default function Dashboard() {
                     {directAccess && (
                       <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '2px solid #FFD0A8' }}>
                         <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>✅ Concours directs (12 dossiers)</p>
-                        <p className="text-green-600 text-xs mt-1 font-semibold">✅ Actif</p>
+                        <p className="text-green-600 text-xs mt-1 font-semibold">✅ Accès débloqué</p>
                       </div>
                     )}
                     {proAccess && (() => {
                       const accompagnements = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
                       const dossiersPrincipaux = (user.dossiers_principaux || []).filter(d => !accompagnements.includes(d))
                       return (
-                        <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '2px solid #FFE68A' }}>
+                        <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '2px solid #BFDBFE' }}>
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1">
-                              <p className="font-extrabold text-sm mb-2" style={{ color: '#B45309' }}>✅ Concours professionnel</p>
+                              <p className="font-extrabold text-sm mb-2" style={{ color: '#1D4ED8' }}>✅ Concours professionnel</p>
                               {dossiersPrincipaux.length >= 14 ? (
                                 <div>
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)', color: 'white' }}>
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
                                     🏆 Accès complet (17 dossiers)
                                   </span>
                                 </div>
                               ) : dossiersPrincipaux.length > 0 ? (
                                 <div className="flex flex-wrap gap-1.5 mb-2">
                                   {dossiersPrincipaux.map((d, i) => (
-                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#C4521A,#D4A017)', color: 'white' }}>
+                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
                                       🎓 {d}
                                     </span>
                                   ))}
@@ -940,7 +940,7 @@ export default function Dashboard() {
                               </div>
                               <p className="text-green-600 text-xs mt-2 font-semibold">✅ Actif</p>
                             </div>
-                            <Link href="/select-specialty" className="flex-shrink-0 px-2 py-1 text-xs font-bold text-white rounded-lg" style={{ background: '#C4521A' }}>
+                            <Link href="/select-specialty" className="flex-shrink-0 px-2 py-1 text-xs font-bold text-white rounded-lg" style={{ background: '#1D4ED8' }}>
                               + Dossier
                             </Link>
                           </div>
@@ -1496,7 +1496,7 @@ export default function Dashboard() {
               )}
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeMainTab === 'apropos' ? 'shadow-sm' : ''}`}
                 style={{ background: activeMainTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/logo.png" alt="À propos" width="28" height="28" style={{ objectFit: 'cover', borderRadius: 8, filter: activeMainTab === 'apropos' ? 'none' : 'grayscale(40%) opacity(0.65)' }} />
+                <img src="/icons/nav_apropos.svg" alt="À propos" width="24" height="24" style={{ objectFit: 'contain', filter: activeMainTab === 'apropos' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
               <span className="text-xs font-bold" style={{ color: activeMainTab === 'apropos' ? '#C4521A' : '#9CA3AF' }}>À propos</span>
             </button>
