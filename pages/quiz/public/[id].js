@@ -1,8 +1,11 @@
 // Page Quiz Publique – Accès aux 5 premières questions gratuites sans connexion
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
+
+const FREE_QUESTIONS_COUNT = 5
+const PROGRESS_KEY_PUBLIC = (catId) => `ifl_progress_guest_${catId}`
 
 export default function PublicQuizPage() {
   const router = useRouter()
@@ -18,10 +21,54 @@ export default function PublicQuizPage() {
   const [finished, setFinished] = useState(false)
   const [loadingQ, setLoadingQ] = useState(true)
   const [error, setError] = useState('')
+  const [answersMap, setAnswersMap] = useState({})
+  const touchStartX = useRef(null)
 
   useEffect(() => {
     if (id) fetchPublicQuestions()
   }, [id])
+
+  // Swipe tactile
+  useEffect(() => {
+    const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
+    const handleTouchEnd = (e) => {
+      if (touchStartX.current === null) return
+      const dx = e.changedTouches[0].clientX - touchStartX.current
+      if (Math.abs(dx) > 50) {
+        if (dx < 0) handleNext()
+        else handlePrev()
+      }
+      touchStartX.current = null
+    }
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchend', handleTouchEnd, { passive: true })
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [current, questions, answersMap])
+
+  const saveProgressLocal = (index) => {
+    if (!id) return
+    try {
+      localStorage.setItem(PROGRESS_KEY_PUBLIC(id), JSON.stringify({
+        questionIndex: index,
+        savedAt: new Date().toISOString(),
+        categorie_id: id
+      }))
+    } catch {}
+  }
+
+  const restoreProgressLocal = (questionsCount) => {
+    if (!id) return 0
+    try {
+      const saved = JSON.parse(localStorage.getItem(PROGRESS_KEY_PUBLIC(id)) || 'null')
+      if (saved && saved.categorie_id === id && saved.questionIndex > 0 && saved.questionIndex < questionsCount) {
+        return saved.questionIndex
+      }
+    } catch {}
+    return 0
+  }
 
   const fetchPublicQuestions = async () => {
     setLoadingQ(true)
@@ -32,9 +79,16 @@ export default function PublicQuizPage() {
       if (data.error) {
         setError(data.error)
       } else {
-        setQuestions(data.questions || [])
+        const qs = data.questions || []
+        setQuestions(qs)
         setCategoryName(data.categoryName || 'QCM')
         setCategoryType(data.categoryType || 'direct')
+
+        // Restaurer progression
+        const savedIndex = restoreProgressLocal(qs.length)
+        if (savedIndex > 0) {
+          setCurrent(savedIndex)
+        }
       }
     } catch {
       setError('Erreur de chargement des questions')
@@ -47,6 +101,8 @@ export default function PublicQuizPage() {
     setSelected(opt)
     setAnswered(true)
     if (opt === questions[current].bonne_reponse) setScore(s => s + 1)
+    setAnswersMap(prev => ({ ...prev, [current]: { selected: opt, answered: true } }))
+    saveProgressLocal(current)
   }
 
   const handleNext = () => {
@@ -55,17 +111,46 @@ export default function PublicQuizPage() {
       setFinished(true)
     } else {
       setCurrent(nextIndex)
-      setSelected(null)
-      setAnswered(false)
+      const savedAnswer = answersMap[nextIndex]
+      if (savedAnswer) {
+        setSelected(savedAnswer.selected)
+        setAnswered(savedAnswer.answered)
+      } else {
+        setSelected(null)
+        setAnswered(false)
+      }
+      saveProgressLocal(nextIndex)
     }
   }
 
   const handlePrev = () => {
     if (current > 0) {
-      setCurrent(c => c - 1)
+      const prevIndex = current - 1
+      setCurrent(prevIndex)
+      const savedAnswer = answersMap[prevIndex]
+      if (savedAnswer) {
+        setSelected(savedAnswer.selected)
+        setAnswered(savedAnswer.answered)
+      } else {
+        setSelected(null)
+        setAnswered(false)
+      }
+      saveProgressLocal(prevIndex)
+    }
+  }
+
+  const handleGoToQuestion = (index) => {
+    if (index < 0 || index >= questions.length) return
+    setCurrent(index)
+    const savedAnswer = answersMap[index]
+    if (savedAnswer) {
+      setSelected(savedAnswer.selected)
+      setAnswered(savedAnswer.answered)
+    } else {
       setSelected(null)
       setAnswered(false)
     }
+    saveProgressLocal(index)
   }
 
   const q = questions[current]
@@ -95,7 +180,7 @@ export default function PublicQuizPage() {
               )}
             </div>
             {!loadingQ && !error && !finished && (
-              <span className="text-white text-sm font-bold opacity-70 flex-shrink-0">
+              <span className="text-white text-sm font-bold opacity-80 flex-shrink-0 bg-white bg-opacity-20 px-3 py-1 rounded-xl">
                 {current + 1}/{total}
               </span>
             )}
@@ -123,10 +208,10 @@ export default function PublicQuizPage() {
                 <div className="text-6xl mb-4">📭</div>
                 <h3 className="text-xl font-extrabold text-gray-800 mb-2">Questions non disponibles</h3>
                 <p className="text-gray-500 mb-4">{error}</p>
-                <p className="text-gray-400 text-sm mb-6">Ce dossier n'a pas encore de questions gratuites configurées. Inscrivez-vous pour accéder à tout le contenu.</p>
+                <p className="text-gray-400 text-sm mb-6">Ce dossier n&apos;a pas encore de questions gratuites configurées. Inscrivez-vous pour accéder à tout le contenu.</p>
                 <div className="space-y-3">
                   <Link href="/register" className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl shadow-md active:scale-95" style={{ background: '#C4521A' }}>
-                    🚀 S'inscrire gratuitement
+                    🚀 S&apos;inscrire gratuitement
                   </Link>
                   <button onClick={() => router.push(`/?tab=concours&catType=${categoryType}`)} className="block w-full text-center text-gray-400 text-sm">
                     ← Retour aux dossiers
@@ -143,7 +228,7 @@ export default function PublicQuizPage() {
               <h3 className="text-xl font-bold text-gray-700 mb-2">Aucune question gratuite</h3>
               <p className="text-gray-500 mb-6">Inscrivez-vous pour accéder à toutes les questions de ce dossier.</p>
               <Link href="/register" className="inline-block px-6 py-3 font-bold text-white rounded-xl" style={{ background: '#C4521A' }}>
-                🚀 S'inscrire →
+                🚀 S&apos;inscrire →
               </Link>
             </div>
           )}
@@ -153,11 +238,11 @@ export default function PublicQuizPage() {
             <div className="mb-4 rounded-2xl p-3 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)' }}>
               <span className="text-2xl">🆓</span>
               <div className="flex-1">
-                <p className="text-amber-800 font-bold text-sm">Questions gratuites ({total} sur ce dossier)</p>
+                <p className="text-amber-800 font-bold text-sm">{total} questions gratuites sur ce dossier</p>
                 <p className="text-amber-700 text-xs">Inscrivez-vous pour accéder à toutes les questions</p>
               </div>
               <Link href="/register" className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>
-                S'inscrire
+                S&apos;inscrire
               </Link>
             </div>
           )}
@@ -179,10 +264,10 @@ export default function PublicQuizPage() {
                   <p className="text-amber-700 text-sm mt-1">{Math.round((score/total)*100)}% de réussite</p>
                 </div>
 
-                {/* Cadenas / appel à l'action pour voir plus */}
+                {/* Cadenas / appel à l'action */}
                 <div className="rounded-2xl p-5 mb-5" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
                   <div className="text-4xl mb-2">🔒</div>
-                  <p className="text-orange-200 text-sm mb-1">Vous avez terminé les 5 questions gratuites</p>
+                  <p className="text-orange-200 text-sm mb-1">Vous avez terminé les {FREE_QUESTIONS_COUNT} questions gratuites</p>
                   <p className="text-white font-bold text-base mb-1">Inscrivez-vous pour accéder à</p>
                   <p className="text-white font-bold text-lg">TOUTES les questions de ce dossier</p>
                   <p className="text-2xl font-extrabold text-white mt-2">{catPrice.toLocaleString()} FCFA</p>
@@ -194,13 +279,13 @@ export default function PublicQuizPage() {
                     className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl shadow-lg active:scale-95"
                     style={{ background: '#C4521A' }}
                   >
-                    🚀 S'inscrire gratuitement
+                    🚀 S&apos;inscrire gratuitement
                   </Link>
                   <Link href="/login" className="block w-full py-3.5 text-center font-bold rounded-xl border-2 border-amber-300 text-amber-800 active:scale-95">
                     🔓 Se connecter
                   </Link>
                   <button
-                    onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setFinished(false) }}
+                    onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setFinished(false); setAnswersMap({}) }}
                     className="w-full py-3 font-bold rounded-xl bg-gray-100 text-gray-600 active:scale-95"
                   >
                     🔄 Recommencer
@@ -216,7 +301,38 @@ export default function PublicQuizPage() {
           {/* Question */}
           {!loadingQ && !error && !finished && q && (
             <div className="animate-fadeIn">
-              {/* Flèches de navigation + compteur */}
+
+              {/* Points de navigation cliquables */}
+              <div className="mb-4">
+                <div className="flex gap-1.5 justify-center flex-wrap mb-2">
+                  {questions.map((_, i) => {
+                    const isAnswered = !!answersMap[i]
+                    const isCurrent = i === current
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => handleGoToQuestion(i)}
+                        title={`Question ${i+1}`}
+                        style={{
+                          width: 12, height: 12,
+                          borderRadius: '50%',
+                          border: isCurrent ? '2px solid #8B2500' : '1.5px solid #22C55E',
+                          background: isCurrent ? '#C4521A' : isAnswered ? '#D4A017' : '#BBF7D0',
+                          cursor: 'pointer',
+                          padding: 0,
+                          flexShrink: 0
+                        }}
+                        aria-label={`Question ${i+1}`}
+                      />
+                    )
+                  })}
+                </div>
+                <p className="text-center text-xs text-gray-500">
+                  🆓 Toutes gratuites · Cliquez sur un point pour naviguer
+                </p>
+              </div>
+
+              {/* Flèches de navigation */}
               <div className="flex items-center justify-between mb-4">
                 <button
                   onClick={handlePrev}
@@ -230,20 +346,17 @@ export default function PublicQuizPage() {
                   Précédente
                 </button>
                 <div className="text-center">
-                  <p className="text-sm font-bold" style={{ color: '#8B2500' }}>Question {current + 1} sur {total}</p>
-                  <div className="flex gap-1 mt-1 justify-center">
-                    {Array.from({ length: total }).map((_, i) => (
-                      <div key={i} className="w-2 h-2 rounded-full" style={{
-                        background: i < current ? '#D4A017' : i === current ? '#C4521A' : '#e5e7eb'
-                      }} />
-                    ))}
-                  </div>
+                  <p className="text-sm font-bold" style={{ color: '#8B2500' }}>Question {current + 1} / {total}</p>
+                  <p className="text-xs text-green-600 font-semibold">🆓 Gratuite</p>
                 </div>
                 <button
-                  onClick={answered ? handleNext : undefined}
-                  disabled={!answered}
+                  onClick={handleNext}
+                  disabled={current >= questions.length - 1}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
-                  style={{ background: !answered ? '#f3f4f6' : '#FFF0E8', color: !answered ? '#9ca3af' : '#C4521A' }}
+                  style={{
+                    background: current >= questions.length - 1 ? '#f3f4f6' : '#FFF0E8',
+                    color: current >= questions.length - 1 ? '#9ca3af' : '#C4521A'
+                  }}
                 >
                   Suivante
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -310,7 +423,6 @@ export default function PublicQuizPage() {
             </div>
           )}
         </div>
-
       </div>
     </>
   )

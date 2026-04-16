@@ -1,10 +1,11 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '../_app'
 
 const PROGRESS_KEY = (userId, catId) => `ifl_progress_${userId || 'guest'}_${catId}`
+const FREE_QUESTIONS_COUNT = 5
 
 export default function QuizPage() {
   const { user, loading, getToken } = useAuth()
@@ -23,6 +24,10 @@ export default function QuizPage() {
   const [hasFullAccess, setHasFullAccess] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
   const [progressRestored, setProgressRestored] = useState(false)
+  const [showPaywallOverlay, setShowPaywallOverlay] = useState(false)
+  // Map { questionIndex: { selected, answered } } pour mémoriser les réponses
+  const [answersMap, setAnswersMap] = useState({})
+  const touchStartX = useRef(null)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -33,6 +38,26 @@ export default function QuizPage() {
   useEffect(() => {
     if (id && user) fetchQuestions()
   }, [id, user])
+
+  // Swipe tactile gauche/droite
+  useEffect(() => {
+    const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
+    const handleTouchEnd = (e) => {
+      if (touchStartX.current === null) return
+      const dx = e.changedTouches[0].clientX - touchStartX.current
+      if (Math.abs(dx) > 50) {
+        if (dx < 0) handleNext()
+        else handlePrev()
+      }
+      touchStartX.current = null
+    }
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchend', handleTouchEnd, { passive: true })
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [current, questions, hasFullAccess, answersMap])
 
   // Sauvegarder la progression dans localStorage
   const saveProgress = (questionIndex) => {
@@ -64,7 +89,7 @@ export default function QuizPage() {
     } catch {}
   }
 
-  // Restaurer la progression
+  // Restaurer la progression (localStorage d'abord, puis serveur si disponible)
   const restoreProgress = (questionsCount) => {
     if (!id || progressRestored) return 0
     setProgressRestored(true)
@@ -112,12 +137,23 @@ export default function QuizPage() {
     setLoadingQ(false)
   }
 
+  // Détermine si une question est gratuite (ordre 1-5)
+  const isQuestionFree = (index) => index < FREE_QUESTIONS_COUNT
+
   const handleSelect = (opt) => {
     if (answered) return
+    // Bloquer si payant sans accès
+    if (!hasFullAccess && !isQuestionFree(current)) {
+      setShowPaywallOverlay(true)
+      return
+    }
     setSelected(opt)
     setAnswered(true)
     const isCorrect = opt === questions[current].bonne_reponse
     if (isCorrect) setScore(s => s + 1)
+
+    // Mémoriser la réponse
+    setAnswersMap(prev => ({ ...prev, [current]: { selected: opt, answered: true } }))
 
     // Sauvegarder la progression
     saveProgress(current)
@@ -143,13 +179,29 @@ export default function QuizPage() {
         setShowUpgrade(true)
       } else {
         setFinished(true)
-        // Réinitialiser progression à la fin
         saveProgress(0)
       }
     } else {
+      // Si question payante sans accès, afficher l'overlay
+      if (!hasFullAccess && !isQuestionFree(nextIndex)) {
+        setShowPaywallOverlay(true)
+        setCurrent(nextIndex)
+        setSelected(null)
+        setAnswered(false)
+        saveProgress(nextIndex)
+        saveProgressServer(nextIndex)
+        return
+      }
       setCurrent(nextIndex)
-      setSelected(null)
-      setAnswered(false)
+      // Restaurer la réponse mémorisée si elle existe
+      const savedAnswer = answersMap[nextIndex]
+      if (savedAnswer) {
+        setSelected(savedAnswer.selected)
+        setAnswered(savedAnswer.answered)
+      } else {
+        setSelected(null)
+        setAnswered(false)
+      }
       saveProgress(nextIndex)
       saveProgressServer(nextIndex)
     }
@@ -159,10 +211,41 @@ export default function QuizPage() {
     if (current > 0) {
       const prevIndex = current - 1
       setCurrent(prevIndex)
+      // Restaurer la réponse mémorisée
+      const savedAnswer = answersMap[prevIndex]
+      if (savedAnswer) {
+        setSelected(savedAnswer.selected)
+        setAnswered(savedAnswer.answered)
+      } else {
+        setSelected(null)
+        setAnswered(false)
+      }
+      saveProgress(prevIndex)
+      setShowPaywallOverlay(false)
+    }
+  }
+
+  // Naviguer directement vers une question via les points
+  const handleGoToQuestion = (index) => {
+    if (!hasFullAccess && !isQuestionFree(index)) {
+      setShowPaywallOverlay(true)
+      setCurrent(index)
       setSelected(null)
       setAnswered(false)
-      saveProgress(prevIndex)
+      saveProgress(index)
+      return
     }
+    setCurrent(index)
+    const savedAnswer = answersMap[index]
+    if (savedAnswer) {
+      setSelected(savedAnswer.selected)
+      setAnswered(savedAnswer.answered)
+    } else {
+      setSelected(null)
+      setAnswered(false)
+    }
+    setShowPaywallOverlay(false)
+    saveProgress(index)
   }
 
   if (loading || !user) {
@@ -175,9 +258,12 @@ export default function QuizPage() {
 
   const q = questions[current]
   const total = questions.length
+  const freeCount = Math.min(FREE_QUESTIONS_COUNT, total)
   const progress = total > 0 ? ((current + (answered ? 1 : 0)) / total) * 100 : 0
   const catType = category?.type || 'direct'
   const catPrice = catType === 'professionnel' ? 20000 : 5000
+  const isCurrentFree = isQuestionFree(current)
+  const isLocked = !hasFullAccess && !isCurrentFree
 
   return (
     <>
@@ -200,7 +286,7 @@ export default function QuizPage() {
                 <p className="text-orange-200 text-xs">
                   {hasFullAccess
                     ? `${total} question${total > 1 ? 's' : ''}`
-                    : `${total} question${total > 1 ? 's' : ''} gratuites`}
+                    : `🆓 ${freeCount} gratuites · 🔒 ${Math.max(0, total - freeCount)} payantes`}
                 </p>
               )}
             </div>
@@ -260,8 +346,8 @@ export default function QuizPage() {
             <div className="mb-4 rounded-2xl p-3 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)' }}>
               <span className="text-2xl">🆓</span>
               <div className="flex-1">
-                <p className="text-amber-800 font-bold text-sm">Questions gratuites ({total} sur ce dossier)</p>
-                <p className="text-amber-700 text-xs">Abonnez-vous pour accéder à toutes les questions</p>
+                <p className="text-amber-800 font-bold text-sm">{freeCount} questions gratuites sur ce dossier</p>
+                <p className="text-amber-700 text-xs">Les questions {freeCount+1}+ nécessitent un abonnement 🔒</p>
               </div>
               <Link href={`/payment?type=${catType}&montant=${catPrice}`} className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>
                 Débloquer
@@ -283,7 +369,7 @@ export default function QuizPage() {
                 <div className="rounded-2xl p-4 mb-5" style={{ background: '#FFF7E6' }}>
                   <p className="text-amber-800 font-bold text-lg">Score sur les questions gratuites</p>
                   <p className="text-4xl font-extrabold mt-1" style={{ color: '#C4521A' }}>
-                    {score}<span className="text-xl text-gray-400">/{total}</span>
+                    {score}<span className="text-xl text-gray-400">/{freeCount}</span>
                   </p>
                 </div>
                 <div className="rounded-2xl p-5 mb-5" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
@@ -300,7 +386,7 @@ export default function QuizPage() {
                     💳 S&apos;abonner – {catPrice.toLocaleString()} FCFA
                   </Link>
                   <button
-                    onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setShowUpgrade(false); saveProgress(0) }}
+                    onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setShowUpgrade(false); setAnswersMap({}); saveProgress(0) }}
                     className="w-full py-3.5 font-bold rounded-xl border-2 border-amber-300 text-amber-800 active:scale-95"
                   >
                     🔄 Recommencer les questions gratuites
@@ -329,7 +415,7 @@ export default function QuizPage() {
                   <p className="text-orange-200 text-sm mt-2">{Math.round((score/total)*100)}% de réussite</p>
                 </div>
                 <div className="space-y-3">
-                  <button onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setFinished(false); saveProgress(0) }}
+                  <button onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setFinished(false); setAnswersMap({}); saveProgress(0) }}
                     className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-md active:scale-95"
                     style={{ background: '#C4521A' }}>
                     🔄 Recommencer
@@ -345,7 +431,59 @@ export default function QuizPage() {
           {/* Question */}
           {!loadingQ && !error && !finished && !showUpgrade && q && (
             <div className="animate-fadeIn">
-              {/* Flèches de navigation + compteur */}
+
+              {/* Indicateur de navigation : points cliquables avec distinction gratuit/payant */}
+              <div className="mb-4">
+                <div className="flex gap-1 justify-center flex-wrap mb-2">
+                  {questions.map((_, i) => {
+                    const isFree = isQuestionFree(i)
+                    const isAnswered = !!answersMap[i]
+                    const isCurrent = i === current
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => handleGoToQuestion(i)}
+                        title={isFree ? `Q${i+1} – Gratuite` : `Q${i+1} – Payante`}
+                        style={{
+                          width: 10, height: 10,
+                          borderRadius: '50%',
+                          border: isCurrent ? '2px solid #8B2500' : (isFree ? '1.5px solid #22C55E' : '1.5px solid #9CA3AF'),
+                          background: isCurrent
+                            ? '#C4521A'
+                            : isAnswered
+                              ? '#D4A017'
+                              : isFree
+                                ? '#BBF7D0'
+                                : '#E5E7EB',
+                          cursor: 'pointer',
+                          padding: 0,
+                          flexShrink: 0
+                        }}
+                        aria-label={`Aller à la question ${i+1}`}
+                      />
+                    )
+                  })}
+                </div>
+                {/* Légende */}
+                {!hasFullAccess && (
+                  <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#BBF7D0', border: '1.5px solid #22C55E', display: 'inline-block' }}></span>
+                      Gratuite (1-{freeCount})
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#E5E7EB', border: '1.5px solid #9CA3AF', display: 'inline-block' }}></span>
+                      Payante 🔒
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#D4A017', display: 'inline-block' }}></span>
+                      Répondue
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Flèches de navigation */}
               <div className="flex items-center justify-between mb-4">
                 <button
                   onClick={handlePrev}
@@ -360,26 +498,33 @@ export default function QuizPage() {
                 </button>
 
                 <div className="text-center">
-                  <p className="text-sm font-bold" style={{ color: '#8B2500' }}>
-                    Question {current + 1} sur {total}
+                  <p className="text-sm font-bold" style={{ color: isLocked ? '#6B7280' : '#8B2500' }}>
+                    {isLocked ? (
+                      <span className="flex items-center gap-1 justify-center">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        Q{current + 1} – Payante
+                      </span>
+                    ) : (
+                      `Question ${current + 1} / ${total}`
+                    )}
                   </p>
-                  <div className="flex gap-1 mt-1 justify-center">
-                    {Array.from({ length: Math.min(total, 10) }).map((_, i) => {
-                      const qIndex = total <= 10 ? i : Math.floor(i * total / 10)
-                      return (
-                        <div key={i} className="w-2 h-2 rounded-full" style={{
-                          background: qIndex < current ? '#D4A017' : qIndex === current ? '#C4521A' : '#e5e7eb'
-                        }} />
-                      )
-                    })}
-                  </div>
+                  {!hasFullAccess && (
+                    <p className="text-xs mt-0.5" style={{ color: isLocked ? '#EF4444' : '#22C55E' }}>
+                      {isLocked ? '🔒 Abonnement requis' : '🆓 Gratuite'}
+                    </p>
+                  )}
                 </div>
 
                 <button
-                  onClick={answered ? handleNext : undefined}
-                  disabled={!answered}
+                  onClick={handleNext}
+                  disabled={current >= questions.length - 1 && !hasFullAccess}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
-                  style={{ background: !answered ? '#f3f4f6' : '#FFF0E8', color: !answered ? '#9ca3af' : '#C4521A' }}
+                  style={{
+                    background: current >= questions.length - 1 ? '#f3f4f6' : '#FFF0E8',
+                    color: current >= questions.length - 1 ? '#9ca3af' : '#C4521A'
+                  }}
                 >
                   Suivante
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -388,55 +533,126 @@ export default function QuizPage() {
                 </button>
               </div>
 
-              <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-6 mb-5">
-                <div className="flex items-start gap-3 mb-6">
-                  <span className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                    style={{ background: '#D4A017' }}>{current + 1}</span>
-                  <p className="text-gray-800 font-semibold text-lg leading-relaxed">{q.question_text}</p>
-                </div>
-
-                <div className="space-y-3">
-                  {['A', 'B', 'C', 'D'].map(opt => {
-                    const optText = q[`option_${opt.toLowerCase()}`]
-                    let cls = 'question-option'
-                    if (answered) {
-                      if (opt === q.bonne_reponse) cls += ' correct'
-                      else if (opt === selected) cls += ' wrong'
-                      else cls += ' disabled opacity-50'
-                    }
-                    return (
-                      <button key={opt} className={cls} onClick={() => handleSelect(opt)}>
-                        <span className="inline-flex w-7 h-7 rounded-full items-center justify-center text-sm font-bold mr-3 flex-shrink-0"
-                          style={{
-                            background: answered && opt === q.bonne_reponse ? '#D4A017' : answered && opt === selected ? '#dc2626' : '#f3f4f6',
-                            color: answered && (opt === q.bonne_reponse || opt === selected) ? 'white' : '#374151'
-                          }}>
-                          {opt}
-                        </span>
-                        {optText}
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {answered && (
-                  <div className="mt-5 animate-fadeIn rounded-2xl p-4"
-                    style={{ background: selected === q.bonne_reponse ? '#FFF7E6' : '#FFF7F0', borderLeft: `4px solid ${selected === q.bonne_reponse ? '#D4A017' : '#C4521A'}` }}>
-                    <p className="font-bold mb-1.5 text-sm" style={{ color: selected === q.bonne_reponse ? '#D4A017' : '#C4521A' }}>
-                      {selected === q.bonne_reponse ? '✅ Bonne réponse !' : `❌ Mauvaise – Bonne réponse : ${q.bonne_reponse}`}
-                    </p>
-                    <p className="text-gray-700 text-sm leading-relaxed">{q.explication}</p>
+              {/* OVERLAY PAYANT */}
+              {isLocked && showPaywallOverlay && (
+                <div className="animate-popIn rounded-3xl overflow-hidden shadow-xl border-2 mb-5" style={{ borderColor: '#C4521A' }}>
+                  <div className="p-6 text-center" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
+                    <div className="text-5xl mb-3">🔒</div>
+                    <h3 className="text-white font-extrabold text-xl mb-1">Question {current + 1} – Payante</h3>
+                    <p className="text-orange-200 text-sm">Les questions {FREE_QUESTIONS_COUNT+1}+ nécessitent un abonnement</p>
                   </div>
-                )}
-              </div>
+                  <div className="bg-white p-6">
+                    <div className="rounded-2xl p-4 mb-4" style={{ background: '#FFF7E6' }}>
+                      <p className="text-amber-800 font-bold text-center">Votre score actuel</p>
+                      <p className="text-3xl font-extrabold text-center mt-1" style={{ color: '#C4521A' }}>
+                        {score}<span className="text-lg text-gray-400">/{freeCount}</span>
+                      </p>
+                      <p className="text-amber-700 text-xs text-center mt-1">sur les {freeCount} questions gratuites</p>
+                    </div>
+                    <Link
+                      href={`/payment?type=${catType}&montant=${catPrice}`}
+                      className="block w-full py-4 text-center text-base font-bold text-white rounded-xl shadow-lg active:scale-95 mb-3"
+                      style={{ background: 'linear-gradient(135deg,#C4521A,#8B2500)' }}
+                    >
+                      💳 Débloquer tout – {catPrice.toLocaleString()} FCFA
+                    </Link>
+                    <button
+                      onClick={() => { setShowPaywallOverlay(false); handleGoToQuestion(0) }}
+                      className="w-full py-3 font-bold rounded-xl border-2 border-amber-300 text-amber-800 text-sm active:scale-95"
+                    >
+                      ← Revoir les questions gratuites
+                    </button>
+                  </div>
+                </div>
+              )}
 
-              {answered && (
-                <button onClick={handleNext} className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg active:scale-95 animate-popIn"
-                  style={{ background: 'linear-gradient(135deg, #C4521A, #8B2500)' }}>
-                  {current + 1 >= total
-                    ? (hasFullAccess ? '📊 Voir mes résultats' : '🔓 Voir le résumé')
-                    : 'Question suivante →'}
-                </button>
+              {/* Carte Question (masquée si payante et overlay visible) */}
+              {!(isLocked && showPaywallOverlay) && (
+                <>
+                  {/* Badge gratuit/payant sur la question */}
+                  {!hasFullAccess && (
+                    <div className="flex justify-end mb-2">
+                      <span
+                        className="text-xs font-bold px-3 py-1 rounded-full"
+                        style={{
+                          background: isCurrentFree ? '#ECFDF5' : '#FEF2F2',
+                          color: isCurrentFree ? '#15803D' : '#DC2626',
+                          border: `1px solid ${isCurrentFree ? '#BBF7D0' : '#FECACA'}`
+                        }}
+                      >
+                        {isCurrentFree ? '🆓 Gratuite' : '🔒 Payante'}
+                      </span>
+                    </div>
+                  )}
+
+                  <div
+                    className="bg-white rounded-3xl shadow-md border p-6 mb-5"
+                    style={{ borderColor: isLocked ? '#FECACA' : '#FDE68A', opacity: isLocked ? 0.7 : 1 }}
+                  >
+                    <div className="flex items-start gap-3 mb-6">
+                      <span className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                        style={{ background: isLocked ? '#9CA3AF' : '#D4A017' }}>{current + 1}</span>
+                      <p className="text-gray-800 font-semibold text-lg leading-relaxed">
+                        {isLocked ? '🔒 Cette question est réservée aux abonnés.' : q.question_text}
+                      </p>
+                    </div>
+
+                    {!isLocked && (
+                      <div className="space-y-3">
+                        {['A', 'B', 'C', 'D'].map(opt => {
+                          const optText = q[`option_${opt.toLowerCase()}`]
+                          let cls = 'question-option'
+                          if (answered) {
+                            if (opt === q.bonne_reponse) cls += ' correct'
+                            else if (opt === selected) cls += ' wrong'
+                            else cls += ' disabled opacity-50'
+                          }
+                          return (
+                            <button key={opt} className={cls} onClick={() => handleSelect(opt)}>
+                              <span className="inline-flex w-7 h-7 rounded-full items-center justify-center text-sm font-bold mr-3 flex-shrink-0"
+                                style={{
+                                  background: answered && opt === q.bonne_reponse ? '#D4A017' : answered && opt === selected ? '#dc2626' : '#f3f4f6',
+                                  color: answered && (opt === q.bonne_reponse || opt === selected) ? 'white' : '#374151'
+                                }}>
+                                {opt}
+                              </span>
+                              {optText}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {isLocked && (
+                      <Link
+                        href={`/payment?type=${catType}&montant=${catPrice}`}
+                        className="block w-full py-3.5 text-center font-bold text-white rounded-xl active:scale-95"
+                        style={{ background: 'linear-gradient(135deg,#C4521A,#8B2500)' }}
+                      >
+                        💳 Débloquer – {catPrice.toLocaleString()} FCFA
+                      </Link>
+                    )}
+
+                    {answered && !isLocked && (
+                      <div className="mt-5 animate-fadeIn rounded-2xl p-4"
+                        style={{ background: selected === q.bonne_reponse ? '#FFF7E6' : '#FFF7F0', borderLeft: `4px solid ${selected === q.bonne_reponse ? '#D4A017' : '#C4521A'}` }}>
+                        <p className="font-bold mb-1.5 text-sm" style={{ color: selected === q.bonne_reponse ? '#D4A017' : '#C4521A' }}>
+                          {selected === q.bonne_reponse ? '✅ Bonne réponse !' : `❌ Mauvaise – Bonne réponse : ${q.bonne_reponse}`}
+                        </p>
+                        <p className="text-gray-700 text-sm leading-relaxed">{q.explication}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {answered && !isLocked && (
+                    <button onClick={handleNext} className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg active:scale-95 animate-popIn"
+                      style={{ background: 'linear-gradient(135deg, #C4521A, #8B2500)' }}>
+                      {current + 1 >= total
+                        ? (hasFullAccess ? '📊 Voir mes résultats' : '🔓 Voir le résumé')
+                        : 'Question suivante →'}
+                    </button>
+                  )}
+                </>
               )}
             </div>
           )}

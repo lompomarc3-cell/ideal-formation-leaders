@@ -798,11 +798,29 @@ export default function Dashboard() {
           <div className="animate-fadeIn">
             <div style={{ background: 'linear-gradient(160deg,#8B2500,#C4521A)' }}>
               <div className="max-w-lg mx-auto px-4 py-8 text-center">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-3"
-                  style={{ background: 'rgba(255,255,255,0.2)', border: '3px solid rgba(255,255,255,0.4)' }}>
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                  </svg>
+                {/* Icône moderne Mon Profil – avatar premium avec badge étoile */}
+                <div className="relative w-24 h-24 mx-auto mb-4">
+                  <div style={{
+                    width: 96, height: 96, borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.15)',
+                    border: '3px solid rgba(255,255,255,0.5)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 2px 4px rgba(255,255,255,0.2)'
+                  }}>
+                    <svg width="54" height="54" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <ellipse cx="32" cy="52" rx="20" ry="10" fill="rgba(255,255,255,0.25)"/>
+                      <path d="M18 54c0-7.732 6.268-14 14-14s14 6.268 14 14" fill="white" fillOpacity="0.9"/>
+                      <circle cx="32" cy="24" r="12" fill="white"/>
+                      <ellipse cx="32" cy="16" rx="9" ry="5" fill="rgba(212,160,23,0.6)"/>
+                      <circle cx="46" cy="44" r="9" fill="#D4A017"/>
+                      <path d="M46 38l1.8 3.6 4 .6-2.9 2.8.7 3.9L46 47l-3.6 1.9.7-3.9-2.9-2.8 4-.6z" fill="white"/>
+                    </svg>
+                  </div>
+                  <div style={{
+                    position: 'absolute', inset: -4, borderRadius: '50%',
+                    border: '2px dashed rgba(212,160,23,0.6)',
+                    animation: 'spin 8s linear infinite'
+                  }}/>
                 </div>
                 <h2 className="text-white font-extrabold text-2xl mb-0.5">Mon Profil</h2>
                 {/* Nom et prénom */}
@@ -1109,11 +1127,28 @@ export default function Dashboard() {
           <div className="animate-fadeIn">
             <div style={{ background: 'linear-gradient(160deg,#8B2500,#C4521A)' }}>
               <div className="max-w-lg mx-auto px-4 py-8 text-center">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3"
-                  style={{ background: 'rgba(255,255,255,0.15)' }}>
-                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
-                    <circle cx="12" cy="12" r="10"/><path d="M12 8V8.01M12 11V16" strokeWidth="2.2"/>
-                  </svg>
+                {/* Icône moderne À propos – bouclier diplôme IFL */}
+                <div className="relative w-20 h-20 mx-auto mb-4">
+                  <div style={{
+                    width: 80, height: 80, borderRadius: 22,
+                    background: 'rgba(255,255,255,0.15)',
+                    border: '2px solid rgba(255,255,255,0.4)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.2), inset 0 1px 3px rgba(255,255,255,0.25)'
+                  }}>
+                    <svg width="46" height="46" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M32 6L10 16v16c0 12 10 20 22 24 12-4 22-12 22-24V16L32 6z" fill="white" fillOpacity="0.95"/>
+                      <path d="M32 12L14 21v13c0 9 7.5 15 18 18 10.5-3 18-9 18-18V21L32 12z" fill="#C4521A" fillOpacity="0.25"/>
+                      <path d="M22 28l10-5 10 5-10 5z" fill="#D4A017"/>
+                      <rect x="30" y="33" width="4" height="6" rx="1" fill="#D4A017"/>
+                      <ellipse cx="32" cy="39" rx="5" ry="2" fill="#D4A017" fillOpacity="0.7"/>
+                      <circle cx="20" cy="22" r="2" fill="white" fillOpacity="0.7"/>
+                      <circle cx="44" cy="22" r="2" fill="white" fillOpacity="0.7"/>
+                      <circle cx="32" cy="18" r="1.5" fill="white" fillOpacity="0.9"/>
+                    </svg>
+                  </div>
+                  <div style={{ position: 'absolute', top: -2, right: -2, width: 12, height: 12, borderRadius: '50%', background: '#D4A017', boxShadow: '0 2px 6px rgba(212,160,23,0.5)' }}/>
+                  <div style={{ position: 'absolute', bottom: -2, left: -2, width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.6)' }}/>
                 </div>
                 <h2 className="text-white font-extrabold text-2xl mb-1">À propos</h2>
                 <p className="text-orange-200 text-sm">IFL, notre équipe et aide</p>
