@@ -1,7 +1,7 @@
 // IFL Service Worker – Progressive Web App
-// Version : 1.3.0 – Mise à jour icône + boutons démo
-const CACHE_VERSION = 'ifl-cache-v3'
-const STATIC_CACHE = 'ifl-static-v3'
+// Version : 1.4.0 – Icônes PWA depuis vrai logo + boutons démo harmonisés
+const CACHE_VERSION = 'ifl-cache-v4'
+const STATIC_CACHE = 'ifl-static-v4'
 const API_CACHE = 'ifl-api-v1'
 
 // Ressources à mettre en cache immédiatement (installation)
@@ -53,13 +53,13 @@ const STATIC_ASSETS = [
 
 // ===== INSTALLATION =====
 self.addEventListener('install', (event) => {
-  console.log('[IFL SW] Installation v3 – nouvelle icône...')
+  console.log('[IFL SW] Installation v4 – vrai logo + couleurs boutons...')
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { cache: 'reload' })))
         .catch(err => console.warn('[IFL SW] Erreur mise en cache statique:', err))
     }).then(() => {
-      console.log('[IFL SW] Installation v3 terminée')
+      console.log('[IFL SW] Installation v4 terminée')
       return self.skipWaiting()
     })
   )
@@ -67,19 +67,19 @@ self.addEventListener('install', (event) => {
 
 // ===== ACTIVATION – Supprime TOUS les anciens caches =====
 self.addEventListener('activate', (event) => {
-  console.log('[IFL SW] Activation v3...')
+  console.log('[IFL SW] Activation v4...')
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys
-          .filter(key => key !== STATIC_CACHE && key !== API_CACHE)
+          .filter(key => key !== STATIC_CACHE && key !== API_CACHE && key !== 'ifl-cache-v4')
           .map(key => {
             console.log('[IFL SW] Suppression ancien cache:', key)
             return caches.delete(key)
           })
       )
     }).then(() => {
-      console.log('[IFL SW] Activation v3 terminée – cache nettoyé')
+      console.log('[IFL SW] Activation v4 terminée – cache nettoyé')
       return self.clients.claim()
     })
   )

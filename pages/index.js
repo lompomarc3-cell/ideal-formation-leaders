@@ -596,7 +596,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <div className="flex-1"><p className="font-bold text-amber-800 text-sm">Démo gratuite – 10 questions</p></div>
-                <Link href="/demo" className="px-4 py-2 font-bold text-white rounded-xl text-xs active:scale-95" style={{ background: '#FFB300' }}>Essayer</Link>
+                <Link href="/demo" className="px-4 py-2 font-bold text-white rounded-xl text-xs active:scale-95" style={{ background: '#FFB347' }}>Essayer</Link>
               </div>
             </div>
           </div>
