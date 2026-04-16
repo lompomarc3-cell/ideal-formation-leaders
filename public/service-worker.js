@@ -13,6 +13,8 @@ const STATIC_ASSETS = [
   '/icons/nav_concours.svg',
   '/icons/nav_profil.svg',
   '/icons/nav_apropos.svg',
+  '/icons/nav_direct.svg',
+  '/icons/nav_pro.svg',
   '/icons/direct_globe.svg',
   '/icons/direct_book.svg',
   '/icons/direct_palette.svg',

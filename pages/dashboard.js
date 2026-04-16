@@ -840,16 +840,6 @@ export default function Dashboard() {
                     isAdmin={user.is_admin}
                   />
 
-                  {/* CTA vers directs */}
-                  {!directAccess && !user.is_admin && (
-                    <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#F97316,#FB923C)' }}>
-                      <p className="text-white font-bold mb-1">📚 Vous préparez un concours direct ?</p>
-                      <p className="text-orange-100 text-sm mb-3">{prices.direct.toLocaleString()} FCFA – 12 dossiers thématiques</p>
-                      <button onClick={() => setActiveMainTab('concours-direct')} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#EA580C' }}>
-                        Voir les concours directs →
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -1446,10 +1436,10 @@ export default function Dashboard() {
                 <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
               <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all`}
-                style={{ background: activeMainTab === 'accueil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_home.svg" alt="Accueil" width="22" height="22" style={{ objectFit: 'contain', filter: activeMainTab === 'accueil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+                style={{ background: activeMainTab === 'accueil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'rgba(196,82,26,0.07)' }}>
+                <img src="/icons/nav_home.svg" alt="Accueil" width="22" height="22" style={{ objectFit: 'contain', filter: activeMainTab === 'accueil' ? 'none' : 'grayscale(20%) opacity(0.75)' }} />
               </div>
-              <span className="text-xs font-bold" style={{ color: activeMainTab === 'accueil' ? '#C4521A' : '#9CA3AF', fontSize: '10px' }}>Accueil</span>
+              <span className="text-xs font-bold" style={{ color: activeMainTab === 'accueil' ? '#C4521A' : '#7C6A5A', fontSize: '10px' }}>Accueil</span>
             </button>
 
             {/* Onglet Concours Direct */}
@@ -1461,12 +1451,12 @@ export default function Dashboard() {
                 <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#F97316,#FB923C)' }} />
               )}
               <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all`}
-                style={{ background: activeMainTab === 'concours-direct' ? 'linear-gradient(135deg,#FFF7ED,#FFEDD5)' : 'transparent' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeMainTab === 'concours-direct' ? '#F97316' : '#9CA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                style={{ background: activeMainTab === 'concours-direct' ? 'linear-gradient(135deg,#FFF7ED,#FFEDD5)' : 'rgba(249,115,22,0.08)' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeMainTab === 'concours-direct' ? '#F97316' : '#EA7C45'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
                 </svg>
               </div>
-              <span className="font-bold" style={{ color: activeMainTab === 'concours-direct' ? '#F97316' : '#9CA3AF', fontSize: '10px' }}>C. Direct</span>
+              <span className="font-bold" style={{ color: activeMainTab === 'concours-direct' ? '#F97316' : '#EA7C45', fontSize: '10px' }}>C. Direct</span>
             </button>
 
             {/* Onglet Concours Professionnel */}
@@ -1478,12 +1468,12 @@ export default function Dashboard() {
                 <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#1D4ED8,#3B82F6)' }} />
               )}
               <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all`}
-                style={{ background: activeMainTab === 'concours-professionnel' ? 'linear-gradient(135deg,#EFF6FF,#DBEAFE)' : 'transparent' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeMainTab === 'concours-professionnel' ? '#1D4ED8' : '#9CA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+                style={{ background: activeMainTab === 'concours-professionnel' ? 'linear-gradient(135deg,#EFF6FF,#DBEAFE)' : 'rgba(29,78,216,0.08)' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeMainTab === 'concours-professionnel' ? '#1D4ED8' : '#3B67CC'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                 </svg>
               </div>
-              <span className="font-bold" style={{ color: activeMainTab === 'concours-professionnel' ? '#1D4ED8' : '#9CA3AF', fontSize: '10px' }}>C. Pro</span>
+              <span className="font-bold" style={{ color: activeMainTab === 'concours-professionnel' ? '#1D4ED8' : '#3B67CC', fontSize: '10px' }}>C. Pro</span>
             </button>
 
             {/* Onglet Mon Profil */}
@@ -1495,10 +1485,10 @@ export default function Dashboard() {
                 <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
               <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all`}
-                style={{ background: activeMainTab === 'profil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_profil.svg" alt="Profil" width="22" height="22" style={{ objectFit: 'contain', filter: activeMainTab === 'profil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+                style={{ background: activeMainTab === 'profil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'rgba(196,82,26,0.07)' }}>
+                <img src="/icons/nav_profil.svg" alt="Profil" width="22" height="22" style={{ objectFit: 'contain', filter: activeMainTab === 'profil' ? 'none' : 'grayscale(20%) opacity(0.75)' }} />
               </div>
-              <span className="font-bold" style={{ color: activeMainTab === 'profil' ? '#C4521A' : '#9CA3AF', fontSize: '10px' }}>Profil</span>
+              <span className="font-bold" style={{ color: activeMainTab === 'profil' ? '#C4521A' : '#7C6A5A', fontSize: '10px' }}>Profil</span>
             </button>
 
             {/* Onglet À propos */}
@@ -1510,10 +1500,10 @@ export default function Dashboard() {
                 <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
               <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all`}
-                style={{ background: activeMainTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_apropos.svg" alt="À propos" width="22" height="22" style={{ objectFit: 'contain', filter: activeMainTab === 'apropos' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+                style={{ background: activeMainTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'rgba(196,82,26,0.07)' }}>
+                <img src="/icons/nav_apropos.svg" alt="À propos" width="22" height="22" style={{ objectFit: 'contain', filter: activeMainTab === 'apropos' ? 'none' : 'grayscale(20%) opacity(0.75)' }} />
               </div>
-              <span className="font-bold" style={{ color: activeMainTab === 'apropos' ? '#C4521A' : '#9CA3AF', fontSize: '10px' }}>À propos</span>
+              <span className="font-bold" style={{ color: activeMainTab === 'apropos' ? '#C4521A' : '#7C6A5A', fontSize: '10px' }}>À propos</span>
             </button>
 
           </div>
