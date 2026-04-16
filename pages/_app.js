@@ -412,14 +412,17 @@ export default function App({ Component, pageProps }) {
         <meta name="theme-color" content="#8B2500" />
         <meta name="msapplication-TileColor" content="#8B2500" />
         <meta name="msapplication-TileImage" content="/logo.png" />
-        {/* Apple Touch Icons */}
-        <link rel="apple-touch-icon" href="/logo.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/logo.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/logo.png" />
-        <link rel="apple-touch-icon" sizes="167x167" href="/logo.png" />
+        {/* Apple Touch Icons – Logo IFL officiel */}
+        <link rel="apple-touch-icon" href="/pwa-icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/pwa-icons/icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/pwa-icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/pwa-icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/pwa-icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/pwa-icons/icon-512x512.png" />
         {/* Favicon */}
-        <link rel="icon" type="image/png" href="/logo.png" />
-        <link rel="shortcut icon" href="/logo.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/pwa-icons/icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
+        <link rel="shortcut icon" href="/favicon.ico" />
         {/* Description SEO */}
         <meta name="description" content="Préparez vos concours directs et professionnels au Burkina Faso. Des milliers de QCM avec 5 questions gratuites par dossier." />
       </Head>

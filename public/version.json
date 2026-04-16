@@ -1,7 +1,13 @@
 {
-  "version": "1.5.0",
-  "date": "2025-01-01",
-  "description": "Import massif questions IFL - 605 questions directes",
+  "version": "1.6.0",
+  "date": "2025-06-01",
+  "description": "Mise à jour icône officielle IFL + boutons démo harmonisés",
+  "changes": [
+    "Icône PWA officielle IFL intégrée (8 tailles: 72px à 512px)",
+    "Bouton Démo page Concours Direct: orange jaune (#FFB300)",
+    "Bouton Démo page Concours Professionnel: bleu (#2563EB)",
+    "Service Worker v3 - mise à jour automatique pour tous les utilisateurs"
+  ],
   "questions_count": {
     "Actualite_Culture_Generale": 176,
     "Francais": 25,

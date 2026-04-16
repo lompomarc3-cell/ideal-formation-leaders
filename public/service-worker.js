@@ -1,7 +1,7 @@
 // IFL Service Worker – Progressive Web App
-// Version : 1.2.0
-const CACHE_VERSION = 'ifl-cache-v2'
-const STATIC_CACHE = 'ifl-static-v2'
+// Version : 1.3.0 – Mise à jour icône + boutons démo
+const CACHE_VERSION = 'ifl-cache-v3'
+const STATIC_CACHE = 'ifl-static-v3'
 const API_CACHE = 'ifl-api-v1'
 
 // Ressources à mettre en cache immédiatement (installation)
@@ -9,6 +9,14 @@ const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/logo.png',
+  '/pwa-icons/icon-72x72.png',
+  '/pwa-icons/icon-96x96.png',
+  '/pwa-icons/icon-128x128.png',
+  '/pwa-icons/icon-144x144.png',
+  '/pwa-icons/icon-152x152.png',
+  '/pwa-icons/icon-192x192.png',
+  '/pwa-icons/icon-384x384.png',
+  '/pwa-icons/icon-512x512.png',
   '/icons/nav_home.svg',
   '/icons/nav_concours.svg',
   '/icons/nav_profil.svg',
@@ -45,21 +53,21 @@ const STATIC_ASSETS = [
 
 // ===== INSTALLATION =====
 self.addEventListener('install', (event) => {
-  console.log('[IFL SW] Installation v2...')
+  console.log('[IFL SW] Installation v3 – nouvelle icône...')
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { cache: 'reload' })))
         .catch(err => console.warn('[IFL SW] Erreur mise en cache statique:', err))
     }).then(() => {
-      console.log('[IFL SW] Installation terminée')
+      console.log('[IFL SW] Installation v3 terminée')
       return self.skipWaiting()
     })
   )
 })
 
-// ===== ACTIVATION =====
+// ===== ACTIVATION – Supprime TOUS les anciens caches =====
 self.addEventListener('activate', (event) => {
-  console.log('[IFL SW] Activation...')
+  console.log('[IFL SW] Activation v3...')
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
@@ -71,7 +79,7 @@ self.addEventListener('activate', (event) => {
           })
       )
     }).then(() => {
-      console.log('[IFL SW] Activation terminée')
+      console.log('[IFL SW] Activation v3 terminée – cache nettoyé')
       return self.clients.claim()
     })
   )
@@ -121,24 +129,25 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // ── Assets statiques (images, icônes, fonts) : Cache First ──
+  // ── Assets statiques (images, icônes, fonts) : Network First pour forcer la maj ──
   if (
     url.pathname.startsWith('/icons/') ||
+    url.pathname.startsWith('/pwa-icons/') ||
     url.pathname === '/logo.png' ||
     url.pathname === '/manifest.json' ||
+    url.pathname === '/favicon.ico' ||
     url.pathname.match(/\.(png|jpg|jpeg|svg|gif|webp|ico|woff|woff2|ttf)$/)
   ) {
     event.respondWith(
-      caches.match(request).then(cached => {
-        if (cached) return cached
-        return fetch(request).then(response => {
+      fetch(request)
+        .then(response => {
           if (response.ok) {
             const clone = response.clone()
             caches.open(STATIC_CACHE).then(cache => cache.put(request, clone))
           }
           return response
         })
-      })
+        .catch(() => caches.match(request))
     )
     return
   }
