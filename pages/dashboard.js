@@ -146,9 +146,8 @@ export default function Dashboard() {
     if (!router.isReady) return
     const { tab, catType } = router.query
     if (tab === 'concours') {
-      setActiveMainTab('concours')
-      if (catType === 'professionnel') setActiveTab('professionnel')
-      else setActiveTab('direct')
+      if (catType === 'professionnel') setActiveMainTab('concours-professionnel')
+      else setActiveMainTab('concours-direct')
     }
   }, [router.isReady, router.query])
 
@@ -184,6 +183,12 @@ export default function Dashboard() {
       loadUserStats()
     }
   }, [activeMainTab, user])
+
+  // Synchroniser activeTab avec l'onglet de navigation
+  useEffect(() => {
+    if (activeMainTab === 'concours-direct') setActiveTab('direct')
+    if (activeMainTab === 'concours-professionnel') setActiveTab('professionnel')
+  }, [activeMainTab])
 
   // Charger la progression localStorage
   useEffect(() => {
@@ -296,9 +301,6 @@ export default function Dashboard() {
 
   const directAccess = hasAccess('direct')
   const proAccess = hasAccess('professionnel')
-  const catList = activeTab === 'direct' ? categories.direct : categories.professionnel
-  const hasCurrentAccess = activeTab === 'direct' ? directAccess : proAccess
-  const currentPrice = activeTab === 'direct' ? prices.direct : prices.professionnel
 
   const faqs = [
     {
@@ -333,7 +335,7 @@ export default function Dashboard() {
         <title>Mon Espace – IFL</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
-      <div className="min-h-screen" style={{ background: '#FFF8F0', paddingBottom: 80 }}>
+      <div className="min-h-screen" style={{ background: '#FFF8F0', paddingBottom: 85 }}>
 
         {/* Header */}
         <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
@@ -471,7 +473,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-white rounded-2xl shadow-md border-2 p-5 text-center"
                   style={{ borderColor: '#FFD0A8', cursor: 'pointer' }}
-                  onClick={() => setActiveMainTab('concours')}>
+                  onClick={() => setActiveMainTab('concours-direct')}>
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
                     style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -487,7 +489,7 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-white rounded-2xl shadow-md border-2 p-5 text-center"
                   style={{ borderColor: '#FFD0A8', cursor: 'pointer' }}
-                  onClick={() => { setActiveMainTab('concours'); setActiveTab('professionnel') }}>
+                  onClick={() => setActiveMainTab('concours-professionnel')}>
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
                     style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)' }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -591,201 +593,273 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ===== ONGLET CONCOURS ===== */}
-        {activeMainTab === 'concours' && (
+        {/* ===== ONGLET CONCOURS DIRECT ===== */}
+        {activeMainTab === 'concours-direct' && (
           <div className="animate-fadeIn">
-            <div style={{ background: 'linear-gradient(160deg,#8B2500,#C4521A)' }}>
+            {/* Header orange clair */}
+            <div style={{ background: 'linear-gradient(160deg,#F97316,#FB923C,#FED7AA)' }}>
               <div className="max-w-lg mx-auto px-4 py-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-white font-extrabold text-2xl mb-1">Mes Concours</h2>
-                    <p className="text-orange-200 text-sm">Choisissez votre catégorie</p>
+                    <h2 className="text-white font-extrabold text-2xl mb-1">Concours Directs</h2>
+                    <p className="text-orange-100 text-sm">12 dossiers thématiques</p>
                   </div>
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.25)' }}>
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-                      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-                      <path d="M4 22h16"/>
-                      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-                      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-                      <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                     </svg>
                   </div>
                 </div>
-                <div className="flex gap-3 mt-4">
-                  <button className="flex-1 rounded-xl p-3 flex items-center gap-2 active:scale-95 transition-all" style={{ background: activeTab === 'direct' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)' }} onClick={() => setActiveTab('direct')}>
-                    <span className="text-xl">📚</span>
-                    <div>
-                      <p className="text-white font-bold text-xs">Directs</p>
-                      <p className="text-orange-200 text-xs">12 dossiers · 5 000 FCFA</p>
-                    </div>
-                  </button>
-                  <button className="flex-1 rounded-xl p-3 flex items-center gap-2 active:scale-95 transition-all" style={{ background: activeTab === 'professionnel' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)' }} onClick={() => setActiveTab('professionnel')}>
-                    <span className="text-xl">🎓</span>
-                    <div>
-                      <p className="text-white font-bold text-xs">Professionnels</p>
-                      <p className="text-orange-200 text-xs">17 dossiers · 20 000 FCFA</p>
-                    </div>
-                  </button>
+                {/* Bannière prix */}
+                <div className="mt-4 bg-white bg-opacity-20 rounded-2xl px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-bold text-sm">📚 Entrée initiale dans la Fonction Publique</p>
+                    <p className="text-orange-100 text-xs mt-0.5">5 questions gratuites par dossier</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white font-extrabold text-lg">{prices.direct.toLocaleString()}</p>
+                    <p className="text-orange-100 text-xs">FCFA</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="max-w-lg mx-auto px-4 pt-5">
+            <div className="max-w-lg mx-auto px-4 pt-5" style={{ background: '#FFF8F0' }}>
               {/* Bannière admin */}
               {user.is_admin && (
-                <div className="mb-4 rounded-2xl p-3 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
+                <div className="mb-4 rounded-2xl p-3 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#F97316,#FB923C)' }}>
                   <div>
                     <p className="text-white font-bold text-sm">👑 Mode Administrateur</p>
-                    <p className="text-orange-200 text-xs">Accès illimité à toutes les ressources</p>
+                    <p className="text-orange-100 text-xs">Accès illimité à toutes les ressources</p>
                   </div>
-                  <Link href="/admin" className="px-4 py-2 bg-white font-bold text-xs rounded-xl" style={{ color: '#C4521A' }}>
+                  <Link href="/admin" className="px-4 py-2 bg-white font-bold text-xs rounded-xl" style={{ color: '#F97316' }}>
                     ⚙️ Panel Admin
                   </Link>
                 </div>
               )}
 
-              {/* Onglets Directs / Professionnels */}
-              <div className="flex gap-2 mb-5">
-                <button
-                  onClick={() => setActiveTab('direct')}
-                  className={`flex-1 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-1.5 ${activeTab === 'direct' ? 'text-white shadow-lg' : 'text-gray-500 bg-white border-2 border-gray-100'}`}
-                  style={activeTab === 'direct' ? { background: 'linear-gradient(135deg,#8B2500,#C4521A)', boxShadow: '0 4px 12px rgba(196,82,26,0.3)' } : {}}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                  Directs
-                </button>
-                <button
-                  onClick={() => setActiveTab('professionnel')}
-                  className={`flex-1 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-1.5 ${activeTab === 'professionnel' ? 'text-white shadow-lg' : 'text-gray-500 bg-white border-2 border-gray-100'}`}
-                  style={activeTab === 'professionnel' ? { background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', boxShadow: '0 4px 12px rgba(37,99,235,0.35)' } : {}}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
-                  Professionnels
-                </button>
-              </div>
+              {/* Bannière abonnement */}
+              {!directAccess && !user.is_admin && (
+                <div className="mb-4 rounded-xl px-4 py-3 flex items-center gap-3"
+                  style={{ background: 'linear-gradient(135deg,#FFF7ED,#FFEDD5)', border: '1.5px solid #FED7AA' }}>
+                  <span className="text-xl">🆓</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold" style={{ color: '#C2410C' }}>5 questions gratuites par dossier</p>
+                    <p className="text-xs text-orange-600">Abonnez-vous pour tout débloquer</p>
+                  </div>
+                  <Link href={`/payment?type=direct&montant=${prices.direct}`}
+                    className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0"
+                    style={{ background: '#EA580C' }}>
+                    {prices.direct.toLocaleString()} FCFA
+                  </Link>
+                </div>
+              )}
 
-              {/* Contenu de l'onglet */}
               {loadingData ? (
                 <div className="py-12 text-center"><div className="spinner mx-auto"></div></div>
               ) : (
                 <div className="animate-fadeIn">
-
-                  {/* === BANDEAU INFO OFFRE CONCOURS PROFESSIONNELS === */}
-                  {activeTab === 'professionnel' && (
-                    <div className="rounded-2xl p-4 mb-4" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', border: '1.5px solid #BFDBFE' }}>
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(255,255,255,0.2)' }}>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-                        </div>
-                        <div>
-                          <p className="text-white font-extrabold text-sm mb-1">Notre offre Concours Professionnels</p>
-                          <p className="text-blue-100 text-xs leading-relaxed">
-                            <strong className="text-white">14 dossiers professionnels disponibles.</strong> Pour chaque dossier choisi, vous bénéficiez <strong className="text-yellow-300">gratuitement de 3 dossiers d'accompagnement :</strong>
-                          </p>
-                          <div className="flex flex-wrap gap-1.5 mt-2">
-                            {['📰 Actualités & culture générale', '📝 Entraînement QCM', '🎯 Accompagnement final'].map((item, i) => (
-                              <span key={i} className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>{item}</span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {!hasCurrentAccess && !user.is_admin && (
-                    <div className="mb-3 rounded-xl px-3 py-2 flex items-center gap-2"
-                      style={{ background: activeTab === 'professionnel' ? 'linear-gradient(135deg,#EFF6FF,#DBEAFE)' : 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: `1px solid ${activeTab === 'professionnel' ? '#BFDBFE' : '#FDE68A'}` }}>
-                      <span className="text-base">🆓</span>
-                      <p className="text-xs font-semibold flex-1" style={{ color: activeTab === 'professionnel' ? '#1D4ED8' : '#92400E' }}>5 questions gratuites par dossier · Abonnez-vous pour tout débloquer</p>
-                      <Link href={`/payment?type=${activeTab}&montant=${currentPrice}`}
-                        className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0"
-                        style={{ background: activeTab === 'professionnel' ? '#1D4ED8' : '#C4521A' }}>
-                        {currentPrice.toLocaleString()} FCFA
-                      </Link>
-                    </div>
-                  )}
-
-                  <p className="text-sm text-gray-500 mb-4">
-                    {hasCurrentAccess || user.is_admin
-                      ? `🎉 ${catList.length} dossier${catList.length > 1 ? 's' : ''} disponible${catList.length > 1 ? 's' : ''}`
-                      : `📂 ${catList.length} dossier${catList.length > 1 ? 's' : ''} · 5 questions gratuites par dossier`}
+                  <p className="text-sm mb-4 font-semibold" style={{ color: '#EA580C' }}>
+                    {directAccess || user.is_admin
+                      ? `🎉 ${categories.direct.length} dossiers disponibles`
+                      : `📂 ${categories.direct.length} dossiers · 5 questions gratuites par dossier`}
                   </p>
 
-                  <HorizontalCategoryScroll 
-                    categories={catList} 
-                    locked={false} 
-                    hasAccess={hasCurrentAccess || user.is_admin} 
-                    catType={activeTab}
+                  <HorizontalCategoryScroll
+                    categories={categories.direct}
+                    locked={false}
+                    hasAccess={directAccess || user.is_admin}
+                    catType="direct"
                     isDossierDebloqueForUser={isDossierDebloqueForUser}
                     dossierPrincipal={user.dossier_principal}
                     isAdmin={user.is_admin}
                   />
 
-                  {activeTab === 'direct' && !proAccess && !user.is_admin && (
+                  {/* CTA vers professionnels */}
+                  {!proAccess && !user.is_admin && (
                     <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
-                      <p className="text-white font-bold mb-1">🎓 Concours Professionnels</p>
-                      <p className="text-blue-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA</p>
-                      <Link href="/select-specialty" className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#1D4ED8' }}>
-                        Choisir ma spécialité →
-                      </Link>
-                    </div>
-                  )}
-                  {activeTab === 'professionnel' && !directAccess && !user.is_admin && (
-                    <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
-                      <p className="text-white font-bold mb-1">📚 Concours Directs</p>
-                      <p className="text-orange-200 text-sm mb-3">{prices.direct.toLocaleString()} FCFA</p>
-                      <Link href={`/payment?type=direct&montant=${prices.direct}`} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#C4521A' }}>
-                        S'abonner →
-                      </Link>
-                    </div>
-                  )}
-
-                  {/* Bannière dossier(s) débloqué(s) pour abonné professionnel */}
-                  {activeTab === 'professionnel' && proAccess && !user.is_admin && (
-                    <div className="mt-4 rounded-2xl p-3" style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '2px solid #1D4ED8' }}>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <p className="text-xs font-bold mb-1.5" style={{ color: '#1D4ED8' }}>✅ Concours professionnel : dossier(s) actif(s)</p>
-                          {(() => {
-                            const acc = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
-                            const dp = (user.dossiers_principaux || []).filter(d => !acc.includes(d))
-                            if (dp.length >= 14) return (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
-                                🏆 Accès complet (17 dossiers)
-                              </span>
-                            )
-                            if (dp.length > 0) return (
-                              <div className="flex flex-wrap gap-1.5 mb-1">
-                                {dp.map((d, i) => (
-                                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
-                                    🎓 {d}
-                                  </span>
-                                ))}
-                              </div>
-                            )
-                            return null
-                          })()}
-                          <p className="text-xs text-green-700 mt-1.5">
-                            <span className="font-semibold">Bonus inclus :</span> 📰 Actualités · 📝 Entraînement QCM · 🎯 Accompagnement final
-                          </p>
-                        </div>
-                        <Link href="/select-specialty" className="flex-shrink-0 px-3 py-1.5 text-xs font-bold text-white rounded-xl" style={{ background: '#1D4ED8' }}>
-                          + Dossier
-                        </Link>
-                      </div>
+                      <p className="text-white font-bold mb-1">🎓 Vous visez un concours professionnel ?</p>
+                      <p className="text-blue-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA – 17 dossiers spécialisés</p>
+                      <button onClick={() => setActiveMainTab('concours-professionnel')} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#1D4ED8' }}>
+                        Voir les concours professionnels →
+                      </button>
                     </div>
                   )}
                 </div>
               )}
 
               {/* Démo gratuite */}
-              <div className="mt-6 bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 flex items-center justify-between mb-4">
+              <div className="mt-6 rounded-2xl p-4 flex items-center justify-between mb-4" style={{ background: '#FFF7ED', border: '2px solid #FED7AA' }}>
                 <div>
-                  <p className="font-bold text-amber-800">🎯 Démo gratuite</p>
-                  <p className="text-amber-700 text-xs mt-0.5">10 questions accessibles maintenant</p>
+                  <p className="font-bold" style={{ color: '#C2410C' }}>🎯 Démo gratuite</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#EA580C' }}>10 questions accessibles maintenant</p>
                 </div>
                 <Link href="/demo" className="px-4 py-2 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#D4A017' }}>
+                  Essayer →
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===== ONGLET CONCOURS PROFESSIONNEL ===== */}
+        {activeMainTab === 'concours-professionnel' && (
+          <div className="animate-fadeIn">
+            {/* Header bleu */}
+            <div style={{ background: 'linear-gradient(160deg,#1E3A8A,#1D4ED8,#3B82F6)' }}>
+              <div className="max-w-lg mx-auto px-4 py-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-white font-extrabold text-2xl mb-1">Concours Professionnels</h2>
+                    <p className="text-blue-200 text-sm">17 dossiers spécialisés</p>
+                  </div>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+                    </svg>
+                  </div>
+                </div>
+                {/* Bannière prix */}
+                <div className="mt-4 bg-white bg-opacity-15 rounded-2xl px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-bold text-sm">🎓 Évolution de carrière</p>
+                    <p className="text-blue-200 text-xs mt-0.5">5 questions gratuites par dossier</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white font-extrabold text-lg">{prices.professionnel.toLocaleString()}</p>
+                    <p className="text-blue-200 text-xs">FCFA</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-w-lg mx-auto px-4 pt-5" style={{ background: '#EFF6FF' }}>
+              {/* Bannière admin */}
+              {user.is_admin && (
+                <div className="mb-4 rounded-2xl p-3 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#1E3A8A,#1D4ED8)' }}>
+                  <div>
+                    <p className="text-white font-bold text-sm">👑 Mode Administrateur</p>
+                    <p className="text-blue-200 text-xs">Accès illimité à toutes les ressources</p>
+                  </div>
+                  <Link href="/admin" className="px-4 py-2 bg-white font-bold text-xs rounded-xl" style={{ color: '#1D4ED8' }}>
+                    ⚙️ Panel Admin
+                  </Link>
+                </div>
+              )}
+
+              {/* Bandeau offre */}
+              <div className="rounded-2xl p-4 mb-4" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', border: '1.5px solid #BFDBFE' }}>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                  </div>
+                  <div>
+                    <p className="text-white font-extrabold text-sm mb-1">Notre offre Concours Professionnels</p>
+                    <p className="text-blue-100 text-xs leading-relaxed">
+                      <strong className="text-white">14 dossiers professionnels disponibles.</strong> Pour chaque dossier, <strong className="text-yellow-300">3 dossiers d'accompagnement offerts :</strong>
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {['📰 Actualités & culture', '📝 Entraînement QCM', '🎯 Accompagnement final'].map((item, i) => (
+                        <span key={i} className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>{item}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bannière abonnement */}
+              {!proAccess && !user.is_admin && (
+                <div className="mb-4 rounded-xl px-4 py-3 flex items-center gap-3"
+                  style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '1.5px solid #93C5FD' }}>
+                  <span className="text-xl">🆓</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold" style={{ color: '#1D4ED8' }}>5 questions gratuites par dossier</p>
+                    <p className="text-xs" style={{ color: '#3B82F6' }}>Abonnez-vous pour tout débloquer</p>
+                  </div>
+                  <Link href="/select-specialty"
+                    className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0"
+                    style={{ background: '#1D4ED8' }}>
+                    {prices.professionnel.toLocaleString()} FCFA
+                  </Link>
+                </div>
+              )}
+
+              {/* Dossiers débloqués pour abonné pro */}
+              {proAccess && !user.is_admin && (
+                <div className="mb-4 rounded-2xl p-3" style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '2px solid #1D4ED8' }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className="text-xs font-bold mb-1.5" style={{ color: '#1D4ED8' }}>✅ Vos dossiers actifs</p>
+                      {(() => {
+                        const acc = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
+                        const dp = (user.dossiers_principaux || []).filter(d => !acc.includes(d))
+                        if (dp.length >= 14) return (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
+                            🏆 Accès complet (17 dossiers)
+                          </span>
+                        )
+                        if (dp.length > 0) return (
+                          <div className="flex flex-wrap gap-1.5 mb-1">
+                            {dp.map((d, i) => (
+                              <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
+                                🎓 {d}
+                              </span>
+                            ))}
+                          </div>
+                        )
+                        return null
+                      })()}
+                      <p className="text-xs text-green-700 mt-1.5">
+                        <span className="font-semibold">Bonus :</span> 📰 Actualités · 📝 Entraînement · 🎯 Accompagnement
+                      </p>
+                    </div>
+                    <Link href="/select-specialty" className="flex-shrink-0 px-3 py-1.5 text-xs font-bold text-white rounded-xl" style={{ background: '#1D4ED8' }}>
+                      + Dossier
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {loadingData ? (
+                <div className="py-12 text-center"><div className="spinner mx-auto"></div></div>
+              ) : (
+                <div className="animate-fadeIn">
+                  <p className="text-sm mb-4 font-semibold" style={{ color: '#1D4ED8' }}>
+                    {proAccess || user.is_admin
+                      ? `🎉 ${categories.professionnel.length} dossiers disponibles`
+                      : `📂 ${categories.professionnel.length} dossiers · 5 questions gratuites par dossier`}
+                  </p>
+
+                  <HorizontalCategoryScroll
+                    categories={categories.professionnel}
+                    locked={false}
+                    hasAccess={proAccess || user.is_admin}
+                    catType="professionnel"
+                    isDossierDebloqueForUser={isDossierDebloqueForUser}
+                    dossierPrincipal={user.dossier_principal}
+                    isAdmin={user.is_admin}
+                  />
+
+                  {/* CTA vers directs */}
+                  {!directAccess && !user.is_admin && (
+                    <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#F97316,#FB923C)' }}>
+                      <p className="text-white font-bold mb-1">📚 Vous préparez un concours direct ?</p>
+                      <p className="text-orange-100 text-sm mb-3">{prices.direct.toLocaleString()} FCFA – 12 dossiers thématiques</p>
+                      <button onClick={() => setActiveMainTab('concours-direct')} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#EA580C' }}>
+                        Voir les concours directs →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Démo gratuite */}
+              <div className="mt-6 rounded-2xl p-4 flex items-center justify-between mb-4" style={{ background: '#EFF6FF', border: '2px solid #BFDBFE' }}>
+                <div>
+                  <p className="font-bold" style={{ color: '#1D4ED8' }}>🎯 Démo gratuite</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#3B82F6' }}>10 questions accessibles maintenant</p>
+                </div>
+                <Link href="/demo" className="px-4 py-2 font-bold text-white rounded-xl text-sm active:scale-95" style={{ background: '#1D4ED8' }}>
                   Essayer →
                 </Link>
               </div>
@@ -976,105 +1050,6 @@ export default function Dashboard() {
                       style={{ background: 'linear-gradient(135deg,#C4521A,#D4A017)' }}>
                       💳 S'abonner maintenant
                     </Link>
-                  </div>
-                )}
-              </div>
-
-              {/* === PROGRESSION ET SCORE === */}
-              <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
-                <h3 className="font-extrabold mb-4 flex items-center gap-2 text-sm" style={{ color: '#8B2500' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2.5" strokeLinecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-                  Ma progression & mon score
-                </h3>
-
-                {loadingStats ? (
-                  <div className="text-center py-6"><div className="spinner mx-auto mb-2"></div><p className="text-gray-400 text-xs">Chargement...</p></div>
-                ) : userStats ? (
-                  <div>
-                    {/* Score global */}
-                    <div className="rounded-2xl p-4 mb-4" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '2px solid #FFD0A8' }}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Score global</p>
-                          <p className="text-gray-500 text-xs">{userStats.totalCorrect} bonnes réponses sur {userStats.totalAnswered} questions</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-extrabold text-3xl" style={{ color: userStats.scoreGlobal >= 70 ? '#16A34A' : userStats.scoreGlobal >= 50 ? '#D97706' : '#DC2626' }}>
-                            {userStats.scoreGlobal}%
-                          </p>
-                          <p className="text-xs font-semibold" style={{ color: userStats.scoreGlobal >= 70 ? '#16A34A' : userStats.scoreGlobal >= 50 ? '#D97706' : '#DC2626' }}>
-                            {userStats.scoreGlobal >= 70 ? '🏆 Excellent' : userStats.scoreGlobal >= 50 ? '📈 Bien' : userStats.totalAnswered > 0 ? '💪 En progression' : '🚀 Commencez !'}
-                          </p>
-                        </div>
-                      </div>
-                      {/* Barre de progression globale */}
-                      <div className="w-full bg-white rounded-full" style={{ height: 10, background: 'rgba(255,255,255,0.6)' }}>
-                        <div className="rounded-full transition-all" style={{
-                          width: `${userStats.scoreGlobal}%`,
-                          height: 10,
-                          background: userStats.scoreGlobal >= 70 ? 'linear-gradient(90deg,#16A34A,#22C55E)' : userStats.scoreGlobal >= 50 ? 'linear-gradient(90deg,#D97706,#F59E0B)' : 'linear-gradient(90deg,#C4521A,#D4A017)',
-                          minWidth: userStats.scoreGlobal > 0 ? 10 : 0
-                        }} />
-                      </div>
-                      <div className="flex justify-between mt-1">
-                        <span className="text-xs text-gray-400">0%</span>
-                        <span className="text-xs text-gray-400">100%</span>
-                      </div>
-                    </div>
-
-                    {/* Progression par dossier */}
-                    {userStats.parDossier && userStats.parDossier.length > 0 ? (
-                      <div>
-                        <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Par dossier</p>
-                        <div className="space-y-2">
-                          {userStats.parDossier.slice(0, 8).map((d, i) => (
-                            <div key={i} className="rounded-xl p-3" style={{ background: '#FFF8F0', border: '1px solid #FFE4CC' }}>
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="font-semibold text-xs text-gray-700 flex-1 pr-2 truncate">{d.nom}</p>
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                  <span className="text-xs text-gray-500">{d.totalCorrect}/{d.totalAnswered}</span>
-                                  <span className="font-extrabold text-xs px-2 py-0.5 rounded-full"
-                                    style={{
-                                      background: d.score >= 70 ? '#DCFCE7' : d.score >= 50 ? '#FEF3C7' : '#FEE2E2',
-                                      color: d.score >= 70 ? '#16A34A' : d.score >= 50 ? '#D97706' : '#DC2626'
-                                    }}>
-                                    {d.score}%
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="w-full rounded-full" style={{ height: 5, background: '#FFE4CC' }}>
-                                <div className="rounded-full" style={{
-                                  width: `${d.score}%`,
-                                  height: 5,
-                                  background: d.score >= 70 ? '#16A34A' : d.score >= 50 ? '#D97706' : '#C4521A',
-                                  minWidth: d.score > 0 ? 6 : 0
-                                }} />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-gray-400 text-sm">Aucune réponse enregistrée pour le moment.</p>
-                        <p className="text-gray-400 text-xs mt-1">Commencez un dossier pour voir votre score ici !</p>
-                      </div>
-                    )}
-
-                    <button
-                      onClick={loadUserStats}
-                      className="mt-3 w-full py-2.5 rounded-xl text-xs font-bold border-2 flex items-center justify-center gap-2"
-                      style={{ borderColor: '#FFD0A8', color: '#C4521A', background: '#FFF8F0' }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                      Actualiser les statistiques
-                    </button>
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-gray-400 text-sm mb-3">Chargement de vos statistiques...</p>
-                    <button onClick={loadUserStats} className="px-4 py-2 rounded-xl text-sm font-bold text-white" style={{ background: '#C4521A' }}>
-                      Charger mes stats
-                    </button>
                   </div>
                 )}
               </div>
@@ -1471,7 +1446,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ===== BARRE DE NAVIGATION PRINCIPALE EN BAS ===== */}
+        {/* ===== BARRE DE NAVIGATION PRINCIPALE EN BAS (5 onglets) ===== */}
         <div className="fixed bottom-0 left-0 right-0 z-50"
           style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)', borderTop: '1.5px solid #FFE4CC', boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
           <div className="max-w-lg mx-auto flex">
@@ -1479,61 +1454,80 @@ export default function Dashboard() {
             {/* Onglet Accueil */}
             <button
               onClick={() => setActiveMainTab('accueil')}
-              className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
+              className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-all relative"
             >
               {activeMainTab === 'accueil' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeMainTab === 'accueil' ? 'shadow-sm' : ''}`}
+              <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all`}
                 style={{ background: activeMainTab === 'accueil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_home.svg" alt="Accueil" width="24" height="24" style={{ objectFit: 'contain', filter: activeMainTab === 'accueil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+                <img src="/icons/nav_home.svg" alt="Accueil" width="22" height="22" style={{ objectFit: 'contain', filter: activeMainTab === 'accueil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
-              <span className="text-xs font-bold" style={{ color: activeMainTab === 'accueil' ? '#C4521A' : '#9CA3AF' }}>Accueil</span>
+              <span className="text-xs font-bold" style={{ color: activeMainTab === 'accueil' ? '#C4521A' : '#9CA3AF', fontSize: '10px' }}>Accueil</span>
             </button>
 
-            {/* Onglet Concours */}
+            {/* Onglet Concours Direct */}
             <button
-              onClick={() => setActiveMainTab('concours')}
-              className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
+              onClick={() => setActiveMainTab('concours-direct')}
+              className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-all relative"
             >
-              {activeMainTab === 'concours' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+              {activeMainTab === 'concours-direct' && (
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#F97316,#FB923C)' }} />
               )}
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeMainTab === 'concours' ? 'shadow-sm' : ''}`}
-                style={{ background: activeMainTab === 'concours' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_concours.svg" alt="Concours" width="24" height="24" style={{ objectFit: 'contain', filter: activeMainTab === 'concours' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+              <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all`}
+                style={{ background: activeMainTab === 'concours-direct' ? 'linear-gradient(135deg,#FFF7ED,#FFEDD5)' : 'transparent' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeMainTab === 'concours-direct' ? '#F97316' : '#9CA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
               </div>
-              <span className="text-xs font-bold" style={{ color: activeMainTab === 'concours' ? '#C4521A' : '#9CA3AF' }}>Concours</span>
+              <span className="font-bold" style={{ color: activeMainTab === 'concours-direct' ? '#F97316' : '#9CA3AF', fontSize: '10px' }}>C. Direct</span>
+            </button>
+
+            {/* Onglet Concours Professionnel */}
+            <button
+              onClick={() => setActiveMainTab('concours-professionnel')}
+              className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-all relative"
+            >
+              {activeMainTab === 'concours-professionnel' && (
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#1D4ED8,#3B82F6)' }} />
+              )}
+              <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all`}
+                style={{ background: activeMainTab === 'concours-professionnel' ? 'linear-gradient(135deg,#EFF6FF,#DBEAFE)' : 'transparent' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeMainTab === 'concours-professionnel' ? '#1D4ED8' : '#9CA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+                </svg>
+              </div>
+              <span className="font-bold" style={{ color: activeMainTab === 'concours-professionnel' ? '#1D4ED8' : '#9CA3AF', fontSize: '10px' }}>C. Pro</span>
             </button>
 
             {/* Onglet Mon Profil */}
             <button
               onClick={() => setActiveMainTab('profil')}
-              className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
+              className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-all relative"
             >
               {activeMainTab === 'profil' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeMainTab === 'profil' ? 'shadow-sm' : ''}`}
+              <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all`}
                 style={{ background: activeMainTab === 'profil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_profil.svg" alt="Profil" width="24" height="24" style={{ objectFit: 'contain', filter: activeMainTab === 'profil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+                <img src="/icons/nav_profil.svg" alt="Profil" width="22" height="22" style={{ objectFit: 'contain', filter: activeMainTab === 'profil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
-              <span className="text-xs font-bold" style={{ color: activeMainTab === 'profil' ? '#C4521A' : '#9CA3AF' }}>Mon Profil</span>
+              <span className="font-bold" style={{ color: activeMainTab === 'profil' ? '#C4521A' : '#9CA3AF', fontSize: '10px' }}>Profil</span>
             </button>
 
             {/* Onglet À propos */}
             <button
               onClick={() => setActiveMainTab('apropos')}
-              className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
+              className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-all relative"
             >
               {activeMainTab === 'apropos' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeMainTab === 'apropos' ? 'shadow-sm' : ''}`}
+              <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all`}
                 style={{ background: activeMainTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_apropos.svg" alt="À propos" width="24" height="24" style={{ objectFit: 'contain', filter: activeMainTab === 'apropos' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+                <img src="/icons/nav_apropos.svg" alt="À propos" width="22" height="22" style={{ objectFit: 'contain', filter: activeMainTab === 'apropos' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
-              <span className="text-xs font-bold" style={{ color: activeMainTab === 'apropos' ? '#C4521A' : '#9CA3AF' }}>À propos</span>
+              <span className="font-bold" style={{ color: activeMainTab === 'apropos' ? '#C4521A' : '#9CA3AF', fontSize: '10px' }}>À propos</span>
             </button>
 
           </div>
