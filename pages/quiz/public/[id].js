@@ -1,7 +1,7 @@
 // Page Quiz Publique – Accès aux 5 premières questions gratuites sans connexion
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/router'
 
 const FREE_QUESTIONS_COUNT = 5
@@ -22,33 +22,21 @@ export default function PublicQuizPage() {
   const [loadingQ, setLoadingQ] = useState(true)
   const [error, setError] = useState('')
   const [answersMap, setAnswersMap] = useState({})
+
+  // Utiliser des refs stables pour éviter les closures stales dans les event listeners
   const touchStartX = useRef(null)
+  const stateRef = useRef({ current, questions, answersMap, finished })
+
+  // Synchroniser la ref à chaque rendu
+  useEffect(() => {
+    stateRef.current = { current, questions, answersMap, finished }
+  }, [current, questions, answersMap, finished])
 
   useEffect(() => {
     if (id) fetchPublicQuestions()
   }, [id])
 
-  // Swipe tactile
-  useEffect(() => {
-    const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
-    const handleTouchEnd = (e) => {
-      if (touchStartX.current === null) return
-      const dx = e.changedTouches[0].clientX - touchStartX.current
-      if (Math.abs(dx) > 50) {
-        if (dx < 0) handleNext()
-        else handlePrev()
-      }
-      touchStartX.current = null
-    }
-    window.addEventListener('touchstart', handleTouchStart, { passive: true })
-    window.addEventListener('touchend', handleTouchEnd, { passive: true })
-    return () => {
-      window.removeEventListener('touchstart', handleTouchStart)
-      window.removeEventListener('touchend', handleTouchEnd)
-    }
-  }, [current, questions, answersMap])
-
-  const saveProgressLocal = (index) => {
+  const saveProgressLocal = useCallback((index) => {
     if (!id) return
     try {
       localStorage.setItem(PROGRESS_KEY_PUBLIC(id), JSON.stringify({
@@ -57,7 +45,7 @@ export default function PublicQuizPage() {
         categorie_id: id
       }))
     } catch {}
-  }
+  }, [id])
 
   const restoreProgressLocal = (questionsCount) => {
     if (!id) return 0
@@ -105,13 +93,15 @@ export default function PublicQuizPage() {
     saveProgressLocal(current)
   }
 
-  const handleNext = () => {
-    const nextIndex = current + 1
-    if (nextIndex >= questions.length) {
+  // handleNext et handlePrev utilisent des refs pour éviter les closures stales
+  const handleNext = useCallback(() => {
+    const { current: cur, questions: qs, answersMap: aMap } = stateRef.current
+    const nextIndex = cur + 1
+    if (nextIndex >= qs.length) {
       setFinished(true)
     } else {
       setCurrent(nextIndex)
-      const savedAnswer = answersMap[nextIndex]
+      const savedAnswer = aMap[nextIndex]
       if (savedAnswer) {
         setSelected(savedAnswer.selected)
         setAnswered(savedAnswer.answered)
@@ -121,13 +111,14 @@ export default function PublicQuizPage() {
       }
       saveProgressLocal(nextIndex)
     }
-  }
+  }, [saveProgressLocal])
 
-  const handlePrev = () => {
-    if (current > 0) {
-      const prevIndex = current - 1
+  const handlePrev = useCallback(() => {
+    const { current: cur, answersMap: aMap } = stateRef.current
+    if (cur > 0) {
+      const prevIndex = cur - 1
       setCurrent(prevIndex)
-      const savedAnswer = answersMap[prevIndex]
+      const savedAnswer = aMap[prevIndex]
       if (savedAnswer) {
         setSelected(savedAnswer.selected)
         setAnswered(savedAnswer.answered)
@@ -137,12 +128,13 @@ export default function PublicQuizPage() {
       }
       saveProgressLocal(prevIndex)
     }
-  }
+  }, [saveProgressLocal])
 
-  const handleGoToQuestion = (index) => {
-    if (index < 0 || index >= questions.length) return
+  const handleGoToQuestion = useCallback((index) => {
+    const { questions: qs, answersMap: aMap } = stateRef.current
+    if (index < 0 || index >= qs.length) return
     setCurrent(index)
-    const savedAnswer = answersMap[index]
+    const savedAnswer = aMap[index]
     if (savedAnswer) {
       setSelected(savedAnswer.selected)
       setAnswered(savedAnswer.answered)
@@ -151,7 +143,27 @@ export default function PublicQuizPage() {
       setAnswered(false)
     }
     saveProgressLocal(index)
-  }
+  }, [saveProgressLocal])
+
+  // Swipe tactile — utilise handleNext/handlePrev stables via useCallback + stateRef
+  useEffect(() => {
+    const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
+    const handleTouchEnd = (e) => {
+      if (touchStartX.current === null) return
+      const dx = e.changedTouches[0].clientX - touchStartX.current
+      if (Math.abs(dx) > 50) {
+        if (dx < 0) handleNext()
+        else handlePrev()
+      }
+      touchStartX.current = null
+    }
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchend', handleTouchEnd, { passive: true })
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [handleNext, handlePrev])
 
   const q = questions[current]
   const total = questions.length
@@ -285,7 +297,14 @@ export default function PublicQuizPage() {
                     🔓 Se connecter
                   </Link>
                   <button
-                    onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setFinished(false); setAnswersMap({}) }}
+                    onClick={() => {
+                      setCurrent(0)
+                      setSelected(null)
+                      setAnswered(false)
+                      setScore(0)
+                      setFinished(false)
+                      setAnswersMap({})
+                    }}
                     className="w-full py-3 font-bold rounded-xl bg-gray-100 text-gray-600 active:scale-95"
                   >
                     🔄 Recommencer
@@ -351,11 +370,11 @@ export default function PublicQuizPage() {
                 </div>
                 <button
                   onClick={handleNext}
-                  disabled={current >= questions.length - 1}
+                  disabled={current >= questions.length - 1 && !answered}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
                   style={{
-                    background: current >= questions.length - 1 ? '#f3f4f6' : '#FFF0E8',
-                    color: current >= questions.length - 1 ? '#9ca3af' : '#C4521A'
+                    background: (current >= questions.length - 1 && !answered) ? '#f3f4f6' : '#FFF0E8',
+                    color: (current >= questions.length - 1 && !answered) ? '#9ca3af' : '#C4521A'
                   }}
                 >
                   Suivante

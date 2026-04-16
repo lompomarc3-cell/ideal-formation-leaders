@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '../_app'
 
@@ -27,7 +27,15 @@ export default function QuizPage() {
   const [showPaywallOverlay, setShowPaywallOverlay] = useState(false)
   // Map { questionIndex: { selected, answered } } pour mémoriser les réponses
   const [answersMap, setAnswersMap] = useState({})
+  
+  // Utiliser des refs pour les handlers afin d'éviter les closures stales dans les event listeners
   const touchStartX = useRef(null)
+  const stateRef = useRef({ current, questions, hasFullAccess, answersMap, finished, showUpgrade })
+  
+  // Mettre à jour la ref à chaque changement d'état
+  useEffect(() => {
+    stateRef.current = { current, questions, hasFullAccess, answersMap, finished, showUpgrade }
+  }, [current, questions, hasFullAccess, answersMap, finished, showUpgrade])
 
   useEffect(() => {
     if (!loading && !user) {
@@ -39,28 +47,8 @@ export default function QuizPage() {
     if (id && user) fetchQuestions()
   }, [id, user])
 
-  // Swipe tactile gauche/droite
-  useEffect(() => {
-    const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
-    const handleTouchEnd = (e) => {
-      if (touchStartX.current === null) return
-      const dx = e.changedTouches[0].clientX - touchStartX.current
-      if (Math.abs(dx) > 50) {
-        if (dx < 0) handleNext()
-        else handlePrev()
-      }
-      touchStartX.current = null
-    }
-    window.addEventListener('touchstart', handleTouchStart, { passive: true })
-    window.addEventListener('touchend', handleTouchEnd, { passive: true })
-    return () => {
-      window.removeEventListener('touchstart', handleTouchStart)
-      window.removeEventListener('touchend', handleTouchEnd)
-    }
-  }, [current, questions, hasFullAccess, answersMap])
-
   // Sauvegarder la progression dans localStorage
-  const saveProgress = (questionIndex) => {
+  const saveProgress = useCallback((questionIndex) => {
     if (!id) return
     const key = PROGRESS_KEY(user?.id, id)
     try {
@@ -70,10 +58,10 @@ export default function QuizPage() {
         categorie_id: id
       }))
     } catch {}
-  }
+  }, [id, user?.id])
 
   // Sauvegarder aussi côté serveur
-  const saveProgressServer = async (questionIndex) => {
+  const saveProgressServer = useCallback(async (questionIndex, currentScore) => {
     if (!user || !id) return
     try {
       const token = getToken()
@@ -83,11 +71,11 @@ export default function QuizPage() {
         body: JSON.stringify({
           categorie_id: id,
           derniere_question_index: questionIndex,
-          score
+          score: currentScore
         })
       })
     } catch {}
-  }
+  }, [id, user, getToken])
 
   // Restaurer la progression (localStorage d'abord, puis serveur si disponible)
   const restoreProgress = (questionsCount) => {
@@ -138,7 +126,33 @@ export default function QuizPage() {
   }
 
   // Détermine si une question est gratuite (ordre 1-5)
-  const isQuestionFree = (index) => index < FREE_QUESTIONS_COUNT
+  const isQuestionFree = useCallback((index) => index < FREE_QUESTIONS_COUNT, [])
+
+  // Navigation vers une question spécifique — mémorisé pour stabilité
+  const goToQuestion = useCallback((index, questionsArr, hasAccess, answersMapData, saveProgressFn) => {
+    if (index < 0 || index >= questionsArr.length) return
+    
+    if (!hasAccess && index >= FREE_QUESTIONS_COUNT) {
+      setShowPaywallOverlay(true)
+      setCurrent(index)
+      setSelected(null)
+      setAnswered(false)
+      saveProgressFn(index)
+      return
+    }
+    
+    setCurrent(index)
+    const savedAnswer = answersMapData[index]
+    if (savedAnswer) {
+      setSelected(savedAnswer.selected)
+      setAnswered(savedAnswer.answered)
+    } else {
+      setSelected(null)
+      setAnswered(false)
+    }
+    setShowPaywallOverlay(false)
+    saveProgressFn(index)
+  }, [])
 
   const handleSelect = (opt) => {
     if (answered) return
@@ -150,6 +164,7 @@ export default function QuizPage() {
     setSelected(opt)
     setAnswered(true)
     const isCorrect = opt === questions[current].bonne_reponse
+    const newScore = score + (isCorrect ? 1 : 0)
     if (isCorrect) setScore(s => s + 1)
 
     // Mémoriser la réponse
@@ -157,25 +172,16 @@ export default function QuizPage() {
 
     // Sauvegarder la progression
     saveProgress(current)
-
-    try {
-      const token = getToken()
-      fetch('/api/quiz/progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          categorie_id: id,
-          score: score + (isCorrect ? 1 : 0),
-          derniere_question_index: current
-        })
-      })
-    } catch {}
+    saveProgressServer(current, newScore)
   }
 
-  const handleNext = () => {
-    const nextIndex = current + 1
-    if (nextIndex >= questions.length) {
-      if (!hasFullAccess) {
+  const handleNext = useCallback(() => {
+    // Lire l'état depuis la ref pour éviter les closures stales
+    const { current: cur, questions: qs, hasFullAccess: hasAccess, answersMap: aMap } = stateRef.current
+    const nextIndex = cur + 1
+    
+    if (nextIndex >= qs.length) {
+      if (!hasAccess) {
         setShowUpgrade(true)
       } else {
         setFinished(true)
@@ -183,18 +189,17 @@ export default function QuizPage() {
       }
     } else {
       // Si question payante sans accès, afficher l'overlay
-      if (!hasFullAccess && !isQuestionFree(nextIndex)) {
+      if (!hasAccess && nextIndex >= FREE_QUESTIONS_COUNT) {
         setShowPaywallOverlay(true)
         setCurrent(nextIndex)
         setSelected(null)
         setAnswered(false)
         saveProgress(nextIndex)
-        saveProgressServer(nextIndex)
         return
       }
       setCurrent(nextIndex)
       // Restaurer la réponse mémorisée si elle existe
-      const savedAnswer = answersMap[nextIndex]
+      const savedAnswer = aMap[nextIndex]
       if (savedAnswer) {
         setSelected(savedAnswer.selected)
         setAnswered(savedAnswer.answered)
@@ -202,17 +207,20 @@ export default function QuizPage() {
         setSelected(null)
         setAnswered(false)
       }
+      setShowPaywallOverlay(false)
       saveProgress(nextIndex)
-      saveProgressServer(nextIndex)
     }
-  }
+  }, [saveProgress])
 
-  const handlePrev = () => {
-    if (current > 0) {
-      const prevIndex = current - 1
+  const handlePrev = useCallback(() => {
+    // Lire l'état depuis la ref pour éviter les closures stales
+    const { current: cur, questions: qs, answersMap: aMap } = stateRef.current
+    
+    if (cur > 0) {
+      const prevIndex = cur - 1
       setCurrent(prevIndex)
       // Restaurer la réponse mémorisée
-      const savedAnswer = answersMap[prevIndex]
+      const savedAnswer = aMap[prevIndex]
       if (savedAnswer) {
         setSelected(savedAnswer.selected)
         setAnswered(savedAnswer.answered)
@@ -220,33 +228,36 @@ export default function QuizPage() {
         setSelected(null)
         setAnswered(false)
       }
-      saveProgress(prevIndex)
       setShowPaywallOverlay(false)
+      saveProgress(prevIndex)
     }
-  }
+  }, [saveProgress])
 
   // Naviguer directement vers une question via les points
-  const handleGoToQuestion = (index) => {
-    if (!hasFullAccess && !isQuestionFree(index)) {
-      setShowPaywallOverlay(true)
-      setCurrent(index)
-      setSelected(null)
-      setAnswered(false)
-      saveProgress(index)
-      return
+  const handleGoToQuestion = useCallback((index) => {
+    const { questions: qs, hasFullAccess: hasAccess, answersMap: aMap } = stateRef.current
+    goToQuestion(index, qs, hasAccess, aMap, saveProgress)
+  }, [goToQuestion, saveProgress])
+
+  // Swipe tactile gauche/droite — utilise des refs stables pour éviter les closures stales
+  useEffect(() => {
+    const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
+    const handleTouchEnd = (e) => {
+      if (touchStartX.current === null) return
+      const dx = e.changedTouches[0].clientX - touchStartX.current
+      if (Math.abs(dx) > 50) {
+        if (dx < 0) handleNext()
+        else handlePrev()
+      }
+      touchStartX.current = null
     }
-    setCurrent(index)
-    const savedAnswer = answersMap[index]
-    if (savedAnswer) {
-      setSelected(savedAnswer.selected)
-      setAnswered(savedAnswer.answered)
-    } else {
-      setSelected(null)
-      setAnswered(false)
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchend', handleTouchEnd, { passive: true })
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchend', handleTouchEnd)
     }
-    setShowPaywallOverlay(false)
-    saveProgress(index)
-  }
+  }, [handleNext, handlePrev])
 
   if (loading || !user) {
     return (
@@ -386,7 +397,16 @@ export default function QuizPage() {
                     💳 S&apos;abonner – {catPrice.toLocaleString()} FCFA
                   </Link>
                   <button
-                    onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setShowUpgrade(false); setAnswersMap({}); saveProgress(0) }}
+                    onClick={() => { 
+                      setCurrent(0)
+                      setSelected(null)
+                      setAnswered(false)
+                      setScore(0)
+                      setShowUpgrade(false)
+                      setAnswersMap({})
+                      setShowPaywallOverlay(false)
+                      saveProgress(0)
+                    }}
                     className="w-full py-3.5 font-bold rounded-xl border-2 border-amber-300 text-amber-800 active:scale-95"
                   >
                     🔄 Recommencer les questions gratuites
@@ -415,7 +435,16 @@ export default function QuizPage() {
                   <p className="text-orange-200 text-sm mt-2">{Math.round((score/total)*100)}% de réussite</p>
                 </div>
                 <div className="space-y-3">
-                  <button onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setFinished(false); setAnswersMap({}); saveProgress(0) }}
+                  <button onClick={() => { 
+                    setCurrent(0)
+                    setSelected(null)
+                    setAnswered(false)
+                    setScore(0)
+                    setFinished(false)
+                    setAnswersMap({})
+                    setShowPaywallOverlay(false)
+                    saveProgress(0)
+                  }}
                     className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-md active:scale-95"
                     style={{ background: '#C4521A' }}>
                     🔄 Recommencer
@@ -519,11 +548,11 @@ export default function QuizPage() {
 
                 <button
                   onClick={handleNext}
-                  disabled={current >= questions.length - 1 && !hasFullAccess}
+                  disabled={current >= questions.length - 1 && hasFullAccess && !answered}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
                   style={{
-                    background: current >= questions.length - 1 ? '#f3f4f6' : '#FFF0E8',
-                    color: current >= questions.length - 1 ? '#9ca3af' : '#C4521A'
+                    background: (current >= questions.length - 1 && hasFullAccess && !answered) ? '#f3f4f6' : '#FFF0E8',
+                    color: (current >= questions.length - 1 && hasFullAccess && !answered) ? '#9ca3af' : '#C4521A'
                   }}
                 >
                   Suivante
@@ -557,7 +586,21 @@ export default function QuizPage() {
                       💳 Débloquer tout – {catPrice.toLocaleString()} FCFA
                     </Link>
                     <button
-                      onClick={() => { setShowPaywallOverlay(false); handleGoToQuestion(0) }}
+                      onClick={() => {
+                        setShowPaywallOverlay(false)
+                        // Retour à la dernière question gratuite (index FREE_QUESTIONS_COUNT - 1)
+                        const lastFreeIndex = Math.min(FREE_QUESTIONS_COUNT - 1, questions.length - 1)
+                        setCurrent(lastFreeIndex)
+                        const savedAnswer = answersMap[lastFreeIndex]
+                        if (savedAnswer) {
+                          setSelected(savedAnswer.selected)
+                          setAnswered(savedAnswer.answered)
+                        } else {
+                          setSelected(null)
+                          setAnswered(false)
+                        }
+                        saveProgress(lastFreeIndex)
+                      }}
                       className="w-full py-3 font-bold rounded-xl border-2 border-amber-300 text-amber-800 text-sm active:scale-95"
                     >
                       ← Revoir les questions gratuites
