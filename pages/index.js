@@ -241,8 +241,8 @@ export default function Home() {
   const [categoriesDirect, setCategoriesDirect] = useState([])
   const [categoriesPro, setCategoriesPro] = useState([])
   const [loadingCats, setLoadingCats] = useState(true)
-  const [activeTab, setActiveTab] = useState('accueil')  // 'accueil' | 'concours' | 'profil' | 'apropos'
-  const [activeConcoursTab, setActiveConcoursTab] = useState('direct')  // 'direct' | 'professionnel'
+  const [activeTab, setActiveTab] = useState('accueil')  // 'accueil' | 'concours-direct' | 'concours-professionnel' | 'profil' | 'apropos'
+  const [activeConcoursTab, setActiveConcoursTab] = useState('direct')  // 'direct' | 'professionnel' (gardé pour compatibilité)
   const [activeAboutTab, setActiveAboutTab] = useState('app')  // 'app' | 'equipe' | 'aide' | 'dev'
   const [openFaq, setOpenFaq] = useState(null)
 
@@ -251,9 +251,8 @@ export default function Home() {
     if (!router.isReady) return
     const { tab, catType } = router.query
     if (tab === 'concours') {
-      setActiveTab('concours')
-      if (catType === 'professionnel') setActiveConcoursTab('professionnel')
-      else setActiveConcoursTab('direct')
+      if (catType === 'professionnel') setActiveTab('concours-professionnel')
+      else setActiveTab('concours-direct')
     }
   }, [router.isReady, router.query])
 
@@ -408,7 +407,7 @@ export default function Home() {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-white rounded-2xl shadow-md border-2 p-5 text-center"
                   style={{ borderColor: '#FFD0A8', cursor: 'pointer' }}
-                  onClick={() => setActiveTab('concours')}>
+                  onClick={() => setActiveTab('concours-direct')}>
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
                     style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -424,7 +423,7 @@ export default function Home() {
                 </div>
                 <div className="bg-white rounded-2xl shadow-md border-2 p-5 text-center"
                   style={{ borderColor: '#FFD0A8', cursor: 'pointer' }}
-                  onClick={() => { setActiveTab('concours'); setActiveConcoursTab('professionnel') }}>
+                  onClick={() => setActiveTab('concours-professionnel')}>
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
                     style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)' }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -514,177 +513,184 @@ export default function Home() {
           </div>
         )}
 
-        {/* ===== ONGLET CONCOURS ===== */}
-        {activeTab === 'concours' && (
+        {/* ===== ONGLET CONCOURS DIRECT ===== */}
+        {activeTab === 'concours-direct' && (
           <div className="animate-fadeIn">
-            {/* Sous-header Concours */}
-            <div className="african-pattern" style={{ background: 'linear-gradient(160deg,#8B2500,#C4521A)' }}>
+            {/* Header orange */}
+            <div style={{ background: 'linear-gradient(160deg,#F97316,#FB923C,#FED7AA)' }}>
               <div className="max-w-lg mx-auto px-4 py-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-white font-extrabold text-2xl mb-1">Nos Concours</h2>
-                    <p className="text-orange-200 text-sm">Choisissez votre catégorie et commencez</p>
+                    <h2 className="text-white font-extrabold text-2xl mb-1">Concours Directs</h2>
+                    <p className="text-orange-100 text-sm">12 dossiers thématiques</p>
                   </div>
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.25)' }}>
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-                      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-                      <path d="M4 22h16"/>
-                      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-                      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-                      <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                     </svg>
                   </div>
                 </div>
-                {/* Résumé rapide */}
-                <div className="flex gap-3 mt-4">
-                  <button className="flex-1 rounded-xl p-3 flex items-center gap-2 active:scale-95 transition-all" style={{ background: activeConcoursTab === 'direct' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)' }} onClick={() => setActiveConcoursTab('direct')}>
-                    <span className="text-xl">📚</span>
-                    <div>
-                      <p className="text-white font-bold text-xs">Directs</p>
-                      <p className="text-orange-200 text-xs">12 dossiers · 5 000 FCFA</p>
-                    </div>
-                  </button>
-                  <button className="flex-1 rounded-xl p-3 flex items-center gap-2 active:scale-95 transition-all" style={{ background: activeConcoursTab === 'professionnel' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)' }} onClick={() => setActiveConcoursTab('professionnel')}>
-                    <span className="text-xl">🎓</span>
-                    <div>
-                      <p className="text-white font-bold text-xs">Professionnels</p>
-                      <p className="text-orange-200 text-xs">17 dossiers · 20 000 FCFA</p>
-                    </div>
-                  </button>
+                <div className="mt-4 bg-white bg-opacity-20 rounded-2xl px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-bold text-sm">📚 Entrée initiale dans la Fonction Publique</p>
+                    <p className="text-orange-100 text-xs mt-0.5">5 questions gratuites par dossier</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white font-extrabold text-lg">5 000</p>
+                    <p className="text-orange-100 text-xs">FCFA</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Sélecteur Directs / Professionnels */}
-            <div className="max-w-lg mx-auto px-4 pt-5">
-              <div className="flex gap-2 mb-6">
-                <button
-                  onClick={() => setActiveConcoursTab('direct')}
-                  className={`flex-1 py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${activeConcoursTab === 'direct' ? 'text-white shadow-lg scale-105' : 'text-gray-500 bg-white border-2 border-gray-100'}`}
-                  style={activeConcoursTab === 'direct' ? { background: 'linear-gradient(135deg,#8B2500,#C4521A)', boxShadow: '0 4px 15px rgba(196,82,26,0.35)' } : {}}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                  </svg>
-                  Directs <span className="text-xs opacity-70 font-normal">(12)</span>
-                </button>
-                <button
-                  onClick={() => setActiveConcoursTab('professionnel')}
-                  className={`flex-1 py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${activeConcoursTab === 'professionnel' ? 'text-white shadow-lg scale-105' : 'text-gray-500 bg-white border-2 border-gray-100'}`}
-                  style={activeConcoursTab === 'professionnel' ? { background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', boxShadow: '0 4px 15px rgba(37,99,235,0.35)' } : {}}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
-                  </svg>
-                  Professionnels <span className="text-xs opacity-70 font-normal">(17)</span>
+            <div className="max-w-lg mx-auto px-4 pt-5" style={{ background: '#FFF8F0' }}>
+              <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '1px solid #FFD0A8' }}>
+                <span className="text-sm">🆓</span>
+                <p className="text-xs font-semibold flex-1" style={{ color: '#8B2500' }}>5 questions gratuites par dossier · Glissez pour voir tous les dossiers</p>
+                <Link href="/payment?type=direct&montant=5000" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>5 000 FCFA</Link>
+              </div>
+
+              {loadingCats ? (
+                <div className="flex gap-3 overflow-x-hidden pb-3">
+                  {[1,2,3,4].map(i => <SkeletonCard key={i} />)}
+                </div>
+              ) : (
+                <div className="flex gap-3 overflow-x-auto pb-4"
+                  style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {categoriesDirect.map((cat, i) => (
+                    <PublicCategoryCard key={cat.id || i} cat={cat} index={i} catType="direct" />
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-4 rounded-2xl p-4 flex items-center justify-between border-2 bg-white" style={{ borderColor: '#C4521A' }}>
+                <div>
+                  <p className="font-bold text-sm" style={{ color: '#8B2500' }}>Accès complet</p>
+                  <p className="text-gray-500 text-xs">Débloquer tous les 12 dossiers</p>
+                </div>
+                <Link href="/payment?type=direct&montant=5000"
+                  className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md"
+                  style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
+                  5 000 FCFA →
+                </Link>
+              </div>
+
+              {/* CTA vers pro */}
+              <div className="mt-4 rounded-2xl p-4 text-center mb-2" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
+                <p className="text-white font-bold text-sm mb-1">🎓 Vous visez un concours professionnel ?</p>
+                <button onClick={() => setActiveTab('concours-professionnel')} className="mt-2 inline-block px-5 py-2 bg-white font-bold rounded-xl text-xs" style={{ color: '#1D4ED8' }}>
+                  Voir les concours professionnels →
                 </button>
               </div>
 
-              {/* Section Concours Directs */}
-              {activeConcoursTab === 'direct' && (
-                <div className="animate-fadeIn">
-                  {/* Compact info bar directs */}
-                  <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '1px solid #FFD0A8' }}>
-                    <span className="text-sm">🆓</span>
-                    <p className="text-xs font-semibold flex-1" style={{ color: '#8B2500' }}>5 questions gratuites par dossier · Glissez pour voir tous les dossiers</p>
-                    <Link href="/payment?type=direct&montant=5000" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>5 000 FCFA</Link>
-                  </div>
+              <Link href="/register" className="block mt-3 text-center py-3 font-bold rounded-xl text-sm border-2 border-orange-300 mb-4"
+                style={{ color: '#C4521A', background: '#FFF8F0' }}>
+                📝 Créer un compte gratuit
+              </Link>
 
-                  {loadingCats ? (
-                    <div className="flex gap-3 overflow-x-hidden pb-3">
-                      {[1,2,3,4].map(i => <SkeletonCard key={i} />)}
-                    </div>
-                  ) : (
-                    <div className="flex gap-3 overflow-x-auto pb-4"
-                      style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                      {categoriesDirect.map((cat, i) => (
-                        <PublicCategoryCard key={cat.id || i} cat={cat} index={i} catType="direct" />
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="mt-4 rounded-2xl p-4 flex items-center justify-between border-2 bg-white" style={{ borderColor: '#C4521A' }}>
-                    <div>
-                      <p className="font-bold text-sm" style={{ color: '#8B2500' }}>Accès complet</p>
-                      <p className="text-gray-500 text-xs">Débloquer tous les 12 dossiers</p>
-                    </div>
-                    <Link href="/payment?type=direct&montant=5000"
-                      className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md"
-                      style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
-                      5 000 FCFA →
-                    </Link>
-                  </div>
-
-                  <Link href="/register" className="block mt-3 text-center py-3 font-bold rounded-xl text-sm border-2 border-orange-300"
-                    style={{ color: '#C4521A', background: '#FFF8F0' }}>
-                    📝 Créer un compte gratuit
-                  </Link>
-                </div>
-              )}
-
-              {/* Section Concours Professionnels */}
-              {activeConcoursTab === 'professionnel' && (
-                <div className="animate-fadeIn">
-                  {/* Bandeau info bleu offre professionnels */}
-                  <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '1px solid #BFDBFE' }}>
-                    <span className="text-sm">🆓</span>
-                    <p className="text-xs font-semibold flex-1" style={{ color: '#1D4ED8' }}>5 questions gratuites · 14 dossiers pro + 3 bonus inclus</p>
-                    <Link href="/select-specialty" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#1D4ED8' }}>20 000 FCFA</Link>
-                  </div>
-                  <div className="rounded-xl px-3 py-1.5 mb-3 flex flex-wrap gap-1">
-                    {['📰 Actualités', '📝 Entraînement QCM', '🎯 Accompagnement final'].map((item, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>{item}</span>
-                    ))}
-                  </div>
-
-                  {loadingCats ? (
-                    <div className="flex gap-3 overflow-x-hidden pb-3">
-                      {[1,2,3,4].map(i => <SkeletonCard key={i} />)}
-                    </div>
-                  ) : (
-                    <div className="flex gap-3 overflow-x-auto pb-4"
-                      style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                      {categoriesPro.map((cat, i) => (
-                        <PublicCategoryCard key={cat.id || i} cat={cat} index={i} catType="professionnel" />
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="mt-4 rounded-2xl p-4 flex items-center justify-between border-2 bg-white" style={{ borderColor: '#1D4ED8' }}>
-                    <div>
-                      <p className="font-bold text-sm" style={{ color: '#1D4ED8' }}>Choisir votre spécialité</p>
-                      <p className="text-gray-500 text-xs">14 dossiers spécialisés disponibles</p>
-                    </div>
-                    <Link href="/select-specialty"
-                      className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md"
-                      style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
-                      20 000 FCFA →
-                    </Link>
-                  </div>
-
-                  <Link href="/register" className="block mt-3 text-center py-3 font-bold rounded-xl text-sm border-2"
-                    style={{ color: '#1D4ED8', background: '#EFF6FF', borderColor: '#BFDBFE' }}>
-                    📝 Créer un compte gratuit
-                  </Link>
-                </div>
-              )}
-
-              {/* Bannière démo gratuite en bas */}
-              <div className="mt-4 mb-4 rounded-2xl p-3 flex items-center gap-3"
+              <div className="mb-4 rounded-2xl p-3 flex items-center gap-3"
                 style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '1.5px solid #D4A017' }}>
                 <div className="w-9 h-9 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                   </svg>
                 </div>
-                <div className="flex-1">
-                  <p className="font-bold text-amber-800 text-sm">Démo gratuite – 10 questions</p>
+                <div className="flex-1"><p className="font-bold text-amber-800 text-sm">Démo gratuite – 10 questions</p></div>
+                <Link href="/demo" className="px-4 py-2 font-bold text-white rounded-xl text-xs active:scale-95" style={{ background: '#D4A017' }}>Essayer</Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===== ONGLET CONCOURS PROFESSIONNEL ===== */}
+        {activeTab === 'concours-professionnel' && (
+          <div className="animate-fadeIn">
+            {/* Header bleu */}
+            <div style={{ background: 'linear-gradient(160deg,#1E3A8A,#1D4ED8,#3B82F6)' }}>
+              <div className="max-w-lg mx-auto px-4 py-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-white font-extrabold text-2xl mb-1">Concours Professionnels</h2>
+                    <p className="text-blue-200 text-sm">17 dossiers spécialisés</p>
+                  </div>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+                    </svg>
+                  </div>
                 </div>
-                <Link href="/demo" className="px-4 py-2 font-bold text-white rounded-xl text-xs active:scale-95"
-                  style={{ background: '#D4A017' }}>
-                  Essayer
+                <div className="mt-4 bg-white bg-opacity-15 rounded-2xl px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-bold text-sm">🎓 Évolution de carrière</p>
+                    <p className="text-blue-200 text-xs mt-0.5">5 questions gratuites par dossier</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white font-extrabold text-lg">20 000</p>
+                    <p className="text-blue-200 text-xs">FCFA</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-w-lg mx-auto px-4 pt-5" style={{ background: '#EFF6FF' }}>
+              <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '1px solid #BFDBFE' }}>
+                <span className="text-sm">🆓</span>
+                <p className="text-xs font-semibold flex-1" style={{ color: '#1D4ED8' }}>5 questions gratuites · 14 dossiers pro + 3 bonus inclus</p>
+                <Link href="/select-specialty" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#1D4ED8' }}>20 000 FCFA</Link>
+              </div>
+              <div className="rounded-xl px-3 py-1.5 mb-3 flex flex-wrap gap-1">
+                {['📰 Actualités', '📝 Entraînement QCM', '🎯 Accompagnement final'].map((item, i) => (
+                  <span key={i} className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>{item}</span>
+                ))}
+              </div>
+
+              {loadingCats ? (
+                <div className="flex gap-3 overflow-x-hidden pb-3">
+                  {[1,2,3,4].map(i => <SkeletonCard key={i} />)}
+                </div>
+              ) : (
+                <div className="flex gap-3 overflow-x-auto pb-4"
+                  style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {categoriesPro.map((cat, i) => (
+                    <PublicCategoryCard key={cat.id || i} cat={cat} index={i} catType="professionnel" />
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-4 rounded-2xl p-4 flex items-center justify-between border-2 bg-white" style={{ borderColor: '#1D4ED8' }}>
+                <div>
+                  <p className="font-bold text-sm" style={{ color: '#1D4ED8' }}>Choisir votre spécialité</p>
+                  <p className="text-gray-500 text-xs">14 dossiers spécialisés disponibles</p>
+                </div>
+                <Link href="/select-specialty"
+                  className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md"
+                  style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
+                  20 000 FCFA →
                 </Link>
+              </div>
+
+              {/* CTA vers directs */}
+              <div className="mt-4 rounded-2xl p-4 text-center mb-2" style={{ background: 'linear-gradient(135deg,#F97316,#FB923C)' }}>
+                <p className="text-white font-bold text-sm mb-1">📚 Vous préparez un concours direct ?</p>
+                <button onClick={() => setActiveTab('concours-direct')} className="mt-2 inline-block px-5 py-2 bg-white font-bold rounded-xl text-xs" style={{ color: '#EA580C' }}>
+                  Voir les concours directs →
+                </button>
+              </div>
+
+              <Link href="/register" className="block mt-3 text-center py-3 font-bold rounded-xl text-sm border-2 mb-4"
+                style={{ color: '#1D4ED8', background: '#EFF6FF', borderColor: '#BFDBFE' }}>
+                📝 Créer un compte gratuit
+              </Link>
+
+              <div className="mb-4 rounded-2xl p-3 flex items-center gap-3"
+                style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)', border: '1.5px solid #D4A017' }}>
+                <div className="w-9 h-9 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                </div>
+                <div className="flex-1"><p className="font-bold text-amber-800 text-sm">Démo gratuite – 10 questions</p></div>
+                <Link href="/demo" className="px-4 py-2 font-bold text-white rounded-xl text-xs active:scale-95" style={{ background: '#D4A017' }}>Essayer</Link>
               </div>
             </div>
           </div>
@@ -696,32 +702,21 @@ export default function Home() {
             {/* Header Profil */}
             <div className="african-pattern" style={{ background: 'linear-gradient(160deg,#8B2500,#C4521A)' }}>
               <div className="max-w-lg mx-auto px-4 py-8 text-center">
-                {/* Icône moderne Mon Profil – avatar stylisé avec dégradé */}
+                {/* Logo IFL officiel */}
                 <div className="relative w-24 h-24 mx-auto mb-4">
                   <div style={{
-                    width: 96, height: 96, borderRadius: '50%',
+                    width: 96, height: 96, borderRadius: 24,
                     background: 'rgba(255,255,255,0.15)',
                     border: '3px solid rgba(255,255,255,0.5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.18), inset 0 2px 4px rgba(255,255,255,0.2)'
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.18), inset 0 2px 4px rgba(255,255,255,0.2)',
+                    overflow: 'hidden'
                   }}>
-                    <svg width="54" height="54" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      {/* Corps */}
-                      <ellipse cx="32" cy="52" rx="20" ry="10" fill="rgba(255,255,255,0.25)"/>
-                      {/* Silhouette buste */}
-                      <path d="M18 54c0-7.732 6.268-14 14-14s14 6.268 14 14" fill="white" fillOpacity="0.9"/>
-                      {/* Tête */}
-                      <circle cx="32" cy="24" r="12" fill="white"/>
-                      {/* Reflet cheveux */}
-                      <ellipse cx="32" cy="16" rx="9" ry="5" fill="rgba(212,160,23,0.6)"/>
-                      {/* Étoile badge premium */}
-                      <circle cx="46" cy="44" r="9" fill="#D4A017"/>
-                      <path d="M46 38l1.8 3.6 4 .6-2.9 2.8.7 3.9L46 47l-3.6 1.9.7-3.9-2.9-2.8 4-.6z" fill="white"/>
-                    </svg>
+                    <img src="/logo.png" alt="IFL" style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 18 }} />
                   </div>
                   {/* Anneau animé */}
                   <div style={{
-                    position: 'absolute', inset: -4, borderRadius: '50%',
+                    position: 'absolute', inset: -4, borderRadius: 28,
                     border: '2px dashed rgba(212,160,23,0.6)',
                     animation: 'spin 8s linear infinite'
                   }}/>
@@ -792,31 +787,18 @@ export default function Home() {
             {/* Sous-header À propos */}
             <div className="african-pattern" style={{ background: 'linear-gradient(160deg,#8B2500,#C4521A)' }}>
               <div className="max-w-lg mx-auto px-4 py-8 text-center">
-                {/* Icône moderne À propos – bouclier IFL avec éléments éducatifs */}
+                {/* Logo IFL officiel */}
                 <div className="relative w-20 h-20 mx-auto mb-4">
                   <div style={{
-                    width: 80, height: 80, borderRadius: 22,
+                    width: 80, height: 80, borderRadius: 20,
                     background: 'rgba(255,255,255,0.15)',
-                    border: '2px solid rgba(255,255,255,0.4)',
+                    border: '2.5px solid rgba(255,255,255,0.5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.2), inset 0 1px 3px rgba(255,255,255,0.25)'
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.2), inset 0 1px 3px rgba(255,255,255,0.25)',
+                    overflow: 'hidden'
                   }}>
-                    <svg width="46" height="46" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      {/* Bouclier */}
-                      <path d="M32 6L10 16v16c0 12 10 20 22 24 12-4 22-12 22-24V16L32 6z" fill="white" fillOpacity="0.95"/>
-                      {/* Intérieur bouclier */}
-                      <path d="M32 12L14 21v13c0 9 7.5 15 18 18 10.5-3 18-9 18-18V21L32 12z" fill="#C4521A" fillOpacity="0.25"/>
-                      {/* Chapeau de diplômé */}
-                      <path d="M22 28l10-5 10 5-10 5z" fill="#D4A017"/>
-                      <rect x="30" y="33" width="4" height="6" rx="1" fill="#D4A017"/>
-                      <ellipse cx="32" cy="39" rx="5" ry="2" fill="#D4A017" fillOpacity="0.7"/>
-                      {/* Étoiles décoratives */}
-                      <circle cx="20" cy="22" r="2" fill="white" fillOpacity="0.7"/>
-                      <circle cx="44" cy="22" r="2" fill="white" fillOpacity="0.7"/>
-                      <circle cx="32" cy="18" r="1.5" fill="white" fillOpacity="0.9"/>
-                    </svg>
+                    <img src="/logo.png" alt="IFL" style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 16 }} />
                   </div>
-                  {/* Points décoratifs */}
                   <div style={{ position: 'absolute', top: -2, right: -2, width: 12, height: 12, borderRadius: '50%', background: '#D4A017', boxShadow: '0 2px 6px rgba(212,160,23,0.5)' }}/>
                   <div style={{ position: 'absolute', bottom: -2, left: -2, width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.6)' }}/>
                 </div>
@@ -1187,61 +1169,80 @@ export default function Home() {
             {/* Onglet Accueil */}
             <button
               onClick={() => setActiveTab('accueil')}
-              className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
+              className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-all relative"
             >
               {activeTab === 'accueil' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'accueil' ? 'shadow-sm' : ''}`}
+              <div className="w-9 h-9 rounded-2xl flex items-center justify-center transition-all"
                 style={{ background: activeTab === 'accueil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_home.svg" alt="Accueil" width="24" height="24" style={{ objectFit: 'contain', filter: activeTab === 'accueil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+                <img src="/icons/nav_home.svg" alt="Accueil" width="22" height="22" style={{ objectFit: 'contain', filter: activeTab === 'accueil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
-              <span className="text-xs font-bold" style={{ color: activeTab === 'accueil' ? '#C4521A' : '#9CA3AF' }}>Accueil</span>
+              <span className="text-xs font-bold" style={{ color: activeTab === 'accueil' ? '#C4521A' : '#9CA3AF', fontSize: '10px' }}>Accueil</span>
             </button>
 
-            {/* Onglet Concours - Orange IFL */}
+            {/* Onglet Concours Direct */}
             <button
-              onClick={() => setActiveTab('concours')}
-              className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
+              onClick={() => setActiveTab('concours-direct')}
+              className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-all relative"
             >
-              {activeTab === 'concours' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+              {activeTab === 'concours-direct' && (
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#F97316,#FB923C)' }} />
               )}
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'concours' ? 'shadow-sm' : ''}`}
-                style={{ background: activeTab === 'concours' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_concours.svg" alt="Concours" width="24" height="24" style={{ objectFit: 'contain', filter: activeTab === 'concours' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+              <div className="w-9 h-9 rounded-2xl flex items-center justify-center transition-all"
+                style={{ background: activeTab === 'concours-direct' ? 'linear-gradient(135deg,#FFF7ED,#FFEDD5)' : 'transparent' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeTab === 'concours-direct' ? '#F97316' : '#9CA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
               </div>
-              <span className="text-xs font-bold" style={{ color: activeTab === 'concours' ? '#C4521A' : '#9CA3AF' }}>Concours</span>
+              <span className="font-bold" style={{ color: activeTab === 'concours-direct' ? '#F97316' : '#9CA3AF', fontSize: '10px' }}>C. Direct</span>
+            </button>
+
+            {/* Onglet Concours Professionnel */}
+            <button
+              onClick={() => setActiveTab('concours-professionnel')}
+              className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-all relative"
+            >
+              {activeTab === 'concours-professionnel' && (
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#1D4ED8,#3B82F6)' }} />
+              )}
+              <div className="w-9 h-9 rounded-2xl flex items-center justify-center transition-all"
+                style={{ background: activeTab === 'concours-professionnel' ? 'linear-gradient(135deg,#EFF6FF,#DBEAFE)' : 'transparent' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeTab === 'concours-professionnel' ? '#1D4ED8' : '#9CA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+                </svg>
+              </div>
+              <span className="font-bold" style={{ color: activeTab === 'concours-professionnel' ? '#1D4ED8' : '#9CA3AF', fontSize: '10px' }}>C. Pro</span>
             </button>
 
             {/* Onglet Mon Profil */}
             <button
               onClick={() => setActiveTab('profil')}
-              className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
+              className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-all relative"
             >
               {activeTab === 'profil' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'profil' ? 'shadow-sm' : ''}`}
+              <div className="w-9 h-9 rounded-2xl flex items-center justify-center transition-all"
                 style={{ background: activeTab === 'profil' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_profil.svg" alt="Profil" width="24" height="24" style={{ objectFit: 'contain', filter: activeTab === 'profil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+                <img src="/icons/nav_profil.svg" alt="Profil" width="22" height="22" style={{ objectFit: 'contain', filter: activeTab === 'profil' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
-              <span className="text-xs font-bold" style={{ color: activeTab === 'profil' ? '#C4521A' : '#9CA3AF' }}>Mon Profil</span>
+              <span className="font-bold" style={{ color: activeTab === 'profil' ? '#C4521A' : '#9CA3AF', fontSize: '10px' }}>Profil</span>
             </button>
 
             {/* Onglet À propos */}
             <button
               onClick={() => setActiveTab('apropos')}
-              className="flex-1 flex flex-col items-center py-2.5 gap-1 transition-all relative"
+              className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-all relative"
             >
               {activeTab === 'apropos' && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full" style={{ background: 'linear-gradient(90deg,#C4521A,#D4A017)' }} />
               )}
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${activeTab === 'apropos' ? 'shadow-sm' : ''}`}
+              <div className="w-9 h-9 rounded-2xl flex items-center justify-center transition-all"
                 style={{ background: activeTab === 'apropos' ? 'linear-gradient(135deg,#FFF0E8,#FFE0C8)' : 'transparent' }}>
-                <img src="/icons/nav_apropos.svg" alt="À propos" width="24" height="24" style={{ objectFit: 'contain', filter: activeTab === 'apropos' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
+                <img src="/icons/nav_apropos.svg" alt="À propos" width="22" height="22" style={{ objectFit: 'contain', filter: activeTab === 'apropos' ? 'none' : 'grayscale(60%) opacity(0.6)' }} />
               </div>
-              <span className="text-xs font-bold" style={{ color: activeTab === 'apropos' ? '#C4521A' : '#9CA3AF' }}>À propos</span>
+              <span className="font-bold" style={{ color: activeTab === 'apropos' ? '#C4521A' : '#9CA3AF', fontSize: '10px' }}>À propos</span>
             </button>
 
           </div>
