@@ -22,6 +22,30 @@ function parseSubscriptionType(subscriptionType) {
   return { type: subscriptionType, dossier_principal: null }
 }
 
+// Récupère TOUTES les questions d'une catégorie en pagination
+// (Supabase impose une limite par défaut de 1000 lignes par requête).
+async function fetchAllQuestionsForCategory(categorieId, hardLimit = 10000) {
+  const pageSize = 1000
+  const all = []
+  let from = 0
+  while (all.length < hardLimit) {
+    const to = Math.min(from + pageSize - 1, hardLimit - 1)
+    const { data, error } = await supabaseAdmin
+      .from('questions')
+      .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo')
+      .eq('category_id', categorieId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
+      .range(from, to)
+    if (error) throw error
+    if (!data || data.length === 0) break
+    all.push(...data)
+    if (data.length < pageSize) break
+    from += pageSize
+  }
+  return all
+}
+
 export default async function handler(req) {
   if (req.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -47,8 +71,12 @@ export default async function handler(req) {
   try {
     const url = new URL(req.url)
     const categorieId = url.searchParams.get('categorie_id')
-    const limitParam = url.searchParams.get('limit') || '100'
-    const limit = Math.min(parseInt(limitParam, 10) || 100, 200)
+    // Pas de limite arbitraire : on récupère TOUTES les questions disponibles.
+    // Un plafond de sécurité très élevé (10000) est appliqué pour éviter tout abus.
+    const MAX_QUESTIONS = 10000
+    const limitParam = url.searchParams.get('limit')
+    const requestedLimit = limitParam ? parseInt(limitParam, 10) : MAX_QUESTIONS
+    const limit = Math.min(Number.isFinite(requestedLimit) && requestedLimit > 0 ? requestedLimit : MAX_QUESTIONS, MAX_QUESTIONS)
 
     if (!categorieId) {
       return new Response(JSON.stringify({ error: 'categorie_id requis' }), {
@@ -138,14 +166,6 @@ export default async function handler(req) {
     // ========================================================
     // 4. Requête Supabase selon le niveau d'accès
     // ========================================================
-    let query = supabaseAdmin
-      .from('questions')
-      .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo')
-      .eq('category_id', categorieId)
-      .eq('is_active', true)
-      .order('created_at', { ascending: true })
-      .limit(limit)
-
     // Si pas d'accès complet, ne montrer que les questions gratuites (is_demo=true ou les 5 premières)
     if (!hasFullAccess) {
       // D'abord essayer avec is_demo=true
@@ -241,16 +261,13 @@ export default async function handler(req) {
       }), { status: 403, headers: { 'Content-Type': 'application/json' } })
     }
 
-    // Accès complet : récupérer toutes les questions
-    const { data: questions, error } = await supabaseAdmin
-      .from('questions')
-      .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo')
-      .eq('category_id', categorieId)
-      .eq('is_active', true)
-      .order('created_at', { ascending: true })
-      .limit(limit)
-
-    if (error) throw error
+    // Accès complet : récupérer TOUTES les questions (pagination automatique)
+    let questions
+    try {
+      questions = await fetchAllQuestionsForCategory(categorieId, limit)
+    } catch (error) {
+      throw error
+    }
 
     const questionList = (questions || []).map(q => ({
       id: q.id,

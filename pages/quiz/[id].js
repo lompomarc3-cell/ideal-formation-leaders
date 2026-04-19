@@ -652,14 +652,14 @@ export default function QuizPage() {
                           }
                           return (
                             <button key={opt} className={cls} onClick={() => handleSelect(opt)}>
-                              <span className="inline-flex w-7 h-7 rounded-full items-center justify-center text-sm font-bold mr-3 flex-shrink-0"
+                              <span className="option-badge inline-flex w-7 h-7 rounded-full items-center justify-center text-sm font-bold"
                                 style={{
                                   background: answered && opt === q.bonne_reponse ? '#D4A017' : answered && opt === selected ? '#dc2626' : '#f3f4f6',
                                   color: answered && (opt === q.bonne_reponse || opt === selected) ? 'white' : '#374151'
                                 }}>
                                 {opt}
                               </span>
-                              {optText}
+                              <span className="option-text">{optText}</span>
                             </button>
                           )
                         })}
