@@ -17,6 +17,30 @@ async function checkAdmin(req) {
   return profile.id
 }
 
+// 🚨 PHASE 2 — Liste blanche des sous-dossiers professionnels acceptant les dissertations
+const DISSERTATION_ALLOWED_KEYWORDS = [
+  'csapé', 'csape',
+  'agrégé', 'agrege',
+  'capes',
+  'magistrature',
+  'inspectorat', 'ies', 'iepenf',
+  'administrateur civil',
+  'administrateur des hôpitaux', 'administrateur des hopitaux',
+  'justice',
+  'casu', 'aasu', 'cisu', 'aisu', 'enaref'
+]
+
+function canCategoryHaveDissertation(cat) {
+  if (!cat) return false
+  if (cat.type === 'direct') return false
+  if (cat.type === 'professionnel') {
+    const nom = (cat.nom || '').toLowerCase()
+    return DISSERTATION_ALLOWED_KEYWORDS.some(k => nom.includes(k))
+      || !/(actualité|actualite|entraînement|entrainement|accompagnement)/i.test(nom)
+  }
+  return false
+}
+
 // API pour la gestion des dissertations brutes (long texte, sans QCM)
 // Les dissertations sont stockees dans la table `questions` avec matiere='dissertation'
 // - enonce : titre de la dissertation
@@ -77,6 +101,27 @@ export default async function handler(req) {
       return new Response(JSON.stringify({
         error: 'La categorie, le titre et le contenu sont requis'
       }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+    }
+
+    // 🚨 PHASE 2 — Validation serveur : la catégorie doit appartenir à la liste blanche
+    try {
+      const { data: cat, error: catErr } = await supabaseAdmin
+        .from('categories')
+        .select('id, nom, type')
+        .eq('id', category_id)
+        .maybeSingle()
+      if (catErr || !cat) {
+        return new Response(JSON.stringify({ error: 'Catégorie introuvable' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } })
+      }
+      if (!canCategoryHaveDissertation(cat)) {
+        return new Response(JSON.stringify({
+          error: `Les dissertations ne sont pas autorisées dans le sous-dossier "${cat.nom}". Réservé aux concours professionnels (Magistrature, CSAPÉ, Agrégés, CAPES, etc.).`
+        }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+      }
+    } catch (err) {
+      return new Response(JSON.stringify({ error: 'Erreur de validation : ' + err.message }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } })
     }
 
     try {

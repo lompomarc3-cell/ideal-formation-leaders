@@ -59,6 +59,7 @@ export default function AdminDashboard() {
     { id: 'categories', label: '📁 Dossiers', icon: '📁' },
     { id: 'schedules', label: '⏰ Programmation', icon: '⏰' },
     { id: 'prices', label: '💰 Prix', icon: '💰' },
+    { id: 'promotions', label: '🎯 Promotions', icon: '🎯' },
     { id: 'password', label: '🔑 Mot de passe', icon: '🔑' },
   ]
 
@@ -120,6 +121,7 @@ export default function AdminDashboard() {
           {activeSection === 'categories' && <AdminCategories getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'schedules' && <AdminSchedules getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'prices' && <AdminPrices getToken={getToken} onNotif={showNotif} />}
+          {activeSection === 'promotions' && <AdminPromotions getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'password' && <AdminChangePassword getToken={getToken} onNotif={showNotif} user={user} />}
         </div>
       </div>
@@ -347,11 +349,20 @@ function AdminUsers({ getToken, onNotif }) {
 
   const updateUser = async (updates) => {
     try {
+      // Extraire dossier_principal si format "professionnel:xxx"
+      let cleanType = updates.abonnement_type
+      let dossierPrincipal = null
+      if (cleanType && cleanType.startsWith('professionnel:')) {
+        dossierPrincipal = cleanType.substring('professionnel:'.length)
+        cleanType = 'professionnel'
+      }
+
       const apiPayload = {
         id: updates.id,
-        subscription_type: updates.abonnement_type,
-        subscription_status: updates.abonnement_type ? 'active' : 'free',
+        subscription_type: cleanType || null,
+        subscription_status: cleanType ? 'active' : 'free',
         subscription_expires_at: updates.abonnement_valide_jusqua || null,
+        dossier_principal: dossierPrincipal,
         is_active: updates.is_active
       }
       const r = await fetch('/api/admin/users', {
@@ -360,9 +371,28 @@ function AdminUsers({ getToken, onNotif }) {
         body: JSON.stringify(apiPayload)
       })
       const d = await r.json()
-      if (d.user) { onNotif('✅ Utilisateur mis à jour', 'success'); fetchUsers(); setEditId(null) }
+      if (d.user || d.success) { onNotif('✅ Utilisateur mis à jour', 'success'); fetchUsers(); setEditId(null) }
       else onNotif(d.error || 'Erreur', 'error')
     } catch {}
+  }
+
+  const deleteUser = async (u) => {
+    const ok = typeof window !== 'undefined' && window.confirm(
+      `⚠️ Supprimer définitivement l'utilisateur ${u.prenom || ''} ${u.nom || ''} (${u.phone || ''}) ?\n\n` +
+      `Cette action est IRRÉVERSIBLE. Toutes les données associées (paiements, progression) seront supprimées.`
+    )
+    if (!ok) return
+    try {
+      const r = await fetch(`/api/admin/users?id=${encodeURIComponent(u.id)}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${getToken()}` }
+      })
+      const d = await r.json()
+      if (d.success) { onNotif('🗑️ Utilisateur supprimé', 'success'); fetchUsers() }
+      else onNotif(d.error || 'Erreur lors de la suppression', 'error')
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
   }
 
   if (loading) return <div className="py-16 text-center"><div className="spinner mx-auto"></div></div>
@@ -417,7 +447,18 @@ function AdminUsers({ getToken, onNotif }) {
                   })()}
                 </div>
               </div>
-              <button onClick={() => setEditId(editId === u.id ? null : u.id)} className="ml-3 p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 text-sm">✏️</button>
+              <div className="ml-3 flex flex-col gap-1.5">
+                <button
+                  onClick={() => setEditId(editId === u.id ? null : u.id)}
+                  className="p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 text-sm"
+                  title="Modifier l'abonnement"
+                >✏️</button>
+                <button
+                  onClick={() => deleteUser(u)}
+                  className="p-2 rounded-lg bg-red-900 text-red-200 hover:bg-red-800 text-sm"
+                  title="Supprimer l'utilisateur"
+                >🗑️</button>
+              </div>
             </div>
             {editId === u.id && (
               <div className="mt-4 pt-4 border-t border-gray-700">
@@ -1017,17 +1058,36 @@ function AdminPrices({ getToken, onNotif }) {
 }
 
 function PriceEditor({ price, onSave }) {
-  const [prix, setPrix] = useState(price.prix)
+  // Le prix « actuel/normal » à afficher : si l'API renvoie prix_normal, on le préfère ;
+  // sinon on retombe sur price.prix (qui peut être le prix promo si une promo est active).
+  const normalPrice = price.prix_normal != null ? price.prix_normal : price.prix
+  const [prix, setPrix] = useState(normalPrice)
   const [saved, setSaved] = useState(false)
+  const hasActivePromo = !!price.promo_active && price.prix_promo != null
   return (
     <div className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
       <p className="text-white font-bold mb-1">
         {price.type_concours === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
       </p>
-      <p className="text-gray-400 text-sm mb-4">Prix actuel : <span className="text-amber-400 font-bold">{(price.prix || 0).toLocaleString()} FCFA</span></p>
+      <p className="text-gray-400 text-sm mb-3">
+        Prix normal : <span className="text-amber-400 font-bold">{(normalPrice || 0).toLocaleString()} FCFA</span>
+      </p>
+      {hasActivePromo && (
+        <div className="rounded-xl p-3 mb-3" style={{ background: 'linear-gradient(135deg,#7c2d12,#9a3412)' }}>
+          <p className="text-amber-200 text-xs font-bold mb-1">🎯 PROMOTION EN COURS</p>
+          <p className="text-white text-sm">
+            Prix promo actif : <span className="font-extrabold text-amber-300">{(price.prix_promo || 0).toLocaleString()} FCFA</span>
+          </p>
+          {price.promo_date_fin && (
+            <p className="text-amber-200 text-xs mt-1">
+              Jusqu'au {new Date(price.promo_date_fin).toLocaleString('fr-FR')}
+            </p>
+          )}
+        </div>
+      )}
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className="text-gray-400 text-xs mb-1 block">Nouveau prix (FCFA)</label>
+          <label className="text-gray-400 text-xs mb-1 block">Nouveau prix normal (FCFA)</label>
           <input type="number" value={prix} onChange={e => { setPrix(e.target.value); setSaved(false) }}
             className="w-full bg-gray-700 text-white rounded-xl px-4 py-3 text-lg font-bold" min="100" />
         </div>
@@ -1036,6 +1096,259 @@ function PriceEditor({ price, onSave }) {
           style={{ background: saved ? '#16a34a' : '#D4A017' }}>
           {saved ? '✅' : '💾'}
         </button>
+      </div>
+    </div>
+  )
+}
+
+/* =================== PROMOTIONS (PHASE 2) =================== */
+function AdminPromotions({ getToken, onNotif }) {
+  const [promotions, setPromotions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [editPromo, setEditPromo] = useState(null)
+  const [tableMissing, setTableMissing] = useState(false)
+
+  useEffect(() => { fetchPromotions() }, [])
+
+  const fetchPromotions = async () => {
+    setLoading(true)
+    setTableMissing(false)
+    try {
+      const r = await fetch('/api/admin/promotions', { headers: { Authorization: `Bearer ${getToken()}` } })
+      const d = await r.json()
+      if (d.error && /promotions.*introuvable|exécutez.*sql/i.test(d.error)) {
+        setTableMissing(true)
+        setPromotions([])
+      } else {
+        setPromotions(d.promotions || [])
+      }
+    } catch {}
+    setLoading(false)
+  }
+
+  const savePromotion = async (formData) => {
+    try {
+      const method = formData.id ? 'PUT' : 'POST'
+      const r = await fetch('/api/admin/promotions', {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify(formData)
+      })
+      const d = await r.json()
+      if (d.success || d.promotion) {
+        onNotif(formData.id ? '✅ Promotion modifiée' : '✅ Promotion créée', 'success')
+        setShowForm(false); setEditPromo(null)
+        fetchPromotions()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
+  }
+
+  const togglePromotion = async (p) => {
+    try {
+      const r = await fetch('/api/admin/promotions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ id: p.id, is_active: !p.is_active })
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif(p.is_active ? '🚫 Promotion désactivée' : '✅ Promotion activée', 'success')
+        fetchPromotions()
+      } else onNotif(d.error || 'Erreur', 'error')
+    } catch {}
+  }
+
+  const deletePromotion = async (id) => {
+    if (!confirm('Supprimer définitivement cette promotion ?')) return
+    try {
+      await fetch(`/api/admin/promotions?id=${id}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` }
+      })
+      onNotif('🗑️ Promotion supprimée', 'info')
+      fetchPromotions()
+    } catch {}
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4 mt-1">
+        <h2 className="text-white text-xl font-bold">🎯 Promotions ({promotions.length})</h2>
+        <button onClick={() => { setShowForm(true); setEditPromo(null) }}
+          className="px-3 py-2 font-bold text-white rounded-xl text-xs active:scale-95" style={{ background: '#C4521A' }}>
+          ➕ Nouvelle promotion
+        </button>
+      </div>
+
+      <div className="bg-amber-900/20 border border-amber-800/50 rounded-xl p-3 mb-4 text-xs text-amber-200">
+        💡 Lancez des promotions sur les prix (Concours directs et/ou professionnels). Pendant la période active, le prix barré et le prix promo s'afficheront automatiquement dans l'application.
+      </div>
+
+      {tableMissing && (
+        <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 mb-4 text-sm text-red-200">
+          ⚠️ <strong>Table "promotions" introuvable.</strong>
+          <p className="mt-2 text-xs">Exécutez le fichier <code className="bg-black/30 px-1.5 py-0.5 rounded">SQL_PROMOTIONS_PHASE2.sql</code> dans le SQL Editor Supabase pour créer la table.</p>
+          <a href="https://app.supabase.com/project/cyasoaihjjochwhnhwqf/sql/new" target="_blank" rel="noopener noreferrer"
+            className="mt-2 inline-block px-3 py-1.5 bg-red-700 text-white rounded-lg text-xs font-bold">
+            🔗 Ouvrir SQL Editor Supabase
+          </a>
+        </div>
+      )}
+
+      {(showForm || editPromo) && (
+        <PromotionForm
+          initial={editPromo}
+          onSave={savePromotion}
+          onCancel={() => { setShowForm(false); setEditPromo(null) }}
+        />
+      )}
+
+      {loading ? <div className="py-8 text-center"><div className="spinner mx-auto"></div></div> : (
+        <div className="space-y-3">
+          {promotions.length === 0 && !tableMissing ? (
+            <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-400">
+              <p className="text-3xl mb-2">🎯</p>
+              <p>Aucune promotion pour le moment</p>
+              <p className="text-xs text-gray-500 mt-2">Cliquez sur "Nouvelle promotion" pour en créer une.</p>
+            </div>
+          ) : promotions.map(p => {
+            const isActiveNow = p.is_currently_active
+            const dateDebut = new Date(p.date_debut).toLocaleString('fr-FR')
+            const dateFin = new Date(p.date_fin).toLocaleString('fr-FR')
+            const expired = new Date(p.date_fin) < new Date()
+            return (
+              <div key={p.id} className={`bg-gray-800 rounded-xl p-4 border ${isActiveNow ? 'border-green-600' : expired ? 'border-gray-700 opacity-60' : 'border-amber-700'}`}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex-1">
+                    <p className="text-white font-bold">
+                      {p.type_concours === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
+                    </p>
+                    <p className="text-2xl font-extrabold mt-1" style={{ color: '#D4A017' }}>
+                      {(p.prix_promo || 0).toLocaleString()} FCFA
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    {isActiveNow ? (
+                      <span className="text-xs px-2 py-0.5 rounded font-bold bg-green-700 text-white">✅ ACTIVE</span>
+                    ) : expired ? (
+                      <span className="text-xs px-2 py-0.5 rounded font-bold bg-gray-600 text-gray-300">⏰ TERMINÉE</span>
+                    ) : !p.is_active ? (
+                      <span className="text-xs px-2 py-0.5 rounded font-bold bg-red-800 text-red-200">🚫 DÉSACTIVÉE</span>
+                    ) : (
+                      <span className="text-xs px-2 py-0.5 rounded font-bold bg-amber-800 text-amber-200">⏳ À VENIR</span>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mb-3">
+                  📅 Du <strong className="text-amber-400">{dateDebut}</strong> au <strong className="text-amber-400">{dateFin}</strong>
+                </p>
+                <div className="flex gap-2 justify-end">
+                  <button onClick={() => togglePromotion(p)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold ${p.is_active ? 'bg-red-800 text-red-200 hover:bg-red-700' : 'bg-green-800 text-green-200 hover:bg-green-700'}`}>
+                    {p.is_active ? '🚫 Désactiver' : '✅ Activer'}
+                  </button>
+                  <button onClick={() => { setEditPromo(p); setShowForm(false) }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-800 text-amber-200 hover:bg-amber-700">
+                    ✏️ Modifier
+                  </button>
+                  <button onClick={() => deletePromotion(p.id)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-700 text-red-300 hover:bg-gray-600">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PromotionForm({ initial, onSave, onCancel }) {
+  const toLocalInput = (iso) => {
+    if (!iso) return ''
+    const d = new Date(iso)
+    const pad = (n) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+  const [form, setForm] = useState(initial ? {
+    id: initial.id,
+    type_concours: initial.type_concours || 'direct',
+    prix_promo: initial.prix_promo || 0,
+    date_debut: toLocalInput(initial.date_debut),
+    date_fin: toLocalInput(initial.date_fin),
+    is_active: initial.is_active !== false
+  } : {
+    type_concours: 'direct',
+    prix_promo: '',
+    date_debut: toLocalInput(new Date().toISOString()),
+    date_fin: '',
+    is_active: true
+  })
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
+
+  const submit = () => {
+    if (!form.type_concours) return alert('Choisissez un type de concours')
+    if (!form.prix_promo || parseInt(form.prix_promo) < 0) return alert('Saisissez un prix promo valide')
+    if (!form.date_debut) return alert('Saisissez une date de début')
+    if (!form.date_fin) return alert('Saisissez une date de fin')
+    if (new Date(form.date_fin) <= new Date(form.date_debut)) return alert('La date de fin doit être après la date de début')
+
+    onSave({
+      ...form,
+      prix_promo: parseInt(form.prix_promo),
+      date_debut: new Date(form.date_debut).toISOString(),
+      date_fin: new Date(form.date_fin).toISOString()
+    })
+  }
+
+  return (
+    <div className="bg-gray-800 rounded-2xl p-5 mb-4 border border-amber-800">
+      <h3 className="text-white font-bold mb-4">{initial ? '✏️ Modifier la promotion' : '🎯 Nouvelle promotion'}</h3>
+      <div className="space-y-3">
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Type de concours *</label>
+          <select value={form.type_concours} onChange={e => set('type_concours', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm">
+            <option value="direct">📚 Concours Directs</option>
+            <option value="professionnel">🎓 Concours Professionnels</option>
+          </select>
+        </div>
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Prix promotionnel (FCFA) *</label>
+          <input type="number" value={form.prix_promo} onChange={e => set('prix_promo', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-lg font-bold"
+            min="0" placeholder="Ex: 3500" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-gray-400 text-xs mb-1 block">Date début *</label>
+            <input type="datetime-local" value={form.date_debut} onChange={e => set('date_debut', e.target.value)}
+              className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" />
+          </div>
+          <div>
+            <label className="text-gray-400 text-xs mb-1 block">Date fin *</label>
+            <input type="datetime-local" value={form.date_fin} onChange={e => set('date_fin', e.target.value)}
+              className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" />
+          </div>
+        </div>
+        <label className="flex items-center gap-2 text-sm text-white cursor-pointer">
+          <input type="checkbox" checked={form.is_active} onChange={e => set('is_active', e.target.checked)}
+            className="w-4 h-4 accent-amber-500" />
+          <span>Activer la promotion</span>
+        </label>
+        <div className="flex gap-2 pt-1">
+          <button onClick={submit} className="flex-1 py-3.5 font-bold text-white rounded-xl active:scale-95"
+            style={{ background: '#C4521A' }}>
+            {initial ? '💾 Modifier' : '🎯 Créer la promotion'}
+          </button>
+          <button onClick={onCancel} className="px-5 py-3.5 bg-gray-700 text-gray-300 rounded-xl font-semibold">Annuler</button>
+        </div>
       </div>
     </div>
   )
@@ -1123,6 +1436,42 @@ function AdminChangePassword({ getToken, onNotif, user }) {
 }
 
 /* =================== DISSERTATIONS =================== */
+// 🚨 PHASE 2 — Liste blanche des sous-dossiers PROFESSIONNELS qui acceptent les dissertations.
+// Les concours DIRECTS ne proposent JAMAIS l'option "dissertation".
+// Cette liste correspond aux concours à contenu long (épreuves rédactionnelles).
+const DISSERTATION_ALLOWED_KEYWORDS = [
+  'csapé', 'csape',
+  'agrégé', 'agrege',
+  'capes',
+  'magistrature',
+  'inspectorat', 'ies', 'iepenf',
+  'administrateur civil',
+  'administrateur des hôpitaux', 'administrateur des hopitaux',
+  'justice',
+  'casu', 'aasu', 'cisu', 'aisu', 'enaref'
+]
+
+// Fonction utilitaire: une catégorie peut-elle recevoir une dissertation ?
+function canCategoryHaveDissertation(cat) {
+  if (!cat) return false
+  // Règle 1 : Les concours DIRECTS sont exclus
+  if (cat.type === 'direct') return false
+  // Règle 2 : Pour les PROFESSIONNELS, on accepte par défaut tous les sous-dossiers
+  // (car la liste fournie couvre tous les concours pro à contenu long).
+  // On affine en vérifiant le nom contre la liste blanche pour exclure d'éventuels
+  // sous-dossiers futurs qui ne seraient pas concernés.
+  if (cat.type === 'professionnel') {
+    const nom = (cat.nom || '').toLowerCase()
+    // Si aucun mot-clé ne correspond explicitement, on autorise quand même
+    // car tout concours professionnel principal a potentiellement une dissertation.
+    return DISSERTATION_ALLOWED_KEYWORDS.some(k => nom.includes(k))
+      // Exception : tout dossier professionnel non listé reste autorisé sauf
+      // s'il s'agit d'un dossier d'accompagnement (Actualités, Entraînement, Accompagnement final)
+      || !/(actualité|actualite|entraînement|entrainement|accompagnement)/i.test(nom)
+  }
+  return false
+}
+
 function AdminDissertations({ getToken, onNotif }) {
   const [dissertations, setDissertations] = useState([])
   const [categories, setCategories] = useState([])
@@ -1137,7 +1486,10 @@ function AdminDissertations({ getToken, onNotif }) {
     try {
       const r = await fetch('/api/quiz/categories', { headers: { Authorization: `Bearer ${getToken()}` } })
       const d = await r.json()
-      setCategories(d.categories || [])
+      // 🚨 PHASE 2 — Filtrage des catégories autorisées pour les dissertations
+      const allCats = d.categories || []
+      const allowedCats = allCats.filter(canCategoryHaveDissertation)
+      setCategories(allowedCats)
     } catch {}
   }
 

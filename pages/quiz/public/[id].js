@@ -188,30 +188,17 @@ export default function PublicQuizPage() {
     saveProgressLocal(index)
   }, [saveProgressLocal])
 
-  // Swipe tactile + flèches clavier — refs stables via useCallback + stateRef
+  // 🚫 SWIPE TACTILE DÉSACTIVÉ (Phase 2) — Le scroll vertical ne doit JAMAIS changer de question.
+  // Seules les FLÈCHES (boutons Précédente / Suivante) ou les TOUCHES CLAVIER (← / →) permettent de naviguer.
   useEffect(() => {
-    const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
-    const handleTouchEnd = (e) => {
-      if (touchStartX.current === null) return
-      const dx = e.changedTouches[0].clientX - touchStartX.current
-      if (Math.abs(dx) > 50) {
-        if (dx < 0) handleNext()
-        else handlePrev()
-      }
-      touchStartX.current = null
-    }
     const handleKeyDown = (e) => {
       const tag = (e.target && e.target.tagName) || ''
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return
       if (e.key === 'ArrowRight') handleNext()
       else if (e.key === 'ArrowLeft') handlePrev()
     }
-    window.addEventListener('touchstart', handleTouchStart, { passive: true })
-    window.addEventListener('touchend', handleTouchEnd, { passive: true })
     window.addEventListener('keydown', handleKeyDown)
     return () => {
-      window.removeEventListener('touchstart', handleTouchStart)
-      window.removeEventListener('touchend', handleTouchEnd)
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [handleNext, handlePrev])

@@ -23,7 +23,7 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'Accès refusé' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
   }
 
-  // GET: récupérer les prix depuis les catégories
+  // GET: récupérer les prix depuis les catégories + promotions actives
   if (req.method === 'GET') {
     try {
       const { data: cats } = await supabaseAdmin
@@ -42,10 +42,59 @@ export default async function handler(req) {
         }
       }
 
+      // 🚨 PHASE 2 — Promotions actives (stockées dans correction_requests avec marqueur ifl_promo)
+      let directPromo = null
+      let profPromo = null
+      try {
+        const { data: promoRows } = await supabaseAdmin
+          .from('correction_requests')
+          .select('id, message, status, created_at')
+          .eq('status', 'approved')
+          .like('message', '%ifl_promo%')
+          .order('created_at', { ascending: false })
+          .limit(50)
+
+        if (promoRows) {
+          const now = new Date()
+          for (const row of promoRows) {
+            try {
+              const p = JSON.parse(row.message || '{}')
+              if (p.type !== 'ifl_promo' || p.is_active === false) continue
+              const debut = p.date_debut ? new Date(p.date_debut) : null
+              const fin = p.date_fin ? new Date(p.date_fin) : null
+              if (debut && now < debut) continue
+              if (fin && now > fin) continue
+              if (p.type_concours === 'direct' && directPromo === null) {
+                directPromo = { prix: p.prix_promo, date_fin: p.date_fin, label: p.label || null }
+              }
+              if (p.type_concours === 'professionnel' && profPromo === null) {
+                profPromo = { prix: p.prix_promo, date_fin: p.date_fin, label: p.label || null }
+              }
+            } catch {}
+          }
+        }
+      } catch {}
+
       return new Response(JSON.stringify({
         prices: [
-          { type_concours: 'direct', prix: directPrix },
-          { type_concours: 'professionnel', prix: profPrix }
+          {
+            type_concours: 'direct',
+            prix: directPrix,
+            prix_normal: directPrix,
+            prix_promo: directPromo?.prix || null,
+            promo_active: !!directPromo,
+            promo_date_fin: directPromo?.date_fin || null,
+            promo_label: directPromo?.label || null
+          },
+          {
+            type_concours: 'professionnel',
+            prix: profPrix,
+            prix_normal: profPrix,
+            prix_promo: profPromo?.prix || null,
+            promo_active: !!profPromo,
+            promo_date_fin: profPromo?.date_fin || null,
+            promo_label: profPromo?.label || null
+          }
         ]
       }), { status: 200, headers: { 'Content-Type': 'application/json' } })
     } catch (err) {

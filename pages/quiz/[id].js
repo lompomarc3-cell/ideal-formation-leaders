@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '../_app'
+import { usePublicPrices } from '../../components/PromoPrice'
 
 const PROGRESS_KEY = (userId, catId) => `ifl_progress_${userId || 'guest'}_${catId}`
 const FREE_QUESTIONS_COUNT = 5
@@ -297,18 +298,10 @@ export default function QuizPage() {
     goToQuestion(index, qs, hasAccess, aMap, saveProgress)
   }, [goToQuestion, saveProgress])
 
-  // Swipe tactile gauche/droite — utilise des refs stables pour éviter les closures stales
+  // 🚨 PHASE 2 — Le swipe tactile a été désactivé : il provoquait des changements
+  // involontaires de question lors du scroll vertical. Seuls les boutons de
+  // navigation (◀ ▶) et les flèches clavier permettent de naviguer.
   useEffect(() => {
-    const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
-    const handleTouchEnd = (e) => {
-      if (touchStartX.current === null) return
-      const dx = e.changedTouches[0].clientX - touchStartX.current
-      if (Math.abs(dx) > 50) {
-        if (dx < 0) handleNext()
-        else handlePrev()
-      }
-      touchStartX.current = null
-    }
     // Raccourcis clavier flèches (PC/tablette avec clavier)
     const handleKeyDown = (e) => {
       // Ne pas interférer avec la saisie dans un input/textarea
@@ -317,12 +310,8 @@ export default function QuizPage() {
       if (e.key === 'ArrowRight') handleNext()
       else if (e.key === 'ArrowLeft') handlePrev()
     }
-    window.addEventListener('touchstart', handleTouchStart, { passive: true })
-    window.addEventListener('touchend', handleTouchEnd, { passive: true })
     window.addEventListener('keydown', handleKeyDown)
     return () => {
-      window.removeEventListener('touchstart', handleTouchStart)
-      window.removeEventListener('touchend', handleTouchEnd)
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [handleNext, handlePrev])
@@ -340,7 +329,9 @@ export default function QuizPage() {
   const freeCount = Math.min(FREE_QUESTIONS_COUNT, total)
   const progress = total > 0 ? ((current + (answered ? 1 : 0)) / total) * 100 : 0
   const catType = category?.type || 'direct'
-  const catPrice = catType === 'professionnel' ? 20000 : 5000
+  const { getPrice: getPublicPrice } = usePublicPrices()
+  // 🚨 PHASE 2 — Utiliser le prix promo si une promotion est active, sinon prix normal
+  const catPrice = getPublicPrice(catType) || (catType === 'professionnel' ? 20000 : 5000)
   const isCurrentFree = isQuestionFree(current)
   const isLocked = !hasFullAccess && !isCurrentFree
 

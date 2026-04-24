@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
+import PromoPrice, { usePublicPrices } from '../components/PromoPrice'
 
 const APP_URL = 'https://ideal-formation-leaders.pages.dev'
 
@@ -245,6 +246,7 @@ export default function Home() {
   const [activeConcoursTab, setActiveConcoursTab] = useState('direct')  // 'direct' | 'professionnel' (gardé pour compatibilité)
   const [activeAboutTab, setActiveAboutTab] = useState('app')  // 'app' | 'equipe' | 'aide' | 'dev'
   const [openFaq, setOpenFaq] = useState(null)
+  const { prices: publicPrices, hasPromo, getPrice } = usePublicPrices()
 
   // Lire les paramètres URL pour retour depuis QCM
   useEffect(() => {
@@ -417,8 +419,9 @@ export default function Home() {
                   <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF0E8', color: '#C4521A' }}>🎯 Entrée initiale</div>
                   <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Concours Directs</h3>
                   <p className="text-gray-500 text-xs mb-2">12 dossiers thématiques</p>
-                  <p className="text-xl font-extrabold" style={{ color: '#C4521A' }}>5 000</p>
-                  <p className="text-gray-400 text-xs">FCFA</p>
+                  <div style={{ color: '#C4521A' }}>
+                    <PromoPrice type="direct" prices={publicPrices} size="lg" />
+                  </div>
                   <p className="text-xs mt-2 font-semibold" style={{ color: '#C4521A' }}>Voir les dossiers →</p>
                 </div>
                 <div className="bg-white rounded-2xl shadow-md border-2 p-5 text-center"
@@ -433,8 +436,9 @@ export default function Home() {
                   <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF7E8', color: '#B45309' }}>🏅 Évolution de carrière</div>
                   <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
                   <p className="text-gray-500 text-xs mb-2">17 dossiers spécialisés</p>
-                  <p className="text-xl font-extrabold" style={{ color: '#C4521A' }}>20 000</p>
-                  <p className="text-gray-400 text-xs">FCFA</p>
+                  <div style={{ color: '#C4521A' }}>
+                    <PromoPrice type="professionnel" prices={publicPrices} size="lg" />
+                  </div>
                   <p className="text-xs mt-2 font-semibold" style={{ color: '#C4521A' }}>Voir les dossiers →</p>
                 </div>
               </div>
@@ -543,9 +547,8 @@ export default function Home() {
                     <p className="text-white font-bold text-sm">📚 Entrée initiale dans la Fonction Publique</p>
                     <p className="text-orange-100 text-xs mt-0.5">5 questions gratuites par dossier</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-white font-extrabold text-lg">5 000</p>
-                    <p className="text-orange-100 text-xs">FCFA</p>
+                  <div className="text-right text-white">
+                    <PromoPrice type="direct" prices={publicPrices} size="lg" lightTheme />
                   </div>
                 </div>
               </div>
@@ -555,7 +558,9 @@ export default function Home() {
               <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '1px solid #FFD0A8' }}>
                 <span className="text-sm">🆓</span>
                 <p className="text-xs font-semibold flex-1" style={{ color: '#8B2500' }}>5 questions gratuites par dossier — Glissez pour voir tous les dossiers</p>
-                <Link href="/payment?type=direct&montant=5000" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>5 000 FCFA</Link>
+                <Link href="/payment?type=direct&montant=5000" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>
+                  <PromoPrice type="direct" prices={publicPrices} size="sm" lightTheme />
+                </Link>
               </div>
 
               {loadingCats ? (
@@ -577,9 +582,9 @@ export default function Home() {
                   <p className="text-gray-500 text-xs">Débloquer tous les 12 dossiers</p>
                 </div>
                 <Link href="/payment?type=direct&montant=5000"
-                  className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md"
+                  className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md inline-flex items-center gap-1"
                   style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
-                  5 000 FCFA →
+                  <PromoPrice type="direct" prices={publicPrices} size="md" lightTheme /> →
                 </Link>
               </div>
 
@@ -632,9 +637,8 @@ export default function Home() {
                     <p className="text-white font-bold text-sm">🎓 Évolution de carrière</p>
                     <p className="text-blue-200 text-xs mt-0.5">5 questions gratuites par dossier</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-white font-extrabold text-lg">20 000</p>
-                    <p className="text-blue-200 text-xs">FCFA</p>
+                  <div className="text-right text-white">
+                    <PromoPrice type="professionnel" prices={publicPrices} size="lg" lightTheme />
                   </div>
                 </div>
               </div>
@@ -644,7 +648,9 @@ export default function Home() {
               <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '1px solid #BFDBFE' }}>
                 <span className="text-sm">🆓</span>
                 <p className="text-xs font-semibold flex-1" style={{ color: '#1D4ED8' }}>5 questions gratuites — 14 dossiers pro + 3 bonus inclus</p>
-                <Link href="/select-specialty" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#1D4ED8' }}>20 000 FCFA</Link>
+                <Link href="/select-specialty" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#1D4ED8' }}>
+                  <PromoPrice type="professionnel" prices={publicPrices} size="sm" lightTheme />
+                </Link>
               </div>
               <div className="rounded-xl px-3 py-1.5 mb-3 flex flex-wrap gap-1">
                 {['📰 Actualités', '📝 Entraînement QCM', '🎯 Accompagnement final'].map((item, i) => (
@@ -671,9 +677,9 @@ export default function Home() {
                   <p className="text-gray-500 text-xs">14 dossiers spécialisés disponibles</p>
                 </div>
                 <Link href="/select-specialty"
-                  className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md"
+                  className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md inline-flex items-center gap-1"
                   style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
-                  20 000 FCFA →
+                  <PromoPrice type="professionnel" prices={publicPrices} size="md" lightTheme /> →
                 </Link>
               </div>
 
@@ -871,7 +877,9 @@ export default function Home() {
                         </div>
                         <div>
                           <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Directs</p>
-                          <p className="text-gray-500 text-xs">12 dossiers – <strong style={{ color: '#C4521A' }}>5 000 FCFA</strong></p>
+                          <p className="text-gray-500 text-xs">12 dossiers – <strong style={{ color: '#C4521A' }}>
+                            <PromoPrice type="direct" prices={publicPrices} size="sm" />
+                          </strong></p>
                         </div>
                       </div>
                       <div className="rounded-2xl p-4 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF8E0,#FFE8A0)' }}>
@@ -880,7 +888,9 @@ export default function Home() {
                         </div>
                         <div>
                           <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Professionnels</p>
-                          <p className="text-gray-500 text-xs">17 dossiers – <strong style={{ color: '#C4521A' }}>20 000 FCFA</strong></p>
+                          <p className="text-gray-500 text-xs">17 dossiers – <strong style={{ color: '#C4521A' }}>
+                            <PromoPrice type="professionnel" prices={publicPrices} size="sm" />
+                          </strong></p>
                         </div>
                       </div>
                     </div>
@@ -993,13 +1003,17 @@ export default function Home() {
                         </div>
                         <p className="text-orange-100 text-sm">Bénéficiaire : <a href="tel:+22676223962" className="font-extrabold text-white underline">+226 76 22 39 62</a></p>
                         <div className="flex gap-3 mt-3">
-                          <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center">
+                          <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center text-white">
                             <p className="text-xs text-orange-100">Directs</p>
-                            <p className="font-extrabold">5 000 FCFA</p>
+                            <p className="font-extrabold">
+                              <PromoPrice type="direct" prices={publicPrices} size="md" lightTheme />
+                            </p>
                           </div>
-                          <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center">
+                          <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center text-white">
                             <p className="text-xs text-orange-100">Professionnels</p>
-                            <p className="font-extrabold">20 000 FCFA</p>
+                            <p className="font-extrabold">
+                              <PromoPrice type="professionnel" prices={publicPrices} size="md" lightTheme />
+                            </p>
                           </div>
                         </div>
                       </div>

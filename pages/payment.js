@@ -17,6 +17,8 @@ export default function Payment() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const [prices, setPrices] = useState({ direct: 5000, professionnel: 20000 })
+  // 🎯 Phase 2 — Promotions actives
+  const [promos, setPromos] = useState({ direct: null, professionnel: null })
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
@@ -40,8 +42,15 @@ export default function Payment() {
       const data = await res.json()
       if (data.prices) {
         const pm = {}
-        data.prices.forEach(p => { pm[p.type_concours] = p.prix })
+        const promoMap = { direct: null, professionnel: null }
+        data.prices.forEach(p => {
+          pm[p.type_concours] = p.prix
+          if (p.promo_active && p.prix_promo) {
+            promoMap[p.type_concours] = { prix: p.prix_promo, date_fin: p.promo_date_fin }
+          }
+        })
         setPrices(prev => ({ ...prev, ...pm }))
+        setPromos(promoMap)
       }
     } catch {}
   }
@@ -66,15 +75,16 @@ export default function Payment() {
     setSubmitting(true)
     try {
       const token = getToken()
-      const currentPrice = prices[selectedType]
+      // 🎯 Phase 2 — Si une promotion est active, on envoie le prix promo
+      const effectivePrice = promos[selectedType]?.prix ?? prices[selectedType]
       const res = await fetch('/api/payment/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           type_concours: selectedType,
-          montant: currentPrice,
+          montant: effectivePrice,
           numero_paiement: numeroPaiement || null,
-          notes: notes || null,
+          notes: (promos[selectedType] ? `[PROMO appliquée] ` : '') + (notes || ''),
           dossier_principal: selectedType === 'professionnel' ? selectedSpecialty : null
         })
       })
@@ -95,7 +105,9 @@ export default function Payment() {
     )
   }
 
-  const currentPrice = prices[selectedType]
+  const currentPrice = promos[selectedType]?.prix ?? prices[selectedType]
+  const originalPrice = prices[selectedType]
+  const hasPromo = !!promos[selectedType]
 
   if (success) {
     return (
@@ -197,9 +209,17 @@ export default function Payment() {
               </div>
               <p className="font-bold text-sm leading-tight" style={{ color: '#8B2500' }}>Concours Directs</p>
               <p className="text-gray-500 text-xs mt-1">12 dossiers thématiques</p>
-              <p className="font-extrabold text-lg mt-2" style={{ color: '#C4521A' }}>
-                {(prices.direct || 5000).toLocaleString()} FCFA
-              </p>
+              {promos.direct ? (
+                <div className="mt-2">
+                  <p className="text-xs font-extrabold inline-block px-1.5 py-0.5 rounded" style={{ background: '#FEF3C7', color: '#16a34a' }}>🎯 PROMO</p>
+                  <p className="text-xs line-through text-gray-400 mt-0.5">{(prices.direct || 5000).toLocaleString()} FCFA</p>
+                  <p className="font-extrabold text-lg" style={{ color: '#16a34a' }}>{promos.direct.prix.toLocaleString()} FCFA</p>
+                </div>
+              ) : (
+                <p className="font-extrabold text-lg mt-2" style={{ color: '#C4521A' }}>
+                  {(prices.direct || 5000).toLocaleString()} FCFA
+                </p>
+              )}
               {selectedType === 'direct' && <span className="text-xs font-bold" style={{ color: '#C4521A' }}>✓ Sélectionné</span>}
             </button>
 
@@ -214,9 +234,17 @@ export default function Payment() {
               </div>
               <p className="font-bold text-sm leading-tight" style={{ color: '#8B2500' }}>Professionnels</p>
               <p className="text-gray-500 text-xs mt-1">17 dossiers spécialisés</p>
-              <p className="font-extrabold text-lg mt-2" style={{ color: '#C4521A' }}>
-                {(prices.professionnel || 20000).toLocaleString()} FCFA
-              </p>
+              {promos.professionnel ? (
+                <div className="mt-2">
+                  <p className="text-xs font-extrabold inline-block px-1.5 py-0.5 rounded" style={{ background: '#FEF3C7', color: '#16a34a' }}>🎯 PROMO</p>
+                  <p className="text-xs line-through text-gray-400 mt-0.5">{(prices.professionnel || 20000).toLocaleString()} FCFA</p>
+                  <p className="font-extrabold text-lg" style={{ color: '#16a34a' }}>{promos.professionnel.prix.toLocaleString()} FCFA</p>
+                </div>
+              ) : (
+                <p className="font-extrabold text-lg mt-2" style={{ color: '#C4521A' }}>
+                  {(prices.professionnel || 20000).toLocaleString()} FCFA
+                </p>
+              )}
               {selectedType === 'professionnel' ? (
                 <span className="text-xs font-bold" style={{ color: '#C4521A' }}>✓ Sélectionné</span>
               ) : (
@@ -281,7 +309,15 @@ export default function Payment() {
               </div>
               <div className="text-right">
                 <p className="text-orange-100 text-xs">Montant</p>
-                <p className="font-extrabold text-xl">{currentPrice.toLocaleString()} FCFA</p>
+                {hasPromo ? (
+                  <>
+                    <p className="text-orange-100 text-sm line-through opacity-80">{originalPrice.toLocaleString()} FCFA</p>
+                    <p className="font-extrabold text-xl">{currentPrice.toLocaleString()} FCFA</p>
+                    <p className="text-yellow-300 text-xs font-bold">🎯 PROMO</p>
+                  </>
+                ) : (
+                  <p className="font-extrabold text-xl">{currentPrice.toLocaleString()} FCFA</p>
+                )}
               </div>
             </div>
           </div>
@@ -330,7 +366,11 @@ export default function Payment() {
                     <span className="spinner" style={{ width: 22, height: 22, borderWidth: 3 }}></span>
                     Envoi...
                   </span>
-                ) : `✅ Confirmer – ${currentPrice.toLocaleString()} FCFA`}
+                ) : (
+                  hasPromo
+                    ? <>✅ Confirmer – <span className="line-through opacity-70 text-base">{originalPrice.toLocaleString()}</span> {currentPrice.toLocaleString()} FCFA 🎯</>
+                    : `✅ Confirmer – ${currentPrice.toLocaleString()} FCFA`
+                )}
               </button>
             </form>
           </div>

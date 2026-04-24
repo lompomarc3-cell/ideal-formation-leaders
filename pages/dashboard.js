@@ -130,6 +130,8 @@ export default function Dashboard() {
   const router = useRouter()
   const [categories, setCategories] = useState({ direct: [], professionnel: [] })
   const [prices, setPrices] = useState({ direct: 5000, professionnel: 20000 })
+  // 🎯 Phase 2 — Promotions actives (prix barré + prix promo)
+  const [promos, setPromos] = useState({ direct: null, professionnel: null })
   const [loadingData, setLoadingData] = useState(true)
   const [activeTab, setActiveTab] = useState('direct')
   const [shareMsg, setShareMsg] = useState('')
@@ -224,13 +226,25 @@ export default function Dashboard() {
 
   const loadPrices = async () => {
     try {
-      const token = getToken()
-      const res = await fetch('/api/admin/prices', { headers: { Authorization: `Bearer ${token}` } })
+      // 🚨 PHASE 2 — API publique (pas de token requis)
+      const res = await fetch('/api/quiz/prices')
       const data = await res.json()
       if (data.prices) {
         const priceMap = {}
-        data.prices.forEach(p => { priceMap[p.type_concours] = p.prix })
+        const promoMap = { direct: null, professionnel: null }
+        data.prices.forEach(p => {
+          // prix = prix normal (pour l'affichage barré)
+          priceMap[p.type_concours] = p.prix_normal != null ? p.prix_normal : p.prix
+          if (p.promo) {
+            promoMap[p.type_concours] = {
+              prix: p.promo.prix_promo,
+              date_fin: p.promo.date_fin,
+              label: p.promo.label || null
+            }
+          }
+        })
         setPrices(prev => ({ ...prev, ...priceMap }))
+        setPromos(promoMap)
       }
     } catch {}
   }
@@ -483,7 +497,15 @@ export default function Dashboard() {
                   <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF0E8', color: '#C4521A' }}>🎯 Entrée initiale</div>
                   <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Concours Directs</h3>
                   <p className="text-gray-500 text-xs mb-2">12 dossiers thématiques</p>
-                  <p className="text-xl font-extrabold" style={{ color: '#C4521A' }}>5 000</p>
+                  {promos.direct ? (
+                    <>
+                      <p className="text-xs font-bold mb-0.5" style={{ color: '#16a34a' }}>🎯 PROMO</p>
+                      <p className="text-sm line-through text-gray-400">{prices.direct.toLocaleString()}</p>
+                      <p className="text-xl font-extrabold" style={{ color: '#16a34a' }}>{promos.direct.prix.toLocaleString()}</p>
+                    </>
+                  ) : (
+                    <p className="text-xl font-extrabold" style={{ color: '#C4521A' }}>{prices.direct.toLocaleString()}</p>
+                  )}
                   <p className="text-gray-400 text-xs">FCFA</p>
                   <p className="text-xs mt-2 font-semibold" style={{ color: '#C4521A' }}>Voir les dossiers →</p>
                 </div>
@@ -499,7 +521,15 @@ export default function Dashboard() {
                   <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF7E8', color: '#B45309' }}>🏅 Évolution carrière</div>
                   <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
                   <p className="text-gray-500 text-xs mb-2">17 dossiers spécialisés</p>
-                  <p className="text-xl font-extrabold" style={{ color: '#C4521A' }}>20 000</p>
+                  {promos.professionnel ? (
+                    <>
+                      <p className="text-xs font-bold mb-0.5" style={{ color: '#16a34a' }}>🎯 PROMO</p>
+                      <p className="text-sm line-through text-gray-400">{prices.professionnel.toLocaleString()}</p>
+                      <p className="text-xl font-extrabold" style={{ color: '#16a34a' }}>{promos.professionnel.prix.toLocaleString()}</p>
+                    </>
+                  ) : (
+                    <p className="text-xl font-extrabold" style={{ color: '#C4521A' }}>{prices.professionnel.toLocaleString()}</p>
+                  )}
                   <p className="text-gray-400 text-xs">FCFA</p>
                   <p className="text-xs mt-2 font-semibold" style={{ color: '#C4521A' }}>Voir les dossiers →</p>
                 </div>
@@ -623,9 +653,21 @@ export default function Dashboard() {
                   <div>
                     <p className="text-white font-bold text-sm">📚 Entrée initiale dans la Fonction Publique</p>
                     <p className="text-orange-100 text-xs mt-0.5">5 questions gratuites par dossier</p>
+                    {promos.direct && (
+                      <span className="inline-block mt-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-yellow-300 text-red-700">
+                        🎯 PROMO ACTIVE
+                      </span>
+                    )}
                   </div>
                   <div className="text-right">
-                    <p className="text-white font-extrabold text-lg">{prices.direct.toLocaleString()}</p>
+                    {promos.direct ? (
+                      <>
+                        <p className="text-orange-100 text-sm line-through opacity-80">{prices.direct.toLocaleString()}</p>
+                        <p className="text-white font-extrabold text-xl">{promos.direct.prix.toLocaleString()}</p>
+                      </>
+                    ) : (
+                      <p className="text-white font-extrabold text-lg">{prices.direct.toLocaleString()}</p>
+                    )}
                     <p className="text-orange-100 text-xs">FCFA</p>
                   </div>
                 </div>
@@ -687,7 +729,14 @@ export default function Dashboard() {
                   {!proAccess && !user.is_admin && (
                     <div className="mt-6 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)' }}>
                       <p className="text-white font-bold mb-1">🎓 Vous visez un concours professionnel ?</p>
-                      <p className="text-blue-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA – 17 dossiers spécialisés</p>
+                      {promos.professionnel ? (
+                        <p className="text-blue-200 text-sm mb-3">
+                          <span className="line-through opacity-70">{prices.professionnel.toLocaleString()}</span>{' '}
+                          <strong className="text-yellow-300">{promos.professionnel.prix.toLocaleString()} FCFA</strong> 🎯 PROMO – 17 dossiers spécialisés
+                        </p>
+                      ) : (
+                        <p className="text-blue-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA – 17 dossiers spécialisés</p>
+                      )}
                       <button onClick={() => setActiveMainTab('concours-professionnel')} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#1D4ED8' }}>
                         Voir les concours professionnels →
                       </button>
@@ -732,9 +781,21 @@ export default function Dashboard() {
                   <div>
                     <p className="text-white font-bold text-sm">🎓 Évolution de carrière</p>
                     <p className="text-blue-200 text-xs mt-0.5">5 questions gratuites par dossier</p>
+                    {promos.professionnel && (
+                      <span className="inline-block mt-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-yellow-300 text-red-700">
+                        🎯 PROMO ACTIVE
+                      </span>
+                    )}
                   </div>
                   <div className="text-right">
-                    <p className="text-white font-extrabold text-lg">{prices.professionnel.toLocaleString()}</p>
+                    {promos.professionnel ? (
+                      <>
+                        <p className="text-blue-200 text-sm line-through opacity-80">{prices.professionnel.toLocaleString()}</p>
+                        <p className="text-white font-extrabold text-xl">{promos.professionnel.prix.toLocaleString()}</p>
+                      </>
+                    ) : (
+                      <p className="text-white font-extrabold text-lg">{prices.professionnel.toLocaleString()}</p>
+                    )}
                     <p className="text-blue-200 text-xs">FCFA</p>
                   </div>
                 </div>

@@ -171,5 +171,56 @@ export default async function handler(req) {
     }
   }
 
+  // DELETE: supprimer un utilisateur (et ses données associées)
+  if (req.method === 'DELETE') {
+    const url = new URL(req.url)
+    const id = url.searchParams.get('id')
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'ID utilisateur manquant' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+    }
+
+    // Empêcher la suppression d'un admin
+    try {
+      const { data: target } = await supabaseAdmin
+        .from('profiles')
+        .select('id, role')
+        .eq('id', id)
+        .maybeSingle()
+
+      if (!target) {
+        return new Response(JSON.stringify({ error: 'Utilisateur introuvable' }), { status: 404, headers: { 'Content-Type': 'application/json' } })
+      }
+      if (['admin', 'superadmin'].includes(target.role)) {
+        return new Response(JSON.stringify({ error: 'Impossible de supprimer un administrateur' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+      }
+      if (target.id === adminId) {
+        return new Response(JSON.stringify({ error: 'Vous ne pouvez pas vous supprimer vous-même' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+      }
+
+      // Supprimer les données liées (best-effort, ne bloque pas en cas d'erreur)
+      try { await supabaseAdmin.from('correction_requests').delete().eq('user_id', id) } catch {}
+      try { await supabaseAdmin.from('user_progress').delete().eq('user_id', id) } catch {}
+
+      // Supprimer le profil
+      const { error: delErr } = await supabaseAdmin
+        .from('profiles')
+        .delete()
+        .eq('id', id)
+
+      if (delErr) throw delErr
+
+      // Tenter de supprimer le compte auth (peut échouer selon les permissions, on ignore)
+      try {
+        await supabaseAdmin.auth.admin.deleteUser(id)
+      } catch {}
+
+      return new Response(JSON.stringify({ success: true, message: 'Utilisateur supprimé' }), {
+        status: 200, headers: { 'Content-Type': 'application/json' }
+      })
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
+  }
+
   return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } })
 }
