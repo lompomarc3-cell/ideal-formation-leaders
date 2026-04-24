@@ -155,7 +155,11 @@ export default function QuizPage() {
   }, [])
 
   // Helpers pour dissertations et réponses multiples
-  const isDissertation = (question) => question && question.matiere === 'DISSERTATION'
+  const isDissertation = (question) => {
+    if (!question || !question.matiere) return false
+    const m = String(question.matiere).toLowerCase()
+    return m === 'dissertation' || m === 'etude_cas'
+  }
   const isMultipleAnswer = (question) => question && question.bonne_reponse && question.bonne_reponse.includes(',')
   const getCorrectAnswers = (question) => {
     if (!question || !question.bonne_reponse) return []
