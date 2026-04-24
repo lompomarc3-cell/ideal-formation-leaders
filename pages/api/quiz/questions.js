@@ -32,7 +32,7 @@ async function fetchAllQuestionsForCategory(categorieId, hardLimit = 10000) {
     const to = Math.min(from + pageSize - 1, hardLimit - 1)
     const { data, error } = await supabaseAdmin
       .from('questions')
-      .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo')
+      .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, matiere, difficulte')
       .eq('category_id', categorieId)
       .eq('is_active', true)
       .order('created_at', { ascending: true })
@@ -171,7 +171,7 @@ export default async function handler(req) {
       // D'abord essayer avec is_demo=true
       const { data: demoQuestions, error: demoError } = await supabaseAdmin
         .from('questions')
-        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo')
+        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, matiere, difficulte')
         .eq('category_id', categorieId)
         .eq('is_active', true)
         .eq('is_demo', true)
@@ -189,7 +189,9 @@ export default async function handler(req) {
           option_d: q.option_d,
           bonne_reponse: q.reponse_correcte,
           explication: q.explication,
-          is_demo: q.is_demo
+          is_demo: q.is_demo,
+          matiere: q.matiere || 'QCM',
+          difficulte: q.difficulte || 'moyen'
         }))
 
         if (isLockedForThisUser && questionList.length === 0) {
@@ -214,7 +216,7 @@ export default async function handler(req) {
       // Fallback : prendre les 5 premières questions actives
       const { data: first5, error: first5Error } = await supabaseAdmin
         .from('questions')
-        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo')
+        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, matiere, difficulte')
         .eq('category_id', categorieId)
         .eq('is_active', true)
         .order('created_at', { ascending: true })
@@ -230,7 +232,9 @@ export default async function handler(req) {
           option_d: q.option_d,
           bonne_reponse: q.reponse_correcte,
           explication: q.explication,
-          is_demo: q.is_demo
+          is_demo: q.is_demo,
+          matiere: q.matiere || 'QCM',
+          difficulte: q.difficulte || 'moyen'
         }))
 
         return new Response(JSON.stringify({
@@ -278,7 +282,9 @@ export default async function handler(req) {
       option_d: q.option_d,
       bonne_reponse: q.reponse_correcte,
       explication: q.explication,
-      is_demo: q.is_demo
+      is_demo: q.is_demo,
+      matiere: q.matiere || 'QCM',
+      difficulte: q.difficulte || 'moyen'
     }))
 
     return new Response(JSON.stringify({

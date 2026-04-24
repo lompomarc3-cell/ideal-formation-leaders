@@ -154,6 +154,14 @@ export default function QuizPage() {
     saveProgressFn(index)
   }, [])
 
+  // Helpers pour dissertations et réponses multiples
+  const isDissertation = (question) => question && question.matiere === 'DISSERTATION'
+  const isMultipleAnswer = (question) => question && question.bonne_reponse && question.bonne_reponse.includes(',')
+  const getCorrectAnswers = (question) => {
+    if (!question || !question.bonne_reponse) return []
+    return question.bonne_reponse.split(',').map(s => s.trim()).filter(Boolean)
+  }
+
   const handleSelect = (opt) => {
     if (answered) return
     // Bloquer si payant sans accès
@@ -161,9 +169,28 @@ export default function QuizPage() {
       setShowPaywallOverlay(true)
       return
     }
+    const q = questions[current]
+    
+    // Gestion des réponses multiples
+    if (isMultipleAnswer(q)) {
+      // Toggle la sélection de l'option (multi-choix)
+      const currentSelection = Array.isArray(selected) ? selected : []
+      let newSelection
+      if (currentSelection.includes(opt)) {
+        newSelection = currentSelection.filter(o => o !== opt)
+      } else {
+        newSelection = [...currentSelection, opt].sort()
+      }
+      setSelected(newSelection)
+      // Ne pas marquer comme répondu immédiatement - besoin d'un bouton "Valider"
+      setAnswersMap(prev => ({ ...prev, [current]: { selected: newSelection, answered: false } }))
+      return
+    }
+    
+    // QCM classique : sélection unique et validation directe
     setSelected(opt)
     setAnswered(true)
-    const isCorrect = opt === questions[current].bonne_reponse
+    const isCorrect = opt === q.bonne_reponse
     const newScore = score + (isCorrect ? 1 : 0)
     if (isCorrect) setScore(s => s + 1)
 
@@ -171,6 +198,25 @@ export default function QuizPage() {
     setAnswersMap(prev => ({ ...prev, [current]: { selected: opt, answered: true } }))
 
     // Sauvegarder la progression
+    saveProgress(current)
+    saveProgressServer(current, newScore)
+  }
+
+  // Valider une réponse multiple
+  const handleValidateMultiple = () => {
+    const q = questions[current]
+    if (!q || !isMultipleAnswer(q)) return
+    const currentSelection = Array.isArray(selected) ? selected : []
+    if (currentSelection.length === 0) return
+    
+    const correctAnswers = getCorrectAnswers(q)
+    const isCorrect = currentSelection.length === correctAnswers.length &&
+                      currentSelection.every(s => correctAnswers.includes(s))
+    const newScore = score + (isCorrect ? 1 : 0)
+    if (isCorrect) setScore(s => s + 1)
+    
+    setAnswered(true)
+    setAnswersMap(prev => ({ ...prev, [current]: { selected: currentSelection, answered: true } }))
     saveProgress(current)
     saveProgressServer(current, newScore)
   }
@@ -634,35 +680,107 @@ export default function QuizPage() {
                   >
                     <div className="flex items-start gap-3 mb-6">
                       <span className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                        style={{ background: isLocked ? '#9CA3AF' : '#D4A017' }}>{current + 1}</span>
-                      <p className="text-gray-800 font-semibold text-lg leading-relaxed">
-                        {isLocked ? '🔒 Cette question est réservée aux abonnés.' : q.question_text}
-                      </p>
+                        style={{ background: isLocked ? '#9CA3AF' : (isDissertation(q) ? '#8B2500' : '#D4A017') }}>
+                        {isDissertation(q) ? '📝' : (current + 1)}
+                      </span>
+                      <div className="flex-1">
+                        {isDissertation(q) && !isLocked && (
+                          <span className="inline-block text-xs font-bold px-2 py-0.5 rounded mb-2" style={{ background: '#FFF7E6', color: '#8B2500', border: '1px solid #FDE68A' }}>
+                            DISSERTATION / ÉTUDE DE CAS
+                          </span>
+                        )}
+                        {isMultipleAnswer(q) && !isDissertation(q) && !isLocked && (
+                          <span className="inline-block text-xs font-bold px-2 py-0.5 rounded mb-2" style={{ background: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE' }}>
+                            🔢 RÉPONSES MULTIPLES (plusieurs bonnes réponses)
+                          </span>
+                        )}
+                        <p className="text-gray-800 font-semibold text-lg leading-relaxed whitespace-pre-wrap">
+                          {isLocked ? '🔒 Cette question est réservée aux abonnés.' : q.question_text}
+                        </p>
+                      </div>
                     </div>
 
-                    {!isLocked && (
+                    {/* Mode DISSERTATION: Afficher directement le corrigé complet */}
+                    {!isLocked && isDissertation(q) && (
+                      <div className="mt-4">
+                        <div className="rounded-2xl p-5" style={{ background: '#FAF5EB', border: '2px solid #D4A017' }}>
+                          <p className="font-bold mb-3 text-base" style={{ color: '#8B2500' }}>
+                            📖 Corrigé détaillé :
+                          </p>
+                          <div className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap" style={{ lineHeight: '1.7' }}>
+                            {q.explication}
+                          </div>
+                        </div>
+                        {!answered && (
+                          <button
+                            onClick={() => {
+                              setAnswered(true)
+                              setScore(s => s + 1)
+                              setAnswersMap(prev => ({ ...prev, [current]: { selected: 'A', answered: true } }))
+                              saveProgress(current)
+                              saveProgressServer(current, score + 1)
+                            }}
+                            className="w-full mt-4 py-3 font-bold rounded-xl text-white active:scale-95"
+                            style={{ background: 'linear-gradient(135deg,#D4A017,#8B2500)' }}
+                          >
+                            ✓ J'ai terminé la lecture
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Mode QCM classique */}
+                    {!isLocked && !isDissertation(q) && (
                       <div className="space-y-3">
                         {['A', 'B', 'C', 'D'].map(opt => {
                           const optText = q[`option_${opt.toLowerCase()}`]
+                          // Ne pas afficher les options N/A
+                          if (optText === 'N/A') return null
+                          
+                          const multi = isMultipleAnswer(q)
+                          const correctAnswers = getCorrectAnswers(q)
+                          const currentSel = Array.isArray(selected) ? selected : (selected ? [selected] : [])
+                          const isOptSelected = currentSel.includes(opt)
+                          
                           let cls = 'question-option'
                           if (answered) {
-                            if (opt === q.bonne_reponse) cls += ' correct'
-                            else if (opt === selected) cls += ' wrong'
+                            if (correctAnswers.includes(opt)) cls += ' correct'
+                            else if (isOptSelected) cls += ' wrong'
                             else cls += ' disabled opacity-50'
+                          } else if (multi && isOptSelected) {
+                            cls += ' selected'
                           }
+                          
                           return (
                             <button key={opt} className={cls} onClick={() => handleSelect(opt)}>
                               <span className="option-badge inline-flex w-7 h-7 rounded-full items-center justify-center text-sm font-bold"
                                 style={{
-                                  background: answered && opt === q.bonne_reponse ? '#D4A017' : answered && opt === selected ? '#dc2626' : '#f3f4f6',
-                                  color: answered && (opt === q.bonne_reponse || opt === selected) ? 'white' : '#374151'
+                                  background: answered && correctAnswers.includes(opt) ? '#D4A017' : answered && isOptSelected ? '#dc2626' : (multi && isOptSelected ? '#FDE68A' : '#f3f4f6'),
+                                  color: (answered && (correctAnswers.includes(opt) || isOptSelected)) ? 'white' : '#374151'
                                 }}>
                                 {opt}
                               </span>
                               <span className="option-text">{optText}</span>
+                              {multi && !answered && (
+                                <span className="ml-auto text-xs" style={{ color: isOptSelected ? '#8B2500' : '#9CA3AF' }}>
+                                  {isOptSelected ? '✓ sélectionné' : 'Cliquer pour sélectionner'}
+                                </span>
+                              )}
                             </button>
                           )
                         })}
+                        
+                        {/* Bouton Valider pour réponses multiples */}
+                        {isMultipleAnswer(q) && !answered && (
+                          <button
+                            onClick={handleValidateMultiple}
+                            disabled={!Array.isArray(selected) || selected.length === 0}
+                            className="w-full mt-3 py-3 font-bold rounded-xl text-white active:scale-95 disabled:opacity-40"
+                            style={{ background: (Array.isArray(selected) && selected.length > 0) ? 'linear-gradient(135deg,#3B82F6,#1E40AF)' : '#9CA3AF' }}
+                          >
+                            ✓ Valider ma réponse ({Array.isArray(selected) ? selected.length : 0} option{(Array.isArray(selected) && selected.length > 1) ? 's' : ''} sélectionnée{(Array.isArray(selected) && selected.length > 1) ? 's' : ''})
+                          </button>
+                        )}
                       </div>
                     )}
 
@@ -676,15 +794,20 @@ export default function QuizPage() {
                       </Link>
                     )}
 
-                    {answered && !isLocked && (
-                      <div className="mt-5 animate-fadeIn rounded-2xl p-4"
-                        style={{ background: selected === q.bonne_reponse ? '#FFF7E6' : '#FFF7F0', borderLeft: `4px solid ${selected === q.bonne_reponse ? '#D4A017' : '#C4521A'}` }}>
-                        <p className="font-bold mb-1.5 text-sm" style={{ color: selected === q.bonne_reponse ? '#D4A017' : '#C4521A' }}>
-                          {selected === q.bonne_reponse ? '✅ Bonne réponse !' : `❌ Mauvaise – Bonne réponse : ${q.bonne_reponse}`}
-                        </p>
-                        <p className="text-gray-700 text-sm leading-relaxed">{q.explication}</p>
-                      </div>
-                    )}
+                    {answered && !isLocked && !isDissertation(q) && (() => {
+                      const correctAnswers = getCorrectAnswers(q)
+                      const currentSel = Array.isArray(selected) ? selected : (selected ? [selected] : [])
+                      const isCorrect = currentSel.length === correctAnswers.length && currentSel.every(s => correctAnswers.includes(s))
+                      return (
+                        <div className="mt-5 animate-fadeIn rounded-2xl p-4"
+                          style={{ background: isCorrect ? '#FFF7E6' : '#FFF7F0', borderLeft: `4px solid ${isCorrect ? '#D4A017' : '#C4521A'}` }}>
+                          <p className="font-bold mb-1.5 text-sm" style={{ color: isCorrect ? '#D4A017' : '#C4521A' }}>
+                            {isCorrect ? '✅ Bonne réponse !' : `❌ Mauvaise – Bonne${correctAnswers.length > 1 ? 's' : ''} réponse${correctAnswers.length > 1 ? 's' : ''} : ${correctAnswers.join(', ')}`}
+                          </p>
+                          <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{q.explication}</p>
+                        </div>
+                      )
+                    })()}
                   </div>
 
                   {answered && !isLocked && (

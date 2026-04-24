@@ -47,7 +47,7 @@ export default async function handler(req) {
     // 2. Récupérer les 5 premières questions gratuites de la catégorie
     // D'abord essayer avec is_demo=true, sinon prendre les 5 premières
     const qRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/questions?category_id=eq.${categorieId}&is_active=eq.true&select=id,enonce,option_a,option_b,option_c,option_d,reponse_correcte,explication,is_demo&order=created_at.asc&limit=5`,
+      `${SUPABASE_URL}/rest/v1/questions?category_id=eq.${categorieId}&is_active=eq.true&select=id,enonce,option_a,option_b,option_c,option_d,reponse_correcte,explication,is_demo,matiere,difficulte&order=created_at.asc&limit=5`,
       {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -69,7 +69,9 @@ export default async function handler(req) {
       option_d: q.option_d,
       bonne_reponse: q.reponse_correcte,
       explication: q.explication,
-      is_demo: q.is_demo
+      is_demo: q.is_demo,
+      matiere: q.matiere || 'QCM',
+      difficulte: q.difficulte || 'moyen'
     }))
 
     // Si aucune question, renvoyer un message clair

@@ -84,12 +84,51 @@ export default function PublicQuizPage() {
     setLoadingQ(false)
   }
 
+  // Helpers pour réponses multiples
+  const isMultipleAnswer = (question) => question && question.bonne_reponse && question.bonne_reponse.includes(',')
+  const getCorrectAnswers = (question) => {
+    if (!question || !question.bonne_reponse) return []
+    return question.bonne_reponse.split(',').map(s => s.trim()).filter(Boolean)
+  }
+
   const handleSelect = (opt) => {
     if (answered) return
+    const q = questions[current]
+    
+    // Réponses multiples: sélection multi-choix
+    if (isMultipleAnswer(q)) {
+      const currentSelection = Array.isArray(selected) ? selected : []
+      let newSelection
+      if (currentSelection.includes(opt)) {
+        newSelection = currentSelection.filter(o => o !== opt)
+      } else {
+        newSelection = [...currentSelection, opt].sort()
+      }
+      setSelected(newSelection)
+      setAnswersMap(prev => ({ ...prev, [current]: { selected: newSelection, answered: false } }))
+      return
+    }
+    
     setSelected(opt)
     setAnswered(true)
-    if (opt === questions[current].bonne_reponse) setScore(s => s + 1)
+    if (opt === q.bonne_reponse) setScore(s => s + 1)
     setAnswersMap(prev => ({ ...prev, [current]: { selected: opt, answered: true } }))
+    saveProgressLocal(current)
+  }
+
+  const handleValidateMultiple = () => {
+    const q = questions[current]
+    if (!q || !isMultipleAnswer(q)) return
+    const currentSelection = Array.isArray(selected) ? selected : []
+    if (currentSelection.length === 0) return
+    
+    const correctAnswers = getCorrectAnswers(q)
+    const isCorrect = currentSelection.length === correctAnswers.length &&
+                      currentSelection.every(s => correctAnswers.includes(s))
+    if (isCorrect) setScore(s => s + 1)
+    
+    setAnswered(true)
+    setAnswersMap(prev => ({ ...prev, [current]: { selected: currentSelection, answered: true } }))
     saveProgressLocal(current)
   }
 
@@ -388,42 +427,79 @@ export default function PublicQuizPage() {
                 <div className="flex items-start gap-3 mb-6">
                   <span className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
                     style={{ background: '#D4A017' }}>{current + 1}</span>
-                  <p className="text-gray-800 font-semibold text-lg leading-relaxed">{q.question_text}</p>
+                  <div className="flex-1">
+                    {isMultipleAnswer(q) && (
+                      <span className="inline-block text-xs font-bold px-2 py-0.5 rounded mb-2" style={{ background: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE' }}>
+                        🔢 RÉPONSES MULTIPLES (plusieurs bonnes réponses)
+                      </span>
+                    )}
+                    <p className="text-gray-800 font-semibold text-lg leading-relaxed whitespace-pre-wrap">{q.question_text}</p>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
                   {['A', 'B', 'C', 'D'].map(opt => {
                     const optText = q[`option_${opt.toLowerCase()}`]
+                    if (optText === 'N/A') return null
+                    
+                    const multi = isMultipleAnswer(q)
+                    const correctAnswers = getCorrectAnswers(q)
+                    const currentSel = Array.isArray(selected) ? selected : (selected ? [selected] : [])
+                    const isOptSelected = currentSel.includes(opt)
+                    
                     let cls = 'question-option'
                     if (answered) {
-                      if (opt === q.bonne_reponse) cls += ' correct'
-                      else if (opt === selected) cls += ' wrong'
+                      if (correctAnswers.includes(opt)) cls += ' correct'
+                      else if (isOptSelected) cls += ' wrong'
                       else cls += ' disabled opacity-50'
+                    } else if (multi && isOptSelected) {
+                      cls += ' selected'
                     }
                     return (
                       <button key={opt} className={cls} onClick={() => handleSelect(opt)}>
                         <span className="option-badge inline-flex w-7 h-7 rounded-full items-center justify-center text-sm font-bold"
                           style={{
-                            background: answered && opt === q.bonne_reponse ? '#D4A017' : answered && opt === selected ? '#dc2626' : '#f3f4f6',
-                            color: answered && (opt === q.bonne_reponse || opt === selected) ? 'white' : '#374151'
+                            background: answered && correctAnswers.includes(opt) ? '#D4A017' : answered && isOptSelected ? '#dc2626' : (multi && isOptSelected ? '#FDE68A' : '#f3f4f6'),
+                            color: (answered && (correctAnswers.includes(opt) || isOptSelected)) ? 'white' : '#374151'
                           }}>
                           {opt}
                         </span>
                         <span className="option-text">{optText}</span>
+                        {multi && !answered && (
+                          <span className="ml-auto text-xs" style={{ color: isOptSelected ? '#8B2500' : '#9CA3AF' }}>
+                            {isOptSelected ? '✓ sélectionné' : 'Cliquer'}
+                          </span>
+                        )}
                       </button>
                     )
                   })}
+                  
+                  {isMultipleAnswer(q) && !answered && (
+                    <button
+                      onClick={handleValidateMultiple}
+                      disabled={!Array.isArray(selected) || selected.length === 0}
+                      className="w-full mt-3 py-3 font-bold rounded-xl text-white active:scale-95 disabled:opacity-40"
+                      style={{ background: (Array.isArray(selected) && selected.length > 0) ? 'linear-gradient(135deg,#3B82F6,#1E40AF)' : '#9CA3AF' }}
+                    >
+                      ✓ Valider ma réponse ({Array.isArray(selected) ? selected.length : 0} option{(Array.isArray(selected) && selected.length > 1) ? 's' : ''} sélectionnée{(Array.isArray(selected) && selected.length > 1) ? 's' : ''})
+                    </button>
+                  )}
                 </div>
 
-                {answered && (
-                  <div className="mt-5 animate-fadeIn rounded-2xl p-4"
-                    style={{ background: selected === q.bonne_reponse ? '#FFF7E6' : '#FFF7F0', borderLeft: `4px solid ${selected === q.bonne_reponse ? '#D4A017' : '#C4521A'}` }}>
-                    <p className="font-bold mb-1.5 text-sm" style={{ color: selected === q.bonne_reponse ? '#D4A017' : '#C4521A' }}>
-                      {selected === q.bonne_reponse ? '✅ Bonne réponse !' : `❌ Mauvaise – Bonne réponse : ${q.bonne_reponse}`}
-                    </p>
-                    {q.explication && <p className="text-gray-700 text-sm leading-relaxed">{q.explication}</p>}
-                  </div>
-                )}
+                {answered && (() => {
+                  const correctAnswers = getCorrectAnswers(q)
+                  const currentSel = Array.isArray(selected) ? selected : (selected ? [selected] : [])
+                  const isCorrect = currentSel.length === correctAnswers.length && currentSel.every(s => correctAnswers.includes(s))
+                  return (
+                    <div className="mt-5 animate-fadeIn rounded-2xl p-4"
+                      style={{ background: isCorrect ? '#FFF7E6' : '#FFF7F0', borderLeft: `4px solid ${isCorrect ? '#D4A017' : '#C4521A'}` }}>
+                      <p className="font-bold mb-1.5 text-sm" style={{ color: isCorrect ? '#D4A017' : '#C4521A' }}>
+                        {isCorrect ? '✅ Bonne réponse !' : `❌ Mauvaise – Bonne${correctAnswers.length > 1 ? 's' : ''} réponse${correctAnswers.length > 1 ? 's' : ''} : ${correctAnswers.join(', ')}`}
+                      </p>
+                      {q.explication && <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{q.explication}</p>}
+                    </div>
+                  )
+                })()}
               </div>
 
               {answered && (
