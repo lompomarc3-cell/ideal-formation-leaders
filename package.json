@@ -4,25 +4,26 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build || next build || next build",
     "start": "next start",
     "pages:build": "npx @cloudflare/next-on-pages@1",
     "preview": "npm run pages:build && npx wrangler pages dev",
     "deploy": "npm run pages:build && npx wrangler pages deploy .vercel/output/static"
   },
   "dependencies": {
-    "next": "15.2.4",
-    "react": "^18",
-    "react-dom": "^18",
     "@supabase/supabase-js": "^2",
     "bcryptjs": "^2.4.3",
-    "jose": "^5.0.0"
+    "jose": "^5.0.0",
+    "next": "15.2.4",
+    "react": "^18",
+    "react-dom": "^18"
   },
   "devDependencies": {
-    "tailwindcss": "^3",
+    "@cloudflare/next-on-pages": "^1",
     "autoprefixer": "^10",
     "postcss": "^8",
-    "@cloudflare/next-on-pages": "^1"
+    "tailwindcss": "^3",
+    "wrangler": "^4.85.0"
   },
   "engines": {
     "node": ">=18.0.0"
