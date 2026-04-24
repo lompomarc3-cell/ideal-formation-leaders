@@ -158,7 +158,7 @@ export default function QuizPage() {
   const isDissertation = (question) => {
     if (!question || !question.matiere) return false
     const m = String(question.matiere).toLowerCase()
-    return m === 'dissertation' || m === 'etude_cas'
+    return m === 'dissertation' || m === 'etude_cas' || m === 'etude de cas'
   }
   const isMultipleAnswer = (question) => question && question.bonne_reponse && question.bonne_reponse.includes(',')
   const getCorrectAnswers = (question) => {
