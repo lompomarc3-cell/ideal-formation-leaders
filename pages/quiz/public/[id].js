@@ -26,6 +26,7 @@ export default function PublicQuizPage() {
   // Utiliser des refs stables pour éviter les closures stales dans les event listeners
   const touchStartX = useRef(null)
   const stateRef = useRef({ current, questions, answersMap, finished })
+  const fetchedRef = useRef(null) // éviter les re-fetch (qui réinitialisent à Q1)
 
   // Synchroniser la ref à chaque rendu
   useEffect(() => {
@@ -33,7 +34,10 @@ export default function PublicQuizPage() {
   }, [current, questions, answersMap, finished])
 
   useEffect(() => {
-    if (id) fetchPublicQuestions()
+    if (!id) return
+    if (fetchedRef.current === id) return
+    fetchedRef.current = id
+    fetchPublicQuestions()
   }, [id])
 
   const saveProgressLocal = useCallback((index) => {
@@ -360,37 +364,7 @@ export default function PublicQuizPage() {
           {!loadingQ && !error && !finished && q && (
             <div className="animate-fadeIn">
 
-              {/* Points de navigation cliquables */}
-              <div className="mb-4">
-                <div className="flex gap-1.5 justify-center flex-wrap mb-2">
-                  {questions.map((_, i) => {
-                    const isAnswered = !!answersMap[i]
-                    const isCurrent = i === current
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => handleGoToQuestion(i)}
-                        title={`Question ${i+1}`}
-                        style={{
-                          width: 12, height: 12,
-                          borderRadius: '50%',
-                          border: isCurrent ? '2px solid #8B2500' : '1.5px solid #22C55E',
-                          background: isCurrent ? '#C4521A' : isAnswered ? '#D4A017' : '#BBF7D0',
-                          cursor: 'pointer',
-                          padding: 0,
-                          flexShrink: 0
-                        }}
-                        aria-label={`Question ${i+1}`}
-                      />
-                    )
-                  })}
-                </div>
-                <p className="text-center text-xs text-gray-500">
-                  🆓 Toutes gratuites · Cliquez sur un point pour naviguer
-                </p>
-              </div>
-
-              {/* Flèches de navigation */}
+              {/* Flèches de navigation (les points ont été retirés pour une meilleure lisibilité) */}
               <div className="flex items-center justify-between mb-4">
                 <button
                   onClick={handlePrev}

@@ -23,7 +23,6 @@ export default function QuizPage() {
   const [error, setError] = useState('')
   const [hasFullAccess, setHasFullAccess] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
-  const [progressRestored, setProgressRestored] = useState(false)
   const [showPaywallOverlay, setShowPaywallOverlay] = useState(false)
   // Map { questionIndex: { selected, answered } } pour mémoriser les réponses
   const [answersMap, setAnswersMap] = useState({})
@@ -31,7 +30,9 @@ export default function QuizPage() {
   // Utiliser des refs pour les handlers afin d'éviter les closures stales dans les event listeners
   const touchStartX = useRef(null)
   const stateRef = useRef({ current, questions, hasFullAccess, answersMap, finished, showUpgrade })
-  
+  const fetchedRef = useRef(null) // identifiant du dernier fetch pour éviter les re-fetch intempestifs
+  const progressRestoredRef = useRef(false)
+
   // Mettre à jour la ref à chaque changement d'état
   useEffect(() => {
     stateRef.current = { current, questions, hasFullAccess, answersMap, finished, showUpgrade }
@@ -43,9 +44,16 @@ export default function QuizPage() {
     }
   }, [user, loading, router, id])
 
+  // Ne lancer fetchQuestions qu'UNE SEULE fois par (id, userId) pour éviter les re-fetch
+  // qui réinitialisent la progression à la question 1.
   useEffect(() => {
-    if (id && user) fetchQuestions()
-  }, [id, user])
+    if (!id || !user) return
+    const key = `${id}::${user.id}`
+    if (fetchedRef.current === key) return
+    fetchedRef.current = key
+    progressRestoredRef.current = false
+    fetchQuestions()
+  }, [id, user?.id])
 
   // Sauvegarder la progression dans localStorage
   const saveProgress = useCallback((questionIndex) => {
@@ -79,8 +87,8 @@ export default function QuizPage() {
 
   // Restaurer la progression (localStorage d'abord, puis serveur si disponible)
   const restoreProgress = (questionsCount) => {
-    if (!id || progressRestored) return 0
-    setProgressRestored(true)
+    if (!id || progressRestoredRef.current) return 0
+    progressRestoredRef.current = true
     const key = PROGRESS_KEY(user?.id, id)
     try {
       const saved = JSON.parse(localStorage.getItem(key) || 'null')
@@ -511,58 +519,7 @@ export default function QuizPage() {
           {!loadingQ && !error && !finished && !showUpgrade && q && (
             <div className="animate-fadeIn">
 
-              {/* Indicateur de navigation : points cliquables avec distinction gratuit/payant */}
-              <div className="mb-4">
-                <div className="flex gap-1 justify-center flex-wrap mb-2">
-                  {questions.map((_, i) => {
-                    const isFree = isQuestionFree(i)
-                    const isAnswered = !!answersMap[i]
-                    const isCurrent = i === current
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => handleGoToQuestion(i)}
-                        title={isFree ? `Q${i+1} – Gratuite` : `Q${i+1} – Payante`}
-                        style={{
-                          width: 10, height: 10,
-                          borderRadius: '50%',
-                          border: isCurrent ? '2px solid #8B2500' : (isFree ? '1.5px solid #22C55E' : '1.5px solid #9CA3AF'),
-                          background: isCurrent
-                            ? '#C4521A'
-                            : isAnswered
-                              ? '#D4A017'
-                              : isFree
-                                ? '#BBF7D0'
-                                : '#E5E7EB',
-                          cursor: 'pointer',
-                          padding: 0,
-                          flexShrink: 0
-                        }}
-                        aria-label={`Aller à la question ${i+1}`}
-                      />
-                    )
-                  })}
-                </div>
-                {/* Légende */}
-                {!hasFullAccess && (
-                  <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#BBF7D0', border: '1.5px solid #22C55E', display: 'inline-block' }}></span>
-                      Gratuite (1-{freeCount})
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#E5E7EB', border: '1.5px solid #9CA3AF', display: 'inline-block' }}></span>
-                      Payante 🔒
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#D4A017', display: 'inline-block' }}></span>
-                      Répondue
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Flèches de navigation */}
+              {/* Flèches de navigation (les points ont été retirés pour une meilleure lisibilité) */}
               <div className="flex items-center justify-between mb-4">
                 <button
                   onClick={handlePrev}
@@ -598,11 +555,11 @@ export default function QuizPage() {
 
                 <button
                   onClick={handleNext}
-                  disabled={current >= questions.length - 1 && hasFullAccess && !answered}
+                  disabled={current >= questions.length - 1}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
                   style={{
-                    background: (current >= questions.length - 1 && hasFullAccess && !answered) ? '#f3f4f6' : '#FFF0E8',
-                    color: (current >= questions.length - 1 && hasFullAccess && !answered) ? '#9ca3af' : '#C4521A'
+                    background: current >= questions.length - 1 ? '#f3f4f6' : '#FFF0E8',
+                    color: current >= questions.length - 1 ? '#9ca3af' : '#C4521A'
                   }}
                 >
                   Suivante
