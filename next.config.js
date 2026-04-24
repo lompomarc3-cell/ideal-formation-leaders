@@ -10,9 +10,6 @@ const nextConfig = {
     ignoreBuildErrors: true
   },
   // Configuration pour Cloudflare Pages avec next-on-pages
-  experimental: {
-    runtime: 'edge'
-  }
 }
 
 module.exports = nextConfig
