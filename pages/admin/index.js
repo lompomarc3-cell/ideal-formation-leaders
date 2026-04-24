@@ -55,7 +55,9 @@ export default function AdminDashboard() {
     { id: 'payments', label: '💳 Paiements', icon: '💳' },
     { id: 'users', label: '👥 Utilisateurs', icon: '👥' },
     { id: 'questions', label: '❓ QCM', icon: '❓' },
+    { id: 'dissertations', label: '📝 Dissertations', icon: '📝' },
     { id: 'categories', label: '📁 Dossiers', icon: '📁' },
+    { id: 'schedules', label: '⏰ Programmation', icon: '⏰' },
     { id: 'prices', label: '💰 Prix', icon: '💰' },
     { id: 'password', label: '🔑 Mot de passe', icon: '🔑' },
   ]
@@ -114,7 +116,9 @@ export default function AdminDashboard() {
           {activeSection === 'payments' && <AdminPayments getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'users' && <AdminUsers getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'questions' && <AdminQuestions getToken={getToken} onNotif={showNotif} />}
+          {activeSection === 'dissertations' && <AdminDissertations getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'categories' && <AdminCategories getToken={getToken} onNotif={showNotif} />}
+          {activeSection === 'schedules' && <AdminSchedules getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'prices' && <AdminPrices getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'password' && <AdminChangePassword getToken={getToken} onNotif={showNotif} user={user} />}
         </div>
@@ -1114,6 +1118,380 @@ function AdminChangePassword({ getToken, onNotif, user }) {
           </button>
         </form>
       </div>
+    </div>
+  )
+}
+
+/* =================== DISSERTATIONS =================== */
+function AdminDissertations({ getToken, onNotif }) {
+  const [dissertations, setDissertations] = useState([])
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [editDiss, setEditDiss] = useState(null)
+  const [filterCat, setFilterCat] = useState('')
+
+  useEffect(() => { fetchCategories(); fetchDissertations() }, [])
+
+  const fetchCategories = async () => {
+    try {
+      const r = await fetch('/api/quiz/categories', { headers: { Authorization: `Bearer ${getToken()}` } })
+      const d = await r.json()
+      setCategories(d.categories || [])
+    } catch {}
+  }
+
+  const fetchDissertations = async (catId = '') => {
+    setLoading(true)
+    try {
+      const url = catId ? `/api/admin/dissertations?categorie_id=${catId}` : '/api/admin/dissertations'
+      const r = await fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } })
+      const d = await r.json()
+      setDissertations(d.dissertations || [])
+    } catch {}
+    setLoading(false)
+  }
+
+  const saveDissertation = async (formData) => {
+    try {
+      const method = formData.id ? 'PUT' : 'POST'
+      const r = await fetch('/api/admin/dissertations', {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify(formData)
+      })
+      const d = await r.json()
+      if (d.success || d.dissertation) {
+        onNotif(formData.id ? '✅ Dissertation modifiée' : '✅ Dissertation ajoutée', 'success')
+        setShowForm(false); setEditDiss(null)
+        fetchDissertations(filterCat)
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch (e) {
+      onNotif('Erreur réseau', 'error')
+    }
+  }
+
+  const deleteDissertation = async (id) => {
+    if (!confirm('Supprimer définitivement cette dissertation ?')) return
+    try {
+      await fetch(`/api/admin/dissertations?id=${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` } })
+      onNotif('🗑️ Dissertation supprimée', 'info')
+      fetchDissertations(filterCat)
+    } catch {}
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4 mt-1">
+        <h2 className="text-white text-xl font-bold">📝 Dissertations ({dissertations.length})</h2>
+        <button onClick={() => { setShowForm(true); setEditDiss(null) }}
+          className="px-3 py-2 font-bold text-white rounded-xl text-xs active:scale-95" style={{ background: '#C4521A' }}>
+          ➕ Ajouter une dissertation
+        </button>
+      </div>
+
+      <div className="bg-amber-900/20 border border-amber-800/50 rounded-xl p-3 mb-4 text-xs text-amber-200">
+        💡 Les dissertations sont des contenus longs (sans QCM). Le titre s'affiche en haut et le contenu complet (corrigé détaillé) est visible dès l'ouverture par l'utilisateur.
+      </div>
+
+      <select value={filterCat} onChange={e => { setFilterCat(e.target.value); fetchDissertations(e.target.value) }}
+        className="w-full bg-gray-800 text-white rounded-xl px-4 py-3 mb-4 text-sm border border-gray-700">
+        <option value="">📂 Toutes les catégories</option>
+        {categories.map(c => <option key={c.id} value={c.id}>{c.type === 'direct' ? '📚' : '🎓'} {c.nom}</option>)}
+      </select>
+
+      {(showForm || editDiss) && (
+        <DissertationForm initial={editDiss} categories={categories} onSave={saveDissertation} onCancel={() => { setShowForm(false); setEditDiss(null) }} />
+      )}
+
+      {loading ? <div className="py-8 text-center"><div className="spinner mx-auto"></div></div> : (
+        <div className="space-y-3">
+          {dissertations.length === 0 ? (
+            <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-400">
+              <p className="text-3xl mb-2">📝</p>
+              <p>Aucune dissertation pour l'instant</p>
+              <p className="text-xs text-gray-500 mt-2">Cliquez sur "Ajouter une dissertation" pour en créer une.</p>
+            </div>
+          ) : dissertations.map(d => (
+            <div key={d.id} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <p className="text-white text-sm font-bold leading-relaxed flex-1">📝 {d.titre}</p>
+                <span className="text-xs px-2 py-0.5 rounded" style={{ background: '#8B2500', color: '#fff' }}>DISSERTATION</span>
+              </div>
+              <p className="text-gray-400 text-xs mb-3 line-clamp-3 whitespace-pre-wrap">{(d.contenu || '').substring(0, 280)}{d.contenu && d.contenu.length > 280 ? '...' : ''}</p>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500 truncate max-w-[60%]">{d.categorie_nom}</span>
+                <div className="flex gap-2">
+                  <button onClick={() => { setEditDiss(d); setShowForm(false) }} className="text-amber-400 hover:text-amber-300 p-1 rounded hover:bg-gray-700">✏️</button>
+                  <button onClick={() => deleteDissertation(d.id)} className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-gray-700">🗑️</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DissertationForm({ initial, categories, onSave, onCancel }) {
+  const [form, setForm] = useState(initial ? {
+    id: initial.id,
+    category_id: initial.category_id,
+    titre: initial.titre || '',
+    contenu: initial.contenu || ''
+  } : {
+    category_id: '',
+    titre: '',
+    contenu: ''
+  })
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
+
+  const submit = () => {
+    if (!form.category_id) return alert('Choisissez une catégorie')
+    if (!form.titre.trim()) return alert('Saisissez un titre')
+    if (!form.contenu.trim()) return alert('Saisissez le contenu')
+    onSave(form)
+  }
+
+  return (
+    <div className="bg-gray-800 rounded-2xl p-5 mb-4 border border-amber-800">
+      <h3 className="text-white font-bold mb-4">{initial ? '✏️ Modifier la dissertation' : '📝 Nouvelle dissertation'}</h3>
+      <div className="space-y-3">
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Sous-dossier / Catégorie *</label>
+          <select value={form.category_id} onChange={e => set('category_id', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" required>
+            <option value="">Choisir un sous-dossier</option>
+            {categories.map(c => (
+              <option key={c.id} value={c.id}>{c.type === 'direct' ? '📚 (Direct)' : '🎓 (Pro)'} {c.nom}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Titre de la dissertation *</label>
+          <input type="text" value={form.titre} onChange={e => set('titre', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm"
+            placeholder="Ex: L'État de droit en Afrique – Analyse et perspectives" />
+        </div>
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Contenu (texte long, corrigé complet) *</label>
+          <textarea value={form.contenu} onChange={e => set('contenu', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm font-mono"
+            style={{ minHeight: '300px', lineHeight: '1.6' }}
+            placeholder="Saisissez ici le texte complet de la dissertation ou du corrigé. Les sauts de ligne sont conservés." />
+          <p className="text-xs text-gray-500 mt-1">{form.contenu.length} caractères</p>
+        </div>
+        <div className="flex gap-2 pt-1">
+          <button onClick={submit} className="flex-1 py-3.5 font-bold text-white rounded-xl active:scale-95" style={{ background: '#C4521A' }}>
+            {initial ? '💾 Modifier' : '📝 Ajouter la dissertation'}
+          </button>
+          <button onClick={onCancel} className="px-5 py-3.5 bg-gray-700 text-gray-300 rounded-xl font-semibold">Annuler</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* =================== PROGRAMMATION DISPARITION =================== */
+function AdminSchedules({ getToken, onNotif }) {
+  const [schedules, setSchedules] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(new Set())
+  const [date, setDate] = useState('')
+  const [time, setTime] = useState('23:59')
+  const [enabled, setEnabled] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [filterType, setFilterType] = useState('all')
+
+  useEffect(() => { fetchSchedules() }, [])
+
+  const fetchSchedules = async () => {
+    setLoading(true)
+    try {
+      const r = await fetch('/api/admin/schedules', { headers: { Authorization: `Bearer ${getToken()}` } })
+      const d = await r.json()
+      // l'API /api/admin/schedules renvoie { categories: [...] }
+      setSchedules(d.categories || d.schedules || [])
+    } catch {}
+    setLoading(false)
+  }
+
+  const toggleOne = (id) => {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const filtered = schedules.filter(s => filterType === 'all' ? true : s.type === filterType)
+
+  const toggleAll = () => {
+    if (selected.size === filtered.length) setSelected(new Set())
+    else setSelected(new Set(filtered.map(s => s.id)))
+  }
+
+  const save = async () => {
+    if (selected.size === 0) return onNotif('Sélectionnez au moins une catégorie', 'error')
+    if (enabled && !date) return onNotif('Choisissez une date de fin de validité', 'error')
+
+    setSaving(true)
+    try {
+      // Construire la date ISO complète
+      let iso = null
+      if (enabled && date) {
+        const [h, m] = (time || '23:59').split(':')
+        const localDate = new Date(`${date}T${h.padStart(2,'0')}:${m.padStart(2,'0')}:00`)
+        iso = localDate.toISOString()
+      }
+
+      const r = await fetch('/api/admin/schedules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({
+          category_ids: Array.from(selected),
+          date_validite: iso,
+          enabled: enabled
+        })
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif(enabled
+          ? `✅ Programmation appliquée à ${d.updated} sous-dossier(s)`
+          : `✅ Programmation désactivée sur ${d.updated} sous-dossier(s)`, 'success')
+        setSelected(new Set())
+        fetchSchedules()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch (e) {
+      onNotif('Erreur réseau', 'error')
+    }
+    setSaving(false)
+  }
+
+  const disableSelected = async () => {
+    if (selected.size === 0) return onNotif('Sélectionnez au moins une catégorie', 'error')
+    setSaving(true)
+    try {
+      const r = await fetch('/api/admin/schedules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({
+          category_ids: Array.from(selected),
+          date_validite: null,
+          enabled: false
+        })
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif(`✅ Programmation désactivée sur ${d.updated} sous-dossier(s)`, 'success')
+        setSelected(new Set())
+        fetchSchedules()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch (e) {
+      onNotif('Erreur réseau', 'error')
+    }
+    setSaving(false)
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4 mt-1">
+        <h2 className="text-white text-xl font-bold">⏰ Programmation des contenus</h2>
+        <button onClick={fetchSchedules} className="text-gray-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-gray-800">🔄</button>
+      </div>
+
+      <div className="bg-amber-900/20 border border-amber-800/50 rounded-xl p-3 mb-4 text-xs text-amber-200">
+        💡 Programmez la <b>disparition automatique</b> d'un ou plusieurs sous-dossiers à une date précise. Après cette date, les utilisateurs non-admin ne verront plus ce contenu. L'administrateur continue de le voir même après expiration.
+      </div>
+
+      {/* Formulaire date/heure */}
+      <div className="bg-gray-800 rounded-2xl p-4 border border-amber-800 mb-4 space-y-3">
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-sm text-white cursor-pointer">
+            <input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} className="w-4 h-4 accent-amber-500" />
+            <span>Activer la programmation</span>
+          </label>
+        </div>
+        {enabled && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-gray-400 text-xs mb-1 block">Date de fin de validité *</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" />
+            </div>
+            <div>
+              <label className="text-gray-400 text-xs mb-1 block">Heure</label>
+              <input type="time" value={time} onChange={e => setTime(e.target.value)}
+                className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm" />
+            </div>
+          </div>
+        )}
+        <div className="flex gap-2 pt-1">
+          <button onClick={save} disabled={saving || selected.size === 0}
+            className="flex-1 py-3 font-bold text-white rounded-xl active:scale-95 disabled:opacity-50"
+            style={{ background: enabled ? '#C4521A' : '#6B7280' }}>
+            {saving ? '⏳...' : (enabled ? `⏰ Programmer (${selected.size})` : `🚫 Désactiver (${selected.size})`)}
+          </button>
+          {enabled && (
+            <button onClick={disableSelected} disabled={saving || selected.size === 0}
+              className="px-4 py-3 font-bold rounded-xl active:scale-95 disabled:opacity-50 bg-gray-700 text-gray-300 text-xs">
+              Retirer prog.
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filtre type + select all */}
+      <div className="flex gap-2 mb-3">
+        <select value={filterType} onChange={e => setFilterType(e.target.value)}
+          className="flex-1 bg-gray-800 text-white rounded-xl px-3 py-2 text-sm border border-gray-700">
+          <option value="all">Tous types</option>
+          <option value="direct">📚 Concours directs</option>
+          <option value="professionnel">🎓 Concours pro</option>
+        </select>
+        <button onClick={toggleAll}
+          className="px-3 py-2 text-xs font-bold rounded-xl bg-gray-800 text-white hover:bg-gray-700">
+          {selected.size === filtered.length && filtered.length > 0 ? '❌ Aucun' : '✅ Tous'}
+        </button>
+      </div>
+
+      {loading ? <div className="py-8 text-center"><div className="spinner mx-auto"></div></div> : (
+        <div className="space-y-2">
+          {filtered.length === 0 ? (
+            <div className="bg-gray-800 rounded-xl p-6 text-center text-gray-400">Aucune catégorie</div>
+          ) : filtered.map(s => {
+            const isSel = selected.has(s.id)
+            const dateTxt = s.date_validite ? new Date(s.date_validite).toLocaleString('fr-FR') : '—'
+            return (
+              <label key={s.id}
+                className={`flex items-center gap-3 bg-gray-800 rounded-xl p-3 border cursor-pointer transition-all ${isSel ? 'border-amber-500' : 'border-gray-700'}`}>
+                <input type="checkbox" checked={isSel} onChange={() => toggleOne(s.id)} className="w-4 h-4 accent-amber-500 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm font-bold truncate">
+                    {s.type === 'direct' ? '📚' : '🎓'} {s.nom}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {s.question_count} élément(s)
+                    {s.is_programmed && (
+                      <span className={`ml-2 ${s.expired ? 'text-red-400' : 'text-amber-400'}`}>
+                        {s.expired ? '⚠️ EXPIRÉ' : '⏰ programmé'} : {dateTxt}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </label>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

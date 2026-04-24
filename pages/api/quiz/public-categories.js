@@ -1,6 +1,7 @@
 // API PUBLIQUE - Catégories sans authentification
 // Permet aux visiteurs non connectés de voir les dossiers
 export const runtime = 'edge'
+import { parseDescription, isScheduleExpired } from '../../../lib/scheduling'
 
 const SUPABASE_URL = 'https://cyasoaihjjochwhnhwqf.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YXNvYWloampvY2h3aG5od3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTkyMDUsImV4cCI6MjA4OTkzNTIwNX0.iZx5CKV4oY80POmPYs6_PMa-2vG5kNTHhOHD5M3HX44'
@@ -80,17 +81,24 @@ export default async function handler(req) {
 
     const categories = await res.json()
 
+    const now = new Date()
     const sorted = (categories || [])
-      .map(c => ({
-        id: c.id,
-        nom: c.nom,
-        type: c.type,
-        description: c.description,
-        question_count: c.question_count || 0,
-        prix: c.prix || 0,
-        icone: getCatIcon(c.nom),
-        ordre: getCatOrdre(c.nom, c.type)
-      }))
+      .map(c => {
+        const { description, schedule } = parseDescription(c.description)
+        return {
+          id: c.id,
+          nom: c.nom,
+          type: c.type,
+          description,
+          question_count: c.question_count || 0,
+          prix: c.prix || 0,
+          icone: getCatIcon(c.nom),
+          ordre: getCatOrdre(c.nom, c.type),
+          _expired: isScheduleExpired(schedule, now)
+        }
+      })
+      // Visiteurs non connectés = jamais admin → masquer les catégories expirées
+      .filter(c => !c._expired)
       .sort((a, b) => {
         if (a.type !== b.type) return a.type.localeCompare(b.type)
         return a.ordre - b.ordre

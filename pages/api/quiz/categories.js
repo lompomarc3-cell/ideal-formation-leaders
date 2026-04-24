@@ -1,6 +1,7 @@
 export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
+import { parseDescription, isScheduleExpired } from '../../../lib/scheduling'
 // Mapping direct: nom partiel → ordre officiel
 const ORDRE_MAP = {
   direct: [
@@ -118,6 +119,14 @@ export default async function handler(req) {
     const url = new URL(req.url)
     const type = url.searchParams.get('type')
 
+    // Vérifier si l'utilisateur est admin (pour bypasser les programmations)
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', payload.userId)
+      .maybeSingle()
+    const isAdmin = profile && ['admin', 'superadmin'].includes(profile.role)
+
     let query = supabaseAdmin
       .from('categories')
       .select('id, nom, type, description, question_count, prix, is_active')
@@ -131,18 +140,28 @@ export default async function handler(req) {
 
     if (error) throw error
 
-    // Trier par ordre officiel
+    const now = new Date()
+
+    // Trier par ordre officiel, filtrer les catégories expirées (sauf admin)
     const sorted = (categories || [])
-      .map(c => ({
-        id: c.id,
-        nom: c.nom,
-        type: c.type,
-        description: c.description,
-        question_count: c.question_count || 0,
-        prix: c.prix || 0,
-        icone: getCatIcon(c.nom, c.type),
-        ordre: getCatOrdre(c.nom, c.type)
-      }))
+      .map(c => {
+        const { description, schedule } = parseDescription(c.description)
+        const expired = isScheduleExpired(schedule, now)
+        return {
+          id: c.id,
+          nom: c.nom,
+          type: c.type,
+          description, // description propre (sans marqueur)
+          question_count: c.question_count || 0,
+          prix: c.prix || 0,
+          icone: getCatIcon(c.nom, c.type),
+          ordre: getCatOrdre(c.nom, c.type),
+          _expired: expired,
+          _is_programmed: !!schedule.enabled,
+          _date_validite: schedule.date
+        }
+      })
+      .filter(c => isAdmin ? true : !c._expired)
       .sort((a, b) => {
         // Trier d'abord par type, puis par ordre
         if (a.type !== b.type) return a.type.localeCompare(b.type)

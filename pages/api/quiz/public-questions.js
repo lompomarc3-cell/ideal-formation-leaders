@@ -1,6 +1,7 @@
 // API PUBLIQUE - Questions gratuites sans authentification
 // Retourne les 5 premières questions gratuites (is_demo=true) pour les visiteurs non connectés
 export const runtime = 'edge'
+import { parseDescription, isScheduleExpired } from '../../../lib/scheduling'
 
 const SUPABASE_URL = 'https://cyasoaihjjochwhnhwqf.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YXNvYWloampvY2h3aG5od3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTkyMDUsImV4cCI6MjA4OTkzNTIwNX0.iZx5CKV4oY80POmPYs6_PMa-2vG5kNTHhOHD5M3HX44'
@@ -22,9 +23,9 @@ export default async function handler(req) {
       })
     }
 
-    // 1. Récupérer la catégorie
+    // 1. Récupérer la catégorie (avec description pour check programmation)
     const catRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/categories?id=eq.${categorieId}&is_active=eq.true&select=id,nom,type`,
+      `${SUPABASE_URL}/rest/v1/categories?id=eq.${categorieId}&is_active=eq.true&select=id,nom,type,description`,
       {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -41,6 +42,20 @@ export default async function handler(req) {
     if (!category) {
       return new Response(JSON.stringify({ error: 'Catégorie introuvable' }), {
         status: 404, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      })
+    }
+
+    // 1.bis. Vérifier programmation : si expirée, bloquer les visiteurs (non-admin)
+    const { schedule: catSchedule } = parseDescription(category.description)
+    if (isScheduleExpired(catSchedule, new Date())) {
+      return new Response(JSON.stringify({
+        error: `Ce dossier n'est plus disponible.`,
+        expired: true,
+        categoryName: category.nom,
+        categoryType: category.type
+      }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       })
     }
 

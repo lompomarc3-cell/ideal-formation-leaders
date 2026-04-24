@@ -1,6 +1,7 @@
 export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
+import { parseDescription, isScheduleExpired } from '../../../lib/scheduling'
 
 // Dossiers d'accompagnement automatiquement débloqués avec tout abonnement professionnel
 const DOSSIERS_ACCOMPAGNEMENT = [
@@ -104,7 +105,7 @@ export default async function handler(req) {
     // ========================================================
     const { data: category, error: catError } = await supabaseAdmin
       .from('categories')
-      .select('id, nom, type')
+      .select('id, nom, type, description')
       .eq('id', categorieId)
       .single()
 
@@ -113,6 +114,13 @@ export default async function handler(req) {
         status: 404, headers: { 'Content-Type': 'application/json' }
       })
     }
+
+    // ========================================================
+    // 2.bis Vérifier la programmation (disparition à date donnée).
+    // L'admin continue de tout voir. Les utilisateurs normaux n'ont plus accès.
+    // ========================================================
+    const { schedule: catSchedule } = parseDescription(category.description)
+    const catExpired = isScheduleExpired(catSchedule, new Date())
 
     // ========================================================
     // 3. Vérifier si l'utilisateur a accès complet
@@ -125,6 +133,15 @@ export default async function handler(req) {
     //    Sinon → seulement les questions gratuites (is_demo=true)
     // ========================================================
     const isAdmin = profile.role === 'superadmin' || profile.role === 'admin'
+
+    // Si catégorie expirée ET utilisateur non-admin → bloquer totalement
+    if (catExpired && !isAdmin) {
+      return new Response(JSON.stringify({
+        error: `Ce dossier n'est plus disponible.`,
+        expired: true,
+        categoryType: category.type
+      }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+    }
     
     let hasFullAccess = false
     let isLockedForThisUser = false // Dossier professionnel verrouillé pour cet utilisateur
