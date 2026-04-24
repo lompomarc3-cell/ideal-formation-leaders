@@ -309,11 +309,21 @@ export default function QuizPage() {
       }
       touchStartX.current = null
     }
+    // Raccourcis clavier flèches (PC/tablette avec clavier)
+    const handleKeyDown = (e) => {
+      // Ne pas interférer avec la saisie dans un input/textarea
+      const tag = (e.target && e.target.tagName) || ''
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return
+      if (e.key === 'ArrowRight') handleNext()
+      else if (e.key === 'ArrowLeft') handlePrev()
+    }
     window.addEventListener('touchstart', handleTouchStart, { passive: true })
     window.addEventListener('touchend', handleTouchEnd, { passive: true })
+    window.addEventListener('keydown', handleKeyDown)
     return () => {
       window.removeEventListener('touchstart', handleTouchStart)
       window.removeEventListener('touchend', handleTouchEnd)
+      window.removeEventListener('keydown', handleKeyDown)
     }
   }, [handleNext, handlePrev])
 
@@ -355,7 +365,7 @@ export default function QuizPage() {
                 <p className="text-orange-200 text-xs">
                   {hasFullAccess
                     ? `${total} question${total > 1 ? 's' : ''}`
-                    : `🆓 ${freeCount} gratuites · 🔒 ${Math.max(0, total - freeCount)} payantes`}
+                    : `🆓 ${freeCount} gratuites — 🔒 ${Math.max(0, total - freeCount)} payantes`}
                 </p>
               )}
             </div>

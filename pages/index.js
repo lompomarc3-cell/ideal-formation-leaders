@@ -546,7 +546,7 @@ export default function Home() {
             <div className="max-w-lg mx-auto px-4 pt-5" style={{ background: '#FFF8F0' }}>
               <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '1px solid #FFD0A8' }}>
                 <span className="text-sm">🆓</span>
-                <p className="text-xs font-semibold flex-1" style={{ color: '#8B2500' }}>5 questions gratuites par dossier · Glissez pour voir tous les dossiers</p>
+                <p className="text-xs font-semibold flex-1" style={{ color: '#8B2500' }}>5 questions gratuites par dossier — Glissez pour voir tous les dossiers</p>
                 <Link href="/payment?type=direct&montant=5000" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>5 000 FCFA</Link>
               </div>
 
@@ -635,7 +635,7 @@ export default function Home() {
             <div className="max-w-lg mx-auto px-4 pt-5" style={{ background: '#EFF6FF' }}>
               <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '1px solid #BFDBFE' }}>
                 <span className="text-sm">🆓</span>
-                <p className="text-xs font-semibold flex-1" style={{ color: '#1D4ED8' }}>5 questions gratuites · 14 dossiers pro + 3 bonus inclus</p>
+                <p className="text-xs font-semibold flex-1" style={{ color: '#1D4ED8' }}>5 questions gratuites — 14 dossiers pro + 3 bonus inclus</p>
                 <Link href="/select-specialty" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#1D4ED8' }}>20 000 FCFA</Link>
               </div>
               <div className="rounded-xl px-3 py-1.5 mb-3 flex flex-wrap gap-1">

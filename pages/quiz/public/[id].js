@@ -188,7 +188,7 @@ export default function PublicQuizPage() {
     saveProgressLocal(index)
   }, [saveProgressLocal])
 
-  // Swipe tactile — utilise handleNext/handlePrev stables via useCallback + stateRef
+  // Swipe tactile + flèches clavier — refs stables via useCallback + stateRef
   useEffect(() => {
     const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
     const handleTouchEnd = (e) => {
@@ -200,11 +200,19 @@ export default function PublicQuizPage() {
       }
       touchStartX.current = null
     }
+    const handleKeyDown = (e) => {
+      const tag = (e.target && e.target.tagName) || ''
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return
+      if (e.key === 'ArrowRight') handleNext()
+      else if (e.key === 'ArrowLeft') handlePrev()
+    }
     window.addEventListener('touchstart', handleTouchStart, { passive: true })
     window.addEventListener('touchend', handleTouchEnd, { passive: true })
+    window.addEventListener('keydown', handleKeyDown)
     return () => {
       window.removeEventListener('touchstart', handleTouchStart)
       window.removeEventListener('touchend', handleTouchEnd)
+      window.removeEventListener('keydown', handleKeyDown)
     }
   }, [handleNext, handlePrev])
 

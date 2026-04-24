@@ -453,7 +453,7 @@ export default function Dashboard() {
                                   <span className="text-xs text-amber-700">Accompagnements inclus</span>
                                 )}
                                 <p className="text-xs text-green-700 mt-1">
-                                  <span className="font-semibold">Bonus :</span> 📰 Actualités · 📝 Entraînement · 🎯 Accompagnement
+                                  <span className="font-semibold">Bonus :</span> 📰 Actualités — 📝 Entraînement — 🎯 Accompagnement
                                 </p>
                               </div>
                             )
@@ -662,7 +662,7 @@ export default function Dashboard() {
                   <p className="text-sm mb-4 font-semibold" style={{ color: '#EA580C' }}>
                     {directAccess || user.is_admin
                       ? `🎉 ${categories.direct.length} dossiers disponibles`
-                      : `📂 ${categories.direct.length} dossiers · 5 questions gratuites par dossier`}
+                      : `📂 ${categories.direct.length} dossiers — 5 questions gratuites par dossier`}
                   </p>
 
                   <HorizontalCategoryScroll
@@ -810,7 +810,7 @@ export default function Dashboard() {
                         return null
                       })()}
                       <p className="text-xs text-green-700 mt-1.5">
-                        <span className="font-semibold">Bonus :</span> 📰 Actualités · 📝 Entraînement · 🎯 Accompagnement
+                        <span className="font-semibold">Bonus :</span> 📰 Actualités — 📝 Entraînement — 🎯 Accompagnement
                       </p>
                     </div>
                     <Link href="/select-specialty" className="flex-shrink-0 px-3 py-1.5 text-xs font-bold text-white rounded-xl" style={{ background: '#1D4ED8' }}>
@@ -827,7 +827,7 @@ export default function Dashboard() {
                   <p className="text-sm mb-4 font-semibold" style={{ color: '#1D4ED8' }}>
                     {proAccess || user.is_admin
                       ? `🎉 ${categories.professionnel.length} dossiers disponibles`
-                      : `📂 ${categories.professionnel.length} dossiers · 5 questions gratuites par dossier`}
+                      : `📂 ${categories.professionnel.length} dossiers — 5 questions gratuites par dossier`}
                   </p>
 
                   <HorizontalCategoryScroll

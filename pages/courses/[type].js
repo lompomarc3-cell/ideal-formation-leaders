@@ -121,7 +121,7 @@ export default function CourseList({ type }) {
                         <div className="font-semibold text-gray-900 text-sm leading-tight">{cat.nom}</div>
                         <div className="text-gray-500 text-xs mt-1">
                           {cat.question_count || 0} question{(cat.question_count || 0) > 1 ? 's' : ''}
-                          {prog ? ` • ${prog.score} point${prog.score > 1 ? 's' : ''} ` : ''}
+                          {prog ? ` – ${prog.score} point${prog.score > 1 ? 's' : ''} ` : ''}
                         </div>
                         {prog && prog.questions_vues > 0 && (
                           <div className="progress-bar mt-2">

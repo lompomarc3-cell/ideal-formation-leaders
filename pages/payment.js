@@ -219,7 +219,7 @@ export default function Payment() {
               <div>
                 <p className="text-xs font-bold text-amber-700">📌 Dossier principal sélectionné</p>
                 <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>{selectedSpecialty}</p>
-                <p className="text-xs text-green-700 mt-0.5">+ Actualités · Entraînement QCM · Accompagnement final (offerts)</p>
+                <p className="text-xs text-green-700 mt-0.5">+ Actualités — Entraînement QCM — Accompagnement final (offerts)</p>
               </div>
               <Link href="/select-specialty" className="ml-auto px-3 py-1.5 text-xs font-bold rounded-xl border" style={{ color: '#8B2500', borderColor: '#C4521A' }}>
                 Changer
