@@ -455,11 +455,19 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
-                  <p className="text-xs text-orange-100 mb-1">Code USSD (appuyez pour copier) :</p>
-                  <button
-                    onClick={() => { navigator.clipboard?.writeText('*144*10*76223962#'); alert('✅ Code copié : *144*10*76223962#') }}
-                    className="text-lg font-extrabold underline decoration-dotted active:opacity-70"
-                  >*144*10*76223962#</button>
+                  <p className="text-xs text-orange-100 mb-1">Code USSD (mobile : ouvre le composeur, sinon copier) :</p>
+                  <a
+                    href={`tel:${encodeURIComponent('*144*10*76223962#')}`}
+                    onClick={(e) => {
+                      try { navigator.clipboard?.writeText('*144*10*76223962#') } catch {}
+                      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '')
+                      if (!isMobile) {
+                        e.preventDefault()
+                        alert('✅ Code copié : *144*10*76223962#')
+                      }
+                    }}
+                    className="text-lg font-extrabold underline decoration-dotted active:opacity-70 inline-block"
+                  >*144*10*76223962#</a>
                 </div>
                 <p className="text-orange-100 text-sm">Bénéficiaire : <a href="tel:+22676223962" className="font-extrabold text-white underline">+226 76 22 39 62</a></p>
               </div>
@@ -969,8 +977,19 @@ export default function Home() {
                           </div>
                         </div>
                         <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
-                          <p className="text-orange-100 text-xs">Code USSD (appuyez pour copier) :</p>
-                          <button onClick={() => { if(typeof navigator !== 'undefined') navigator.clipboard?.writeText('*144*10*76223962#'); }} className="text-xl font-extrabold tracking-wider underline decoration-dotted active:opacity-70">*144*10*76223962#</button>
+                          <p className="text-orange-100 text-xs">Code USSD (mobile : ouvre le composeur, sinon copier) :</p>
+                          <a
+                            href={`tel:${encodeURIComponent('*144*10*76223962#')}`}
+                            onClick={(e) => {
+                              try { if(typeof navigator !== 'undefined') navigator.clipboard?.writeText('*144*10*76223962#') } catch {}
+                              const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test((typeof navigator !== 'undefined' && navigator.userAgent) || '')
+                              if (!isMobile) {
+                                e.preventDefault()
+                                alert('✅ Code copié : *144*10*76223962#')
+                              }
+                            }}
+                            className="text-xl font-extrabold tracking-wider underline decoration-dotted active:opacity-70 inline-block"
+                          >*144*10*76223962#</a>
                         </div>
                         <p className="text-orange-100 text-sm">Bénéficiaire : <a href="tel:+22676223962" className="font-extrabold text-white underline">+226 76 22 39 62</a></p>
                         <div className="flex gap-3 mt-3">

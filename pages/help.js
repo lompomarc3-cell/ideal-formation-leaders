@@ -104,8 +104,20 @@ export default function Help() {
                 </div>
               </div>
               <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
-                <p className="text-orange-100 text-xs">Code USSD (appuyez pour copier) :</p>
-                <button onClick={() => navigator.clipboard?.writeText('*144*10*76223962#')} className="text-xl font-extrabold tracking-wider underline decoration-dotted active:opacity-70" title="Copier le code USSD">*144*10*76223962#</button>
+                <p className="text-orange-100 text-xs">Code USSD (mobile : ouvre le composeur, sinon copier) :</p>
+                <a
+                  href={`tel:${encodeURIComponent('*144*10*76223962#')}`}
+                  onClick={(e) => {
+                    try { navigator.clipboard?.writeText('*144*10*76223962#') } catch {}
+                    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '')
+                    if (!isMobile) {
+                      e.preventDefault()
+                      alert('✅ Code copié : *144*10*76223962#')
+                    }
+                  }}
+                  className="text-xl font-extrabold tracking-wider underline decoration-dotted active:opacity-70 inline-block"
+                  title="Cliquer pour composer ou copier"
+                >*144*10*76223962#</a>
               </div>
               <p className="text-orange-100 text-sm">Bénéficiaire : <a href="tel:+22676223962" className="font-extrabold text-white underline">+226 76 22 39 62</a></p>
               <div className="flex gap-3 mt-3">
