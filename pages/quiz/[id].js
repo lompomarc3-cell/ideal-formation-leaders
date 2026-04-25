@@ -298,17 +298,26 @@ export default function QuizPage() {
     goToQuestion(index, qs, hasAccess, aMap, saveProgress)
   }, [goToQuestion, saveProgress])
 
-  // 🚨 PHASE 2 — Le swipe tactile a été désactivé : il provoquait des changements
-  // involontaires de question lors du scroll vertical. Seuls les boutons de
-  // navigation (◀ ▶) et les flèches clavier permettent de naviguer.
+  // 🚨 PHASE 3 — Anti-bug scroll : SEULES les flèches GAUCHE/DROITE (boutons écran ou
+  // clavier ←/→) peuvent changer de question. Le scroll vertical (souris/touchpad/tactile)
+  // ne doit JAMAIS changer de question. Les flèches HAUT/BAS sont également ignorées
+  // pour éviter toute confusion (elles servent uniquement à scroller la page).
   useEffect(() => {
-    // Raccourcis clavier flèches (PC/tablette avec clavier)
+    // Raccourcis clavier : UNIQUEMENT flèches gauche/droite
     const handleKeyDown = (e) => {
-      // Ne pas interférer avec la saisie dans un input/textarea
+      // Ne pas interférer avec la saisie dans un input/textarea/select
       const tag = (e.target && e.target.tagName) || ''
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return
-      if (e.key === 'ArrowRight') handleNext()
-      else if (e.key === 'ArrowLeft') handlePrev()
+      // Ignorer si une touche modifier est enfoncée (Ctrl, Alt, Meta) → scroll système
+      if (e.ctrlKey || e.altKey || e.metaKey) return
+      if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        handleNext()
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        handlePrev()
+      }
+      // ArrowUp / ArrowDown / PageUp / PageDown / Space : ignorés (scroll natif)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => {
@@ -341,7 +350,7 @@ export default function QuizPage() {
         <title>{category?.nom || 'QCM'} – IFL</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
-      <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
+      <div className="min-h-screen" style={{ background: '#FFF8F0', touchAction: 'pan-y', overscrollBehaviorX: 'none' }}>
         {/* Header */}
         <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">

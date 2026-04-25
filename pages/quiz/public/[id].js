@@ -188,14 +188,22 @@ export default function PublicQuizPage() {
     saveProgressLocal(index)
   }, [saveProgressLocal])
 
-  // 🚫 SWIPE TACTILE DÉSACTIVÉ (Phase 2) — Le scroll vertical ne doit JAMAIS changer de question.
-  // Seules les FLÈCHES (boutons Précédente / Suivante) ou les TOUCHES CLAVIER (← / →) permettent de naviguer.
+  // 🚫 PHASE 3 — Anti-bug scroll : SEULES les flèches GAUCHE/DROITE permettent de naviguer.
+  // Le scroll vertical (souris/touchpad/tactile) NE DOIT JAMAIS changer de question.
+  // Les flèches HAUT/BAS sont ignorées pour ne pas interférer avec le scroll de la page.
   useEffect(() => {
     const handleKeyDown = (e) => {
       const tag = (e.target && e.target.tagName) || ''
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return
-      if (e.key === 'ArrowRight') handleNext()
-      else if (e.key === 'ArrowLeft') handlePrev()
+      if (e.ctrlKey || e.altKey || e.metaKey) return
+      if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        handleNext()
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        handlePrev()
+      }
+      // ArrowUp/ArrowDown/PageUp/PageDown/Space : laissés au scroll natif
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => {
@@ -214,7 +222,7 @@ export default function PublicQuizPage() {
         <title>{categoryName || 'QCM Gratuit'} – IFL</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
-      <div className="min-h-screen" style={{ background: '#FFF8F0' }}>
+      <div className="min-h-screen" style={{ background: '#FFF8F0', touchAction: 'pan-y', overscrollBehaviorX: 'none' }}>
         {/* Header */}
         <header style={{ background: 'linear-gradient(135deg, #8B2500 0%, #C4521A 100%)' }} className="sticky top-0 z-40 shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">

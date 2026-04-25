@@ -600,7 +600,7 @@ function AdminQuestions({ getToken, onNotif }) {
         body: JSON.stringify(formData)
       })
       const d = await r.json()
-      if (d.question) {
+      if (d.success || d.question) {
         onNotif(formData.id ? '✅ Question modifiée' : '✅ Question ajoutée', 'success')
         setShowForm(false); setEditQ(null)
         fetchQuestions(filterCat)
