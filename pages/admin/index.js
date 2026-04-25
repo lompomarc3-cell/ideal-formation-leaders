@@ -883,7 +883,7 @@ function AdminCategories({ getToken, onNotif }) {
                     <span className={`px-2 py-0.5 rounded text-xs font-bold ${c.type === 'direct' ? 'bg-amber-900 text-amber-300' : 'bg-emerald-900 text-emerald-300'}`}>
                       {c.type === 'direct' ? '📚 Direct' : '🎓 Pro'}
                     </span>
-                    <span className="text-xs text-gray-500">Ordre : {c.ordre || '—'}</span>
+
                   </div>
                   <p className="text-white font-semibold text-sm">{c.nom}</p>
                   <div className="flex gap-3 mt-1">
@@ -910,9 +910,8 @@ function CategoryForm({ initial, onSave, onCancel }) {
     nom: initial.nom || '',
     type: initial.type || 'direct',
     description: initial.description || '',
-    ordre: initial.ordre || '',
   } : {
-    nom: '', type: 'direct', description: '', ordre: ''
+    nom: '', type: 'direct', description: ''
   })
 
   // Icônes modernes SVG multicolores (clé → chemin image)
@@ -973,12 +972,6 @@ function CategoryForm({ initial, onSave, onCancel }) {
             className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm"
             placeholder="Description courte (optionnel)" />
         </div>
-        <div>
-          <label className="text-gray-400 text-xs mb-1 block">Ordre d&apos;affichage</label>
-          <input type="number" value={form.ordre} onChange={e => setForm(p => ({ ...p, ordre: e.target.value }))}
-            className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm"
-            placeholder="Ex: 13" min="1" />
-        </div>
         {!initial && (
           <div>
             <label className="text-gray-400 text-xs mb-2 block">Icône du dossier (icônes modernes)</label>
@@ -1003,7 +996,7 @@ function CategoryForm({ initial, onSave, onCancel }) {
           </div>
         )}
         <div className="flex gap-2 pt-1">
-          <button onClick={() => onSave({ ...form, icone: selectedIcon, ordre: form.ordre ? parseInt(form.ordre) : undefined })}
+          <button onClick={() => onSave({ ...form, icone: selectedIcon })}
             className="flex-1 py-3.5 font-bold text-white rounded-xl active:scale-95" style={{ background: '#C4521A' }}>
             {initial ? '💾 Modifier' : '➕ Créer'}
           </button>

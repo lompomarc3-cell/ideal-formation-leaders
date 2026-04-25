@@ -50,10 +50,10 @@ export default async function handler(req) {
     // Catégories actives avec comptage de questions
     const { data: cats } = await supabaseAdmin
       .from('categories')
-      .select('id, nom, type, question_count, is_active, ordre')
+      .select('id, nom, type, question_count, is_active, created_at')
       .eq('is_active', true)
       .order('type', { ascending: true })
-      .order('ordre', { ascending: true })
+      .order('created_at', { ascending: true })
     
     const totalCategories = cats ? cats.length : 0
     const totalDirect = cats ? cats.filter(c => c.type === 'direct').length : 0
@@ -82,8 +82,7 @@ export default async function handler(req) {
         id: c.id,
         nom: c.nom,
         type: c.type,
-        question_count: qCount,
-        ordre: c.ordre
+        question_count: qCount
       }
     })
 

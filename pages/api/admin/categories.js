@@ -30,9 +30,9 @@ export default async function handler(req) {
     try {
       const { data: categories, error } = await supabaseAdmin
         .from('categories')
-        .select('id, nom, type, description, question_count, prix, is_active, ordre')
+        .select('id, nom, type, description, question_count, prix, is_active, created_at')
         .order('type', { ascending: true })
-        .order('ordre', { ascending: true })
+        .order('created_at', { ascending: true })
 
       if (error) throw error
 
@@ -61,7 +61,7 @@ export default async function handler(req) {
   if (req.method === 'POST') {
     let body = {}
     try { body = await req.json() } catch {}
-    const { nom, type, description, icone, ordre } = body
+    const { nom, type, description } = body
 
     if (!nom || !type) {
       return new Response(JSON.stringify({ error: 'Nom et type requis' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
@@ -71,18 +71,6 @@ export default async function handler(req) {
     }
 
     try {
-      // Obtenir l'ordre max pour ce type si non fourni
-      let finalOrdre = ordre
-      if (!finalOrdre) {
-        const { data: existing } = await supabaseAdmin
-          .from('categories')
-          .select('ordre')
-          .eq('type', type)
-          .order('ordre', { ascending: false })
-          .limit(1)
-        finalOrdre = existing && existing.length > 0 ? (existing[0].ordre || 0) + 1 : 1
-      }
-
       const prix = type === 'direct' ? 5000 : 20000
 
       const { data: cat, error } = await supabaseAdmin
@@ -93,8 +81,7 @@ export default async function handler(req) {
           description: description || '',
           question_count: 0,
           prix,
-          is_active: true,
-          ordre: finalOrdre
+          is_active: true
         })
         .select()
         .single()
@@ -113,7 +100,7 @@ export default async function handler(req) {
   if (req.method === 'PUT') {
     let body = {}
     try { body = await req.json() } catch {}
-    const { id, nom, description, ordre, is_active } = body
+    const { id, nom, description, is_active } = body
 
     if (!id) {
       return new Response(JSON.stringify({ error: 'ID manquant' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
@@ -123,7 +110,6 @@ export default async function handler(req) {
       const updates = {}
       if (nom !== undefined) updates.nom = nom.trim()
       if (description !== undefined) updates.description = description
-      if (ordre !== undefined) updates.ordre = ordre
       if (is_active !== undefined) updates.is_active = is_active
 
       const { data: cat, error } = await supabaseAdmin

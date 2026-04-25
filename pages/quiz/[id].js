@@ -29,7 +29,7 @@ export default function QuizPage() {
   const [answersMap, setAnswersMap] = useState({})
   
   // Utiliser des refs pour les handlers afin d'éviter les closures stales dans les event listeners
-  const touchStartX = useRef(null)
+  // Note: touchStartX retiré — le swipe tactile est désactivé pour éviter les changements involontaires de question lors du scroll
   const stateRef = useRef({ current, questions, hasFullAccess, answersMap, finished, showUpgrade })
   const fetchedRef = useRef(null) // identifiant du dernier fetch pour éviter les re-fetch intempestifs
   const progressRestoredRef = useRef(false)
