@@ -85,3 +85,19 @@
 ✅ Toutes les fonctionnalités utilisateur opérationnelles  
 
 **Application prête pour la production.**
+
+---
+
+## Re-validation 27 avril 2026 (passe finale)
+
+Tests rejoués en production live :
+
+- ✅ **20 utilisateurs simultanés** : 100/100 requêtes 200 OK, 0 timeout, 0 erreur, médiane 497 ms
+- ✅ **100 requêtes en rafale** (concurrence max) : 100/100 succès, 30.1 req/s, P95 3.2 s
+- ✅ **Rate-limit login** : déclenché à la 7ᵉ tentative (HTTP 429)
+- ✅ **Endpoints admin testés en live** : `/users`, `/categories`, `/payments`, `/stats`, `/promotions`, `/prices`, `/schedules`, `/dissertations`, `/auth/me` → tous 200 OK
+- ✅ **Sans token** : `/api/admin/users` → 403 Accès refusé
+- ✅ **Intégrité DB confirmée** : 940 questions actives, 30 soft-deleted, 29/29 catégories synchronisées
+- ✅ **RLS testée à l'anon key** : seules 125 questions démos lisibles, profiles/correction_requests/écritures bloquées (`42501`)
+- ✅ **Compte KANE Roukietou supprimé** (profil + 3 correction_requests + auth.users)
+- ✅ **Edge Runtime fix** appliqué à `pages/api/init-db.js` (cohérence avec setup.js et setup-db.js)
