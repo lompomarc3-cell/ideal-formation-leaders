@@ -109,7 +109,7 @@ export default async function handler(req) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'public, max-age=60'
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60'
       }
     })
   } catch (err) {

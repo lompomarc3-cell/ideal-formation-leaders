@@ -103,7 +103,7 @@ export default async function handler(req) {
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'public, max-age=30'
+          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=30'
         }
       })
     }
@@ -120,7 +120,7 @@ export default async function handler(req) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'public, max-age=30'
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=30'
       }
     })
 
