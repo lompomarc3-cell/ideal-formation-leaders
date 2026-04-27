@@ -1,6 +1,7 @@
 export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
+import { rateLimit, tooManyRequests } from '../../../lib/rate-limit'
 
 export default async function handler(req) {
   // Helper pour compatibilité Edge Runtime
@@ -16,6 +17,10 @@ export default async function handler(req) {
   const reqData = { body, method: req.method, query: {}, headers: req.headers }
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  // 🛡️ Rate limit : 5 demandes de paiement / 5 min / IP, blocage 15 min
+  const rl = rateLimit(req, { key: 'payment-create', max: 5, windowMs: 5 * 60_000, blockMs: 15 * 60_000 })
+  if (!rl.allowed) return tooManyRequests(rl.resetIn)
 
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
   if (!token) return res.status(401).json({ error: 'Non authentifié' })

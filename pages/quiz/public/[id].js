@@ -188,10 +188,12 @@ export default function PublicQuizPage() {
     saveProgressLocal(index)
   }, [saveProgressLocal])
 
-  // 🚫 PHASE 3 — Anti-bug scroll : SEULES les flèches GAUCHE/DROITE permettent de naviguer.
-  // Le scroll vertical (souris/touchpad/tactile) NE DOIT JAMAIS changer de question.
-  // Les flèches HAUT/BAS sont ignorées pour ne pas interférer avec le scroll de la page.
+  // 🚨 PHASE FINALE — Anti-bug scroll TOTAL : SEULES les flèches GAUCHE/DROITE (boutons
+  // écran ou clavier ←/→) peuvent changer de question.
+  // Le scroll vertical (souris/touchpad/tactile/molette) ne doit JAMAIS changer de question.
+  // Les swipes tactiles horizontaux sont BLOQUÉS pour éviter tout changement involontaire.
   useEffect(() => {
+    // 1. Raccourcis clavier : UNIQUEMENT flèches gauche/droite
     const handleKeyDown = (e) => {
       const tag = (e.target && e.target.tagName) || ''
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return
@@ -203,11 +205,41 @@ export default function PublicQuizPage() {
         e.preventDefault()
         handlePrev()
       }
-      // ArrowUp/ArrowDown/PageUp/PageDown/Space : laissés au scroll natif
+      // ArrowUp/ArrowDown/PageUp/PageDown/Space : scroll natif seulement
     }
+
+    // 2. Bloquer le scroll horizontal (molette/trackpad)
+    const handleWheel = (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        e.preventDefault()
+      }
+    }
+
+    // 3. Bloquer les swipes tactiles horizontaux sur mobile
+    let touchStartX = 0
+    let touchStartY = 0
+    const handleTouchStart = (e) => {
+      touchStartX = e.touches[0].clientX
+      touchStartY = e.touches[0].clientY
+    }
+    const handleTouchMove = (e) => {
+      if (!touchStartX) return
+      const dx = Math.abs(e.touches[0].clientX - touchStartX)
+      const dy = Math.abs(e.touches[0].clientY - touchStartY)
+      if (dx > dy && dx > 10) {
+        e.preventDefault()
+      }
+    }
+
     window.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('wheel', handleWheel, { passive: false })
+    document.addEventListener('touchstart', handleTouchStart, { passive: true })
+    document.addEventListener('touchmove', handleTouchMove, { passive: false })
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('wheel', handleWheel)
+      document.removeEventListener('touchstart', handleTouchStart)
+      document.removeEventListener('touchmove', handleTouchMove)
     }
   }, [handleNext, handlePrev])
 

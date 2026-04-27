@@ -298,17 +298,16 @@ export default function QuizPage() {
     goToQuestion(index, qs, hasAccess, aMap, saveProgress)
   }, [goToQuestion, saveProgress])
 
-  // 🚨 PHASE 3 — Anti-bug scroll : SEULES les flèches GAUCHE/DROITE (boutons écran ou
-  // clavier ←/→) peuvent changer de question. Le scroll vertical (souris/touchpad/tactile)
-  // ne doit JAMAIS changer de question. Les flèches HAUT/BAS sont également ignorées
-  // pour éviter toute confusion (elles servent uniquement à scroller la page).
+  // 🚨 PHASE FINALE — Anti-bug scroll TOTAL : SEULES les flèches GAUCHE/DROITE (boutons
+  // écran ou clavier ←/→) peuvent changer de question.
+  // Le scroll vertical (souris/touchpad/tactile/molette) ne doit JAMAIS changer de question.
+  // Les swipes tactiles horizontaux sont BLOQUÉS pour éviter tout changement involontaire.
+  // Les flèches HAUT/BAS sont ignorées (scroll natif uniquement).
   useEffect(() => {
-    // Raccourcis clavier : UNIQUEMENT flèches gauche/droite
+    // 1. Raccourcis clavier : UNIQUEMENT flèches gauche/droite
     const handleKeyDown = (e) => {
-      // Ne pas interférer avec la saisie dans un input/textarea/select
       const tag = (e.target && e.target.tagName) || ''
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return
-      // Ignorer si une touche modifier est enfoncée (Ctrl, Alt, Meta) → scroll système
       if (e.ctrlKey || e.altKey || e.metaKey) return
       if (e.key === 'ArrowRight') {
         e.preventDefault()
@@ -317,11 +316,44 @@ export default function QuizPage() {
         e.preventDefault()
         handlePrev()
       }
-      // ArrowUp / ArrowDown / PageUp / PageDown / Space : ignorés (scroll natif)
+      // ArrowUp/ArrowDown/PageUp/PageDown/Space : scroll natif seulement
     }
+
+    // 2. Bloquer le scroll horizontal (molette/trackpad) pour qu'il ne change jamais de question
+    const handleWheel = (e) => {
+      // Si le scroll est principalement horizontal, on le bloque
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        e.preventDefault()
+      }
+    }
+
+    // 3. Bloquer les swipes tactiles horizontaux sur mobile
+    let touchStartX = 0
+    let touchStartY = 0
+    const handleTouchStart = (e) => {
+      touchStartX = e.touches[0].clientX
+      touchStartY = e.touches[0].clientY
+    }
+    const handleTouchMove = (e) => {
+      if (!touchStartX) return
+      const dx = Math.abs(e.touches[0].clientX - touchStartX)
+      const dy = Math.abs(e.touches[0].clientY - touchStartY)
+      // Si le mouvement est principalement horizontal (swipe), bloquer pour empêcher
+      // tout comportement de navigation horizontale du navigateur
+      if (dx > dy && dx > 10) {
+        e.preventDefault()
+      }
+    }
+
     window.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('wheel', handleWheel, { passive: false })
+    document.addEventListener('touchstart', handleTouchStart, { passive: true })
+    document.addEventListener('touchmove', handleTouchMove, { passive: false })
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('wheel', handleWheel)
+      document.removeEventListener('touchstart', handleTouchStart)
+      document.removeEventListener('touchmove', handleTouchMove)
     }
   }, [handleNext, handlePrev])
 
