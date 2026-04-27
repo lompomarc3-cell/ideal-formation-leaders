@@ -170,7 +170,11 @@ export default async function handler(req) {
 
     return new Response(JSON.stringify({
       categories: sorted
-    }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    }), { status: 200, headers: { 
+      'Content-Type': 'application/json',
+      // Cache Cloudflare 5 minutes pour les catégories (données peu changeantes)
+      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60'
+    } })
 
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Erreur serveur: ' + err.message }), {

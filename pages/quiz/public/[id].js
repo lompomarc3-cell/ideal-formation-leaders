@@ -188,12 +188,12 @@ export default function PublicQuizPage() {
     saveProgressLocal(index)
   }, [saveProgressLocal])
 
-  // 🚨 PHASE FINALE — Anti-bug scroll TOTAL : SEULES les flèches GAUCHE/DROITE (boutons
-  // écran ou clavier ←/→) peuvent changer de question.
-  // Le scroll vertical (souris/touchpad/tactile/molette) ne doit JAMAIS changer de question.
-  // Les swipes tactiles horizontaux sont BLOQUÉS pour éviter tout changement involontaire.
+  // ✅ CORRECTION FINALE v2 — Anti-bug scroll
+  // RÈGLE ABSOLUE : SEULES les flèches boutons ← → à l'écran et touches clavier ←/→ changent de question.
+  // Le scroll vertical (molette, trackpad, doigt mobile) ne change JAMAIS de question.
+  // Swipe horizontal : bloqué via preventDefault pour éviter tout changement involontaire.
   useEffect(() => {
-    // 1. Raccourcis clavier : UNIQUEMENT flèches gauche/droite
+    // 1. Clavier : UNIQUEMENT flèches gauche/droite — haut/bas = scroll natif
     const handleKeyDown = (e) => {
       const tag = (e.target && e.target.tagName) || ''
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return
@@ -205,41 +205,56 @@ export default function PublicQuizPage() {
         e.preventDefault()
         handlePrev()
       }
-      // ArrowUp/ArrowDown/PageUp/PageDown/Space : scroll natif seulement
+      // ArrowUp / ArrowDown / PageUp / PageDown / Space → scroll natif, aucune action
     }
 
-    // 2. Bloquer le scroll horizontal (molette/trackpad)
+    // 2. Molette/trackpad : bloquer UNIQUEMENT scroll horizontal dominant
     const handleWheel = (e) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      const absDx = Math.abs(e.deltaX)
+      const absDy = Math.abs(e.deltaY)
+      if (absDx > absDy && absDx > 5) {
         e.preventDefault()
       }
     }
 
-    // 3. Bloquer les swipes tactiles horizontaux sur mobile
+    // 3. Tactile : détection précise vertical/horizontal avant de bloquer
     let touchStartX = 0
     let touchStartY = 0
+    let touchDirectionLocked = 'none'
     const handleTouchStart = (e) => {
+      if (e.touches.length !== 1) return
       touchStartX = e.touches[0].clientX
       touchStartY = e.touches[0].clientY
+      touchDirectionLocked = 'none'
     }
     const handleTouchMove = (e) => {
-      if (!touchStartX) return
+      if (e.touches.length !== 1) return
       const dx = Math.abs(e.touches[0].clientX - touchStartX)
       const dy = Math.abs(e.touches[0].clientY - touchStartY)
-      if (dx > dy && dx > 10) {
-        e.preventDefault()
+      if (dx < 5 && dy < 5) return
+      if (touchDirectionLocked === 'none') {
+        touchDirectionLocked = dy > dx ? 'vertical' : 'horizontal'
       }
+      if (touchDirectionLocked === 'vertical') return // Scroll vertical → laisser passer
+      e.preventDefault() // Swipe horizontal → bloquer
+    }
+    const handleTouchEnd = () => {
+      touchStartX = 0
+      touchStartY = 0
+      touchDirectionLocked = 'none'
     }
 
     window.addEventListener('keydown', handleKeyDown)
     document.addEventListener('wheel', handleWheel, { passive: false })
     document.addEventListener('touchstart', handleTouchStart, { passive: true })
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
+    document.addEventListener('touchend', handleTouchEnd, { passive: true })
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('wheel', handleWheel)
       document.removeEventListener('touchstart', handleTouchStart)
       document.removeEventListener('touchmove', handleTouchMove)
+      document.removeEventListener('touchend', handleTouchEnd)
     }
   }, [handleNext, handlePrev])
 
