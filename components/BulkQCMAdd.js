@@ -14,6 +14,30 @@ C) 1962  D) 1964
 Réponse : B) 1960
 Explication : Le Burkina Faso a accédé à l'indépendance le 5 août 1960.`
 
+// Helper : extrait toutes les options "X) ..." présentes sur une même ligne
+// en utilisant les positions des marqueurs (gère correctement les options
+// multi-mots du type : "A) L'étude des lois  B) L'étude de la gestion ...")
+function extractOptionsFromLine(line) {
+  const result = {}
+  const markers = []
+  const regex = /(^|\s)([A-D])\)\s/g
+  let m
+  while ((m = regex.exec(line)) !== null) {
+    markers.push({
+      letter: m[2],
+      start: m.index + m[1].length,
+      contentStart: m.index + m[0].length,
+    })
+  }
+  for (let k = 0; k < markers.length; k++) {
+    const cur = markers[k]
+    const next = markers[k + 1]
+    const text = line.substring(cur.contentStart, next ? next.start : line.length).trim()
+    if (text) result[cur.letter] = text
+  }
+  return result
+}
+
 function parseTexte(raw) {
   const lines = raw.split('\n').map(l => l.trim()).filter(Boolean)
   const questions = []
@@ -32,31 +56,20 @@ function parseTexte(raw) {
 
       while (i < lines.length) {
         const l = lines[i]
-        // Options sur plusieurs formats
-        if (/^[A-D][)]\s/.test(l)) {
-          // Chaque option sur sa propre ligne
-          const m = l.match(/^([A-D])[)]\s*(.+)/)
-          if (m) opts[m[1]] = m[2].trim()
-          i++
-          continue
-        }
-        // Options sur une ligne "A) x  B) y  C) z  D) w"
-        if (/[A-D][)]\s/.test(l) && !l.match(/^[Rr]é?ponse/) && !l.match(/^[Ee]xplication/)) {
-          const matches = [...l.matchAll(/([A-D])[)]\s*([^A-D)]+?)(?=\s+[A-D]\)|$)/g)]
-          matches.forEach(m => { opts[m[1]] = m[2].trim() })
-          if (Object.keys(opts).length === 0) {
-            // Essai alternatif: split par espaces multiples
-            const parts = l.split(/\s{2,}/)
-            parts.forEach(p => {
-              const pm = p.match(/^([A-D])[)]\s*(.+)/)
-              if (pm) opts[pm[1]] = pm[2].trim()
-            })
+        // Ligne contenant 1 ou plusieurs options "A) ..."  "B) ..." etc.
+        const hasOption = /(^|\s)[A-D]\)\s/.test(l) &&
+                          !/^[Rr]é?ponse/.test(l) &&
+                          !/^[Ee]xplication/.test(l)
+        if (hasOption) {
+          const extracted = extractOptionsFromLine(l)
+          for (const k of Object.keys(extracted)) {
+            if (extracted[k]) opts[k] = extracted[k]
           }
           i++
           continue
         }
-        if (/[Rr]é?ponse\s*:/.test(l)) { repLine = l; i++; continue }
-        if (/[Ee]xplication\s*:/.test(l)) { explLine = l; i++; break }
+        if (/^[Rr]é?ponse\s*:/.test(l)) { repLine = l; i++; continue }
+        if (/^[Ee]xplication\s*:/.test(l)) { explLine = l; i++; break }
         // Nouvelle question → stop
         if (/^\d+[.)]\s/.test(l)) break
         i++
@@ -194,6 +207,29 @@ export default function BulkQCMAdd({ token, onSuccess }) {
     }))
 
     try {
+      // 1) Détection préalable des doublons (même énoncé déjà actif dans la catégorie)
+      const enoncesNew = payload.map(p => (p.enonce || '').trim().toLowerCase()).filter(Boolean)
+      let existingEnonces = new Set()
+      try {
+        const dupRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/questions?category_id=eq.${selectedCategory}&is_active=eq.true&select=enonce`,
+          { headers: { 'apikey': SERVICE_KEY, 'Authorization': `Bearer ${SERVICE_KEY}` } }
+        )
+        if (dupRes.ok) {
+          const rows = await dupRes.json()
+          existingEnonces = new Set(rows.map(r => (r.enonce || '').trim().toLowerCase()))
+        }
+      } catch {}
+
+      const filtered = payload.filter(p => !existingEnonces.has((p.enonce || '').trim().toLowerCase()))
+      const skipped = payload.length - filtered.length
+
+      if (filtered.length === 0) {
+        setError(`Aucune nouvelle question : ${skipped} doublon(s) détecté(s).`)
+        setLoading(false)
+        return
+      }
+
       const res = await fetch(`${SUPABASE_URL}/rest/v1/questions`, {
         method: 'POST',
         headers: {
@@ -202,22 +238,37 @@ export default function BulkQCMAdd({ token, onSuccess }) {
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(filtered)
       })
 
       if (res.ok || res.status === 204) {
-        // Mettre à jour question_count
-        await fetch(`${SUPABASE_URL}/rest/v1/categories?id=eq.${selectedCategory}`, {
-          method: 'PATCH',
-          headers: {
-            'apikey': SERVICE_KEY,
-            'Authorization': `Bearer ${SERVICE_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({ question_count: (categories.find(c => c.id === selectedCategory)?.question_count || 0) + payload.length })
-        })
-        setSuccess(`✅ ${payload.length} question(s) importée(s) avec succès !`)
+        // Recalculer le question_count à partir du nombre RÉEL de questions actives
+        try {
+          const countRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/questions?category_id=eq.${selectedCategory}&is_active=eq.true&select=id`,
+            { headers: { 'apikey': SERVICE_KEY, 'Authorization': `Bearer ${SERVICE_KEY}`, 'Prefer': 'count=exact' } }
+          )
+          let realCount = 0
+          if (countRes.ok) {
+            const rows = await countRes.json()
+            realCount = rows.length
+          }
+          await fetch(`${SUPABASE_URL}/rest/v1/categories?id=eq.${selectedCategory}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': SERVICE_KEY,
+              'Authorization': `Bearer ${SERVICE_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ question_count: realCount })
+          })
+        } catch {}
+
+        const msg = skipped > 0
+          ? `✅ ${filtered.length} question(s) importée(s) (${skipped} doublon(s) ignoré(s)) !`
+          : `✅ ${filtered.length} question(s) importée(s) avec succès !`
+        setSuccess(msg)
         setShowPreview(false); setPreview([])
         setRawText(''); setJsonData(''); setFormQs([emptyQ()])
         fetchCategories()

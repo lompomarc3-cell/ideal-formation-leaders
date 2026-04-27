@@ -95,19 +95,18 @@ export default async function handler(req) {
 
       if (error) throw error
 
-      // Incrémenter le compteur
-      const { data: cat } = await supabaseAdmin
-        .from('categories')
-        .select('question_count')
-        .eq('id', category_id)
-        .single()
+      // Recalculer le compteur sur la base du nombre RÉEL de questions actives
+      // (évite toute désynchronisation après soft-delete / réinsertion)
+      const { count: realCount } = await supabaseAdmin
+        .from('questions')
+        .select('id', { count: 'exact', head: true })
+        .eq('category_id', category_id)
+        .eq('is_active', true)
 
-      if (cat) {
-        await supabaseAdmin
-          .from('categories')
-          .update({ question_count: (cat.question_count || 0) + 1 })
-          .eq('id', category_id)
-      }
+      await supabaseAdmin
+        .from('categories')
+        .update({ question_count: realCount || 0 })
+        .eq('id', category_id)
 
       return new Response(JSON.stringify({ success: true, question: q }), {
         status: 201, headers: { 'Content-Type': 'application/json' }
@@ -162,12 +161,33 @@ export default async function handler(req) {
     }
 
     try {
+      // Récupérer la category_id avant désactivation
+      const { data: q } = await supabaseAdmin
+        .from('questions')
+        .select('category_id')
+        .eq('id', id)
+        .single()
+
       const { error } = await supabaseAdmin
         .from('questions')
         .update({ is_active: false })
         .eq('id', id)
 
       if (error) throw error
+
+      // Resynchroniser le question_count de la catégorie
+      if (q && q.category_id) {
+        const { count: realCount } = await supabaseAdmin
+          .from('questions')
+          .select('id', { count: 'exact', head: true })
+          .eq('category_id', q.category_id)
+          .eq('is_active', true)
+
+        await supabaseAdmin
+          .from('categories')
+          .update({ question_count: realCount || 0 })
+          .eq('id', q.category_id)
+      }
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200, headers: { 'Content-Type': 'application/json' }
