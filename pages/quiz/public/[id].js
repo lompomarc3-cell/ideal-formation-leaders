@@ -553,3 +553,9 @@ export default function PublicQuizPage() {
 export async function getStaticPaths() {
   return { paths: [], fallback: 'blocking' }
 }
+
+// getStaticProps OBLIGATOIRE quand on a getStaticPaths (sinon erreur 500 au build)
+// La page est rendue côté client, donc on retourne juste un objet props vide.
+export async function getStaticProps() {
+  return { props: {} }
+}
