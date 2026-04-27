@@ -1,6 +1,14 @@
 export const runtime = 'edge'
 
-// Endpoint désactivé en production - utiliser le SQL direct dans Supabase Dashboard
-export default async function handler(req, res) {
-  return res.status(404).json({ error: 'Endpoint désactivé en production. Utilisez le SQL Editor Supabase.' })
+// SECURITY: Endpoint neutralized in production.
+// Database initialization should be performed only via the Supabase SQL Editor
+// by an authenticated administrator. This route is intentionally disabled.
+export default async function handler() {
+  return new Response(JSON.stringify({
+    error: 'Not Found',
+    message: 'This endpoint is disabled. Use the Supabase SQL Editor.'
+  }), {
+    status: 404,
+    headers: { 'Content-Type': 'application/json' }
+  })
 }
