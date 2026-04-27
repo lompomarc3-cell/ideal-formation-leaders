@@ -63,10 +63,85 @@ export default async function handler(req) {
     }
   }
 
-  // POST: ajouter une question
+  // POST: ajouter une question (ou bulk: plusieurs questions en une fois)
   if (req.method === 'POST') {
     let body = {}
     try { body = await req.json() } catch {}
+
+    // 🚀 MODE BULK : remplace l'ancien call client-side qui exposait la SERVICE_KEY
+    if (body.bulk === true && Array.isArray(body.questions)) {
+      const incoming = body.questions
+      if (incoming.length === 0) {
+        return new Response(JSON.stringify({ error: 'Aucune question à insérer' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+      }
+      // Toutes les questions doivent cibler la même catégorie
+      const category_id = incoming[0].category_id
+      if (!category_id) {
+        return new Response(JSON.stringify({ error: 'category_id manquant' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+      }
+      // Récupérer la catégorie pour matiere
+      const { data: cat } = await supabaseAdmin.from('categories').select('id, nom').eq('id', category_id).maybeSingle()
+      const matiere = cat?.nom || 'QCM'
+
+      try {
+        // Détection des doublons par énoncé (lowercased) déjà actifs dans la catégorie
+        const { data: existing } = await supabaseAdmin
+          .from('questions')
+          .select('enonce')
+          .eq('category_id', category_id)
+          .eq('is_active', true)
+        const existingSet = new Set((existing || []).map(r => (r.enonce || '').trim().toLowerCase()))
+
+        const filtered = incoming.filter(q => {
+          const enonce = (q.question_text || q.enonce || '').trim()
+          if (!enonce) return false
+          if (existingSet.has(enonce.toLowerCase())) return false
+          existingSet.add(enonce.toLowerCase()) // évite doublons internes au batch aussi
+          return true
+        })
+        const skipped = incoming.length - filtered.length
+
+        if (filtered.length === 0) {
+          return new Response(JSON.stringify({ success: true, inserted: 0, skipped, message: 'Aucune nouvelle question à insérer (toutes déjà présentes)' }), {
+            status: 200, headers: { 'Content-Type': 'application/json' }
+          })
+        }
+
+        const rows = filtered.map(q => ({
+          category_id,
+          enonce: (q.question_text || q.enonce || '').trim(),
+          option_a: q.option_a || '',
+          option_b: q.option_b || '',
+          option_c: q.option_c || '',
+          option_d: q.option_d || '',
+          reponse_correcte: q.bonne_reponse || q.reponse_correcte || 'A',
+          explication: q.explication || '',
+          matiere,
+          difficulte: 'moyen',
+          is_demo: !!q.is_demo,
+          is_active: true
+        }))
+
+        const { error: insertError } = await supabaseAdmin.from('questions').insert(rows)
+        if (insertError) throw insertError
+
+        // Recalculer le compteur réel
+        const { count: realCount } = await supabaseAdmin
+          .from('questions')
+          .select('id', { count: 'exact', head: true })
+          .eq('category_id', category_id)
+          .eq('is_active', true)
+        await supabaseAdmin.from('categories').update({ question_count: realCount || 0 }).eq('id', category_id)
+
+        return new Response(JSON.stringify({ success: true, inserted: rows.length, skipped, total_active: realCount }), {
+          status: 201, headers: { 'Content-Type': 'application/json' }
+        })
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+      }
+    }
+
+    // Mode unitaire (1 question)
     const { category_id, question_text, option_a, option_b, option_c, option_d, bonne_reponse, explication } = body
 
     if (!category_id || !question_text || !option_a || !option_b || !option_c || !option_d || !bonne_reponse) {

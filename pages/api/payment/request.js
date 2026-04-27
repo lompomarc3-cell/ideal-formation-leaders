@@ -1,6 +1,7 @@
 export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
+import { rateLimit, tooManyRequests } from '../../../lib/rate-limit'
 
 export default async function handler(req) {
   if (req.method !== 'POST') {
@@ -8,6 +9,10 @@ export default async function handler(req) {
       status: 405, headers: { 'Content-Type': 'application/json' }
     })
   }
+
+  // 🛡️ Rate limit : 3 demandes de paiement / 5 min / IP, blocage 15 min
+  const rl = rateLimit(req, { key: 'payment-request', max: 3, windowMs: 5 * 60_000, blockMs: 15 * 60_000 })
+  if (!rl.allowed) return tooManyRequests(rl.resetIn)
 
   const auth = req.headers.get('authorization') || ''
   const token = auth.replace('Bearer ', '')

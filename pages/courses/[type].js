@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { useAuth } from '../_app'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../../lib/supabase-public'
 
 export default function CourseList({ type }) {
   const { user, profile, loading } = useAuth()

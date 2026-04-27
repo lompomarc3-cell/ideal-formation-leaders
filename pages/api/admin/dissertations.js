@@ -146,17 +146,17 @@ export default async function handler(req) {
 
       if (error) throw error
 
-      const { data: cat } = await supabaseAdmin
+      // Resync question_count basé sur le compte réel (évite desync)
+      const { count: realCount } = await supabaseAdmin
+        .from('questions')
+        .select('id', { count: 'exact', head: true })
+        .eq('category_id', category_id)
+        .eq('is_active', true)
+
+      await supabaseAdmin
         .from('categories')
-        .select('question_count')
+        .update({ question_count: realCount || 0 })
         .eq('id', category_id)
-        .single()
-      if (cat) {
-        await supabaseAdmin
-          .from('categories')
-          .update({ question_count: (cat.question_count || 0) + 1 })
-          .eq('id', category_id)
-      }
 
       return new Response(JSON.stringify({ success: true, dissertation: q }), {
         status: 201, headers: { 'Content-Type': 'application/json' }
@@ -213,12 +213,33 @@ export default async function handler(req) {
     }
 
     try {
+      // Récupérer la category_id avant désactivation pour resync
+      const { data: q } = await supabaseAdmin
+        .from('questions')
+        .select('category_id')
+        .eq('id', id)
+        .maybeSingle()
+
       const { error } = await supabaseAdmin
         .from('questions')
         .update({ is_active: false })
         .eq('id', id)
 
       if (error) throw error
+
+      // Resync question_count basé sur le compte réel
+      if (q && q.category_id) {
+        const { count: realCount } = await supabaseAdmin
+          .from('questions')
+          .select('id', { count: 'exact', head: true })
+          .eq('category_id', q.category_id)
+          .eq('is_active', true)
+
+        await supabaseAdmin
+          .from('categories')
+          .update({ question_count: realCount || 0 })
+          .eq('id', q.category_id)
+      }
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200, headers: { 'Content-Type': 'application/json' }

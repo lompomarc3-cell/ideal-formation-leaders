@@ -1,6 +1,9 @@
 export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
+import { verifyToken } from '../../../lib/auth'
 
+// SECURITY: This one-shot migration helper now requires a valid admin JWT.
+// The previous shared-secret protection has been removed.
 export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -9,11 +12,31 @@ export default async function handler(req) {
     })
   }
 
-  const { secret } = await req.json()
-  if (secret !== 'IFL_ADD_CATEGORIES_2025') {
-    return new Response(JSON.stringify({ error: 'Non autorisé' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' }
+  // Require admin auth
+  const authHeader = req.headers.get('authorization') || ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null
+  if (!token) {
+    return new Response(JSON.stringify({ error: 'Token requis' }), {
+      status: 401, headers: { 'Content-Type': 'application/json' }
+    })
+  }
+  let payload
+  try { payload = await verifyToken(token) } catch {
+    return new Response(JSON.stringify({ error: 'Token invalide' }), {
+      status: 401, headers: { 'Content-Type': 'application/json' }
+    })
+  }
+  const userId = payload?.userId
+  if (!userId) {
+    return new Response(JSON.stringify({ error: 'Token invalide' }), {
+      status: 401, headers: { 'Content-Type': 'application/json' }
+    })
+  }
+  const { data: profile } = await supabaseAdmin
+    .from('profiles').select('id, role').eq('id', userId).maybeSingle()
+  if (!profile || !['admin', 'superadmin'].includes(profile.role)) {
+    return new Response(JSON.stringify({ error: 'Accès refusé' }), {
+      status: 403, headers: { 'Content-Type': 'application/json' }
     })
   }
 
@@ -47,7 +70,6 @@ export default async function handler(req) {
   const results = []
 
   for (const category of newCategories) {
-    // Vérifier si la catégorie existe déjà
     const { data: existing } = await supabaseAdmin
       .from('categories')
       .select('id, nom')
@@ -56,38 +78,22 @@ export default async function handler(req) {
       .maybeSingle()
 
     if (existing) {
-      results.push({
-        nom: category.nom,
-        status: 'exists',
-        message: `Catégorie "${category.nom}" existe déjà`,
-        id: existing.id
-      })
+      results.push({ nom: category.nom, status: 'exists', id: existing.id })
       continue
     }
 
-    // Insérer la nouvelle catégorie
     const { data, error } = await supabaseAdmin
       .from('categories')
       .insert([category])
       .select()
 
     if (error) {
-      results.push({
-        nom: category.nom,
-        status: 'error',
-        message: error.message
-      })
+      results.push({ nom: category.nom, status: 'error', message: error.message })
     } else {
-      results.push({
-        nom: category.nom,
-        status: 'success',
-        message: `Catégorie "${category.nom}" ajoutée avec succès`,
-        id: data[0].id
-      })
+      results.push({ nom: category.nom, status: 'success', id: data[0].id })
     }
   }
 
-  // Récupérer la liste finale des catégories professionnelles
   const { data: allCategories } = await supabaseAdmin
     .from('categories')
     .select('id, nom, type, prix')

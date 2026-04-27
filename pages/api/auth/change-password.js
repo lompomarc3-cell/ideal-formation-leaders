@@ -1,6 +1,7 @@
 export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyPassword, hashPassword, verifyToken } from '../../../lib/auth'
+import { rateLimit, tooManyRequests } from '../../../lib/rate-limit'
 
 export default async function handler(req) {
   if (req.method !== 'POST') {
@@ -8,6 +9,10 @@ export default async function handler(req) {
       status: 405, headers: { 'Content-Type': 'application/json' }
     })
   }
+
+  // 🛡️ Rate limit : 5 changements de mdp / 5 min / IP, blocage 15 min
+  const rl = rateLimit(req, { key: 'change-pwd', max: 5, windowMs: 5 * 60_000, blockMs: 15 * 60_000 })
+  if (!rl.allowed) return tooManyRequests(rl.resetIn)
 
   // Vérifier l'authentification
   const authHeader = req.headers.get('authorization') || ''
@@ -92,20 +97,37 @@ export default async function handler(req) {
     const newHash = await hashPassword(newPassword)
 
     // Mettre à jour en insérant un nouveau enregistrement avec le nouveau hash
+    // Note: contrainte CHECK = 'pending'|'approved'|'rejected' uniquement
     const { error: updateError } = await supabaseAdmin
       .from('correction_requests')
       .insert({
         user_id: userId,
         message: JSON.stringify({ type: 'ifl_auth', password_hash: newHash }),
-        status: 'resolved',
+        status: 'approved',
+        admin_response: 'Mot de passe modifié par l\'utilisateur',
         created_at: new Date().toISOString()
       })
 
     if (updateError) {
-      return new Response(JSON.stringify({ error: 'Erreur lors de la mise à jour du mot de passe' }), {
+      return new Response(JSON.stringify({ error: 'Erreur lors de la mise à jour du mot de passe: ' + updateError.message }), {
         status: 500, headers: { 'Content-Type': 'application/json' }
       })
     }
+
+    // Optionnel : supprimer les anciens enregistrements ifl_auth (sauf le nouveau) pour ne pas
+    // accumuler indéfiniment, mais conserver au moins le plus récent en cas de bug.
+    try {
+      const { data: oldRecs } = await supabaseAdmin
+        .from('correction_requests')
+        .select('id, message, created_at')
+        .eq('user_id', userId)
+        .like('message', '%ifl_auth%')
+        .order('created_at', { ascending: false })
+      if (oldRecs && oldRecs.length > 3) {
+        const idsToDelete = oldRecs.slice(3).map(r => r.id)
+        await supabaseAdmin.from('correction_requests').delete().in('id', idsToDelete)
+      }
+    } catch {}
 
     return new Response(JSON.stringify({ success: true, message: 'Mot de passe modifié avec succès' }), {
       status: 200, headers: { 'Content-Type': 'application/json' }

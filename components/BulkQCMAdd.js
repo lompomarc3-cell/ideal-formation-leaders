@@ -182,100 +182,50 @@ export default function BulkQCMAdd({ token, onSuccess }) {
     reader.readAsText(file, 'utf-8')
   }
 
-  // Insertion finale
+  // Insertion finale - utilise l'API admin sécurisée (NE PAS exposer la SERVICE_KEY côté client !)
   const handleInsert = async () => {
     if (!selectedCategory) { setError('Sélectionnez un dossier cible.'); return }
     if (preview.length === 0) { setError('Aucune question à insérer.'); return }
     setLoading(true); setError(''); setSuccess('')
 
-    const SUPABASE_URL = 'https://cyasoaihjjochwhnhwqf.supabase.co'
-    const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YXNvYWloampvY2h3aG5od3FmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDM1OTIwNSwiZXhwIjoyMDg5OTM1MjA1fQ.Oz2_Mj-TOPCPLNBBum-th3X8ncM9tvr70hZSEVq9JuA'
-
-    const payload = preview.map((q, idx) => ({
+    const payload = preview.map((q) => ({
       category_id: selectedCategory,
-      enonce: q.enonce || q.question_text || '',
+      question_text: q.enonce || q.question_text || '',
       option_a: q.option_a || '',
       option_b: q.option_b || '',
       option_c: q.option_c || '',
       option_d: q.option_d || '',
-      reponse_correcte: q.reponse_correcte || q.bonne_reponse || 'A',
+      bonne_reponse: q.reponse_correcte || q.bonne_reponse || 'A',
       explication: q.explication || '',
-      matiere: categories.find(c => c.id === selectedCategory)?.nom || '',
-      difficulte: 'moyen',
       is_demo: isDemo,
-      is_active: true,
     }))
 
     try {
-      // 1) Détection préalable des doublons (même énoncé déjà actif dans la catégorie)
-      const enoncesNew = payload.map(p => (p.enonce || '').trim().toLowerCase()).filter(Boolean)
-      let existingEnonces = new Set()
-      try {
-        const dupRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/questions?category_id=eq.${selectedCategory}&is_active=eq.true&select=enonce`,
-          { headers: { 'apikey': SERVICE_KEY, 'Authorization': `Bearer ${SERVICE_KEY}` } }
-        )
-        if (dupRes.ok) {
-          const rows = await dupRes.json()
-          existingEnonces = new Set(rows.map(r => (r.enonce || '').trim().toLowerCase()))
-        }
-      } catch {}
-
-      const filtered = payload.filter(p => !existingEnonces.has((p.enonce || '').trim().toLowerCase()))
-      const skipped = payload.length - filtered.length
-
-      if (filtered.length === 0) {
-        setError(`Aucune nouvelle question : ${skipped} doublon(s) détecté(s).`)
-        setLoading(false)
-        return
-      }
-
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/questions`, {
+      // Appel à l'API bulk admin (dédoublonnage côté serveur, recalcul du question_count)
+      const res = await fetch('/api/admin/questions', {
         method: 'POST',
         headers: {
-          'apikey': SERVICE_KEY,
-          'Authorization': `Bearer ${SERVICE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(filtered)
+        body: JSON.stringify({ bulk: true, questions: payload })
       })
 
-      if (res.ok || res.status === 204) {
-        // Recalculer le question_count à partir du nombre RÉEL de questions actives
-        try {
-          const countRes = await fetch(
-            `${SUPABASE_URL}/rest/v1/questions?category_id=eq.${selectedCategory}&is_active=eq.true&select=id`,
-            { headers: { 'apikey': SERVICE_KEY, 'Authorization': `Bearer ${SERVICE_KEY}`, 'Prefer': 'count=exact' } }
-          )
-          let realCount = 0
-          if (countRes.ok) {
-            const rows = await countRes.json()
-            realCount = rows.length
-          }
-          await fetch(`${SUPABASE_URL}/rest/v1/categories?id=eq.${selectedCategory}`, {
-            method: 'PATCH',
-            headers: {
-              'apikey': SERVICE_KEY,
-              'Authorization': `Bearer ${SERVICE_KEY}`,
-              'Content-Type': 'application/json',
-              'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify({ question_count: realCount })
-          })
-        } catch {}
+      const data = await res.json()
 
+      if (res.ok && data.success) {
+        const inserted = data.inserted || 0
+        const skipped = data.skipped || 0
         const msg = skipped > 0
-          ? `✅ ${filtered.length} question(s) importée(s) (${skipped} doublon(s) ignoré(s)) !`
-          : `✅ ${filtered.length} question(s) importée(s) avec succès !`
+          ? `✅ ${inserted} question(s) importée(s) (${skipped} doublon(s) ignoré(s)) !`
+          : `✅ ${inserted} question(s) importée(s) avec succès !`
         setSuccess(msg)
         setShowPreview(false); setPreview([])
         setRawText(''); setJsonData(''); setFormQs([emptyQ()])
         fetchCategories()
         if (onSuccess) onSuccess()
       } else {
-        const err = await res.json()
-        setError(`Erreur Supabase: ${err.message || res.status}`)
+        setError(`Erreur: ${data.error || res.status}`)
       }
     } catch (e) { setError(`Erreur réseau: ${e.message}`) }
     setLoading(false)

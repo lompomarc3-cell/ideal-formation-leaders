@@ -41,3 +41,14 @@ Thumbs.db
 
 # Vercel build output
 .vercel
+
+# Audit & test scripts (Phase 4)
+_audit/
+cleanup_users.js
+test_load.js
+test_load2.js
+test_promo.js
+test_user_full.js
+find_ali.js
+test_admin_full.js
+list_auth.js
