@@ -10,6 +10,12 @@ const DOSSIERS_ACCOMPAGNEMENT = [
   'Accompagnement final'
 ]
 
+// Validation stricte du format UUID pour éviter les erreurs 500 venant de Postgres
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+function isValidUUID(id) {
+  return typeof id === 'string' && UUID_REGEX.test(id.trim())
+}
+
 // Parse le subscription_type pour extraire le type et le dossier principal
 function parseSubscriptionType(subscriptionType) {
   if (!subscriptionType) return { type: null, dossier_principal: null }
@@ -81,6 +87,16 @@ export default async function handler(req) {
 
     if (!categorieId) {
       return new Response(JSON.stringify({ error: 'categorie_id requis' }), {
+        status: 400, headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // 🛡️ Validation stricte UUID : évite les erreurs 500 sur des IDs malformés
+    if (!isValidUUID(categorieId)) {
+      return new Response(JSON.stringify({
+        error: 'Identifiant de catégorie invalide',
+        code: 'INVALID_UUID'
+      }), {
         status: 400, headers: { 'Content-Type': 'application/json' }
       })
     }
@@ -314,7 +330,11 @@ export default async function handler(req) {
     }), { status: 200, headers: { 'Content-Type': 'application/json' } })
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'Erreur serveur: ' + err.message }), {
+    console.error('[quiz/questions] Erreur inattendue', err && err.message, err && err.stack)
+    return new Response(JSON.stringify({
+      error: 'Erreur serveur',
+      detail: err && err.message ? err.message : 'unknown'
+    }), {
       status: 500, headers: { 'Content-Type': 'application/json' }
     })
   }
