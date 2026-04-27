@@ -1,7 +1,4 @@
-# Deploy Trigger
+# Deploy trigger - Phase 5 final validation
 
-Last manual redeploy: 2026-04-27T10:22:22Z
-Trigger ID: 1777285342
-
-This file exists solely to force Cloudflare Pages to rebuild
-when the previous commit didn't trigger an automatic deployment.
+Timestamp: 2026-04-27T10:25:49Z
+Phase 5 - Tests complets, comptes purges, securite renforcee, perf valides
