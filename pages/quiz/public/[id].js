@@ -1,3 +1,4 @@
+export const runtime = 'experimental-edge'
 // Page Quiz Publique – Accès aux 5 premières questions gratuites sans connexion
 import Head from 'next/head'
 import Link from 'next/link'
@@ -545,4 +546,10 @@ export default function PublicQuizPage() {
       </div>
     </>
   )
+}
+
+
+// Routes dynamiques Edge Runtime : fallback blocking pour SSR-like behavior
+export async function getStaticPaths() {
+  return { paths: [], fallback: 'blocking' }
 }

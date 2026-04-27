@@ -1,3 +1,4 @@
+export const runtime = 'experimental-edge'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback } from 'react'
@@ -844,4 +845,10 @@ export default function QuizPage() {
       </div>
     </>
   )
+}
+
+
+// Routes dynamiques Edge Runtime : fallback blocking pour SSR-like behavior
+export async function getStaticPaths() {
+  return { paths: [], fallback: 'blocking' }
 }
