@@ -166,19 +166,46 @@ class _SplashScreenState extends State<SplashScreen>
                       AnimatedOpacity(
                         duration: const Duration(milliseconds: 600),
                         opacity: _phase >= 1 ? 1 : 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            '🎓 Réussissez vos concours du Burkina Faso',
-                            style: TextStyle(
-                              color: Color(0xFFFFE0A0),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                        child: Padding(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 28),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 18, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: const Color(0xFFFFE0A0)
+                                    .withValues(alpha: 0.4),
+                                width: 1,
+                              ),
+                            ),
+                            child: const Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '« Le savoir est une lumière\nque rien ne peut éteindre. »',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    height: 1.5,
+                                    fontStyle: FontStyle.italic,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 6),
+                                Text(
+                                  '— Proverbe burkinabè 🇧🇫',
+                                  style: TextStyle(
+                                    color: Color(0xFFFFE0A0),
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.6,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

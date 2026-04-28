@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/app_theme.dart';
 import 'tabs/home_tab.dart';
 import 'tabs/direct_tab.dart';
@@ -7,11 +8,11 @@ import 'tabs/profile_tab.dart';
 import 'tabs/about_tab.dart';
 
 /// Squelette principal de l'application : 5 onglets de navigation
-/// 1. Accueil
-/// 2. Concours direct
-/// 3. Concours professionnel
-/// 4. Profil
-/// 5. À propos
+/// 1. Accueil      → Dashboard
+/// 2. Direct       → 12 dossiers directs
+/// 3. Pro          → 17 dossiers pros
+/// 4. Profil       → Infos utilisateur
+/// 5. À propos     → 3 sous-pages
 class MainShell extends StatefulWidget {
   final int initialIndex;
   const MainShell({super.key, this.initialIndex = 0});
@@ -64,8 +65,8 @@ class MainShellState extends State<MainShell> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 16,
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 18,
             offset: const Offset(0, -2),
           ),
         ],
@@ -73,31 +74,74 @@ class MainShellState extends State<MainShell> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _navItem(0, Icons.home_rounded, 'Accueil'),
-              _navItem(1, Icons.school_rounded, 'Direct'),
-              _navItem(2, Icons.workspace_premium_rounded, 'Pro'),
-              _navItem(3, Icons.person_rounded, 'Profil'),
-              _navItem(4, Icons.info_rounded, 'À propos'),
+            children: const [
+              _NavItem(
+                index: 0,
+                svgPath: 'assets/icons/nav_home.svg',
+                fallbackIcon: Icons.home_rounded,
+                label: 'Accueil',
+              ),
+              _NavItem(
+                index: 1,
+                svgPath: 'assets/icons/nav_direct.svg',
+                fallbackIcon: Icons.school_rounded,
+                label: 'Direct',
+              ),
+              _NavItem(
+                index: 2,
+                svgPath: 'assets/icons/nav_pro.svg',
+                fallbackIcon: Icons.work_rounded,
+                label: 'Pro',
+              ),
+              _NavItem(
+                index: 3,
+                svgPath: 'assets/icons/nav_profil.svg',
+                fallbackIcon: Icons.person_rounded,
+                label: 'Profil',
+              ),
+              _NavItem(
+                index: 4,
+                svgPath: 'assets/icons/nav_apropos.svg',
+                fallbackIcon: Icons.info_rounded,
+                label: 'À propos',
+              ),
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _navItem(int index, IconData icon, String label) {
-    final active = _index == index;
+class _NavItem extends StatelessWidget {
+  final int index;
+  final String svgPath;
+  final IconData fallbackIcon;
+  final String label;
+
+  const _NavItem({
+    required this.index,
+    required this.svgPath,
+    required this.fallbackIcon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final shell = MainShell.of(context);
+    final active = shell?._index == index;
+    final color = active ? AppColors.primary : const Color(0xFF6B7280);
+
     return Expanded(
       child: InkWell(
-        onTap: () => goTo(index),
+        onTap: () => shell?.goTo(index),
         borderRadius: BorderRadius.circular(16),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
           decoration: BoxDecoration(
             color: active
                 ? AppColors.primary.withValues(alpha: 0.10)
@@ -107,14 +151,22 @@ class MainShellState extends State<MainShell> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                size: 24,
-                color: active
-                    ? AppColors.primary
-                    : const Color(0xFF6B7280),
+              SizedBox(
+                width: 26,
+                height: 26,
+                child: SvgPicture.asset(
+                  svgPath,
+                  width: 26,
+                  height: 26,
+                  colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                  placeholderBuilder: (_) => Icon(
+                    fallbackIcon,
+                    size: 24,
+                    color: color,
+                  ),
+                ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(
                 label,
                 maxLines: 1,
@@ -122,9 +174,7 @@ class MainShellState extends State<MainShell> {
                 style: TextStyle(
                   fontSize: 10.5,
                   fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-                  color: active
-                      ? AppColors.primary
-                      : const Color(0xFF6B7280),
+                  color: color,
                 ),
               ),
             ],
