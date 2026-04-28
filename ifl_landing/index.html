@@ -213,10 +213,10 @@
                 <li>Paiement Orange Money / WhatsApp</li>
             </ul>
 
-            <a href="app/ifl-latest.apk" class="btn-primary" id="downloadBtn" download>
+            <a href="https://github.com/lompomarc3-cell/ideal-formation-leaders/releases/download/v2.1.0-flutter/ifl-latest.apk" class="btn-primary" id="downloadBtn" download="ifl-v2.1.0.apk">
                 ⬇️ Télécharger l'APK
             </a>
-            <p class="apk-info">Android 6.0+ • ~25 Mo</p>
+            <p class="apk-info">Android 6.0+ • 50 Mo • v2.1.0</p>
 
             <div class="qr-box">
                 <div id="qrcode"></div>
@@ -253,20 +253,6 @@
             colorDark: "#C4521A",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.M
-        });
-
-        // If APK not yet uploaded, intercept click
-        document.getElementById('downloadBtn').addEventListener('click', function(e) {
-            // Test if APK exists; if not, redirect to web
-            fetch('app/ifl-latest.apk', { method: 'HEAD' })
-              .then(r => {
-                  if (!r.ok) {
-                      e.preventDefault();
-                      alert("L'APK arrive très bientôt ! En attendant, utilisez la version web.");
-                      window.location.href = "https://ideal-formation-leaders.pages.dev";
-                  }
-              })
-              .catch(() => {});
         });
     </script>
 </body>
