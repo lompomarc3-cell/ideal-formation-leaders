@@ -60,6 +60,19 @@ rm -rf courses icons pwa-icons
 
 # Copy Flutter build (preserves _worker.js, _routes.json, _headers, _next/, cdn-cgi/)
 cp -R "$FLUTTER"/* "$STATIC"/
+
+# CRITIQUE : forcer _routes.json à ne router QUE /api/* vers le worker Next.js,
+# sinon tous les assets Flutter (SVG, main.dart.js, etc.) retournent 404 car
+# next-on-pages génère par défaut "include":["/*"] qui capte tout le trafic.
+cat > "$STATIC/_routes.json" <<'EOF'
+{
+  "version": 1,
+  "description": "IFL hybrid: Next.js API + Flutter web client",
+  "include": ["/api/*"],
+  "exclude": []
+}
+EOF
+
 cd "$ROOT"
 
 echo ""
