@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
+/// Écran de démarrage IFL :
+/// - Affiche le logo IFL existant (assets/logo.png) avec animation float + scale.
+/// - Durée 2.5s puis redirection.
 class SplashScreen extends StatefulWidget {
   final VoidCallback onDone;
   const SplashScreen({super.key, required this.onDone});
@@ -10,9 +13,10 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
+  late final AnimationController _floatCtrl;
+  late final AnimationController _scaleCtrl;
   int _phase = 0;
-  late AnimationController _floatCtrl;
 
   @override
   void initState() {
@@ -21,13 +25,18 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat(reverse: true);
-    Future.delayed(const Duration(milliseconds: 400), () {
+    _scaleCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..forward();
+
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) setState(() => _phase = 1);
     });
-    Future.delayed(const Duration(milliseconds: 2400), () {
+    Future.delayed(const Duration(milliseconds: 2200), () {
       if (mounted) setState(() => _phase = 2);
     });
-    Future.delayed(const Duration(milliseconds: 3000), () {
+    Future.delayed(const Duration(milliseconds: 2700), () {
       if (mounted) widget.onDone();
     });
   }
@@ -35,154 +44,176 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _floatCtrl.dispose();
+    _scaleCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedOpacity(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 500),
       opacity: _phase == 2 ? 0 : 1,
-      child: Container(
-        decoration: const BoxDecoration(gradient: AppColors.splashGradient),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -60,
-              right: -80,
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.04),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 40,
-              left: -60,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.04),
-                ),
-              ),
-            ),
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedBuilder(
-                    animation: _floatCtrl,
-                    builder: (context, child) {
-                      final dy = -8 * _floatCtrl.value;
-                      return Transform.translate(offset: Offset(0, dy), child: child);
-                    },
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            blurRadius: 60,
-                            offset: const Offset(0, 20),
-                          ),
-                        ],
-                        border: Border.all(
-                          color: const Color(0xFFD4A017).withValues(alpha: 0.5),
-                          width: 3,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(32),
-                        child: Image.asset('assets/logo.png',
-                            fit: BoxFit.cover, width: 120, height: 120),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 600),
-                    opacity: _phase >= 1 ? 1 : 0,
-                    child: const Column(
-                      children: [
-                        Text(
-                          'IFL',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 32,
-                            letterSpacing: 2,
-                          ),
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          'Idéale Formation of Leaders',
-                          style: TextStyle(
-                            color: Color(0xFFFFE0A0),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13.5,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 600),
-                    opacity: _phase >= 1 ? 1 : 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        '🎓 Réussissez vos concours du Burkina Faso',
-                        style: TextStyle(
-                          color: Color(0xFFFFE0A0),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 52),
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 400),
-                    opacity: _phase >= 1 ? 1 : 0,
-                    child: const _LoadingDots(),
-                  ),
-                ],
-              ),
-            ),
-            Positioned(
-              bottom: 40,
-              left: 0,
-              right: 0,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 600),
-                opacity: _phase >= 1 ? 0.5 : 0,
-                child: const Center(
-                  child: Text(
-                    'Burkina Faso',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 10,
-                      letterSpacing: 1,
-                    ),
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(gradient: AppColors.splashGradient),
+          child: Stack(
+            children: [
+              // Cercles décoratifs
+              Positioned(
+                top: -60,
+                right: -80,
+                child: Container(
+                  width: 300,
+                  height: 300,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.05),
                   ),
                 ),
               ),
-            ),
-          ],
+              Positioned(
+                bottom: 40,
+                left: -60,
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.05),
+                  ),
+                ),
+              ),
+              SafeArea(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Logo IFL existant + animation float
+                      ScaleTransition(
+                        scale: CurvedAnimation(
+                          parent: _scaleCtrl,
+                          curve: Curves.elasticOut,
+                        ),
+                        child: AnimatedBuilder(
+                          animation: _floatCtrl,
+                          builder: (context, child) {
+                            final dy = -8 * _floatCtrl.value;
+                            return Transform.translate(
+                              offset: Offset(0, dy),
+                              child: child,
+                            );
+                          },
+                          child: Container(
+                            width: 140,
+                            height: 140,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(36),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.4),
+                                  blurRadius: 60,
+                                  offset: const Offset(0, 20),
+                                ),
+                              ],
+                              border: Border.all(
+                                color: const Color(0xFFD4A017)
+                                    .withValues(alpha: 0.6),
+                                width: 3,
+                              ),
+                              color: Colors.white,
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(33),
+                              child: Image.asset(
+                                'assets/logo.png',
+                                fit: BoxFit.cover,
+                                width: 140,
+                                height: 140,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 600),
+                        opacity: _phase >= 1 ? 1 : 0,
+                        child: const Column(
+                          children: [
+                            Text(
+                              'IFL',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 36,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Idéale Formation of Leaders',
+                              style: TextStyle(
+                                color: Color(0xFFFFE0A0),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 600),
+                        opacity: _phase >= 1 ? 1 : 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            '🎓 Réussissez vos concours du Burkina Faso',
+                            style: TextStyle(
+                              color: Color(0xFFFFE0A0),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 50),
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 400),
+                        opacity: _phase >= 1 ? 1 : 0,
+                        child: const _LoadingDots(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 30,
+                left: 0,
+                right: 0,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 600),
+                  opacity: _phase >= 1 ? 0.5 : 0,
+                  child: const Center(
+                    child: Text(
+                      'Burkina Faso',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -191,7 +222,6 @@ class _SplashScreenState extends State<SplashScreen>
 
 class _LoadingDots extends StatefulWidget {
   const _LoadingDots();
-
   @override
   State<_LoadingDots> createState() => _LoadingDotsState();
 }
@@ -239,8 +269,8 @@ class _LoadingDotsState extends State<_LoadingDots>
               child: Transform.scale(
                 scale: scale.clamp(0.6, 1.3),
                 child: Container(
-                  width: 8,
-                  height: 8,
+                  width: 9,
+                  height: 9,
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFE0A0)
                         .withValues(alpha: opacity.clamp(0.4, 1.0)),

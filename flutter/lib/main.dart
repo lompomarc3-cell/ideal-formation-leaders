@@ -3,11 +3,9 @@ import 'package:provider/provider.dart';
 
 import 'services/auth_service.dart';
 import 'screens/splash_screen.dart';
-import 'screens/welcome_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_shell.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
-import 'screens/dashboard_screen.dart';
 import 'screens/quiz_screen.dart';
 import 'screens/payment_screen.dart';
 import 'screens/select_specialty_screen.dart';
@@ -30,13 +28,11 @@ class IFLApp extends StatelessWidget {
         title: 'IFL — Idéale Formation of Leaders',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),
-        // Démarre par un Bootstrap qui choisit splash → welcome → home/dashboard
         home: const _Bootstrap(),
         routes: {
-          '/home': (_) => const HomeScreen(),
+          '/main': (_) => const MainShell(),
           '/login': (_) => const LoginScreen(),
           '/register': (_) => const RegisterScreen(),
-          '/dashboard': (_) => const DashboardScreen(),
           '/quiz': (_) => const QuizScreen(),
           '/payment': (_) => const PaymentScreen(),
           '/select-specialty': (_) => const SelectSpecialtyScreen(),
@@ -48,8 +44,7 @@ class IFLApp extends StatelessWidget {
   }
 }
 
-/// Gère l'enchaînement Splash → (Welcome 1ère fois) → Home/Dashboard
-/// (équivalent au _app.js + AuthProvider Next.js).
+/// Splash → MainShell (avec ses 5 onglets).
 class _Bootstrap extends StatefulWidget {
   const _Bootstrap();
 
@@ -59,45 +54,17 @@ class _Bootstrap extends StatefulWidget {
 
 class _BootstrapState extends State<_Bootstrap> {
   bool _splashDone = false;
-  bool _welcomeChecked = false;
-  bool _showWelcome = false;
 
   Future<void> _afterSplash() async {
-    final auth = context.read<AuthService>();
-    final seen = await auth.isWelcomeSeen();
     if (!mounted) return;
-    setState(() {
-      _splashDone = true;
-      _showWelcome = !seen && !auth.isAuthenticated;
-      _welcomeChecked = true;
-    });
-  }
-
-  Future<void> _afterWelcome() async {
-    final auth = context.read<AuthService>();
-    await auth.markWelcomeSeen();
-    if (!mounted) return;
-    setState(() => _showWelcome = false);
+    setState(() => _splashDone = true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthService>();
-
     if (!_splashDone) {
       return SplashScreen(onDone: _afterSplash);
     }
-    if (!_welcomeChecked || auth.loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-    if (_showWelcome) {
-      return WelcomeScreen(onDone: _afterWelcome);
-    }
-    if (auth.isAuthenticated) {
-      return const DashboardScreen();
-    }
-    return const HomeScreen();
+    return const MainShell();
   }
 }

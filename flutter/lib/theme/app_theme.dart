@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 
-/// Couleurs de l'application IFL (identiques au CSS Next.js).
+/// Couleurs officielles IFL.
+/// Terracotta #C4521A, Or #D4A017, Rouge foncé #8B2500, Blanc cassé #FFF8F0
 class AppColors {
   static const Color primary = Color(0xFFC4521A); // terracotta
   static const Color secondary = Color(0xFFD4A017); // or
-  static const Color darkTerracotta = Color(0xFF8B2500);
-  static const Color lightBg = Color(0xFFFFF8F0);
+  static const Color darkTerracotta = Color(0xFF8B2500); // rouge foncé
+  static const Color lightBg = Color(0xFFFFF8F0); // blanc cassé
   static const Color accent = Color(0xFFF5871F);
   static const Color textDark = Color(0xFF1A0A00);
+
+  static const Color whatsapp = Color(0xFF25D366);
+  static const Color success = Color(0xFF16A34A);
+  static const Color danger = Color(0xFFDC2626);
+  static const Color warning = Color(0xFFD97706);
 
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
@@ -73,7 +79,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 2),
@@ -84,7 +91,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFF59E0B), width: 2),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
       ),
       cardTheme: CardThemeData(

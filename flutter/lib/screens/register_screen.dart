@@ -55,7 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (err != null) {
       setState(() => _error = err);
     } else {
-      Navigator.of(context).pushReplacementNamed('/dashboard');
+      Navigator.of(context).pushReplacementNamed('/main');
     }
   }
 
@@ -299,7 +299,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         Center(
                           child: TextButton(
-                            onPressed: () => Navigator.of(context).pushReplacementNamed('/'),
+                            onPressed: () => Navigator.of(context).pushReplacementNamed('/main'),
                             child: const Text(
                               "← Retour à l'accueil",
                               style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
