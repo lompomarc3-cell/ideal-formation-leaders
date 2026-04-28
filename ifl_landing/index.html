@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFL – Idéale Formation of Leaders | Téléchargement</title>
+    <meta name="description" content="Téléchargez l'application IFL pour préparer vos concours directs et professionnels au Burkina Faso. Des milliers de QCM, 5 questions gratuites par dossier.">
+    <meta property="og:title" content="IFL – Idéale Formation of Leaders">
+    <meta property="og:description" content="Préparez vos concours directs et professionnels avec IFL. Des milliers de QCM, 5 questions gratuites par dossier.">
+    <meta property="og:image" content="https://ifl-landing.pages.dev/logo.png">
+    <meta property="og:url" content="https://ifl-landing.pages.dev">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/png" href="logo.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            background: linear-gradient(135deg, #FFF8F0 0%, #FFE8D5 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 540px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(196, 82, 26, 0.15);
+            text-align: center;
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #C4521A 0%, #a03e12 100%);
+            padding: 40px 20px 30px;
+            color: white;
+        }
+        .logo-circle {
+            width: 110px;
+            height: 110px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+        .logo-circle img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .header .tagline {
+            font-size: 15px;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+        .body-content {
+            padding: 32px 24px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 24px;
+            line-height: 1.5;
+            font-size: 16px;
+        }
+        .features {
+            text-align: left;
+            background: #FFF8F0;
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+        .features li {
+            list-style: none;
+            padding: 6px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .features li::before {
+            content: "✓ ";
+            color: #C4521A;
+            font-weight: bold;
+            margin-right: 6px;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #C4521A 0%, #a03e12 100%);
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 700;
+            padding: 16px 36px;
+            border-radius: 50px;
+            margin: 8px 0 16px;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(196, 82, 26, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(196, 82, 26, 0.4);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        .apk-info {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+        .qr-box {
+            background: white;
+            padding: 16px;
+            border-radius: 16px;
+            display: inline-block;
+            margin: 0 auto 12px;
+            border: 2px dashed #C4521A;
+        }
+        .qr-box canvas, .qr-box img {
+            display: block;
+            margin: 0 auto;
+        }
+        .qr-label {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+        .links {
+            margin: 16px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+        .link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #FFF8F0;
+            color: #C4521A;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 18px;
+            border-radius: 24px;
+            font-size: 14px;
+            transition: background 0.2s;
+            border: 1px solid #FFD9B8;
+        }
+        .link-btn:hover {
+            background: #FFE8D5;
+        }
+        .footer {
+            background: #f8f8f8;
+            padding: 18px;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #eee;
+        }
+        .footer a { color: #C4521A; text-decoration: none; }
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-circle">
+                <img src="logo.png" alt="IFL Logo">
+            </div>
+            <h1>IFL</h1>
+            <p class="tagline">Idéale Formation of Leaders</p>
+            <span class="badge">v2.1.0</span>
+        </div>
+        <div class="body-content">
+            <p class="subtitle">
+                Préparez vos concours directs et professionnels<br>
+                au <strong>Burkina Faso</strong>
+            </p>
+
+            <ul class="features">
+                <li>Plus de <strong>938 questions QCM</strong> actualisées</li>
+                <li><strong>125 questions gratuites</strong> en mode démo</li>
+                <li>Catégories : Droit, Culture Générale, Mathématiques…</li>
+                <li>Sauvegarde de progression automatique</li>
+                <li>Paiement Orange Money / WhatsApp</li>
+            </ul>
+
+            <a href="app/ifl-latest.apk" class="btn-primary" id="downloadBtn" download>
+                ⬇️ Télécharger l'APK
+            </a>
+            <p class="apk-info">Android 6.0+ • ~25 Mo</p>
+
+            <div class="qr-box">
+                <div id="qrcode"></div>
+            </div>
+            <p class="qr-label">📱 Scannez avec votre téléphone</p>
+
+            <div class="links">
+                <a href="https://ideal-formation-leaders.pages.dev" class="link-btn" target="_blank" rel="noopener">
+                    🌐 Version Web
+                </a>
+                <a href="https://wa.me/22676223962" class="link-btn" target="_blank" rel="noopener">
+                    💬 WhatsApp
+                </a>
+                <a href="tel:+22676223962" class="link-btn">
+                    📞 Support
+                </a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>© 2026 IFL – Idéale Formation of Leaders</p>
+            <p style="margin-top:4px">
+                <a href="https://ideal-formation-leaders.pages.dev">ideal-formation-leaders.pages.dev</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        // Generate QR code pointing to this landing page
+        new QRCode(document.getElementById("qrcode"), {
+            text: "https://ifl-landing.pages.dev",
+            width: 160,
+            height: 160,
+            colorDark: "#C4521A",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+
+        // If APK not yet uploaded, intercept click
+        document.getElementById('downloadBtn').addEventListener('click', function(e) {
+            // Test if APK exists; if not, redirect to web
+            fetch('app/ifl-latest.apk', { method: 'HEAD' })
+              .then(r => {
+                  if (!r.ok) {
+                      e.preventDefault();
+                      alert("L'APK arrive très bientôt ! En attendant, utilisez la version web.");
+                      window.location.href = "https://ideal-formation-leaders.pages.dev";
+                  }
+              })
+              .catch(() => {});
+        });
+    </script>
+</body>
+</html>
