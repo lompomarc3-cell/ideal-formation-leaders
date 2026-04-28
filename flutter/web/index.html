@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="IFL - Idéale Formation of Leaders : QCM des concours directs et professionnels du Burkina Faso. 5 questions gratuites par dossier.">
+  <meta name="theme-color" content="#C4521A">
+
+  <!-- iOS / PWA -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IFL">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="shortcut icon" href="favicon.ico">
+
+  <title>IFL — Idéale Formation of Leaders</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body { margin: 0; padding: 0; background: #FFF8F0; }
+    #ifl-loader {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #6B1A00 0%, #8B2500 25%, #C4521A 65%, #D4A017 100%);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; transition: opacity 0.5s;
+    }
+    #ifl-loader .logo {
+      width: 96px; height: 96px; border-radius: 24px;
+      background: white;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center;
+      animation: ifl-pulse 2s ease-in-out infinite;
+    }
+    #ifl-loader .logo img { width: 96px; height: 96px; border-radius: 24px; }
+    @keyframes ifl-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+  </style>
+</head>
+<body>
+  <div id="ifl-loader">
+    <div class="logo"><img src="logo.png" alt="IFL"/></div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var l = document.getElementById('ifl-loader');
+      if (l) { l.style.opacity = '0'; setTimeout(function(){ l.remove(); }, 500); }
+    });
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

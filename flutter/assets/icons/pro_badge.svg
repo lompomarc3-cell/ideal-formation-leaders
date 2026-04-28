@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0D47A1"/><stop offset="100%" stop-color="#1E88E5"/></linearGradient>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#FFF176"/></linearGradient>
+  </defs>
+  <path d="M32,4 L52,12 L56,34 C56,48 44,58 32,62 C20,58 8,48 8,34 L12,12 Z" fill="url(#bg1)"/>
+  <path d="M32,8 L48,14 L52,34 C52,46 42,54 32,58 C22,54 12,46 12,34 L16,14 Z" fill="url(#bg2)" opacity="0.3"/>
+  <circle cx="32" cy="30" r="14" fill="url(#bg2)" opacity="0.9"/>
+  <circle cx="32" cy="30" r="10" fill="url(#bg1)"/>
+  <polygon points="32,20 34,27 41,27 35,31 37,38 32,34 27,38 29,31 23,27 30,27" fill="#FFD700"/>
+  <rect x="22" y="14" width="20" height="6" rx="3" fill="url(#bg2)" opacity="0.8"/>
+  <text x="32" y="19" font-size="5" fill="#0D47A1" text-anchor="middle" font-weight="bold">POLICE</text>
+</svg>

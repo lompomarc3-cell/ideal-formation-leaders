@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="ch1" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#00695C"/><stop offset="100%" stop-color="#4DB6AC"/></linearGradient>
+    <linearGradient id="ch2" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#1565C0"/><stop offset="100%" stop-color="#64B5F6"/></linearGradient>
+    <linearGradient id="ch3" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#E65100"/><stop offset="100%" stop-color="#FFB74D"/></linearGradient>
+  </defs>
+  <rect x="8" y="8" width="48" height="48" rx="6" fill="#E8F5E9"/>
+  <rect x="8" y="8" width="48" height="48" rx="6" fill="none" stroke="#A5D6A7" stroke-width="1.5"/>
+  <rect x="14" y="38" width="8" height="14" rx="2" fill="url(#ch1)"/>
+  <rect x="26" y="26" width="8" height="26" rx="2" fill="url(#ch2)"/>
+  <rect x="38" y="18" width="8" height="34" rx="2" fill="url(#ch3)"/>
+  <polyline points="14,38 22,28 30,20 38,14 46,10" fill="none" stroke="#E53935" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="14" cy="38" r="3" fill="#E53935"/>
+  <circle cx="22" cy="28" r="3" fill="#E53935"/>
+  <circle cx="30" cy="20" r="3" fill="#E53935"/>
+  <circle cx="38" cy="14" r="3" fill="#E53935"/>
+  <circle cx="46" cy="10" r="3" fill="#E53935"/>
+</svg>

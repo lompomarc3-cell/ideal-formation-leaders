@@ -1,0 +1,30 @@
+name: ifl
+description: "Idéale Formation of Leaders - Application QCM Concours Burkina Faso"
+publish_to: 'none'
+version: 2.1.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  http: ^1.5.0
+  shared_preferences: ^2.5.3
+  provider: ^6.1.5+1
+  url_launcher: ^6.3.1
+  share_plus: ^10.1.4
+  flutter_svg: ^2.0.10+1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/icons/
