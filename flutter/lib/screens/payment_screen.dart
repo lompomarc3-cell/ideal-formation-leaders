@@ -10,6 +10,9 @@ import '../theme/app_theme.dart';
 const String kOrangeMoneyNumber = '76223962';
 const String kWhatsAppNumber = '22676223962';
 const String kUssdCode = '*144*10*76223962#';
+// Encodé pour tel: (le # devient %23)
+const String kUssdTelUri = 'tel:*144*10*76223962%23';
+const String kSupportPhone = '+22676223962';
 
 /// Écran de paiement (équivalent pages/payment.js).
 /// Reproduit les méthodes Orange Money / WhatsApp / USSD avec les contacts
@@ -122,6 +125,35 @@ class _PaymentScreenState extends State<PaymentScreen> {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
+  /// Bouton USSD : ouvre directement le composeur téléphonique avec le code.
+  /// Si l'action échoue (web, navigateur desktop...), on retombe sur la copie
+  /// dans le presse-papiers.
+  Future<void> _openUssd() async {
+    try {
+      final uri = Uri.parse(kUssdTelUri);
+      final ok =
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok) {
+        await _copy(kUssdCode, 'Code USSD');
+      }
+    } catch (_) {
+      await _copy(kUssdCode, 'Code USSD');
+    }
+  }
+
+  Future<void> _callSupport() async {
+    try {
+      final uri = Uri.parse('tel:$kSupportPhone');
+      final ok =
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok) {
+        await _copy(kSupportPhone, 'Numéro support');
+      }
+    } catch (_) {
+      await _copy(kSupportPhone, 'Numéro support');
+    }
+  }
+
   Future<void> _copy(String value, String label) async {
     await Clipboard.setData(ClipboardData(text: value));
     if (!mounted) return;
@@ -142,53 +174,62 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildTypeSelector(),
-                    const SizedBox(height: 12),
-                    if (_typeConcours == 'professionnel') _buildDossierPicker(),
-                    const SizedBox(height: 12),
-                    _buildAmountCard(),
-                    const SizedBox(height: 16),
-                    _buildOrangeMoneyCard(),
-                    const SizedBox(height: 12),
-                    _buildWhatsAppCard(),
-                    const SizedBox(height: 12),
-                    _buildUssdCard(),
-                    const SizedBox(height: 24),
-                    if (_message != null)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF8F0),
-                          border: Border.all(color: const Color(0xFFFFE4CC)),
-                          borderRadius: BorderRadius.circular(12),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildTypeSelector(),
+                      const SizedBox(height: 12),
+                      if (_typeConcours == 'professionnel')
+                        _buildDossierPicker(),
+                      const SizedBox(height: 12),
+                      _buildAmountCard(),
+                      const SizedBox(height: 16),
+                      _buildOrangeMoneyCard(),
+                      const SizedBox(height: 12),
+                      _buildWhatsAppCard(),
+                      const SizedBox(height: 12),
+                      _buildUssdCard(),
+                      const SizedBox(height: 12),
+                      _buildSupportCard(),
+                      const SizedBox(height: 24),
+                      if (_message != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF8F0),
+                            border:
+                                Border.all(color: const Color(0xFFFFE4CC)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(_message!,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13)),
                         ),
-                        child: Text(_message!,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: 13)),
+                      ElevatedButton.icon(
+                        onPressed: _submitting ? null : _submit,
+                        icon: _submitting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Icon(Icons.send),
+                        label:
+                            const Text("Envoyer ma demande de paiement"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 14),
+                        ),
                       ),
-                    ElevatedButton.icon(
-                      onPressed: _submitting ? null : _submit,
-                      icon: _submitting
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Icon(Icons.send),
-                      label: const Text("Envoyer ma demande de paiement"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -261,7 +302,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             const SizedBox(height: 4),
             Text('${_formatPrice(price)} FCFA',
                 style: TextStyle(
-                  color: selected ? Colors.white : Color(0xFFC4521A),
+                  color: selected ? Colors.white : const Color(0xFFC4521A),
                   fontWeight: FontWeight.w900,
                   fontSize: 13,
                 )),
@@ -279,10 +320,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
           children: [
             const Expanded(
               child: Text('Dossier principal',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                  style:
+                      TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pushNamed('/select-specialty'),
+              onPressed: () =>
+                  Navigator.of(context).pushNamed('/select-specialty'),
               child: Text(_dossierPrincipal ?? 'Choisir →'),
             ),
           ],
@@ -389,7 +432,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('📱 Code USSD',
+            const Text('📱 Code USSD (Orange Money)',
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
             const SizedBox(height: 6),
             Row(
@@ -403,9 +446,63 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.copy),
+                  tooltip: 'Copier le code',
                   onPressed: () => _copy(kUssdCode, 'Code USSD'),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _openUssd,
+                icon: const Icon(Icons.dialpad),
+                label: const Text('Ouvrir le composeur USSD'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Astuce : sur mobile, ce bouton ouvre directement le composeur. '
+              'Sur desktop, le code est copié.',
+              style: TextStyle(color: Color(0xFF6B7280), fontSize: 11),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSupportCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('☎️ Appeler le support',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w900, fontSize: 15)),
+                  SizedBox(height: 4),
+                  Text('Un souci ? Appelez-nous : +226 76 22 39 62',
+                      style:
+                          TextStyle(color: Color(0xFF6B7280), fontSize: 12)),
+                ],
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: _callSupport,
+              icon: const Icon(Icons.call),
+              label: const Text('Appeler'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.darkTerracotta,
+              ),
             ),
           ],
         ),

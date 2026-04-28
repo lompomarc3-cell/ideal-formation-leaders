@@ -11,6 +11,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/quiz_screen.dart';
 import 'screens/payment_screen.dart';
 import 'screens/select_specialty_screen.dart';
+import 'screens/demo_screen.dart';
 import 'admin/admin_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -39,6 +40,7 @@ class IFLApp extends StatelessWidget {
           '/quiz': (_) => const QuizScreen(),
           '/payment': (_) => const PaymentScreen(),
           '/select-specialty': (_) => const SelectSpecialtyScreen(),
+          '/demo': (_) => const DemoScreen(),
           '/admin': (_) => const AdminScreen(),
         },
       ),
