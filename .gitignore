@@ -42,6 +42,15 @@ Thumbs.db
 # Vercel build output
 .vercel
 
+# Cloudflare Wrangler temp / cache
+.wrangler/
+
+# Flutter build artifacts
+flutter/build/
+flutter/.dart_tool/
+flutter/.flutter-plugins
+flutter/.flutter-plugins-dependencies
+
 # Audit & test scripts (Phase 4)
 _audit/
 cleanup_users.js

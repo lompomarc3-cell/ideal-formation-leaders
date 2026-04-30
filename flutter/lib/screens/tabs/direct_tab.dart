@@ -333,6 +333,33 @@ class _DirectTabState extends State<DirectTab> {
               ),
             ),
             const Spacer(),
+            // Badge info dossier (12 dossiers / 5000 FCFA) avec icône
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: style.tag,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.folder_rounded,
+                      size: 11, color: style.tagText),
+                  const SizedBox(width: 3),
+                  Text(
+                    'QCM • 5 000 F',
+                    style: TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      color: style.tagText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -346,15 +373,31 @@ class _DirectTabState extends State<DirectTab> {
                         color: const Color(0xFFFBBF24), width: 1)
                     : null,
               ),
-              child: Text(
-                unlocked ? '✓ Débloqué' : '🆓 5 gratuites',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  color: unlocked
-                      ? const Color(0xFF92400E)
-                      : style.tagText,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    unlocked
+                        ? Icons.check_circle_rounded
+                        : Icons.lock_open_rounded,
+                    size: 11,
+                    color: unlocked
+                        ? const Color(0xFF92400E)
+                        : style.tagText,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    unlocked ? 'Débloqué' : '5 gratuites',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: unlocked
+                          ? const Color(0xFF92400E)
+                          : style.tagText,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 8),

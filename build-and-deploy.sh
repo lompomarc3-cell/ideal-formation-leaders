@@ -37,7 +37,25 @@ echo "==> [1/4] Build Next.js -> Cloudflare Pages Functions"
 if [ ! -d node_modules ]; then
   npm install --no-audit --no-fund --cache /tmp/npm-cache
 fi
-npx @cloudflare/next-on-pages
+# Retry next-on-pages jusqu'à 8 fois : le build Next.js a un bug intermittent
+# (ENOENT pages-manifest.json / page /admin) qui se résout après plusieurs
+# tentatives. On vérifie la création de .vercel/output/static comme indicateur
+# fiable de succès, plutôt que de se fier au code retour.
+NOP_SUCCESS=0
+for nop_try in 1 2 3 4 5 6 7 8; do
+  echo "    Tentative $nop_try/8 next-on-pages..."
+  rm -rf .next .vercel
+  npx @cloudflare/next-on-pages 2>&1 | tail -3 || true
+  if [ -d ".vercel/output/static" ]; then
+    echo "    ✅ Build Next.js réussi à la tentative $nop_try"
+    NOP_SUCCESS=1
+    break
+  fi
+done
+if [ "$NOP_SUCCESS" != "1" ]; then
+  echo "❌ Build Next.js échoué après 8 tentatives. Abandon."
+  exit 1
+fi
 
 echo ""
 echo "==> [2/4] Build Flutter web"

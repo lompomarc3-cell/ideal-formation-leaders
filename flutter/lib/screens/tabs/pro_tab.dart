@@ -429,6 +429,62 @@ class _ProTabState extends State<ProTab> {
                   ),
                 ),
                 const Spacer(),
+                // Badge info prix avec icône (caché pour les bonus)
+                if (!isBonus)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: style.tag,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.folder_rounded,
+                            size: 11, color: style.tagText),
+                        const SizedBox(width: 3),
+                        Text(
+                          '20 000 F',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            color: style.tagText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.card_giftcard_rounded,
+                            size: 11, color: Color(0xFFB45309)),
+                        SizedBox(width: 3),
+                        Text(
+                          'BONUS',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFB45309),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 4),
                 if (!unlocked)
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -440,6 +496,7 @@ class _ProTabState extends State<ProTab> {
                     ),
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.lock_outline_rounded,
                             size: 11, color: Color(0xFF991B1B)),
@@ -468,25 +525,48 @@ class _ProTabState extends State<ProTab> {
                         width: 1,
                       ),
                     ),
-                    child: const Text(
-                      '✓ Débloqué',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF0369A1),
-                      ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_circle_rounded,
+                            size: 11, color: Color(0xFF0369A1)),
+                        SizedBox(width: 3),
+                        Text(
+                          'Débloqué',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0369A1),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 const SizedBox(height: 4),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text(
-                    unlocked ? 'Accès complet' : '🆓 5 gratuites',
-                    style: const TextStyle(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF6B7280),
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        unlocked
+                            ? Icons.lock_open_rounded
+                            : Icons.play_circle_outline_rounded,
+                        size: 10,
+                        color: const Color(0xFF6B7280),
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        unlocked ? 'Accès complet' : '5 gratuites',
+                        style: const TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 8),
