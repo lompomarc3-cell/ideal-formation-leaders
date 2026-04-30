@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
+import { IFL_USSD_CODE, IFL_USSD_TEL, IFL_PHONE_DISPLAY, whatsappLink, telLink } from '../lib/contact'
+import { externalLinkHandler, ussdLinkHandler } from '../lib/external-link'
 
 const APP_URL = 'https://ideal-formation-leaders.pages.dev'
 
@@ -16,7 +18,7 @@ export default function Help() {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try { await navigator.share({ title: 'IFL', text, url: APP_URL }) } catch {}
     } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+      try { window.location.href = `https://wa.me/?text=${encodeURIComponent(text)}` } catch {}
     }
   }
 
@@ -76,9 +78,8 @@ export default function Help() {
           <div className="space-y-3 mb-6">
             {/* WhatsApp */}
             <a
-              href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20j'ai%20besoin%20d'aide"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={whatsappLink("Bonjour IFL, j'ai besoin d'aide")}
+              {...externalLinkHandler(whatsappLink("Bonjour IFL, j'ai besoin d'aide"))}
               className="flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 active:scale-95 transition-all"
             >
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
@@ -104,29 +105,27 @@ export default function Help() {
                 </div>
               </div>
               <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
-                <p className="text-orange-100 text-xs">Code USSD (mobile : ouvre le composeur, sinon copier) :</p>
+                <p className="text-orange-100 text-xs flex items-center gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                  Code USSD (cliquez pour composer / copier) :
+                </p>
                 <a
-                  href={`tel:${encodeURIComponent('*144*10*76223962#')}`}
-                  onClick={(e) => {
-                    try { navigator.clipboard?.writeText('*144*10*76223962#') } catch {}
-                    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '')
-                    if (!isMobile) {
-                      e.preventDefault()
-                      alert('✅ Code copié : *144*10*76223962#')
-                    }
-                  }}
+                  href={IFL_USSD_TEL}
+                  {...ussdLinkHandler(IFL_USSD_CODE)}
                   className="text-xl font-extrabold tracking-wider underline decoration-dotted active:opacity-70 inline-block"
                   title="Cliquer pour composer ou copier"
-                >*144*10*76223962#</a>
+                >{IFL_USSD_CODE}</a>
               </div>
-              <p className="text-orange-100 text-sm">Bénéficiaire : <a href="tel:+22676223962" className="font-extrabold text-white underline">+226 76 22 39 62</a></p>
+              <p className="text-orange-100 text-sm">Bénéficiaire : <a href={telLink()} {...externalLinkHandler(telLink())} className="font-extrabold text-white underline">{IFL_PHONE_DISPLAY}</a></p>
               <div className="flex gap-3 mt-3">
-                <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center">
-                  <p className="text-xs text-orange-100">Directs</p>
+                <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center gap-1">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                  <p className="text-xs text-orange-100">Directs (12 dossiers)</p>
                   <p className="font-extrabold">5 000 FCFA</p>
                 </div>
-                <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center">
-                  <p className="text-xs text-orange-100">Professionnels</p>
+                <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center gap-1">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                  <p className="text-xs text-orange-100">Pro (17 dossiers)</p>
                   <p className="font-extrabold">20 000 FCFA</p>
                 </div>
               </div>

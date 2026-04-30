@@ -213,29 +213,26 @@ export default function Dashboard() {
     try {
       const token = getToken()
       const [r1, r2] = await Promise.all([
-        fetch('/api/quiz/categories?type=direct', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('/api/quiz/categories?type=professionnel', { headers: { Authorization: `Bearer ${token}` } })
+        apiCall('/api/quiz/categories?type=direct', { headers: { Authorization: `Bearer ${token}` } }, 15000),
+        apiCall('/api/quiz/categories?type=professionnel', { headers: { Authorization: `Bearer ${token}` } }, 15000)
       ])
-      const d1 = await r1.json()
-      const d2 = await r2.json()
       setCategories({
-        direct: d1.categories || [],
-        professionnel: d2.categories || []
+        direct: (r1.ok && r1.data?.categories) || [],
+        professionnel: (r2.ok && r2.data?.categories) || []
       })
-    } catch {}
+    } catch (err) {
+      console.warn('[IFL] loadCategories failed:', err.message)
+    }
     setLoadingData(false)
   }
 
   const loadPrices = async () => {
     try {
-      // 🚨 PHASE 2 — API publique (pas de token requis)
-      const res = await fetch('/api/quiz/prices')
-      const data = await res.json()
-      if (data.prices) {
+      const result = await apiCall('/api/quiz/prices', {}, 10000)
+      if (result.ok && result.data?.prices) {
         const priceMap = {}
         const promoMap = { direct: null, professionnel: null }
-        data.prices.forEach(p => {
-          // prix = prix normal (pour l'affichage barré)
+        result.data.prices.forEach(p => {
           priceMap[p.type_concours] = p.prix_normal != null ? p.prix_normal : p.prix
           if (p.promo) {
             promoMap[p.type_concours] = {
@@ -248,19 +245,22 @@ export default function Dashboard() {
         setPrices(prev => ({ ...prev, ...priceMap }))
         setPromos(promoMap)
       }
-    } catch {}
+    } catch (err) {
+      console.warn('[IFL] loadPrices failed:', err.message)
+    }
   }
 
   const loadUserStats = async () => {
     setLoadingStats(true)
     try {
       const token = getToken()
-      const res = await fetch('/api/quiz/user-stats', { headers: { Authorization: `Bearer ${token}` } })
-      const data = await res.json()
-      if (data.success) {
-        setUserStats(data.stats)
+      const result = await apiCall('/api/quiz/user-stats', { headers: { Authorization: `Bearer ${token}` } }, 10000)
+      if (result.ok && result.data?.success) {
+        setUserStats(result.data.stats)
       }
-    } catch {}
+    } catch (err) {
+      console.warn('[IFL] loadUserStats failed:', err.message)
+    }
     setLoadingStats(false)
   }
 
