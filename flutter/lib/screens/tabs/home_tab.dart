@@ -22,6 +22,61 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
+  Map<String, dynamic>? _pricesDirect;
+  Map<String, dynamic>? _pricesPro;
+  bool _loadingPrices = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadPrices());
+  }
+
+  Future<void> _loadPrices() async {
+    try {
+      final auth = context.read<AuthService>();
+      final res = await auth.api.publicPrices();
+      if (!mounted) return;
+      final prices = (res['prices'] as Map?) ?? {};
+      setState(() {
+        _pricesDirect = prices['direct'] is Map
+            ? Map<String, dynamic>.from(prices['direct'] as Map)
+            : null;
+        _pricesPro = prices['professionnel'] is Map
+            ? Map<String, dynamic>.from(prices['professionnel'] as Map)
+            : null;
+        _loadingPrices = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingPrices = false);
+    }
+  }
+
+  String _fmt(int v) {
+    final s = v.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(' ');
+      buf.write(s[i]);
+    }
+    return '${buf.toString()} FCFA';
+  }
+
+  String? _countdown(String? iso) {
+    if (iso == null) return null;
+    try {
+      final end = DateTime.parse(iso);
+      final diff = end.difference(DateTime.now());
+      if (diff.isNegative) return null;
+      if (diff.inDays > 0) return 'Fin dans ${diff.inDays}j ${diff.inHours % 24}h';
+      if (diff.inHours > 0) return 'Fin dans ${diff.inHours}h ${diff.inMinutes % 60}min';
+      return 'Fin dans ${diff.inMinutes}min';
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _share() async {
     const txt =
         '🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n'
@@ -66,9 +121,9 @@ class _HomeTabState extends State<HomeTab> {
               const SizedBox(height: 8),
               _buildDemoCard(),
               const SizedBox(height: 12),
-              _buildOfferDirect(),
+              _buildOfferDirectDynamic(),
               const SizedBox(height: 12),
-              _buildOfferPro(),
+              _buildOfferProDynamic(),
               const SizedBox(height: 12),
               _buildPaymentInfo(),
               const SizedBox(height: 12),
@@ -288,11 +343,19 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _buildOfferDirect() {
+  Widget _buildOfferDirectDynamic() {
+    final prix = (_pricesDirect?['prix'] as num?)?.toInt() ?? 5000;
+    final prixPromo = (_pricesDirect?['prix_promo'] as num?)?.toInt();
+    final hasPromo = (_pricesDirect?['has_promo'] == true) && prixPromo != null;
+    final dateFin = _pricesDirect?['date_fin']?.toString();
+    final label = _pricesDirect?['label']?.toString();
     return _OfferCard(
       title: '📚 Concours directs',
       subtitle: '12 dossiers',
-      price: '5 000 FCFA',
+      price: hasPromo ? _fmt(prixPromo) : _fmt(prix),
+      oldPrice: hasPromo ? _fmt(prix) : null,
+      promoLabel: hasPromo ? (label ?? 'PROMO') : null,
+      promoCountdown: hasPromo ? _countdown(dateFin) : null,
       priceHint: 'pour les 12 dossiers',
       bullets: const [
         'Des milliers de QCM',
@@ -305,14 +368,23 @@ class _HomeTabState extends State<HomeTab> {
       ),
       cta: 'Voir les 12 dossiers',
       onCta: () => MainShell.of(context)?.goTo(1),
+      loading: _loadingPrices,
     );
   }
 
-  Widget _buildOfferPro() {
+  Widget _buildOfferProDynamic() {
+    final prix = (_pricesPro?['prix'] as num?)?.toInt() ?? 20000;
+    final prixPromo = (_pricesPro?['prix_promo'] as num?)?.toInt();
+    final hasPromo = (_pricesPro?['has_promo'] == true) && prixPromo != null;
+    final dateFin = _pricesPro?['date_fin']?.toString();
+    final label = _pricesPro?['label']?.toString();
     return _OfferCard(
       title: '🎓 Concours professionnels',
       subtitle: '14 dossiers payants + 3 bonus',
-      price: '20 000 FCFA',
+      price: hasPromo ? _fmt(prixPromo) : _fmt(prix),
+      oldPrice: hasPromo ? _fmt(prix) : null,
+      promoLabel: hasPromo ? (label ?? 'PROMO') : null,
+      promoCountdown: hasPromo ? _countdown(dateFin) : null,
       priceHint: 'par dossier payant',
       bullets: const [
         'Des milliers de QCM',
@@ -326,6 +398,7 @@ class _HomeTabState extends State<HomeTab> {
       cta: 'Voir les 17 dossiers',
       onCta: () => MainShell.of(context)?.goTo(2),
       foregroundColor: const Color(0xFF075985),
+      loading: _loadingPrices,
     );
   }
 
@@ -467,23 +540,31 @@ class _OfferCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final String price;
+  final String? oldPrice;
+  final String? promoLabel;
+  final String? promoCountdown;
   final String priceHint;
   final List<String> bullets;
   final LinearGradient gradient;
   final String cta;
   final VoidCallback onCta;
   final Color foregroundColor;
+  final bool loading;
 
   const _OfferCard({
     required this.title,
     required this.subtitle,
     required this.price,
+    this.oldPrice,
+    this.promoLabel,
+    this.promoCountdown,
     required this.priceHint,
     required this.bullets,
     required this.gradient,
     required this.cta,
     required this.onCta,
     this.foregroundColor = AppColors.darkTerracotta,
+    this.loading = false,
   });
 
   @override
@@ -530,26 +611,116 @@ class _OfferCard extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    price,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      priceHint,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.95),
-                        fontSize: 11,
+                  Row(
+                    children: [
+                      if (loading) ...[
+                        const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+                      Text(
+                        price,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 22,
+                        ),
                       ),
-                    ),
+                      if (oldPrice != null) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          oldPrice!,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            decoration: TextDecoration.lineThrough,
+                            decorationColor: Colors.white,
+                            decorationThickness: 2,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          priceHint,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.95),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  if (promoLabel != null || promoCountdown != null) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        if (promoLabel != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.local_fire_department,
+                                    size: 12, color: Color(0xFFDC2626)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  promoLabel!,
+                                  style: const TextStyle(
+                                    color: Color(0xFFB45309),
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        if (promoCountdown != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.timer,
+                                    size: 12,
+                                    color: gradient.colors.last),
+                                const SizedBox(width: 3),
+                                Text(
+                                  promoCountdown!,
+                                  style: TextStyle(
+                                    color: gradient.colors.last,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

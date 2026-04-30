@@ -88,7 +88,7 @@ class IconStyle {
 }
 
 const Map<String, IconStyle> _directIconColors = {
-  'globe':      IconStyle(bgGradient: [Color(0xFF0891B2), Color(0xFF06B6D4)], border: Color(0xFFA5F3FC), tag: Color(0xFFE0F7FF), tagText: Color(0xFF0891B2)),
+  'globe':      IconStyle(bgGradient: [Color(0xFF0EA5E9), Color(0xFF0369A1)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
   'book':       IconStyle(bgGradient: [Color(0xFF7C3AED), Color(0xFFA855F7)], border: Color(0xFFDDD6FE), tag: Color(0xFFF3E8FF), tagText: Color(0xFF7C3AED)),
   'palette':    IconStyle(bgGradient: [Color(0xFFEC4899), Color(0xFFF472B6)], border: Color(0xFFFBCFE8), tag: Color(0xFFFDF2F8), tagText: Color(0xFFEC4899)),
   'map':        IconStyle(bgGradient: [Color(0xFFF5871F), Color(0xFFF59E0B)], border: Color(0xFFFED7AA), tag: Color(0xFFFFF7ED), tagText: Color(0xFFB45309)),
@@ -96,7 +96,7 @@ const Map<String, IconStyle> _directIconColors = {
   'brain':      IconStyle(bgGradient: [Color(0xFFDC2626), Color(0xFFEF4444)], border: Color(0xFFFECACA), tag: Color(0xFFFEF2F2), tagText: Color(0xFFDC2626)),
   'calculator': IconStyle(bgGradient: [Color(0xFFD97706), Color(0xFFF59E0B)], border: Color(0xFFFDE68A), tag: Color(0xFFFFFBEB), tagText: Color(0xFFD97706)),
   'flask':      IconStyle(bgGradient: [Color(0xFF2563EB), Color(0xFF3B82F6)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF2563EB)),
-  'scale':      IconStyle(bgGradient: [Color(0xFFB45309), Color(0xFFD97706)], border: Color(0xFFFDE68A), tag: Color(0xFFFFFBEB), tagText: Color(0xFFB45309)),
+  'scale':      IconStyle(bgGradient: [Color(0xFF0EA5E9), Color(0xFF0369A1)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
   'chart':      IconStyle(bgGradient: [Color(0xFF0F766E), Color(0xFF14B8A6)], border: Color(0xFF99F6E4), tag: Color(0xFFF0FDFA), tagText: Color(0xFF0F766E)),
   'pencil':     IconStyle(bgGradient: [Color(0xFF9333EA), Color(0xFFC084FC)], border: Color(0xFFE9D5FF), tag: Color(0xFFFAF5FF), tagText: Color(0xFF9333EA)),
   'target':     IconStyle(bgGradient: [Color(0xFFC4521A), Color(0xFFD4A017)], border: Color(0xFFFED7AA), tag: Color(0xFFFFF7ED), tagText: Color(0xFFC4521A)),

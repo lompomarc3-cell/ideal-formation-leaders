@@ -14,6 +14,7 @@ class AdminPromotionsSection extends StatefulWidget {
 class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
   bool _loading = true;
   List<Map<String, dynamic>> _promos = [];
+  String? _error;
 
   @override
   void initState() {
@@ -23,7 +24,10 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
 
   Future<void> _load() async {
     final auth = context.read<AuthService>();
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final res = await auth.api.adminPromotions(auth.token!);
       if (!mounted) return;
@@ -33,8 +37,12 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
             .toList();
         _loading = false;
       });
-    } catch (_) {
-      if (mounted) setState(() => _loading = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.toString();
+      });
     }
   }
 
@@ -46,29 +54,44 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
     if (res == null) return;
     final auth = context.read<AuthService>();
     try {
+      Map<String, dynamic> r;
       if (promo == null) {
-        await auth.api.adminCreatePromotion(
+        r = await auth.api.adminCreatePromotion(
           auth.token!,
-          typeConcours: res['type'],
-          prixPromo: res['prix'],
-          dateDebut: res['starts_at'] ?? '',
-          dateFin: res['ends_at'] ?? '',
+          typeConcours: res['type_concours'],
+          prixPromo: res['prix_promo'],
+          dateDebut: res['date_debut'],
+          dateFin: res['date_fin'],
           isActive: res['is_active'] ?? true,
         );
       } else {
-        await auth.api.adminUpdatePromotion(
+        r = await auth.api.adminUpdatePromotion(
           auth.token!,
           id: promo['id'].toString(),
-          prixPromo: res['prix'],
-          dateDebut: res['starts_at'],
-          dateFin: res['ends_at'],
+          typeConcours: res['type_concours'],
+          prixPromo: res['prix_promo'],
+          dateDebut: res['date_debut'],
+          dateFin: res['date_fin'],
           isActive: res['is_active'],
         );
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(promo == null ? 'Créée' : 'Mise à jour')),
-      );
+      if (r['success'] == true || r['promotion'] != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(promo == null
+                ? '✅ Promotion créée'
+                : '✅ Promotion mise à jour'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Erreur : ${r['error'] ?? "Inconnue"}'),
+              backgroundColor: Colors.red),
+        );
+      }
       _load();
     } catch (e) {
       if (!mounted) return;
@@ -83,6 +106,8 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Supprimer la promotion ?'),
+        content: Text(
+            'Cette promotion ne sera plus affichée sur l\'app.\n\n${promo['type_concours']} • ${promo['prix_promo']} FCFA'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -90,15 +115,51 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Supprimer'),
+            child: const Text('Supprimer',
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
     if (ok != true) return;
     final auth = context.read<AuthService>();
-    await auth.api.adminDeletePromotion(auth.token!, promo['id'].toString());
-    _load();
+    try {
+      await auth.api.adminDeletePromotion(auth.token!, promo['id'].toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ Promotion supprimée')),
+      );
+      _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  String? _remainingTime(String? dateFin) {
+    if (dateFin == null) return null;
+    try {
+      final end = DateTime.parse(dateFin);
+      final diff = end.difference(DateTime.now());
+      if (diff.isNegative) return 'Expirée';
+      if (diff.inDays > 0) return 'Fin dans ${diff.inDays}j ${diff.inHours % 24}h';
+      if (diff.inHours > 0) return 'Fin dans ${diff.inHours}h ${diff.inMinutes % 60}min';
+      return 'Fin dans ${diff.inMinutes}min';
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _formatDate(String? iso) {
+    if (iso == null) return '—';
+    try {
+      final d = DateTime.parse(iso).toLocal();
+      return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    } catch (_) {
+      return iso;
+    }
   }
 
   @override
@@ -106,67 +167,215 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 8),
+            Text('Erreur: $_error', textAlign: TextAlign.center),
+            const SizedBox(height: 8),
+            ElevatedButton(onPressed: _load, child: const Text('Réessayer')),
+          ],
+        ),
+      );
+    }
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(12),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton.icon(
-              onPressed: () => _openEditor(),
-              icon: const Icon(Icons.add),
-              label: const Text('Nouvelle promotion'),
-            ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Promotions (${_promos.length})',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.darkTerracotta,
+                  ),
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () => _openEditor(),
+                icon: const Icon(Icons.add),
+                label: const Text('Nouvelle promo'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
           ),
         ),
         Expanded(
-          child: RefreshIndicator(
-            onRefresh: _load,
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: _promos.length,
-              itemBuilder: (ctx, i) {
-                final p = _promos[i];
-                final active = p['is_active'] == true;
-                return Card(
-                  child: ListTile(
-                    title: Text(
-                      '${(p['type_concours'] ?? p['type']) == 'direct' ? '🎓 Direct' : '💼 Pro'} — ${p['prix_promo'] ?? p['prix']} FCFA',
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if ((p['date_debut'] ?? p['starts_at']) != null)
-                          Text('🟢 Début : ${p['date_debut'] ?? p['starts_at']}'),
-                        if ((p['date_fin'] ?? p['ends_at']) != null)
-                          Text('🔴 Fin : ${p['date_fin'] ?? p['ends_at']}'),
-                        Text(active ? 'Active' : 'Inactive',
-                            style: TextStyle(
-                                color:
-                                    active ? const Color(0xFFC4521A) : Colors.grey,
-                                fontWeight: FontWeight.w700)),
-                      ],
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit,
-                              color: AppColors.primary),
-                          onPressed: () => _openEditor(promo: p),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _delete(p),
-                        ),
-                      ],
-                    ),
+          child: _promos.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.local_offer_outlined,
+                          size: 64, color: Colors.black26),
+                      const SizedBox(height: 8),
+                      const Text('Aucune promotion',
+                          style: TextStyle(color: Colors.black54)),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () => _openEditor(),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Créer une promotion'),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
-          ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    itemCount: _promos.length,
+                    itemBuilder: (ctx, i) {
+                      final p = _promos[i];
+                      final active = p['is_active'] == true;
+                      final currentlyActive = p['is_currently_active'] == true;
+                      final remaining = _remainingTime(p['date_fin']?.toString());
+                      final isExpired = remaining == 'Expirée';
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    p['type_concours'] == 'direct'
+                                        ? '🎓 Direct'
+                                        : '💼 Professionnel',
+                                    style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w900),
+                                  ),
+                                  const Spacer(),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: currentlyActive
+                                          ? Colors.green.shade100
+                                          : isExpired
+                                              ? Colors.grey.shade300
+                                              : active
+                                                  ? Colors.amber.shade100
+                                                  : Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      currentlyActive
+                                          ? '🟢 Active'
+                                          : isExpired
+                                              ? '⏰ Expirée'
+                                              : active
+                                                  ? '⏳ Programmée'
+                                                  : '⭕ Inactive',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        color: currentlyActive
+                                            ? Colors.green.shade900
+                                            : isExpired
+                                                ? Colors.grey.shade700
+                                                : active
+                                                    ? Colors.orange.shade900
+                                                    : Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${p['prix_promo'] ?? '—'} FCFA',
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFFDC2626),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  const Icon(Icons.play_arrow,
+                                      size: 14, color: Colors.green),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                      'Début : ${_formatDate(p['date_debut']?.toString())}',
+                                      style: const TextStyle(fontSize: 12)),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  const Icon(Icons.stop,
+                                      size: 14, color: Colors.red),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                      'Fin : ${_formatDate(p['date_fin']?.toString())}',
+                                      style: const TextStyle(fontSize: 12)),
+                                ],
+                              ),
+                              if (remaining != null && !isExpired) ...[
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF3C7),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.timer,
+                                          size: 14, color: Color(0xFFB45309)),
+                                      const SizedBox(width: 4),
+                                      Text(remaining,
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w800,
+                                              color: Color(0xFFB45309))),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed: () => _openEditor(promo: p),
+                                    icon: const Icon(Icons.edit, size: 14),
+                                    label: const Text('Modifier'),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  OutlinedButton.icon(
+                                    onPressed: () => _delete(p),
+                                    icon: const Icon(Icons.delete,
+                                        size: 14, color: Colors.red),
+                                    label: const Text('Supprimer',
+                                        style: TextStyle(color: Colors.red)),
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
         ),
       ],
     );
@@ -192,21 +401,38 @@ class _PromoEditorDialogState extends State<_PromoEditorDialog> {
   void initState() {
     super.initState();
     _prix = TextEditingController(
-        text: widget.promo?['prix_promo']?.toString() ??
-            widget.promo?['prix']?.toString() ??
-            '');
+        text: widget.promo?['prix_promo']?.toString() ?? '');
     _start = TextEditingController(
-        text: widget.promo?['date_debut']?.toString() ??
-            widget.promo?['starts_at']?.toString() ??
-            '');
+        text: _isoToLocalDate(widget.promo?['date_debut']?.toString()));
     _end = TextEditingController(
-        text: widget.promo?['date_fin']?.toString() ??
-            widget.promo?['ends_at']?.toString() ??
-            '');
-    _type = widget.promo?['type_concours']?.toString() ??
-        widget.promo?['type']?.toString() ??
-        'direct';
+        text: _isoToLocalDate(widget.promo?['date_fin']?.toString()));
+    _type = widget.promo?['type_concours']?.toString() ?? 'direct';
     _isActive = widget.promo?['is_active'] != false;
+  }
+
+  String _isoToLocalDate(String? iso) {
+    if (iso == null || iso.isEmpty) return '';
+    try {
+      final d = DateTime.parse(iso).toLocal();
+      return '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return iso;
+    }
+  }
+
+  Future<void> _pickDate(TextEditingController ctrl) async {
+    final initial = DateTime.tryParse(ctrl.text) ?? DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(DateTime.now().year - 1),
+      lastDate: DateTime(DateTime.now().year + 5),
+    );
+    if (picked != null) {
+      ctrl.text =
+          '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      setState(() {});
+    }
   }
 
   @override
@@ -223,47 +449,65 @@ class _PromoEditorDialogState extends State<_PromoEditorDialog> {
       title: Text(widget.promo == null ? 'Nouvelle promotion' : 'Modifier'),
       content: SizedBox(
         width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (widget.promo == null)
-              DropdownButtonFormField<String>(
-                initialValue: _type,
-                decoration: const InputDecoration(labelText: 'Type *'),
-                items: const [
-                  DropdownMenuItem(value: 'direct', child: Text('Direct')),
-                  DropdownMenuItem(
-                      value: 'professionnel', child: Text('Professionnel')),
-                ],
-                onChanged: (v) => setState(() => _type = v ?? 'direct'),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.promo == null)
+                DropdownButtonFormField<String>(
+                  initialValue: _type,
+                  decoration: const InputDecoration(labelText: 'Type *'),
+                  items: const [
+                    DropdownMenuItem(
+                        value: 'direct', child: Text('🎓 Direct')),
+                    DropdownMenuItem(
+                        value: 'professionnel', child: Text('💼 Professionnel')),
+                  ],
+                  onChanged: (v) => setState(() => _type = v ?? 'direct'),
+                ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _prix,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Prix promo *',
+                  suffixText: 'FCFA',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _prix,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                  labelText: 'Prix promo *', suffixText: 'FCFA'),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _start,
-              decoration: const InputDecoration(
-                  labelText: 'Début (AAAA-MM-JJ)',
-                  hintText: '2026-05-01'),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _end,
-              decoration: const InputDecoration(
-                  labelText: 'Fin (AAAA-MM-JJ)', hintText: '2026-06-30'),
-            ),
-            SwitchListTile(
-              title: const Text('Active'),
-              value: _isActive,
-              activeColor: AppColors.primary,
-              onChanged: (v) => setState(() => _isActive = v),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextField(
+                controller: _start,
+                readOnly: true,
+                onTap: () => _pickDate(_start),
+                decoration: const InputDecoration(
+                  labelText: 'Date début *',
+                  hintText: 'Cliquer pour sélectionner',
+                  suffixIcon: Icon(Icons.calendar_today),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _end,
+                readOnly: true,
+                onTap: () => _pickDate(_end),
+                decoration: const InputDecoration(
+                  labelText: 'Date fin *',
+                  hintText: 'Cliquer pour sélectionner',
+                  suffixIcon: Icon(Icons.calendar_today),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SwitchListTile(
+                title: const Text('Activer la promotion'),
+                value: _isActive,
+                activeColor: AppColors.primary,
+                onChanged: (v) => setState(() => _isActive = v),
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -273,14 +517,42 @@ class _PromoEditorDialogState extends State<_PromoEditorDialog> {
         ElevatedButton(
           onPressed: () {
             final prix = int.tryParse(_prix.text.trim());
-            if (prix == null) return;
+            if (prix == null || prix <= 0) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Prix invalide')),
+              );
+              return;
+            }
+            if (_start.text.trim().isEmpty || _end.text.trim().isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Les dates sont requises')),
+              );
+              return;
+            }
+            // Convertir date locale en ISO
+            DateTime? debut;
+            DateTime? fin;
+            try {
+              debut = DateTime.parse(_start.text.trim());
+              fin = DateTime.parse('${_end.text.trim()}T23:59:59');
+            } catch (_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Format de date invalide')),
+              );
+              return;
+            }
+            if (fin.isBefore(debut) || fin.isAtSameMomentAs(debut)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('La date de fin doit être après le début')),
+              );
+              return;
+            }
             Navigator.pop(context, {
-              'type': _type,
-              'prix': prix,
-              'starts_at':
-                  _start.text.trim().isEmpty ? null : _start.text.trim(),
-              'ends_at':
-                  _end.text.trim().isEmpty ? null : _end.text.trim(),
+              'type_concours': _type,
+              'prix_promo': prix,
+              'date_debut': debut.toIso8601String(),
+              'date_fin': fin.toIso8601String(),
               'is_active': _isActive,
             });
           },

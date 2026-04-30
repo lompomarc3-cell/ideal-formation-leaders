@@ -1,17 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="sc1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#795548"/><stop offset="100%" stop-color="#D4A017"/></linearGradient>
-    <linearGradient id="sc2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#BF360C"/><stop offset="100%" stop-color="#FFAB40"/></linearGradient>
+    <linearGradient id="scMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0EA5E9"/>
+      <stop offset="100%" stop-color="#0369A1"/>
+    </linearGradient>
+    <linearGradient id="scPan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0EA5E9"/>
+    </linearGradient>
   </defs>
-  <rect x="30" y="8" width="4" height="44" rx="2" fill="url(#sc1)"/>
-  <rect x="18" y="54" width="28" height="4" rx="2" fill="#5D4037"/>
-  <rect x="14" y="16" width="36" height="3" rx="1.5" fill="url(#sc1)"/>
-  <circle cx="32" cy="10" r="5" fill="#D4A017"/>
-  <circle cx="32" cy="10" r="3" fill="#FFD54F"/>
-  <line x1="14" y1="18" x2="20" y2="28" stroke="#8D6E63" stroke-width="2"/>
-  <line x1="50" y1="18" x2="44" y2="28" stroke="#8D6E63" stroke-width="2"/>
-  <path d="M12,28 L28,28 L24,36 C24,40 28,42 20,42 C12,42 16,40 12,36 Z" fill="url(#sc2)"/>
-  <path d="M36,28 L52,28 L48,36 C48,40 52,40 44,42 C36,42 40,40 36,36 Z" fill="#1565C0"/>
-  <circle cx="20" cy="42" r="1.5" fill="#FFAB40"/>
-  <circle cx="44" cy="42" r="1.5" fill="#64B5F6"/>
+  <!-- Colonne centrale -->
+  <rect x="30" y="14" width="4" height="36" rx="2" fill="url(#scMain)"/>
+  <!-- Base socle -->
+  <rect x="18" y="50" width="28" height="6" rx="3" fill="url(#scMain)"/>
+  <rect x="22" y="46" width="20" height="5" rx="2" fill="#0369A1" opacity="0.85"/>
+  <!-- Barre horizontale -->
+  <rect x="10" y="16" width="44" height="3" rx="1.5" fill="url(#scMain)"/>
+  <!-- Cordes -->
+  <line x1="14" y1="18" x2="14" y2="28" stroke="#0369A1" stroke-width="1.5"/>
+  <line x1="50" y1="18" x2="50" y2="28" stroke="#0369A1" stroke-width="1.5"/>
+  <!-- Plateau gauche -->
+  <path d="M5,28 L23,28 L18,38 L10,38 Z" fill="url(#scPan)" opacity="0.95"/>
+  <ellipse cx="14" cy="28" rx="9" ry="2" fill="#0EA5E9" opacity="0.7"/>
+  <!-- Plateau droit -->
+  <path d="M41,28 L59,28 L54,38 L46,38 Z" fill="url(#scPan)" opacity="0.95"/>
+  <ellipse cx="50" cy="28" rx="9" ry="2" fill="#0EA5E9" opacity="0.7"/>
+  <!-- Étoile dorée au sommet -->
+  <circle cx="32" cy="14" r="4" fill="#FBBF24"/>
+  <path d="M32,11 L32.8,13.2 L35,13.4 L33.4,15 L33.8,17.2 L32,16.2 L30.2,17.2 L30.6,15 L29,13.4 L31.2,13.2 Z" fill="#FFF"/>
 </svg>
