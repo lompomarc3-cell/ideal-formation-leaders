@@ -144,7 +144,7 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
                         Text(active ? 'Active' : 'Inactive',
                             style: TextStyle(
                                 color:
-                                    active ? Colors.green : Colors.grey,
+                                    active ? const Color(0xFFC4521A) : Colors.grey,
                                 fontWeight: FontWeight.w700)),
                       ],
                     ),

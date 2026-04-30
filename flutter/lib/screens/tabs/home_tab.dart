@@ -28,7 +28,7 @@ class _HomeTabState extends State<HomeTab> {
         '✅ Des milliers de QCM\n'
         '✅ Concours directs – 12 dossiers (5 000 FCFA)\n'
         '✅ Concours professionnels – 17 dossiers (20 000 FCFA / dossier)\n'
-        '✅ 5 questions gratuites par dossier sans inscription\n\n'
+        '✅ 5 questions gratuites par dossier\n\n'
         '👉 $kAppUrl';
     try {
       await Share.share(txt, subject: 'IFL – Formation Burkina Faso');
@@ -210,12 +210,12 @@ class _HomeTabState extends State<HomeTab> {
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF059669), Color(0xFF10B981)],
+            colors: [Color(0xFFF5871F), Color(0xFFC4521A)],
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF10B981).withValues(alpha: 0.3),
+              color: const Color(0xFFF5871F).withValues(alpha: 0.30),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),
@@ -251,7 +251,7 @@ class _HomeTabState extends State<HomeTab> {
                         ),
                       ),
                       Text(
-                        '10 questions sans inscription',
+                        '10 questions pour découvrir',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -274,7 +274,7 @@ class _HomeTabState extends State<HomeTab> {
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xFF059669),
+                  foregroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -321,10 +321,11 @@ class _HomeTabState extends State<HomeTab> {
         'Bonus débloqués à chaque dossier acheté',
       ],
       gradient: const LinearGradient(
-        colors: [Color(0xFFD4A017), Color(0xFFC4521A)],
+        colors: [Color(0xFF0EA5E9), Color(0xFF0369A1)],
       ),
       cta: 'Voir les 17 dossiers',
       onCta: () => MainShell.of(context)?.goTo(2),
+      foregroundColor: const Color(0xFF075985),
     );
   }
 
@@ -471,6 +472,7 @@ class _OfferCard extends StatelessWidget {
   final LinearGradient gradient;
   final String cta;
   final VoidCallback onCta;
+  final Color foregroundColor;
 
   const _OfferCard({
     required this.title,
@@ -481,6 +483,7 @@ class _OfferCard extends StatelessWidget {
     required this.gradient,
     required this.cta,
     required this.onCta,
+    this.foregroundColor = AppColors.darkTerracotta,
   });
 
   @override
@@ -582,7 +585,7 @@ class _OfferCard extends StatelessWidget {
               onPressed: onCta,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: AppColors.darkTerracotta,
+                foregroundColor: foregroundColor,
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),

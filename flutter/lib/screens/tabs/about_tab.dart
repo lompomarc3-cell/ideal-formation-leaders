@@ -80,7 +80,7 @@ class AboutTab extends StatelessWidget {
         children: [
           _menuTile(
             context,
-            icon: Icons.smartphone_rounded,
+            icon: Icons.apps_rounded,
             title: "L'application",
             subtitle: "Description, partage, évaluation",
             color: const Color(0xFFC4521A),
@@ -90,17 +90,17 @@ class AboutTab extends StatelessWidget {
           ),
           _menuTile(
             context,
-            icon: Icons.groups_rounded,
+            icon: Icons.groups_2_rounded,
             title: "L'équipe",
             subtitle: "Idéale Formation of Leaders",
-            color: const Color(0xFFD4A017),
+            color: const Color(0xFFF5871F),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const AboutTeamPage()),
             ),
           ),
           _menuTile(
             context,
-            icon: Icons.code_rounded,
+            icon: Icons.terminal_rounded,
             title: "Le développeur",
             subtitle: "Marc LOMPO",
             color: const Color(0xFF8B2500),
@@ -197,7 +197,7 @@ class AboutAppPage extends StatelessWidget {
         '✅ Des milliers de QCM\n'
         '✅ Concours directs – 12 dossiers (5 000 FCFA)\n'
         '✅ Concours professionnels – 17 dossiers (20 000 FCFA / dossier)\n'
-        '✅ 5 questions gratuites par dossier sans inscription\n\n'
+        '✅ 5 questions gratuites par dossier\n\n'
         '👉 $kAppUrl';
     try {
       await Share.share(txt, subject: 'IFL – Formation Burkina Faso');
@@ -260,7 +260,8 @@ class AboutAppPage extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           _card(
-            title: '📘 Description',
+            icon: Icons.menu_book_rounded,
+            title: 'Description',
             child: const Text(
               'Application burkinabè pour les candidats aux concours directs et '
               'professionnels de la fonction publique. Elle propose des '
@@ -272,7 +273,8 @@ class AboutAppPage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _card(
-            title: '🔒 Politique de confidentialité',
+            icon: Icons.shield_rounded,
+            title: 'Politique de confidentialité',
             child: const Text(
               'Vos données personnelles (téléphone, nom, prénom) sont utilisées '
               'uniquement pour gérer votre compte, votre abonnement et votre '
@@ -285,7 +287,8 @@ class AboutAppPage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _card(
-            title: '📜 Règles d\'utilisation',
+            icon: Icons.gavel_rounded,
+            title: 'Règles d\'utilisation',
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -356,7 +359,11 @@ class AboutAppPage extends StatelessWidget {
     );
   }
 
-  Widget _card({required String title, required Widget child}) {
+  Widget _card({
+    required String title,
+    required Widget child,
+    IconData icon = Icons.info_outline_rounded,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -367,15 +374,32 @@ class AboutAppPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 15,
-              color: AppColors.darkTerracotta,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon,
+                    color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                    color: AppColors.darkTerracotta,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           child,
         ],
       ),

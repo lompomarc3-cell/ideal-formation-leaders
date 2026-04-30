@@ -1,20 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="pp1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6A1B9A"/>
-      <stop offset="100%" stop-color="#BA68C8"/>
+    <linearGradient id="ppe1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0369A1"/>
     </linearGradient>
   </defs>
-  <rect x="8" y="10" width="44" height="46" rx="4" fill="#F3E5F5"/>
-  <rect x="8" y="10" width="44" height="46" rx="4" fill="none" stroke="url(#pp1)" stroke-width="2"/>
-  <rect x="14" y="18" width="6" height="6" rx="1" fill="#9C27B0"/>
-  <polyline points="15,21 17,23 19,19" fill="none" stroke="#FFF" stroke-width="2" stroke-linecap="round"/>
-  <line x1="24" y1="21" x2="44" y2="21" stroke="#9C27B0" stroke-width="2" stroke-linecap="round"/>
-  <rect x="14" y="30" width="6" height="6" rx="1" fill="none" stroke="#9C27B0" stroke-width="1.5"/>
-  <line x1="24" y1="33" x2="40" y2="33" stroke="#CE93D8" stroke-width="2" stroke-linecap="round"/>
-  <rect x="14" y="42" width="6" height="6" rx="1" fill="#9C27B0"/>
-  <polyline points="15,45 17,47 19,43" fill="none" stroke="#FFF" stroke-width="2" stroke-linecap="round"/>
-  <line x1="24" y1="45" x2="44" y2="45" stroke="#9C27B0" stroke-width="2" stroke-linecap="round"/>
-  <path d="M52,4 L60,12 L48,24 L40,24 L40,16 Z" fill="url(#pp1)"/>
-  <path d="M40,24 L38,30 L44,28 Z" fill="#4A148C"/>
+  <!-- Corps du crayon -->
+  <rect x="6" y="28" width="42" height="10" rx="2" fill="url(#ppe1)" transform="rotate(-30,27,33)"/>
+  <!-- Pointe -->
+  <polygon points="48,18 56,14 52,22" fill="#0369A1" transform="rotate(-30,52,18)"/>
+  <polygon points="50,17 54,15 52,19" fill="#FBBF24" transform="rotate(-30,52,17)"/>
+  <!-- Gomme -->
+  <rect x="6" y="28" width="8" height="10" rx="2" fill="#FBBF24" transform="rotate(-30,10,33)"/>
+  <!-- Lignes décoratives -->
+  <rect x="14" y="29" width="2" height="8" fill="#075985" opacity="0.8" transform="rotate(-30,15,33)"/>
+  <rect x="40" y="29" width="2" height="8" fill="#FFF" opacity="0.5" transform="rotate(-30,41,33)"/>
+  <!-- Trait dessiné -->
+  <path d="M10,52 Q24,48 38,50 T56,52" stroke="#0EA5E9" stroke-width="2" fill="none" stroke-linecap="round"/>
 </svg>

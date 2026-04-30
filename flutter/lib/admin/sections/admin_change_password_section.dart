@@ -55,7 +55,7 @@ class _AdminChangePasswordSectionState
       _confirm.clear();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('✅ Mot de passe changé avec succès'),
-          backgroundColor: Colors.green));
+          backgroundColor: AppColors.primary));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

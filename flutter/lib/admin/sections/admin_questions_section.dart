@@ -220,7 +220,7 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
                             style: TextStyle(
                               fontSize: 12,
                               color: correct == String.fromCharCode(65 + k)
-                                  ? Colors.green.shade800
+                                  ? const Color(0xFFC4521A)
                                   : Colors.black87,
                               fontWeight:
                                   correct == String.fromCharCode(65 + k)

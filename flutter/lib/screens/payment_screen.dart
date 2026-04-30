@@ -542,12 +542,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: isSuccess
-            ? const Color(0xFFDCFCE7)
+            ? const Color(0xFFFFF3D9)
             : const Color(0xFFFEE2E2),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isSuccess
-              ? const Color(0xFF86EFAC)
+              ? const Color(0xFFFBBF24)
               : const Color(0xFFFCA5A5),
         ),
       ),
@@ -557,7 +557,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           fontWeight: FontWeight.w800,
           fontSize: 13,
           color: isSuccess
-              ? const Color(0xFF166534)
+              ? const Color(0xFF92400E)
               : const Color(0xFF991B1B),
           height: 1.4,
         ),

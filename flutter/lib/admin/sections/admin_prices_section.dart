@@ -154,7 +154,7 @@ class _PriceCard extends StatelessWidget {
                       style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
-                          color: Colors.green)),
+                          color: Color(0xFFC4521A))),
                 ],
               ],
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'services/auth_service.dart';
+import 'screens/motivation_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/main_shell.dart';
 import 'screens/login_screen.dart';
@@ -53,17 +54,21 @@ class _Bootstrap extends StatefulWidget {
 }
 
 class _BootstrapState extends State<_Bootstrap> {
-  bool _splashDone = false;
+  // 0 = motivation, 1 = splash logo, 2 = main shell
+  int _phase = 0;
 
-  Future<void> _afterSplash() async {
+  void _next() {
     if (!mounted) return;
-    setState(() => _splashDone = true);
+    setState(() => _phase += 1);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_splashDone) {
-      return SplashScreen(onDone: _afterSplash);
+    if (_phase == 0) {
+      return MotivationScreen(onDone: _next);
+    }
+    if (_phase == 1) {
+      return SplashScreen(onDone: _next);
     }
     return const MainShell();
   }

@@ -155,23 +155,37 @@ class _DirectTabState extends State<DirectTab> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.16),
+              color: Colors.white.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.25),
+                width: 1.2,
+              ),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 50,
+                  height: 50,
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
                   child: const Icon(
-                    Icons.school_rounded,
-                    color: Colors.white,
+                    Icons.library_books_rounded,
+                    color: AppColors.primary,
+                    size: 28,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,16 +213,30 @@ class _DirectTabState extends State<DirectTab> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.success,
+                      color: const Color(0xFFFBBF24),
                       borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 4,
+                        ),
+                      ],
                     ),
-                    child: const Text(
-                      '✓ Débloqué',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 11,
-                      ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.lock_open_rounded,
+                            color: Colors.white, size: 14),
+                        SizedBox(width: 4),
+                        Text(
+                          'Débloqué',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
               ],
@@ -310,9 +338,13 @@ class _DirectTabState extends State<DirectTab> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: unlocked
-                    ? const Color(0xFFDCFCE7)
+                    ? const Color(0xFFFFF3D9) // jaune doré clair
                     : style.tag,
                 borderRadius: BorderRadius.circular(20),
+                border: unlocked
+                    ? Border.all(
+                        color: const Color(0xFFFBBF24), width: 1)
+                    : null,
               ),
               child: Text(
                 unlocked ? '✓ Débloqué' : '🆓 5 gratuites',
@@ -320,7 +352,7 @@ class _DirectTabState extends State<DirectTab> {
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
                   color: unlocked
-                      ? const Color(0xFF166534)
+                      ? const Color(0xFF92400E)
                       : style.tagText,
                 ),
               ),

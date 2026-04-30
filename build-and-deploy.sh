@@ -37,7 +37,7 @@ echo "==> [1/4] Build Next.js -> Cloudflare Pages Functions"
 if [ ! -d node_modules ]; then
   npm install --no-audit --no-fund --cache /tmp/npm-cache
 fi
-npx --yes @cloudflare/next-on-pages@1
+npx @cloudflare/next-on-pages
 
 echo ""
 echo "==> [2/4] Build Flutter web"

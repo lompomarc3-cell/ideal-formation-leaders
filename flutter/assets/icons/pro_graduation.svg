@@ -1,20 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="gr1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1A237E"/>
-      <stop offset="100%" stop-color="#5C6BC0"/>
-    </linearGradient>
-    <linearGradient id="gr2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#283593"/>
-      <stop offset="100%" stop-color="#7986CB"/>
+    <linearGradient id="pg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0EA5E9"/>
+      <stop offset="100%" stop-color="#0369A1"/>
     </linearGradient>
   </defs>
-  <polygon points="32,8 4,24 32,34 60,24" fill="url(#gr1)"/>
-  <polygon points="32,8 4,24 32,28 60,24" fill="url(#gr2)" opacity="0.7"/>
-  <path d="M16,28 L16,46 C22,52 42,52 48,46 L48,28" fill="url(#gr1)"/>
-  <path d="M16,28 L16,46 C22,50 32,52 32,52 L32,28 Z" fill="url(#gr2)" opacity="0.5"/>
-  <line x1="54" y1="24" x2="54" y2="44" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="54" cy="46" r="4" fill="#FFD700"/>
-  <circle cx="54" cy="46" r="2" fill="#FFA000"/>
-  <circle cx="32" cy="24" r="4" fill="#FFF" opacity="0.6"/>
+  <!-- Toque (chapeau) -->
+  <path d="M32,12 L60,24 L32,36 L4,24 Z" fill="url(#pg1)"/>
+  <path d="M32,16 L52,24 L32,32 L12,24 Z" fill="#FFF" opacity="0.18"/>
+  <!-- Base toque -->
+  <path d="M14,28 L14,40 C14,46 22,50 32,50 C42,50 50,46 50,40 L50,28 L32,38 Z" fill="url(#pg1)"/>
+  <!-- Cordelette -->
+  <line x1="56" y1="22" x2="56" y2="40" stroke="#FBBF24" stroke-width="2"/>
+  <circle cx="56" cy="44" r="3" fill="#FBBF24"/>
+  <!-- Étoile -->
+  <circle cx="32" cy="24" r="2.5" fill="#FBBF24"/>
 </svg>

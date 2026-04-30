@@ -210,7 +210,7 @@ class _ProTabState extends State<ProTab> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFD4A017), Color(0xFFC4521A), Color(0xFF8B2500)],
+          colors: [Color(0xFF0EA5E9), Color(0xFF0369A1), Color(0xFF075985)],
         ),
       ),
       child: Column(
@@ -244,40 +244,54 @@ class _ProTabState extends State<ProTab> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.16),
+              color: Colors.white.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.25),
+                width: 1.2,
+              ),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 50,
+                  height: 50,
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
                   child: const Icon(
                     Icons.workspace_premium_rounded,
-                    color: Colors.white,
+                    color: Color(0xFF0EA5E9),
+                    size: 28,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '20 000 FCFA',
+                        '14 dossiers payants',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
-                          fontSize: 18,
+                          fontSize: 15,
                         ),
                       ),
                       Text(
-                        'par dossier payant',
+                        '20 000 FCFA / dossier',
                         style: TextStyle(
                           color: Color(0xFFFFE0A0),
-                          fontSize: 11,
+                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -291,14 +305,18 @@ class _ProTabState extends State<ProTab> {
             padding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
+              color: Colors.white.withValues(alpha: 0.20),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.35),
+                width: 1,
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Icon(Icons.card_giftcard_rounded,
-                    size: 18, color: Color(0xFF92400E)),
+                    size: 18, color: Colors.white),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -306,7 +324,7 @@ class _ProTabState extends State<ProTab> {
                         ? 'Vos 3 dossiers bonus sont débloqués gratuitement.'
                         : 'Achetez 1 dossier payant → les 3 bonus sont offerts.',
                     style: const TextStyle(
-                      color: Color(0xFF92400E),
+                      color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       height: 1.4,
@@ -443,15 +461,19 @@ class _ProTabState extends State<ProTab> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFDCFCE7),
+                      color: const Color(0xFFE0F2FE), // bleu ciel clair
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color(0xFF0EA5E9),
+                        width: 1,
+                      ),
                     ),
                     child: const Text(
                       '✓ Débloqué',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF166534),
+                        color: Color(0xFF0369A1),
                       ),
                     ),
                   ),

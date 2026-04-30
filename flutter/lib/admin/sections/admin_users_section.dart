@@ -162,7 +162,7 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
                                   horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: active
-                                    ? Colors.green.shade100
+                                    ? const Color(0xFFFFE4CC)
                                     : Colors.grey.shade200,
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -172,7 +172,7 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
                                   color: active
-                                      ? Colors.green.shade800
+                                      ? const Color(0xFFC4521A)
                                       : Colors.grey.shade700,
                                 ),
                               ),

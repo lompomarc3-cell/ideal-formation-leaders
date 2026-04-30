@@ -288,7 +288,7 @@ export default function Home() {
   }
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA)\n✅ Concours professionnels – 17 dossiers (20 000 FCFA)\n✅ 5 questions gratuites par dossier sans inscription\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA)\n✅ Concours professionnels – 17 dossiers (20 000 FCFA)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Formation Burkina Faso', text, url: APP_URL })
@@ -314,7 +314,7 @@ export default function Home() {
     <>
       <Head>
         <title>IFL – Idéale Formation of Leaders | Concours Burkina Faso</title>
-        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. 5 questions gratuites par dossier sans inscription. Concours directs (12 dossiers) et professionnels (17 dossiers)." />
+        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Démo gratuite de 10 questions. Concours directs (12 dossiers) et professionnels (17 dossiers)." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="theme-color" content="#8B2500" />
         {/* PWA */}
@@ -371,7 +371,7 @@ export default function Home() {
                 </h1>
                 <p className="text-orange-200 text-sm mb-1">Des milliers de QCM pour vous préparer</p>
                 <div className="inline-block bg-white bg-opacity-20 text-white text-xs font-bold px-3 py-1 rounded-full mb-5">
-                  🆓 5 questions gratuites par dossier – sans inscription
+                  🆓 Démo gratuite — 10 questions
                 </div>
               </div>
             </div>

@@ -316,16 +316,16 @@ class _ProfileTabState extends State<ProfileTab> {
       fg = const Color(0xFF991B1B);
     } else if (type == 'all') {
       label = 'Accès total — Tous les dossiers';
-      bg = const Color(0xFFDCFCE7);
-      fg = const Color(0xFF166534);
+      bg = const Color(0xFFFFF3D9);
+      fg = const Color(0xFF92400E);
     } else if (type == 'direct') {
       label = 'Concours directs (12 dossiers)';
-      bg = const Color(0xFFDCFCE7);
-      fg = const Color(0xFF166534);
+      bg = const Color(0xFFFFEDD5);
+      fg = const Color(0xFF9A3412);
     } else if (type == 'professionnel') {
       label = 'Concours professionnels';
-      bg = const Color(0xFFDCFCE7);
-      fg = const Color(0xFF166534);
+      bg = const Color(0xFFE0F2FE);
+      fg = const Color(0xFF075985);
     } else {
       label = 'Aucun abonnement';
       bg = const Color(0xFFFEE2E2);

@@ -1,19 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="sc1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#33691E"/>
-      <stop offset="100%" stop-color="#9CCC65"/>
+    <linearGradient id="psc1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0EA5E9"/>
+      <stop offset="100%" stop-color="#0E7490"/>
     </linearGradient>
   </defs>
-  <rect x="12" y="12" width="40" height="44" rx="4" fill="#F1F8E9"/>
-  <rect x="12" y="12" width="40" height="44" rx="4" fill="none" stroke="url(#sc1)" stroke-width="2"/>
-  <ellipse cx="12" cy="34" rx="6" ry="22" fill="url(#sc1)"/>
-  <ellipse cx="52" cy="34" rx="6" ry="22" fill="url(#sc1)"/>
-  <ellipse cx="12" cy="34" rx="4" ry="18" fill="#C5E1A5"/>
-  <ellipse cx="52" cy="34" rx="4" ry="18" fill="#C5E1A5"/>
-  <line x1="20" y1="22" x2="44" y2="22" stroke="#558B2F" stroke-width="1.5"/>
-  <line x1="20" y1="28" x2="44" y2="28" stroke="#558B2F" stroke-width="1.5"/>
-  <line x1="20" y1="34" x2="44" y2="34" stroke="#558B2F" stroke-width="1.5"/>
-  <line x1="20" y1="40" x2="36" y2="40" stroke="#558B2F" stroke-width="1.5"/>
-  <polygon points="32,44 33.5,48 38,48 34.5,50.8 35.8,55 32,52.5 28.2,55 29.5,50.8 26,48 30.5,48" fill="#FFD700"/>
+  <!-- Parchemin -->
+  <rect x="12" y="14" width="40" height="36" rx="2" fill="#FFF"/>
+  <rect x="12" y="14" width="40" height="36" rx="2" fill="none" stroke="url(#psc1)" stroke-width="2"/>
+  <!-- Roulements haut/bas -->
+  <ellipse cx="32" cy="14" rx="20" ry="4" fill="url(#psc1)"/>
+  <ellipse cx="32" cy="50" rx="20" ry="4" fill="url(#psc1)"/>
+  <!-- Lignes texte -->
+  <rect x="18" y="22" width="28" height="2.5" rx="1" fill="#0EA5E9" opacity="0.7"/>
+  <rect x="18" y="28" width="28" height="2" rx="1" fill="#0EA5E9" opacity="0.5"/>
+  <rect x="18" y="33" width="28" height="2" rx="1" fill="#0EA5E9" opacity="0.5"/>
+  <rect x="18" y="38" width="20" height="2" rx="1" fill="#0EA5E9" opacity="0.5"/>
+  <!-- Sceau -->
+  <circle cx="44" cy="42" r="3" fill="#FBBF24"/>
 </svg>

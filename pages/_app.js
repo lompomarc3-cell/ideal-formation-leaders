@@ -138,7 +138,7 @@ function WelcomeScreen({ onDone }) {
           </svg>
         </button>
         <p style={{ textAlign: 'center', marginTop: 12, color: '#9CA3AF', fontSize: 12, fontFamily: 'Poppins, sans-serif' }}>
-          5 questions gratuites par dossier — sans inscription
+          Démo gratuite — 10 questions pour découvrir IFL
         </p>
       </div>
 

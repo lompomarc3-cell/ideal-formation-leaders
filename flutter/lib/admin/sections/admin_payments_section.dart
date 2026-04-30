@@ -186,7 +186,7 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
                       icon: const Icon(Icons.check, size: 16),
                       label: const Text('Approuver'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF16A34A),
+                        backgroundColor: const Color(0xFFC4521A),
                       ),
                     ),
                   ),

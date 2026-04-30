@@ -339,7 +339,7 @@ export default function Dashboard() {
     },
     {
       q: "Combien de questions gratuites par dossier ?",
-      a: "5 questions gratuites sont disponibles par dossier, sans inscription requise. Pour accéder à toutes les questions, un abonnement est nécessaire."
+      a: "5 questions gratuites sont disponibles par dossier, requise. Pour accéder à toutes les questions, un abonnement est nécessaire."
     }
   ]
 
@@ -593,7 +593,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex-1">
                   <p className="font-bold text-amber-800 text-sm">Démo gratuite disponible</p>
-                  <p className="text-amber-700 text-xs">10 questions d'entraînement sans inscription</p>
+                  <p className="text-amber-700 text-xs">10 questions d'entraînement</p>
                 </div>
                 <Link href="/demo" className="px-4 py-2 font-bold text-white rounded-xl text-xs active:scale-95"
                   style={{ background: '#D4A017' }}>
