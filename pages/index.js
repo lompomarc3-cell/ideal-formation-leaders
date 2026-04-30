@@ -1,5 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
+import { IFL_USSD_CODE, IFL_USSD_TEL, IFL_PHONE, IFL_PHONE_DISPLAY, whatsappLink, telLink } from '../lib/contact'
+import { externalLinkHandler, ussdLinkHandler } from '../lib/external-link'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
@@ -459,21 +461,17 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
-                  <p className="text-xs text-orange-100 mb-1">Code USSD (mobile : ouvre le composeur, sinon copier) :</p>
+                  <p className="text-xs text-orange-100 mb-1 flex items-center gap-1.5">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                    Code USSD (cliquez pour composer / copier) :
+                  </p>
                   <a
-                    href={`tel:${encodeURIComponent('*144*10*76223962#')}`}
-                    onClick={(e) => {
-                      try { navigator.clipboard?.writeText('*144*10*76223962#') } catch {}
-                      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '')
-                      if (!isMobile) {
-                        e.preventDefault()
-                        alert('✅ Code copié : *144*10*76223962#')
-                      }
-                    }}
+                    href={IFL_USSD_TEL}
+                    {...ussdLinkHandler(IFL_USSD_CODE)}
                     className="text-lg font-extrabold underline decoration-dotted active:opacity-70 inline-block"
-                  >*144*10*76223962#</a>
+                  >{IFL_USSD_CODE}</a>
                 </div>
-                <p className="text-orange-100 text-sm">Bénéficiaire : <a href="tel:+22676223962" className="font-extrabold text-white underline">+226 76 22 39 62</a></p>
+                <p className="text-orange-100 text-sm">Bénéficiaire : <a href={telLink()} {...externalLinkHandler(telLink())} className="font-extrabold text-white underline">{IFL_PHONE_DISPLAY}</a></p>
               </div>
 
               {/* Pourquoi IFL */}
@@ -509,8 +507,8 @@ export default function Home() {
               {/* Footer */}
               <footer className="text-center py-4 border-t border-amber-100">
                 <div className="flex justify-center gap-4 flex-wrap mb-2">
-                  <a href="https://wa.me/22676223962" target="_blank" rel="noopener noreferrer" className="font-semibold text-sm" style={{ color: '#C4521A' }}>
-                    💬 WhatsApp: +226 76 22 39 62
+                  <a href={whatsappLink()} {...externalLinkHandler(whatsappLink())} className="font-semibold text-sm" style={{ color: '#C4521A' }}>
+                    💬 WhatsApp: {IFL_PHONE_DISPLAY}
                   </a>
                 </div>
                 <div className="flex justify-center gap-4 text-sm text-gray-500 mb-2">
@@ -923,13 +921,13 @@ export default function Home() {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4A017" strokeWidth="2.5" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12 19.79 19.79 0 0 1 1.98 3.42 2 2 0 0 1 3.96 1.24h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                         Contactez-nous
                       </p>
-                      <a href="tel:+22676223962" className="flex items-center gap-3 mb-3 hover:opacity-80 transition-opacity active:scale-95">
+                      <a href={telLink()} {...externalLinkHandler(telLink())} className="flex items-center gap-3 mb-3 hover:opacity-80 transition-opacity active:scale-95">
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#C4521A' }}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="3"/></svg>
                         </div>
-                        <span className="font-bold text-sm" style={{ color: '#C4521A' }}>+226 76 22 39 62</span>
+                        <span className="font-bold text-sm" style={{ color: '#C4521A' }}>{IFL_PHONE_DISPLAY}</span>
                       </a>
-                      <a href="https://wa.me/22676223962?text=Bonjour%20IFL" target="_blank" rel="noopener noreferrer"
+                      <a href={whatsappLink('Bonjour IFL')} {...externalLinkHandler(whatsappLink('Bonjour IFL'))}
                         className="flex items-center gap-3 hover:opacity-80 transition-opacity active:scale-95">
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#25D366' }}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
@@ -966,8 +964,8 @@ export default function Home() {
                   <div className="bg-white rounded-3xl shadow-md border border-amber-100 p-5 mb-4">
                     <h3 className="font-extrabold mb-4 text-sm" style={{ color: '#8B2500' }}>📞 Contactez-nous</h3>
                     <div className="space-y-3">
-                      <a href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20j'ai%20besoin%20d'aide"
-                        target="_blank" rel="noopener noreferrer"
+                      <a href={whatsappLink("Bonjour IFL, j'ai besoin d'aide")}
+                        {...externalLinkHandler(whatsappLink("Bonjour IFL, j'ai besoin d'aide"))}
                         className="flex items-center gap-4 bg-amber-50 rounded-2xl p-4 border border-amber-100 active:scale-95 transition-all">
                         <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: '#E8F5E9' }}>
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
@@ -987,21 +985,17 @@ export default function Home() {
                           </div>
                         </div>
                         <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
-                          <p className="text-orange-100 text-xs">Code USSD (mobile : ouvre le composeur, sinon copier) :</p>
+                          <p className="text-orange-100 text-xs flex items-center gap-1.5">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                            Code USSD (cliquez pour composer / copier) :
+                          </p>
                           <a
-                            href={`tel:${encodeURIComponent('*144*10*76223962#')}`}
-                            onClick={(e) => {
-                              try { if(typeof navigator !== 'undefined') navigator.clipboard?.writeText('*144*10*76223962#') } catch {}
-                              const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test((typeof navigator !== 'undefined' && navigator.userAgent) || '')
-                              if (!isMobile) {
-                                e.preventDefault()
-                                alert('✅ Code copié : *144*10*76223962#')
-                              }
-                            }}
+                            href={IFL_USSD_TEL}
+                            {...ussdLinkHandler(IFL_USSD_CODE)}
                             className="text-xl font-extrabold tracking-wider underline decoration-dotted active:opacity-70 inline-block"
-                          >*144*10*76223962#</a>
+                          >{IFL_USSD_CODE}</a>
                         </div>
-                        <p className="text-orange-100 text-sm">Bénéficiaire : <a href="tel:+22676223962" className="font-extrabold text-white underline">+226 76 22 39 62</a></p>
+                        <p className="text-orange-100 text-sm">Bénéficiaire : <a href={telLink()} {...externalLinkHandler(telLink())} className="font-extrabold text-white underline">{IFL_PHONE_DISPLAY}</a></p>
                         <div className="flex gap-3 mt-3">
                           <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center text-white">
                             <p className="text-xs text-orange-100">Directs</p>
@@ -1141,7 +1135,7 @@ export default function Home() {
                       Passionné par les technologies éducatives, <strong style={{ color: '#8B2500' }}>Marc LOMPO</strong> conçoit des applications sur mesure pour aider les apprenants à atteindre leurs objectifs. Disponible pour tout projet ou partenariat.
                     </p>
                     <div className="space-y-3">
-                      <a href="tel:+22672662161" className="flex items-center gap-4 p-4 rounded-2xl hover:opacity-80 transition-opacity active:scale-95"
+                      <a href="tel:+22672662161" {...externalLinkHandler('tel:+22672662161')} className="flex items-center gap-4 p-4 rounded-2xl hover:opacity-80 transition-opacity active:scale-95"
                         style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '1.5px solid #FFD0A0' }}>
                         <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: '#C4521A' }}>
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12 19.79 19.79 0 0 1 1.98 3.42 2 2 0 0 1 3.96 1.24h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -1151,8 +1145,8 @@ export default function Home() {
                           <p className="font-extrabold text-base" style={{ color: '#C4521A' }}>+226 72 66 21 61</p>
                         </div>
                       </a>
-                      <a href="https://wa.me/22672662161?text=Bonjour%20Marc%2C%20je%20vous%20contacte%20via%20l%27application%20IFL"
-                        target="_blank" rel="noopener noreferrer"
+                      <a href={`https://wa.me/22672662161?text=${encodeURIComponent("Bonjour Marc, je vous contacte via l'application IFL")}`}
+                        {...externalLinkHandler(`https://wa.me/22672662161?text=${encodeURIComponent("Bonjour Marc, je vous contacte via l'application IFL")}`)}
                         className="flex items-center gap-4 p-4 rounded-2xl hover:opacity-80 transition-opacity active:scale-95"
                         style={{ background: 'linear-gradient(135deg,#E8FFF0,#C8FFD8)', border: '1.5px solid #A0FFB8' }}>
                         <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: '#25D366' }}>

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
+import { apiCall } from '../lib/external-link'
 
 const APP_URL = 'https://ideal-formation-leaders.pages.dev'
 
@@ -18,24 +19,31 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    // Validation côté client
+    const cleanPhone = (phone || '').trim().replace(/\s/g, '')
+    if (!cleanPhone || cleanPhone.length < 8) {
+      setError('Veuillez saisir un numéro de téléphone valide (8 chiffres minimum).')
+      return
+    }
+    if (!password || password.length < 4) {
+      setError('Veuillez saisir votre mot de passe.')
+      return
+    }
+
     setLoading(true)
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password })
-      })
-      const data = await res.json()
-      if (data.token) {
-        login(data.token, data.user)
-        // Admin et utilisateurs normal arrivent tous sur /dashboard
-        // L'admin peut accéder au panel via le bouton ⚙️ Admin dans le dashboard
-        router.push('/dashboard')
-      } else {
-        setError(data.error || 'Identifiants incorrects')
-      }
-    } catch {
-      setError('Erreur de connexion. Réessayez.')
+    const result = await apiCall('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: cleanPhone, password })
+    }, 15000)
+    if (result.ok && result.data?.token) {
+      login(result.data.token, result.data.user)
+      router.push('/dashboard')
+    } else if (result.status === 429) {
+      setError('Trop de tentatives. Veuillez réessayer dans quelques minutes.')
+    } else {
+      setError(result.error || 'Identifiants incorrects.')
     }
     setLoading(false)
   }

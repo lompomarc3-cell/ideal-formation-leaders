@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
+import { apiCall } from '../lib/external-link'
 
 export default function Register() {
   const { login } = useAuth()
@@ -21,6 +22,18 @@ export default function Register() {
     e.preventDefault()
     setError('')
 
+    // Validations côté client
+    const cleanNom = (nom || '').trim()
+    const cleanPrenom = (prenom || '').trim()
+    const cleanPhone = (phone || '').trim().replace(/\s/g, '')
+    if (!cleanNom || !cleanPrenom) {
+      setError('Veuillez renseigner votre nom et votre prénom.')
+      return
+    }
+    if (!cleanPhone || cleanPhone.length < 8) {
+      setError('Veuillez saisir un numéro de téléphone valide (8 chiffres minimum).')
+      return
+    }
     if (password !== confirm) {
       setError('Les mots de passe ne correspondent pas.')
       return
@@ -31,21 +44,18 @@ export default function Register() {
     }
 
     setLoading(true)
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, nom, prenom, password })
-      })
-      const data = await res.json()
-      if (data.token) {
-        login(data.token, data.user)
-        router.push('/dashboard')
-      } else {
-        setError(data.error || 'Erreur lors de l\'inscription.')
-      }
-    } catch {
-      setError('Erreur de connexion. Réessayez.')
+    const result = await apiCall('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: cleanPhone, nom: cleanNom, prenom: cleanPrenom, password })
+    }, 20000)
+    if (result.ok && result.data?.token) {
+      login(result.data.token, result.data.user)
+      router.push('/dashboard')
+    } else if (result.status === 429) {
+      setError('Trop d\'inscriptions. Veuillez réessayer dans quelques minutes.')
+    } else {
+      setError(result.error || 'Erreur lors de l\'inscription.')
     }
     setLoading(false)
   }

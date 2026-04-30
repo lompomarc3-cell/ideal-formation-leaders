@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from './_app'
+import { IFL_USSD_CODE, IFL_USSD_TEL, IFL_PHONE, IFL_PHONE_DISPLAY, whatsappLink, telLink } from '../lib/contact'
+import { externalLinkHandler, ussdLinkHandler, apiCall } from '../lib/external-link'
 
 export default function Payment() {
   const { user, loading, getToken } = useAuth()
@@ -65,19 +67,27 @@ export default function Payment() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    
+
     // Validation: pour un abonnement professionnel, la spécialité est obligatoire
     if (selectedType === 'professionnel' && !selectedSpecialty) {
       setError('Veuillez d\'abord choisir votre dossier principal.')
       return
     }
-    
+
+    // Validation côté client du numéro de téléphone (si renseigné)
+    if (numeroPaiement && numeroPaiement.trim()) {
+      const cleaned = numeroPaiement.replace(/[\s+\-]/g, '')
+      if (!/^(226)?\d{8,}$/.test(cleaned)) {
+        setError('Numéro Orange Money invalide. Format attendu : +226 XX XX XX XX')
+        return
+      }
+    }
+
     setSubmitting(true)
     try {
       const token = getToken()
-      // 🎯 Phase 2 — Si une promotion est active, on envoie le prix promo
       const effectivePrice = promos[selectedType]?.prix ?? prices[selectedType]
-      const res = await fetch('/api/payment/request', {
+      const result = await apiCall('/api/payment/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -87,12 +97,14 @@ export default function Payment() {
           notes: (promos[selectedType] ? `[PROMO appliquée] ` : '') + (notes || ''),
           dossier_principal: selectedType === 'professionnel' ? selectedSpecialty : null
         })
-      })
-      const data = await res.json()
-      if (data.success) setSuccess(true)
-      else setError(data.error || 'Erreur lors de l\'envoi')
-    } catch {
-      setError('Erreur de connexion. Réessayez.')
+      }, 20000)
+      if (result.ok && result.data?.success) {
+        setSuccess(true)
+      } else {
+        setError(result.error || 'Erreur lors de l\'envoi. Veuillez réessayer.')
+      }
+    } catch (err) {
+      setError(err.message || 'Erreur de connexion. Réessayez.')
     }
     setSubmitting(false)
   }
@@ -128,22 +140,15 @@ export default function Payment() {
               <div className="flex items-start gap-3 bg-amber-50 p-3 rounded-xl">
                 <span className="text-xl">1️⃣</span>
                 <p className="text-sm text-amber-800 font-medium">Effectuez le paiement Orange Money : <a
-                  href={`tel:${encodeURIComponent('*144*10*76223962#')}`}
-                  onClick={(e) => {
-                    try { navigator.clipboard?.writeText('*144*10*76223962#') } catch {}
-                    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '')
-                    if (!isMobile) {
-                      e.preventDefault()
-                      alert('✅ Code copié : *144*10*76223962#')
-                    }
-                  }}
+                  href={IFL_USSD_TEL}
+                  {...ussdLinkHandler(IFL_USSD_CODE)}
                   className="font-extrabold underline decoration-dotted cursor-pointer"
                   title="Cliquer pour composer ou copier"
-                >*144*10*76223962#</a></p>
+                >{IFL_USSD_CODE}</a></p>
               </div>
               <div className="flex items-start gap-3 bg-amber-50 p-3 rounded-xl">
                 <span className="text-xl">2️⃣</span>
-                <p className="text-sm text-amber-800 font-medium">Envoyez la capture d'écran via WhatsApp au <a href="tel:+22676223962" className="font-extrabold underline">+226 76 22 39 62</a></p>
+                <p className="text-sm text-amber-800 font-medium">Envoyez la capture d'écran via WhatsApp au <a href={telLink()} {...externalLinkHandler(telLink())} className="font-extrabold underline">{IFL_PHONE_DISPLAY}</a></p>
               </div>
               <div className="flex items-start gap-3 bg-amber-50 p-3 rounded-xl">
                 <span className="text-xl">3️⃣</span>
@@ -151,13 +156,13 @@ export default function Payment() {
               </div>
             </div>
             <a
-              href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20voici%20ma%20capture%20de%20paiement%20Orange%20Money"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full py-4 text-white font-bold rounded-xl mb-3 text-center"
+              href={whatsappLink('Bonjour IFL, voici ma capture de paiement Orange Money')}
+              {...externalLinkHandler(whatsappLink('Bonjour IFL, voici ma capture de paiement Orange Money'))}
+              className="flex items-center justify-center gap-2 w-full py-4 text-white font-bold rounded-xl mb-3 text-center active:scale-95 transition-all"
               style={{ background: '#25D366' }}
             >
-              📱 Envoyer la capture WhatsApp
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Envoyer la capture WhatsApp
             </a>
             <Link href="/dashboard" className="block text-center font-semibold py-3" style={{ color: '#C4521A' }}>
               ← Retour au tableau de bord
@@ -287,25 +292,21 @@ export default function Payment() {
               </div>
             </div>
             <div className="bg-white bg-opacity-20 rounded-xl p-3 mb-3">
-              <p className="text-sm font-bold text-orange-100 mb-1">Code USSD (mobile : ouvre le composeur, sinon copier) :</p>
+              <p className="text-sm font-bold text-orange-100 mb-1 flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                Code USSD (cliquez pour composer / copier) :
+              </p>
               <a
-                href={`tel:${encodeURIComponent('*144*10*76223962#')}`}
-                onClick={(e) => {
-                  try { navigator.clipboard?.writeText('*144*10*76223962#') } catch {}
-                  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '')
-                  if (!isMobile) {
-                    e.preventDefault()
-                    alert('✅ Code copié : *144*10*76223962#')
-                  }
-                }}
+                href={IFL_USSD_TEL}
+                {...ussdLinkHandler(IFL_USSD_CODE)}
                 className="text-2xl font-extrabold tracking-wider underline decoration-dotted active:opacity-70 inline-block"
                 title="Cliquer pour composer ou copier"
-              >*144*10*76223962#</a>
+              >{IFL_USSD_CODE}</a>
             </div>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-100 text-xs">Bénéficiaire</p>
-                <a href="tel:+22676223962" className="font-bold underline">+226 76 22 39 62</a>
+                <a href={telLink()} {...externalLinkHandler(telLink())} className="font-bold underline">{IFL_PHONE_DISPLAY}</a>
               </div>
               <div className="text-right">
                 <p className="text-orange-100 text-xs">Montant</p>
@@ -377,26 +378,25 @@ export default function Payment() {
 
           {/* WhatsApp Aide */}
           <a
-            href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20j'ai%20effectu%C3%A9%20mon%20paiement%20Orange%20Money"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full py-3.5 text-white font-bold text-center rounded-xl"
+            href={whatsappLink("Bonjour IFL, j'ai effectué mon paiement Orange Money")}
+            {...externalLinkHandler(whatsappLink("Bonjour IFL, j'ai effectué mon paiement Orange Money"))}
+            className="flex items-center justify-center gap-2 w-full py-3.5 text-white font-bold text-center rounded-xl active:scale-95 transition-all"
             style={{ background: '#25D366' }}
           >
-            💬 Envoyer la preuve WhatsApp (+226 76 22 39 62)
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Envoyer la preuve WhatsApp ({IFL_PHONE_DISPLAY})
           </a>
         </div>
 
         {/* Bouton flottant WhatsApp */}
         <a
-          href="https://wa.me/22676223962?text=Bonjour%20IFL%2C%20j'ai%20besoin%20d'aide%20pour%20le%20paiement"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed bottom-6 right-4 w-14 h-14 rounded-full flex items-center justify-center shadow-xl z-50 text-2xl"
+          href={whatsappLink("Bonjour IFL, j'ai besoin d'aide pour le paiement")}
+          {...externalLinkHandler(whatsappLink("Bonjour IFL, j'ai besoin d'aide pour le paiement"))}
+          className="fixed bottom-6 right-4 w-14 h-14 rounded-full flex items-center justify-center shadow-xl z-50 active:scale-90 transition-transform"
           style={{ background: '#25D366' }}
           title="Aide WhatsApp"
         >
-          💬
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         </a>
       </div>
     </>
