@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../../models/category.dart';
 import '../../services/auth_service.dart';
+import '../../services/price_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cat_icon.dart';
+import '../../widgets/price_display.dart';
 
 /// Onglet 3 : Concours professionnel.
 /// - 17 dossiers : 14 payants + 3 bonus (Entraînement QCM, Actualités, Accompagnement)
@@ -33,7 +35,10 @@ class _ProTabState extends State<ProTab> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _load();
+      context.read<PriceService>().load();
+    });
   }
 
   Future<void> _load() async {
@@ -124,7 +129,11 @@ class _ProTabState extends State<ProTab> {
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
-          onRefresh: _load,
+          onRefresh: () async {
+            await _load();
+            // ignore: use_build_context_synchronously
+            await context.read<PriceService>().refresh();
+          },
           child: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(child: _buildHeader(hasAnyPaid)),
@@ -145,7 +154,7 @@ class _ProTabState extends State<ProTab> {
                   SliverToBoxAdapter(
                     child: _sectionHeader(
                       '💼 Dossiers payants',
-                      '${paidList.length} dossiers • 20 000 FCFA / dossier',
+                      '${paidList.length} dossiers',
                     ),
                   ),
                 if (paidList.isNotEmpty)
@@ -276,28 +285,35 @@ class _ProTabState extends State<ProTab> {
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '14 dossiers payants',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 15,
-                        ),
-                      ),
-                      Text(
-                        '20 000 FCFA / dossier',
-                        style: TextStyle(
-                          color: Color(0xFFFFE0A0),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    '14 dossiers payants',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Bloc prix dynamique + promotion (visible PARTOUT)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.30),
+                width: 1,
+              ),
+            ),
+            child: const PriceDisplay(
+              type: 'professionnel',
+              style: PriceDisplayStyle.banner,
+              foreground: Colors.white,
+              hint: '/ dossier',
             ),
           ),
           const SizedBox(height: 10),
@@ -366,7 +382,7 @@ class _ProTabState extends State<ProTab> {
   }
 
   Widget _categoryCard(Category cat, bool unlocked, {bool isBonus = false}) {
-    final style = iconStyleFor(cat.icone, 'professionnel');
+    final style = iconStyleFor(cat.icone, 'professionnel', categoryName: cat.nom);
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () {
@@ -408,6 +424,7 @@ class _ProTabState extends State<ProTab> {
                   child: Center(
                     child: CatIcon(
                       name: cat.icone,
+                      categoryName: cat.nom,
                       catType: 'professionnel',
                       size: 38,
                     ),
@@ -429,35 +446,8 @@ class _ProTabState extends State<ProTab> {
                   ),
                 ),
                 const Spacer(),
-                // Badge info prix avec icône (caché pour les bonus)
-                if (!isBonus)
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: style.tag,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.folder_rounded,
-                            size: 11, color: style.tagText),
-                        const SizedBox(width: 3),
-                        Text(
-                          '20 000 F',
-                          style: TextStyle(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
-                            color: style.tagText,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else
+                // (Badge prix supprimé : prix géré globalement, pas par dossier)
+                if (isBonus)
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 8),
                     padding: const EdgeInsets.symmetric(

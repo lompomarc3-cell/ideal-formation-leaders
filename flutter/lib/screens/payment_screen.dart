@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../services/auth_service.dart';
+import '../services/price_service.dart';
 import '../theme/app_theme.dart';
 
 const String kOrangeMoneyNumber = '76223962';
@@ -42,10 +43,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
           setState(() => _dossierPrincipal = args['dossier'].toString());
         }
       }
+      // Charger les prix dynamiques (avec promo si active) au plus tôt
+      context.read<PriceService>().load();
     });
   }
 
-  int get _amount => _typeConcours == 'direct' ? 5000 : 20000;
+  /// Prix effectif (avec promo si active) chargé depuis le PriceService.
+  int get _amount {
+    final ps = context.read<PriceService>();
+    return _typeConcours == 'direct' ? ps.directPrixEffectif : ps.proPrixEffectif;
+  }
 
   String _formatPrice(int p) {
     final s = p.toString();
@@ -224,27 +231,34 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _typeChip(
-                  label: 'Direct',
-                  hint: '12 dossiers',
-                  value: 'direct',
-                  price: 5000,
+          Builder(builder: (context) {
+            final ps = context.watch<PriceService>();
+            return Row(
+              children: [
+                Expanded(
+                  child: _typeChip(
+                    label: 'Direct',
+                    hint: '12 dossiers',
+                    value: 'direct',
+                    price: ps.directPrixEffectif,
+                    oldPrice: ps.directHasPromo ? ps.directPrix : null,
+                    hasPromo: ps.directHasPromo,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _typeChip(
-                  label: 'Professionnel',
-                  hint: 'par dossier',
-                  value: 'professionnel',
-                  price: 20000,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _typeChip(
+                    label: 'Professionnel',
+                    hint: 'par dossier',
+                    value: 'professionnel',
+                    price: ps.proPrixEffectif,
+                    oldPrice: ps.proHasPromo ? ps.proPrix : null,
+                    hasPromo: ps.proHasPromo,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          }),
         ],
       ),
     );
@@ -255,6 +269,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     required String hint,
     required String value,
     required int price,
+    int? oldPrice,
+    bool hasPromo = false,
   }) {
     final selected = _typeConcours == value;
     return InkWell(
@@ -288,6 +304,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
             const SizedBox(height: 4),
+            if (hasPromo && oldPrice != null)
+              Text(
+                '${_formatPrice(oldPrice)} FCFA',
+                style: TextStyle(
+                  color: selected
+                      ? Colors.white.withValues(alpha: 0.75)
+                      : const Color(0xFF9CA3AF),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 10.5,
+                  decoration: TextDecoration.lineThrough,
+                ),
+              ),
             Text(
               '${_formatPrice(price)} FCFA',
               style: TextStyle(
@@ -296,6 +324,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 fontSize: 14,
               ),
             ),
+            if (hasPromo)
+              Container(
+                margin: const EdgeInsets.only(top: 2),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFBBF24),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'PROMO',
+                  style: TextStyle(
+                    color: Color(0xFF7C2D12),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 9,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
             const SizedBox(height: 2),
             Text(
               hint,

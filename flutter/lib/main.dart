@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'services/auth_service.dart';
+import 'services/price_service.dart';
+import 'services/api_service.dart';
 import 'screens/motivation_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/main_shell.dart';
@@ -23,8 +25,15 @@ class IFLApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<AuthService>(
-      create: (_) => AuthService()..bootstrap(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthService>(
+          create: (_) => AuthService()..bootstrap(),
+        ),
+        ChangeNotifierProvider<PriceService>(
+          create: (_) => PriceService(ApiService())..load(),
+        ),
+      ],
       child: MaterialApp(
         title: 'IFL — Idéale Formation of Leaders',
         debugShowCheckedModeBanner: false,

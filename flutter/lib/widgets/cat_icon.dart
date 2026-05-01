@@ -46,29 +46,89 @@ String _assetPath(String key, String catType) {
   return 'assets/icons/${isPro ? "pro" : "direct"}_$key.svg';
 }
 
-/// Affiche l'icône SVG correspondant à une catégorie (compatible avec emoji ou clé directe).
+/// Mapping nom catégorie (lower-case) → clé d'icône (override emoji).
+/// Utile quand l'emoji DB renvoie vers une clé qui n'a pas de SVG côté pro
+/// (ex: ⚖️ → 'scale' alors qu'on a 'pro_justice.svg' ; 🌍 → 'globe' alors qu'on a 'pro_newspaper.svg').
+String? _keyFromCategoryName(String nom, String catType) {
+  final n = nom.toLowerCase();
+  final isPro = catType == 'professionnel';
+  if (isPro) {
+    if (n.contains('justice') || n.contains('droit')) return 'justice';
+    if (n.contains('actualit') || n.contains('culture')) return 'newspaper';
+    if (n.contains('magistr')) return 'judge';
+    if (n.contains('police')) return 'badge';
+    if (n.contains('gsp')) return 'shield';
+    if (n.contains('vie scolaire') || n.contains('casu')) return 'school';
+    if (n.contains('cisu') || n.contains('enaref')) return 'building';
+    if (n.contains('iepenf')) return 'search2';
+    if (n.contains('inspect') || n.contains('ies')) return 'search';
+    if (n.contains('csap')) return 'graduation';
+    if (n.contains('agrég') || n.contains('agreg')) return 'scroll';
+    if (n.contains('capes')) return 'openbook';
+    if (n.contains('hôpital') || n.contains('hopital') || n.contains('pital')) return 'hospital';
+    if (n.contains('santé') || n.contains('sant')) return 'health';
+    if (n.contains('civil') || n.contains('admin')) return 'clipboard';
+    if (n.contains('qcm') || n.contains('entraîn') || n.contains('entrain')) return 'pencil';
+    if (n.contains('accompagn') || n.contains('final')) return 'target';
+  } else {
+    if (n.contains('actualit') || n.contains('culture')) return 'globe';
+    if (n.contains('français') || n.contains('franc')) return 'book';
+    if (n.contains('littérature') || n.contains('art')) return 'palette';
+    if (n.contains('histoire') || n.contains('géographie') || n.contains('h-g')) return 'map';
+    if (n.contains('svt') || n.contains('science')) return 'leaf';
+    if (n.contains('psycho')) return 'brain';
+    if (n.contains('math')) return 'calculator';
+    if (n.contains('physique') || n.contains('chimie')) return 'flask';
+    if (n.contains('droit') || n.contains('justice')) return 'scale';
+    if (n.contains('conomie')) return 'chart';
+    if (n.contains('qcm') || n.contains('entraîn')) return 'pencil';
+    if (n.contains('accompagn') || n.contains('final')) return 'target';
+  }
+  return null;
+}
+
+/// Affiche l'icône SVG correspondant à une catégorie (compatible avec emoji, nom ou clé directe).
 class CatIcon extends StatelessWidget {
   final String? name;
+  final String? categoryName; // nouveau : passer le nom de catégorie pour un mapping fiable
   final String catType;
   final double size;
 
   const CatIcon({
     super.key,
     this.name,
+    this.categoryName,
     this.catType = 'direct',
     this.size = 36,
   });
 
+  String _resolveKey() {
+    // 1) Si un nom de catégorie est fourni, on tente le mapping par nom (le plus fiable)
+    final catName = (categoryName ?? '').trim();
+    if (catName.isNotEmpty) {
+      final byName = _keyFromCategoryName(catName, catType);
+      if (byName != null) return byName;
+    }
+    // 2) Fallback : mapping par emoji ou clé directe
+    final raw = (name ?? '').trim();
+    return _emojiToKey[raw] ?? (raw.isEmpty ? 'book' : raw);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final raw = (name ?? '').trim();
-    final key = _emojiToKey[raw] ?? (raw.isEmpty ? 'book' : raw);
+    final key = _resolveKey();
     final path = _assetPath(key, catType);
     return SvgPicture.asset(
       path,
       width: size,
       height: size,
-      placeholderBuilder: (_) => Icon(Icons.book, size: size, color: const Color(0xFFC4521A)),
+      placeholderBuilder: (_) => Icon(
+        Icons.menu_book_rounded,
+        size: size,
+        color: catType == 'professionnel'
+            ? const Color(0xFF0369A1)
+            : const Color(0xFFC4521A),
+      ),
     );
   }
 }
@@ -123,9 +183,18 @@ const Map<String, IconStyle> _proIconColors = {
   'target':     IconStyle(bgGradient: [Color(0xFF0284C7), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0284C7)),
 };
 
-IconStyle iconStyleFor(String? icone, String catType) {
-  final raw = (icone ?? '').trim();
-  final key = _emojiToKey[raw] ?? (raw.isEmpty ? 'book' : raw);
+IconStyle iconStyleFor(String? icone, String catType, {String? categoryName}) {
+  // 1) Tente le mapping par nom de catégorie (le plus fiable)
+  final catName = (categoryName ?? '').trim();
+  String? key;
+  if (catName.isNotEmpty) {
+    key = _keyFromCategoryName(catName, catType);
+  }
+  // 2) Fallback : mapping par emoji ou clé directe
+  if (key == null) {
+    final raw = (icone ?? '').trim();
+    key = _emojiToKey[raw] ?? (raw.isEmpty ? 'book' : raw);
+  }
   final pal = catType == 'professionnel' ? _proIconColors : _directIconColors;
   return pal[key] ??
       (catType == 'professionnel'

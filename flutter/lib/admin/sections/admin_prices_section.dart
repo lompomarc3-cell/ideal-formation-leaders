@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
+import '../../services/price_service.dart';
 import '../../theme/app_theme.dart';
 
 class AdminPricesSection extends StatefulWidget {
@@ -125,6 +126,10 @@ class _AdminPricesSectionState extends State<AdminPricesSection> {
         );
       }
       _load();
+      // Notifie tous les écrans (Accueil, Direct, Pro, Profil) du nouveau prix
+      // pour que la modification soit visible PARTOUT, pas seulement sur l'accueil.
+      // ignore: use_build_context_synchronously
+      await context.read<PriceService>().refresh();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

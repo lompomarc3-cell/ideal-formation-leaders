@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../services/auth_service.dart';
+import '../../services/price_service.dart';
 import '../../theme/app_theme.dart';
 import '../main_shell.dart';
 
@@ -22,60 +23,17 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  Map<String, dynamic>? _pricesDirect;
-  Map<String, dynamic>? _pricesPro;
-  bool _loadingPrices = true;
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadPrices());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Utilise le service centralisé : modifications visibles partout
+      context.read<PriceService>().load();
+    });
   }
 
-  Future<void> _loadPrices() async {
-    try {
-      final auth = context.read<AuthService>();
-      final res = await auth.api.publicPrices();
-      if (!mounted) return;
-      final prices = (res['prices'] as Map?) ?? {};
-      setState(() {
-        _pricesDirect = prices['direct'] is Map
-            ? Map<String, dynamic>.from(prices['direct'] as Map)
-            : null;
-        _pricesPro = prices['professionnel'] is Map
-            ? Map<String, dynamic>.from(prices['professionnel'] as Map)
-            : null;
-        _loadingPrices = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _loadingPrices = false);
-    }
-  }
-
-  String _fmt(int v) {
-    final s = v.toString();
-    final buf = StringBuffer();
-    for (int i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buf.write(' ');
-      buf.write(s[i]);
-    }
-    return '${buf.toString()} FCFA';
-  }
-
-  String? _countdown(String? iso) {
-    if (iso == null) return null;
-    try {
-      final end = DateTime.parse(iso);
-      final diff = end.difference(DateTime.now());
-      if (diff.isNegative) return null;
-      if (diff.inDays > 0) return 'Fin dans ${diff.inDays}j ${diff.inHours % 24}h';
-      if (diff.inHours > 0) return 'Fin dans ${diff.inHours}h ${diff.inMinutes % 60}min';
-      return 'Fin dans ${diff.inMinutes}min';
-    } catch (_) {
-      return null;
-    }
-  }
+  String _fmt(int v) => PriceService.formatFcfa(v);
+  String? _countdown(String? iso) => PriceService.countdown(iso);
 
   Future<void> _share() async {
     const txt =
@@ -344,16 +302,17 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Widget _buildOfferDirectDynamic() {
-    final prix = (_pricesDirect?['prix'] as num?)?.toInt() ?? 5000;
-    final prixPromo = (_pricesDirect?['prix_promo'] as num?)?.toInt();
-    final hasPromo = (_pricesDirect?['has_promo'] == true) && prixPromo != null;
-    final dateFin = _pricesDirect?['date_fin']?.toString();
-    final label = _pricesDirect?['label']?.toString();
+    final ps = context.watch<PriceService>();
+    final prix = ps.directPrix;
+    final prixPromo = ps.directPrixPromo;
+    final hasPromo = ps.directHasPromo;
+    final dateFin = ps.directDateFin;
+    final label = ps.directLabel;
     return _OfferCard(
       title: '📚 Concours directs',
       subtitle: '12 dossiers',
-      price: hasPromo ? _fmt(prixPromo) : _fmt(prix),
-      oldPrice: hasPromo ? _fmt(prix) : null,
+      price: hasPromo && prixPromo != null ? _fmt(prixPromo) : _fmt(prix),
+      oldPrice: hasPromo && prixPromo != null ? _fmt(prix) : null,
       promoLabel: hasPromo ? (label ?? 'PROMO') : null,
       promoCountdown: hasPromo ? _countdown(dateFin) : null,
       priceHint: 'pour les 12 dossiers',
@@ -368,21 +327,22 @@ class _HomeTabState extends State<HomeTab> {
       ),
       cta: 'Voir les 12 dossiers',
       onCta: () => MainShell.of(context)?.goTo(1),
-      loading: _loadingPrices,
+      loading: ps.loading && !ps.loaded,
     );
   }
 
   Widget _buildOfferProDynamic() {
-    final prix = (_pricesPro?['prix'] as num?)?.toInt() ?? 20000;
-    final prixPromo = (_pricesPro?['prix_promo'] as num?)?.toInt();
-    final hasPromo = (_pricesPro?['has_promo'] == true) && prixPromo != null;
-    final dateFin = _pricesPro?['date_fin']?.toString();
-    final label = _pricesPro?['label']?.toString();
+    final ps = context.watch<PriceService>();
+    final prix = ps.proPrix;
+    final prixPromo = ps.proPrixPromo;
+    final hasPromo = ps.proHasPromo;
+    final dateFin = ps.proDateFin;
+    final label = ps.proLabel;
     return _OfferCard(
       title: '🎓 Concours professionnels',
       subtitle: '14 dossiers payants + 3 bonus',
-      price: hasPromo ? _fmt(prixPromo) : _fmt(prix),
-      oldPrice: hasPromo ? _fmt(prix) : null,
+      price: hasPromo && prixPromo != null ? _fmt(prixPromo) : _fmt(prix),
+      oldPrice: hasPromo && prixPromo != null ? _fmt(prix) : null,
       promoLabel: hasPromo ? (label ?? 'PROMO') : null,
       promoCountdown: hasPromo ? _countdown(dateFin) : null,
       priceHint: 'par dossier payant',
@@ -398,7 +358,7 @@ class _HomeTabState extends State<HomeTab> {
       cta: 'Voir les 17 dossiers',
       onCta: () => MainShell.of(context)?.goTo(2),
       foregroundColor: const Color(0xFF075985),
-      loading: _loadingPrices,
+      loading: ps.loading && !ps.loaded,
     );
   }
 

@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/auth_service.dart';
+import '../../services/price_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/price_display.dart';
 import '../main_shell.dart';
 
 /// Onglet 4 : Profil utilisateur.
@@ -32,7 +34,12 @@ class _ProfileTabState extends State<ProfileTab> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadStats());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadStats();
+      // Rafraîchit aussi les prix/promos pour que la carte « Tarifs en
+      // vigueur » soit toujours synchronisée avec l'admin.
+      context.read<PriceService>().load();
+    });
   }
 
   Future<void> _loadStats() async {
@@ -98,6 +105,8 @@ class _ProfileTabState extends State<ProfileTab> {
                     _buildIdentityCard(user),
                     const SizedBox(height: 12),
                     _buildSubscriptionCard(user),
+                    const SizedBox(height: 12),
+                    _buildPricesCard(),
                     const SizedBox(height: 12),
                     _buildStatsCard(),
                     const SizedBox(height: 12),
@@ -436,6 +445,116 @@ class _ProfileTabState extends State<ProfileTab> {
                 ),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Carte « Tarifs en vigueur » : affiche les prix dynamiques + promotions
+  /// (visibles partout, mêmes infos que sur l'accueil).
+  Widget _buildPricesCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFFFE4CC)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.local_offer_rounded,
+                    color: AppColors.primary, size: 20),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Tarifs en vigueur',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                      color: AppColors.darkTerracotta,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Rafraîchir',
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(Icons.refresh_rounded,
+                      size: 18, color: Color(0xFF6B7280)),
+                  onPressed: () =>
+                      context.read<PriceService>().refresh(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Direct
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF7ED),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFFED7AA)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    '📚 Concours directs',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                      color: AppColors.darkTerracotta,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  PriceDisplay(
+                    type: 'direct',
+                    foreground: AppColors.darkTerracotta,
+                    promoBadgeBg: Color(0xFFFBBF24),
+                    promoBadgeText: Color(0xFF7C2D12),
+                    hint: 'pour les 12 dossiers',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Pro
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0F2FE),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFBAE6FD)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    '🎓 Concours professionnels',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                      color: Color(0xFF075985),
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  PriceDisplay(
+                    type: 'professionnel',
+                    foreground: Color(0xFF075985),
+                    promoBadgeBg: Color(0xFFFBBF24),
+                    promoBadgeText: Color(0xFF7C2D12),
+                    hint: '/ dossier',
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

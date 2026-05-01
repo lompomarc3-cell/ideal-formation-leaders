@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../../models/category.dart';
 import '../../services/auth_service.dart';
+import '../../services/price_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cat_icon.dart';
+import '../../widgets/price_display.dart';
 
 /// Onglet 2 : Concours direct.
 /// - 12 dossiers
@@ -25,7 +27,11 @@ class _DirectTabState extends State<DirectTab> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _load();
+      // S'assure que les prix/promos sont à jour à chaque ouverture de l'onglet
+      context.read<PriceService>().load();
+    });
   }
 
   Future<void> _load() async {
@@ -78,7 +84,11 @@ class _DirectTabState extends State<DirectTab> {
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
-          onRefresh: _load,
+          onRefresh: () async {
+            await _load();
+            // ignore: use_build_context_synchronously
+            await context.read<PriceService>().refresh();
+          },
           child: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(child: _buildHeader(hasAccess)),
@@ -187,25 +197,13 @@ class _DirectTabState extends State<DirectTab> {
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '12 dossiers • 5 000 FCFA',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        'Prix unique pour les 12 dossiers',
-                        style: TextStyle(
-                          color: Color(0xFFFFE0A0),
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    '12 dossiers',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
                 if (hasAccess)
@@ -243,6 +241,25 @@ class _DirectTabState extends State<DirectTab> {
             ),
           ),
           const SizedBox(height: 10),
+          // Bloc prix dynamique + promotion (visible PARTOUT)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.30),
+                width: 1,
+              ),
+            ),
+            child: const PriceDisplay(
+              type: 'direct',
+              style: PriceDisplayStyle.banner,
+              foreground: Colors.white,
+              hint: 'pour les 12 dossiers',
+            ),
+          ),
+          const SizedBox(height: 10),
           Container(
             padding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -274,7 +291,7 @@ class _DirectTabState extends State<DirectTab> {
   }
 
   Widget _categoryCard(Category cat, bool unlocked) {
-    final style = iconStyleFor(cat.icone, 'direct');
+    final style = iconStyleFor(cat.icone, 'direct', categoryName: cat.nom);
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () {
@@ -312,6 +329,7 @@ class _DirectTabState extends State<DirectTab> {
               child: Center(
                 child: CatIcon(
                   name: cat.icone,
+                  categoryName: cat.nom,
                   catType: 'direct',
                   size: 38,
                 ),
@@ -333,33 +351,7 @@ class _DirectTabState extends State<DirectTab> {
               ),
             ),
             const Spacer(),
-            // Badge info dossier (12 dossiers / 5000 FCFA) avec icône
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-              decoration: BoxDecoration(
-                color: style.tag,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.folder_rounded,
-                      size: 11, color: style.tagText),
-                  const SizedBox(width: 3),
-                  Text(
-                    'QCM • 5 000 F',
-                    style: TextStyle(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w800,
-                      color: style.tagText,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 4),
+            // (Badge prix supprimé : prix géré globalement, pas par dossier)
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

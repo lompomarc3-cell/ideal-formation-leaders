@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
+import '../../services/price_service.dart';
 import '../../theme/app_theme.dart';
 
 class AdminPromotionsSection extends StatefulWidget {
@@ -93,6 +94,9 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
         );
       }
       _load();
+      // Notifie tous les écrans de la nouvelle promo (Accueil, Direct, Pro, Profil)
+      // ignore: use_build_context_synchronously
+      await context.read<PriceService>().refresh();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -130,6 +134,9 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
         const SnackBar(content: Text('✅ Promotion supprimée')),
       );
       _load();
+      // Notifie tous les écrans de la suppression de la promo
+      // ignore: use_build_context_synchronously
+      await context.read<PriceService>().refresh();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
