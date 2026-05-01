@@ -15,3 +15,5 @@ key.properties
 release-key.jks
 key.properties
 app/release-key.jks
+release-key.jks
+key.properties
