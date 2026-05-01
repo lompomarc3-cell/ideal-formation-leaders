@@ -1,11 +1,11 @@
 {
-    "name": "ifl",
-    "short_name": "ifl",
+    "name": "IFL — Idéale Formation of Leaders",
+    "short_name": "IFL",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFF8F0",
+    "theme_color": "#C4521A",
+    "description": "Préparez vos concours directs et professionnels au Burkina Faso. QCM, suivi de progression, paiement Orange Money.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
