@@ -297,10 +297,6 @@ class AboutAppPage extends StatelessWidget {
                   style: TextStyle(fontSize: 13, height: 1.5),
                 ),
                 Text(
-                  '• Le partage de votre compte est interdit.',
-                  style: TextStyle(fontSize: 13, height: 1.5),
-                ),
-                Text(
                   '• Les paiements sont validés manuellement par notre équipe '
                   'dans un délai de 24h ouvrées.',
                   style: TextStyle(fontSize: 13, height: 1.5),
