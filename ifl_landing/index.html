@@ -204,35 +204,18 @@
             font-weight: 500;
         }
 
-        /* QR */
-        .qr-section {
+        /* INFO */
+        .info-section {
             background: #FAFAFA;
             border-radius: 20px;
-            padding: 22px;
+            padding: 18px 22px;
             margin-bottom: 26px;
             border: 1px dashed #E0D5CC;
-        }
-        .qr-title {
             font-size: 13px;
-            font-weight: 700;
             color: #5C4438;
-            margin-bottom: 12px;
-            letter-spacing: 0.5px;
+            font-weight: 500;
+            text-align: center;
         }
-        .qr {
-            width: 168px;
-            height: 168px;
-            background: white;
-            border-radius: 16px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        .qr canvas, .qr img { width: 100% !important; height: 100% !important; }
-        .qr-info { font-size: 12px; color: #888; }
 
         /* SECURITY */
         .security {
@@ -325,18 +308,16 @@
 
             <!-- CTA -->
             <div class="cta-wrap">
-                <a href="app/ifl-latest.apk" class="btn" id="downloadBtn" download>
+                <a href="https://github.com/lompomarc3-cell/ideal-formation-leaders/releases/download/v2.1.1/ifl-latest.apk" class="btn" id="downloadBtn" download="ifl-latest.apk">
                     <span class="btn-icon">⬇️</span>
                     <span>Télécharger l'application</span>
                 </a>
                 <div class="btn-sub">APK officiel · Installation directe · ~25 Mo</div>
             </div>
 
-            <!-- QR -->
-            <div class="qr-section">
-                <div class="qr-title">📱 SCANNEZ POUR TÉLÉCHARGER</div>
-                <div class="qr" id="qrcode"></div>
-                <div class="qr-info">Pointez l'appareil photo de votre téléphone</div>
+            <!-- INFO -->
+            <div class="info-section">
+                Téléchargez directement l'application ci-dessous
             </div>
 
             <!-- SECURITY -->
@@ -360,22 +341,7 @@
         </footer>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>
-        // QR Code
-        try {
-            new QRCode(document.getElementById("qrcode"), {
-                text: "https://ifl-landing.pages.dev/app/ifl-latest.apk",
-                width: 160,
-                height: 160,
-                colorDark: "#8B2500",
-                colorLight: "#FFFFFF",
-                correctLevel: QRCode.CorrectLevel.M
-            });
-        } catch (e) {
-            console.warn("QR generation failed", e);
-        }
-
         // Download tracking + smooth UX
         document.getElementById('downloadBtn').addEventListener('click', function() {
             this.style.opacity = '0.85';
