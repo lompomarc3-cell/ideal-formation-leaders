@@ -242,7 +242,7 @@ class _CategoryEditorDialogState extends State<_CategoryEditorDialog> {
             ),
             if (widget.cat != null)
               SwitchListTile(
-                title: const Text('Active'),
+                title: const Text('Activée'),
                 value: _isActive,
                 activeColor: AppColors.primary,
                 onChanged: (v) => setState(() => _isActive = v),

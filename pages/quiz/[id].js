@@ -391,6 +391,9 @@ export default function QuizPage() {
   const catPrice = getPublicPrice(catType) || (catType === 'professionnel' ? 20000 : 5000)
   const isCurrentFree = isQuestionFree(current)
   const isLocked = !hasFullAccess && !isCurrentFree
+  // 📝 Mode DISSERTATION pur : aucun élément QCM (pas de badge gratuites, pas d'options A/B/C/D,
+  // pas de compteur, pas de flèches Précédente/Suivante). Seuls titre, sujet et corrigé sont affichés.
+  const isDissertationMode = q && isDissertation(q)
 
   return (
     <>
@@ -417,13 +420,13 @@ export default function QuizPage() {
                 </p>
               )}
             </div>
-            {!loadingQ && !error && !showUpgrade && !finished && (
+            {!loadingQ && !error && !showUpgrade && !finished && !isDissertationMode && (
               <span className="text-white text-sm font-bold opacity-80 flex-shrink-0 bg-white bg-opacity-20 px-3 py-1 rounded-xl">
                 {current + 1}/{total}
               </span>
             )}
           </div>
-          {!loadingQ && !error && !finished && !showUpgrade && (
+          {!loadingQ && !error && !finished && !showUpgrade && !isDissertationMode && (
             <div className="h-1.5" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="h-full progress-bar" style={{ width: `${progress}%`, background: '#D4A017' }}></div>
             </div>
@@ -468,8 +471,8 @@ export default function QuizPage() {
             </div>
           )}
 
-          {/* Bannière "questions gratuites" si accès limité */}
-          {!loadingQ && !error && total > 0 && !hasFullAccess && !showUpgrade && !finished && (
+          {/* Bannière "questions gratuites" si accès limité — MASQUÉE en mode dissertation */}
+          {!loadingQ && !error && total > 0 && !hasFullAccess && !showUpgrade && !finished && !isDissertationMode && (
             <div className="mb-4 rounded-2xl p-3 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)' }}>
               <span className="text-2xl">🆓</span>
               <div className="flex-1">
@@ -577,55 +580,58 @@ export default function QuizPage() {
           {!loadingQ && !error && !finished && !showUpgrade && q && (
             <div className="animate-fadeIn">
 
-              {/* Flèches de navigation (les points ont été retirés pour une meilleure lisibilité) */}
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  onClick={handlePrev}
-                  disabled={current === 0}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
-                  style={{ background: current === 0 ? '#f3f4f6' : '#FFF0E8', color: current === 0 ? '#9ca3af' : '#C4521A' }}
-                >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path d="M15 18l-6-6 6-6"/>
-                  </svg>
-                  Précédente
-                </button>
+              {/* Flèches de navigation et compteur — MASQUÉS en mode dissertation
+                  (conserve uniquement titre, sujet et corrigé) */}
+              {!isDissertationMode && (
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    onClick={handlePrev}
+                    disabled={current === 0}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
+                    style={{ background: current === 0 ? '#f3f4f6' : '#FFF0E8', color: current === 0 ? '#9ca3af' : '#C4521A' }}
+                  >
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                    Précédente
+                  </button>
 
-                <div className="text-center">
-                  <p className="text-sm font-bold" style={{ color: isLocked ? '#6B7280' : '#8B2500' }}>
-                    {isLocked ? (
-                      <span className="flex items-center gap-1 justify-center">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round">
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                        </svg>
-                        Q{current + 1} – Payante
-                      </span>
-                    ) : (
-                      `Question ${current + 1} / ${total}`
-                    )}
-                  </p>
-                  {!hasFullAccess && (
-                    <p className="text-xs mt-0.5" style={{ color: isLocked ? '#EF4444' : '#22C55E' }}>
-                      {isLocked ? '🔒 Abonnement requis' : '🆓 Gratuite'}
+                  <div className="text-center">
+                    <p className="text-sm font-bold" style={{ color: isLocked ? '#6B7280' : '#8B2500' }}>
+                      {isLocked ? (
+                        <span className="flex items-center gap-1 justify-center">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                          </svg>
+                          Q{current + 1} – Payante
+                        </span>
+                      ) : (
+                        `Question ${current + 1} / ${total}`
+                      )}
                     </p>
-                  )}
-                </div>
+                    {!hasFullAccess && (
+                      <p className="text-xs mt-0.5" style={{ color: isLocked ? '#EF4444' : '#22C55E' }}>
+                        {isLocked ? '🔒 Abonnement requis' : '🆓 Gratuite'}
+                      </p>
+                    )}
+                  </div>
 
-                <button
-                  onClick={handleNext}
-                  disabled={current >= questions.length - 1}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
-                  style={{
-                    background: current >= questions.length - 1 ? '#f3f4f6' : '#FFF0E8',
-                    color: current >= questions.length - 1 ? '#9ca3af' : '#C4521A'
-                  }}
-                >
-                  Suivante
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path d="M9 18l6-6-6-6"/>
-                  </svg>
-                </button>
-              </div>
+                  <button
+                    onClick={handleNext}
+                    disabled={current >= questions.length - 1}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30"
+                    style={{
+                      background: current >= questions.length - 1 ? '#f3f4f6' : '#FFF0E8',
+                      color: current >= questions.length - 1 ? '#9ca3af' : '#C4521A'
+                    }}
+                  >
+                    Suivante
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                  </button>
+                </div>
+              )}
 
               {/* OVERLAY PAYANT */}
               {isLocked && showPaywallOverlay && (
@@ -677,8 +683,8 @@ export default function QuizPage() {
               {/* Carte Question (masquée si payante et overlay visible) */}
               {!(isLocked && showPaywallOverlay) && (
                 <>
-                  {/* Badge gratuit/payant sur la question */}
-                  {!hasFullAccess && (
+                  {/* Badge gratuit/payant sur la question — MASQUÉ en mode dissertation */}
+                  {!hasFullAccess && !isDissertationMode && (
                     <div className="flex justify-end mb-2">
                       <span
                         className="text-xs font-bold px-3 py-1 rounded-full"
@@ -719,7 +725,8 @@ export default function QuizPage() {
                       </div>
                     </div>
 
-                    {/* Mode DISSERTATION: Afficher directement le corrigé complet */}
+                    {/* Mode DISSERTATION: Affiche UNIQUEMENT titre, sujet et corrigé.
+                        Aucun élément QCM (pas de A/B/C/D, pas de bouton, pas de compteur). */}
                     {!isLocked && isDissertation(q) && (
                       <div className="mt-4">
                         <div className="rounded-2xl p-5" style={{ background: '#FAF5EB', border: '2px solid #D4A017' }}>
@@ -730,21 +737,6 @@ export default function QuizPage() {
                             {q.explication}
                           </div>
                         </div>
-                        {!answered && (
-                          <button
-                            onClick={() => {
-                              setAnswered(true)
-                              setScore(s => s + 1)
-                              setAnswersMap(prev => ({ ...prev, [current]: { selected: 'A', answered: true } }))
-                              saveProgress(current)
-                              saveProgressServer(current, score + 1)
-                            }}
-                            className="w-full mt-4 py-3 font-bold rounded-xl text-white active:scale-95"
-                            style={{ background: 'linear-gradient(135deg,#D4A017,#8B2500)' }}
-                          >
-                            ✓ J'ai terminé la lecture
-                          </button>
-                        )}
                       </div>
                     )}
 
@@ -829,12 +821,23 @@ export default function QuizPage() {
                     })()}
                   </div>
 
-                  {answered && !isLocked && (
+                  {answered && !isLocked && !isDissertationMode && (
                     <button onClick={handleNext} className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg active:scale-95 animate-popIn"
                       style={{ background: 'linear-gradient(135deg, #C4521A, #8B2500)' }}>
                       {current + 1 >= total
                         ? (hasFullAccess ? '📊 Voir mes résultats' : '🔓 Voir le résumé')
                         : 'Question suivante →'}
+                    </button>
+                  )}
+
+                  {/* En mode dissertation : bouton retour simple, sans navigation QCM */}
+                  {isDissertationMode && !isLocked && (
+                    <button
+                      onClick={() => router.push(`/dashboard?tab=concours&catType=${catType}`)}
+                      className="w-full py-4 text-lg font-bold text-white rounded-xl shadow-lg active:scale-95"
+                      style={{ background: 'linear-gradient(135deg, #C4521A, #8B2500)' }}
+                    >
+                      ← Retour aux dossiers
                     </button>
                   )}
                 </>

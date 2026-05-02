@@ -88,28 +88,55 @@ export default async function handler(req) {
 
     try {
       const newStatus = valide ? 'approved' : 'rejected'
-      
-      // Mettre à jour la demande
+      const dateFr = new Date().toLocaleDateString('fr-FR')
+
+      // 🔍 Récupérer la demande pour extraire le type/dossier réel depuis le message JSON
+      const { data: existingReq } = await supabaseAdmin
+        .from('correction_requests')
+        .select('id, user_id, message, status')
+        .eq('id', id)
+        .maybeSingle()
+
+      // Extraire les vrais type/dossier depuis le message JSON (source de vérité)
+      let realType = type_concours
+      let realDossier = dossier_principal
+      if (existingReq && existingReq.message) {
+        try {
+          const parsed = JSON.parse(existingReq.message)
+          if (parsed && parsed.type === 'ifl_payment') {
+            realType = parsed.type_concours || realType
+            realDossier = parsed.dossier_principal || realDossier
+          }
+        } catch {}
+      }
+
+      // Mettre à jour la demande avec un message admin clair
+      const adminResponse = notes_admin || (valide
+        ? `Paiement validé par admin le ${dateFr}${realDossier ? ' — Dossier : ' + realDossier : ''}`
+        : `Paiement rejeté par admin le ${dateFr}`)
+
       const { error: updateErr } = await supabaseAdmin
         .from('correction_requests')
         .update({
           status: newStatus,
-          admin_response: notes_admin || (valide ? `Paiement validé par admin le ${new Date().toLocaleDateString('fr-FR')}` : 'Paiement rejeté')
+          admin_response: adminResponse
         })
         .eq('id', id)
 
       if (updateErr) throw updateErr
 
-      // Si validé, activer l'abonnement
+      // Si validé : activer l'abonnement et donner accès TOTAL à toutes les questions du dossier
       if (valide) {
         const expiresAt = new Date()
         expiresAt.setFullYear(expiresAt.getFullYear() + 1)
-        
+
         // IMPORTANT: La contrainte DB n'accepte que 'direct' et 'professionnel'
         // Le dossier_principal est stocké dans correction_requests.message (JSON)
-        // et récupéré via l'API /me en cherchant le paiement approuvé
-        const subscriptionTypeValue = type_concours || 'direct'
+        // et récupéré via l'API /me en cherchant les paiements approuvés (multi-dossiers)
+        const subscriptionTypeValue = (realType === 'professionnel' ? 'professionnel' : 'direct')
 
+        // 🚨 CORRECTION CRITIQUE : forcer subscription_status='active' pour débloquer
+        // TOUTES les questions du dossier (et pas juste les 5 premières gratuites)
         const { error: profileErr } = await supabaseAdmin
           .from('profiles')
           .update({
@@ -121,12 +148,17 @@ export default async function handler(req) {
 
         if (profileErr) throw profileErr
       }
+      // Si rejeté : on NE touche PAS au profil — l'utilisateur garde son état actuel
+      // (s'il avait déjà un autre paiement validé, il conserve ses accès ; sinon il reste limité aux 5 questions gratuites)
 
       return new Response(JSON.stringify({
         success: true,
         message: valide
-          ? `✅ Paiement validé – abonnement ${type_concours}${dossier_principal ? ' (' + dossier_principal + ')' : ''} activé`
-          : '❌ Paiement rejeté'
+          ? `✅ Paiement validé — accès complet activé pour l'abonnement ${realType}${realDossier ? ' (' + realDossier + ')' : ''}`
+          : `❌ Paiement rejeté — l'utilisateur n'aura pas accès aux questions complètes`,
+        type_concours: realType,
+        dossier_principal: realDossier,
+        status: newStatus
       }), { status: 200, headers: { 'Content-Type': 'application/json' } })
 
     } catch (err) {

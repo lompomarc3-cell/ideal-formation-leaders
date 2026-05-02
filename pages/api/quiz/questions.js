@@ -173,22 +173,52 @@ export default async function handler(req) {
       const notExpired = !expiresAt || expiresAt > now
       
       if (notExpired) {
-        const { type: subType, dossier_principal } = parseSubscriptionType(profile.subscription_type)
+        const { type: subType, dossier_principal: subDossier } = parseSubscriptionType(profile.subscription_type)
         
         if (subType === 'all') {
           hasFullAccess = true
         } else if (subType === 'direct' && category.type === 'direct') {
+          // ✅ Abonnement direct validé → accès TOTAL aux 12 dossiers directs
           hasFullAccess = true
         } else if (subType === 'professionnel' && category.type === 'professionnel') {
-          // Vérifier si c'est le dossier principal ou un dossier d'accompagnement
-          const isMainDossier = dossier_principal && category.nom === dossier_principal
+          // ✅ Pour les pros : récupérer TOUS les dossiers payés et approuvés
+          // (un user peut avoir plusieurs dossiers pro)
+          const dossiers_paid = []
+          if (subDossier) dossiers_paid.push(subDossier)
+
+          try {
+            const { data: paymentRequests } = await supabaseAdmin
+              .from('correction_requests')
+              .select('message')
+              .eq('user_id', payload.userId)
+              .eq('status', 'approved')
+              .like('message', '%ifl_payment%')
+
+            if (paymentRequests && paymentRequests.length > 0) {
+              for (const r of paymentRequests) {
+                try {
+                  const parsed = JSON.parse(r.message)
+                  if (parsed.type_concours === 'professionnel' && parsed.dossier_principal) {
+                    if (!dossiers_paid.includes(parsed.dossier_principal)) {
+                      dossiers_paid.push(parsed.dossier_principal)
+                    }
+                  }
+                } catch {}
+              }
+            }
+          } catch {}
+
+          // Vérifier si c'est un dossier payé OU un dossier d'accompagnement
+          const isPaidDossier = dossiers_paid.includes(category.nom)
           const isAccompagnement = DOSSIERS_ACCOMPAGNEMENT.includes(category.nom)
-          const isOldFormatNoSpecialty = !dossier_principal // Ancien format sans spécialité = accès total (rétrocompat.)
+          // Rétro-compat : si aucun dossier détecté, on considère que c'est un ancien abonnement = accès total
+          const isOldFormatNoSpecialty = dossiers_paid.length === 0
           
-          if (isMainDossier || isAccompagnement || isOldFormatNoSpecialty) {
+          if (isPaidDossier || isAccompagnement || isOldFormatNoSpecialty) {
+            // ✅ Accès TOTAL au dossier acheté (toutes les questions, pas 5)
             hasFullAccess = true
           } else {
-            // C'est un autre dossier professionnel = verrouillé
+            // Autre dossier pro = verrouillé (5 questions gratuites uniquement)
             isLockedForThisUser = true
             hasFullAccess = false
           }

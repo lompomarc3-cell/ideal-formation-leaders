@@ -29,7 +29,7 @@ class _AdminScreenState extends State<AdminScreen> {
   int _tab = 0;
 
   static const List<_AdminTab> _tabs = [
-    _AdminTab('📊 Dashboard', Icons.dashboard),
+    _AdminTab('📊 Tableau de bord', Icons.dashboard),
     _AdminTab('💳 Paiements', Icons.payment),
     _AdminTab('👥 Utilisateurs', Icons.people),
     _AdminTab('❓ Questions QCM', Icons.quiz),

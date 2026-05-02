@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
+import 'admin_bulk_import_dialog.dart';
 
 class AdminQuestionsSection extends StatefulWidget {
   const AdminQuestionsSection({super.key});
@@ -99,6 +100,16 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
     }
   }
 
+  Future<void> _openBulkImport() async {
+    await showDialog(
+      context: context,
+      builder: (ctx) => AdminBulkImportDialog(
+        categories: _categories,
+        onImported: _loadAll,
+      ),
+    );
+  }
+
   Future<void> _delete(Map<String, dynamic> q) async {
     final ok = await showDialog<bool>(
       context: context,
@@ -157,6 +168,16 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
                 onPressed: () => _openEditor(),
                 icon: const Icon(Icons.add),
                 label: const Text('Nouveau'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: _openBulkImport,
+                icon: const Icon(Icons.upload_file_rounded),
+                label: const Text('Import massif'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF16A34A),
+                  foregroundColor: Colors.white,
+                ),
               ),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'services/auth_service.dart';
@@ -38,6 +39,18 @@ class IFLApp extends StatelessWidget {
         title: 'IFL — Idéale Formation of Leaders',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),
+        // Localisation française pour DatePicker, TimePicker, etc.
+        locale: const Locale('fr', 'FR'),
+        supportedLocales: const [
+          Locale('fr', 'FR'),
+          Locale('fr'),
+          Locale('en'),
+        ],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         home: const _Bootstrap(),
         routes: {
           '/main': (_) => const MainShell(),

@@ -51,7 +51,7 @@ export default function AdminDashboard() {
   if (!user?.is_admin) return null
 
   const tabs = [
-    { id: 'dashboard', label: '📊 Stats', icon: '📊' },
+    { id: 'dashboard', label: '📊 Tableau de bord', icon: '📊' },
     { id: 'payments', label: '💳 Paiements', icon: '💳' },
     { id: 'users', label: '👥 Utilisateurs', icon: '👥' },
     { id: 'questions', label: '❓ QCM', icon: '❓' },

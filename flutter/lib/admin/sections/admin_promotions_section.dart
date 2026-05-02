@@ -286,6 +286,7 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
                                               : active
                                                   ? '⏳ Programmée'
                                                   : '⭕ Inactive',
+                                      // Note : 'Active' et 'Inactive' sont identiques en français pour ce contexte (féminin singulier).
                                       style: TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.w900,
@@ -434,6 +435,14 @@ class _PromoEditorDialogState extends State<_PromoEditorDialog> {
       initialDate: initial,
       firstDate: DateTime(DateTime.now().year - 1),
       lastDate: DateTime(DateTime.now().year + 5),
+      locale: const Locale('fr', 'FR'),
+      helpText: 'Sélectionner une date',
+      cancelText: 'Annuler',
+      confirmText: 'Valider',
+      fieldLabelText: 'Saisir une date',
+      fieldHintText: 'jj/mm/aaaa',
+      errorFormatText: 'Format de date invalide',
+      errorInvalidText: 'Date hors limites',
     );
     if (picked != null) {
       ctrl.text =

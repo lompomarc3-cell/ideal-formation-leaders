@@ -462,6 +462,36 @@ class ApiService {
     return _decode(res);
   }
 
+  /// Import massif de questions QCM (texte brut parsé côté Flutter).
+  /// Le backend détecte les doublons et les ignore automatiquement.
+  Future<Map<String, dynamic>> adminBulkImportQuestions(
+    String token, {
+    required String categoryId,
+    required List<Map<String, dynamic>> questions,
+  }) async {
+    final res = await _client.post(
+      Uri.parse('$baseUrl/api/admin/questions'),
+      headers: _jsonHeaders(token),
+      body: jsonEncode({
+        'bulk': true,
+        'questions': questions
+            .map((q) => {
+                  'category_id': categoryId,
+                  'question_text': q['question_text'] ?? q['enonce'] ?? '',
+                  'option_a': q['option_a'] ?? '',
+                  'option_b': q['option_b'] ?? '',
+                  'option_c': q['option_c'] ?? '',
+                  'option_d': q['option_d'] ?? '',
+                  'bonne_reponse': q['bonne_reponse'] ?? 'A',
+                  'explication': q['explication'] ?? '',
+                  'is_demo': q['is_demo'] == true,
+                })
+            .toList(),
+      }),
+    );
+    return _decode(res);
+  }
+
   // ==================== ADMIN - DISSERTATIONS ====================
 
   Future<Map<String, dynamic>> adminDissertations(String token,

@@ -426,6 +426,14 @@ class _EditSubscriptionDialogState extends State<_EditSubscriptionDialog> {
       initialDate: initial,
       firstDate: DateTime.now(),
       lastDate: DateTime(DateTime.now().year + 5),
+      locale: const Locale('fr', 'FR'),
+      helpText: 'Sélectionner une date',
+      cancelText: 'Annuler',
+      confirmText: 'Valider',
+      fieldLabelText: 'Saisir une date',
+      fieldHintText: 'jj/mm/aaaa',
+      errorFormatText: 'Format de date invalide',
+      errorInvalidText: 'Date hors limites',
     );
     if (picked != null) {
       _expires.text =

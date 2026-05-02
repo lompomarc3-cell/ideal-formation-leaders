@@ -120,6 +120,15 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
       initialDate: initial,
       firstDate: DateTime.now(),
       lastDate: DateTime(DateTime.now().year + 5),
+      // Forcer la locale française pour le calendrier
+      locale: const Locale('fr', 'FR'),
+      helpText: 'Sélectionner une date de fin',
+      cancelText: 'Annuler',
+      confirmText: 'Valider',
+      fieldLabelText: 'Saisir une date',
+      fieldHintText: 'jj/mm/aaaa',
+      errorFormatText: 'Format de date invalide',
+      errorInvalidText: 'Date hors limites',
     );
     if (picked == null) return;
     // Ajouter 23:59:59 à la date de fin
