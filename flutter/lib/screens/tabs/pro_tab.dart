@@ -386,14 +386,36 @@ class _ProTabState extends State<ProTab> {
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () {
-        Navigator.of(context).pushNamed('/quiz', arguments: {
-          'categoryId': cat.id,
-          'categoryName': cat.nom,
-          'isPublic': false,
-          'unlocked': unlocked,
-          'isPro': true,
-          'dossierName': cat.nom,
-        });
+        // Les dossiers de type "long format" (Police, CSAPÉ, Professeur Agrégé,
+        // Magistrature, CAPES) affichent des sujets d'examen (énoncé long +
+        // corrigé), pas des QCM. On bascule vers l'écran dédié pour éviter
+        // tout élément QCM (A/B/C/D, badge "5 gratuites", etc.).
+        final n = cat.nom.trim().toLowerCase();
+        final isLongFormatDossier = n.contains('police') ||
+            n.contains('csapé') ||
+            n.contains('csape') ||
+            n.contains('magistrature') ||
+            n.contains('professeur agr') ||
+            n.contains('capes');
+        if (isLongFormatDossier) {
+          Navigator.of(context).pushNamed('/police-exam', arguments: {
+            'categoryId': cat.id,
+            'categoryName': cat.nom,
+            'isPublic': false,
+            'unlocked': unlocked,
+            'isPro': true,
+            'dossierName': cat.nom,
+          });
+        } else {
+          Navigator.of(context).pushNamed('/quiz', arguments: {
+            'categoryId': cat.id,
+            'categoryName': cat.nom,
+            'isPublic': false,
+            'unlocked': unlocked,
+            'isPro': true,
+            'dossierName': cat.nom,
+          });
+        }
       },
       child: Container(
         decoration: BoxDecoration(

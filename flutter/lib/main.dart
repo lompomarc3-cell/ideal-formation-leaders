@@ -11,6 +11,7 @@ import 'screens/main_shell.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/quiz_screen.dart';
+import 'screens/police_exam_screen.dart';
 import 'screens/payment_screen.dart';
 import 'screens/select_specialty_screen.dart';
 import 'screens/demo_screen.dart';
@@ -57,6 +58,7 @@ class IFLApp extends StatelessWidget {
           '/login': (_) => const LoginScreen(),
           '/register': (_) => const RegisterScreen(),
           '/quiz': (_) => const QuizScreen(),
+          '/police-exam': (_) => const PoliceExamScreen(),
           '/payment': (_) => const PaymentScreen(),
           '/select-specialty': (_) => const SelectSpecialtyScreen(),
           '/demo': (_) => const DemoScreen(),
