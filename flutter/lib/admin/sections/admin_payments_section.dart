@@ -47,13 +47,18 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
     }
   }
 
-  /// Détermine le status d'un paiement à partir de l'API (valide=true/false/null)
+  /// Détermine le status d'un paiement.
+  /// Priorité 1 : champ `status` explicite renvoyé par l'API ('pending'|'approved'|'rejected').
+  /// Priorité 2 (fallback ancien format) : déduction depuis `valide` et `admin_notes`.
   String _statusOf(Map<String, dynamic> p) {
+    final s = (p['status'] ?? '').toString().toLowerCase();
+    if (s == 'pending' || s == 'approved' || s == 'rejected') return s;
+    // Fallback ancien format
     if (p['valide'] == true) return 'approved';
-    if (p['valide'] == false && (p['admin_notes'] ?? '').toString().toLowerCase().contains('rejet')) {
-      return 'rejected';
-    }
-    if (p['valide'] == false) return 'rejected';
+    final notes = (p['admin_notes'] ?? p['admin_response'] ?? '').toString().toLowerCase();
+    if (p['valide'] == false && notes.contains('rejet')) return 'rejected';
+    if (p['valide'] == false && notes.contains('valid')) return 'approved';
+    // valide=false sans notes admin = encore en attente (le backend met valide=false par défaut)
     return 'pending';
   }
 

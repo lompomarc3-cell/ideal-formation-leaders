@@ -57,9 +57,12 @@ export default async function handler(req) {
           numero_paiement: parsed.numero_paiement || null,
           capture_url: parsed.capture_url || null,
           notes: parsed.notes || null,
+          // Statut explicite (source de vérité) : pending | approved | rejected
+          status: r.status || 'pending',
           valide: r.status === 'approved',
           date_demande: r.created_at,
           admin_notes: r.admin_response,
+          admin_response: r.admin_response,
           nom: nameParts[0] || '',
           prenom: nameParts.slice(1).join(' ') || '',
           full_name: profile?.full_name || '',
@@ -80,22 +83,30 @@ export default async function handler(req) {
   if (req.method === 'PUT') {
     let body = {}
     try { body = await req.json() } catch {}
-    const { id, valide, user_id, type_concours, dossier_principal, notes_admin } = body
+    const { id, valide, type_concours, dossier_principal, notes_admin } = body
+    let { user_id } = body
 
-    if (!id || !user_id || valide === undefined) {
-      return new Response(JSON.stringify({ error: 'Paramètres manquants' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+    if (!id || valide === undefined) {
+      return new Response(JSON.stringify({ error: 'Paramètres manquants (id, valide)' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
     }
 
     try {
       const newStatus = valide ? 'approved' : 'rejected'
       const dateFr = new Date().toLocaleDateString('fr-FR')
 
-      // 🔍 Récupérer la demande pour extraire le type/dossier réel depuis le message JSON
+      // 🔍 Récupérer la demande pour extraire user_id et le type/dossier réel depuis le message JSON
       const { data: existingReq } = await supabaseAdmin
         .from('correction_requests')
         .select('id, user_id, message, status')
         .eq('id', id)
         .maybeSingle()
+
+      if (!existingReq) {
+        return new Response(JSON.stringify({ error: 'Demande de paiement introuvable' }), { status: 404, headers: { 'Content-Type': 'application/json' } })
+      }
+
+      // Si user_id n'est pas fourni par le client, on le récupère depuis la base (source de vérité)
+      if (!user_id) user_id = existingReq.user_id
 
       // Extraire les vrais type/dossier depuis le message JSON (source de vérité)
       let realType = type_concours
