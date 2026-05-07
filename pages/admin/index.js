@@ -1507,6 +1507,7 @@ function AdminDissertations({ getToken, onNotif }) {
   const [showForm, setShowForm] = useState(false)
   const [editDiss, setEditDiss] = useState(null)
   const [filterCat, setFilterCat] = useState('')
+  const [search, setSearch] = useState('')
 
   useEffect(() => { fetchCategories(); fetchDissertations() }, [])
 
@@ -1562,10 +1563,22 @@ function AdminDissertations({ getToken, onNotif }) {
     } catch {}
   }
 
+  // 🔍 Filtrage avancé : recherche par mot-clé (titre + contenu + nom dossier)
+  const filtered = (() => {
+    if (!search || !search.trim()) return dissertations
+    const term = search.trim().toLowerCase()
+    return dissertations.filter(d => {
+      const fields = [d.titre, d.contenu, d.categorie_nom]
+      return fields.some(f => (f || '').toString().toLowerCase().includes(term))
+    })
+  })()
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4 mt-1">
-        <h2 className="text-white text-xl font-bold">📝 Dissertations ({dissertations.length})</h2>
+        <h2 className="text-white text-xl font-bold">
+          📝 Dissertations ({filtered.length}{search || filterCat ? ` / ${dissertations.length}` : ''})
+        </h2>
         <button onClick={() => { setShowForm(true); setEditDiss(null) }}
           className="px-3 py-2 font-bold text-white rounded-xl text-xs active:scale-95" style={{ background: '#C4521A' }}>
           ➕ Ajouter une dissertation
@@ -1576,11 +1589,35 @@ function AdminDissertations({ getToken, onNotif }) {
         💡 Les dissertations sont des contenus longs (sans QCM). Le titre s'affiche en haut et le contenu complet (corrigé détaillé) est visible dès l'ouverture par l'utilisateur.
       </div>
 
+      {/* 📁 Filtre par dossier (catégorie) */}
       <select value={filterCat} onChange={e => { setFilterCat(e.target.value); fetchDissertations(e.target.value) }}
-        className="w-full bg-gray-800 text-white rounded-xl px-4 py-3 mb-4 text-sm border border-gray-700">
+        className="w-full bg-gray-800 text-white rounded-xl px-4 py-3 mb-3 text-sm border border-gray-700">
         <option value="">📂 Toutes les catégories</option>
         {categories.map(c => <option key={c.id} value={c.id}>{c.type === 'direct' ? '📚' : '🎓'} {c.nom}</option>)}
       </select>
+
+      {/* 🔍 Recherche par mot-clé (titre, contenu, dossier) */}
+      <div className="relative mb-2">
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="🔍 Rechercher (mot-clé, titre, contenu, dossier...)"
+          className="w-full bg-gray-800 text-white rounded-xl px-4 py-2.5 pr-10 text-sm border border-gray-700 focus:outline-none focus:border-amber-500" />
+        {search && (
+          <button onClick={() => setSearch('')}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white px-2 py-1 text-xs"
+            title="Effacer la recherche">✕</button>
+        )}
+      </div>
+
+      {/* 🧹 Bouton réinitialiser tous les filtres */}
+      {(search || filterCat) && (
+        <div className="flex justify-end mb-3">
+          <button onClick={() => { setSearch(''); setFilterCat(''); fetchDissertations('') }}
+            className="text-xs text-amber-400 hover:text-amber-300 px-2 py-1 rounded hover:bg-gray-800">
+            🧹 Réinitialiser les filtres
+          </button>
+        </div>
+      )}
+      {!(search || filterCat) && <div className="mb-2"></div>}
 
       {(showForm || editDiss) && (
         <DissertationForm initial={editDiss} categories={categories} onSave={saveDissertation} onCancel={() => { setShowForm(false); setEditDiss(null) }} />
@@ -1588,13 +1625,13 @@ function AdminDissertations({ getToken, onNotif }) {
 
       {loading ? <div className="py-8 text-center"><div className="spinner mx-auto"></div></div> : (
         <div className="space-y-3">
-          {dissertations.length === 0 ? (
+          {filtered.length === 0 ? (
             <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-400">
               <p className="text-3xl mb-2">📝</p>
-              <p>Aucune dissertation pour l'instant</p>
-              <p className="text-xs text-gray-500 mt-2">Cliquez sur "Ajouter une dissertation" pour en créer une.</p>
+              <p>{search ? 'Aucun résultat' : 'Aucune dissertation pour l\'instant'}</p>
+              {!search && <p className="text-xs text-gray-500 mt-2">Cliquez sur "Ajouter une dissertation" pour en créer une.</p>}
             </div>
-          ) : dissertations.map(d => (
+          ) : filtered.map(d => (
             <div key={d.id} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <p className="text-white text-sm font-bold leading-relaxed flex-1">📝 {d.titre}</p>
