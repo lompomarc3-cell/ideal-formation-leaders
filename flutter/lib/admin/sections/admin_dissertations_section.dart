@@ -16,11 +16,33 @@ class _AdminDissertationsSectionState extends State<AdminDissertationsSection> {
   List<Map<String, dynamic>> _items = [];
   List<Map<String, dynamic>> _categories = [];
   String? _filterCategoryId;
+  String _searchQuery = '';
+  final TextEditingController _searchCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadAll());
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  List<Map<String, dynamic>> get _filteredItems {
+    if (_searchQuery.trim().isEmpty) return _items;
+    final q = _searchQuery.trim().toLowerCase();
+    return _items.where((item) {
+      final titre = (item['titre']?.toString() ?? item['sujet']?.toString() ?? '')
+          .toLowerCase();
+      final contenu =
+          (item['contenu']?.toString() ?? item['corrige']?.toString() ?? '')
+              .toLowerCase();
+      final cat = (item['category_name']?.toString() ?? '').toLowerCase();
+      return titre.contains(q) || contenu.contains(q) || cat.contains(q);
+    }).toList();
   }
 
   Future<void> _loadAll() async {
@@ -111,37 +133,103 @@ class _AdminDissertationsSectionState extends State<AdminDissertationsSection> {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
+    final filtered = _filteredItems;
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Expanded(
-                child: DropdownButtonFormField<String?>(
-                  initialValue: _filterCategoryId,
-                  decoration: const InputDecoration(labelText: 'Catégorie'),
-                  items: [
-                    const DropdownMenuItem(
-                        value: null, child: Text('Toutes')),
-                    ..._categories.map((c) => DropdownMenuItem(
-                          value: c['id'].toString(),
-                          child: Text(c['nom']?.toString() ?? ''),
-                        )),
-                  ],
-                  onChanged: (v) {
-                    setState(() => _filterCategoryId = v);
-                    _loadAll();
-                  },
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 280,
+                  child: TextField(
+                    controller: _searchCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Rechercher (titre, contenu...)',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchQuery.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchCtrl.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            ),
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onChanged: (v) => setState(() => _searchQuery = v),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: () => _openEditor(),
-                icon: const Icon(Icons.add),
-                label: const Text('Nouveau'),
-              ),
-            ],
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 240,
+                  child: DropdownButtonFormField<String?>(
+                    initialValue: _filterCategoryId,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: 'Catégorie',
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    items: [
+                      const DropdownMenuItem(
+                          value: null, child: Text('Toutes')),
+                      ..._categories.map((c) => DropdownMenuItem(
+                            value: c['id'].toString(),
+                            child: Text(c['nom']?.toString() ?? '',
+                                overflow: TextOverflow.ellipsis),
+                          )),
+                    ],
+                    onChanged: (v) {
+                      setState(() => _filterCategoryId = v);
+                      _loadAll();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: (_filterCategoryId == null && _searchQuery.isEmpty)
+                      ? null
+                      : () {
+                          _searchCtrl.clear();
+                          setState(() {
+                            _searchQuery = '';
+                            _filterCategoryId = null;
+                          });
+                          _loadAll();
+                        },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Réinitialiser'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () => _openEditor(),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Nouveau'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${filtered.length} dissertation(s) affichée(s) / ${_items.length}',
+              style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w600),
+            ),
           ),
         ),
         Expanded(
@@ -149,9 +237,9 @@ class _AdminDissertationsSectionState extends State<AdminDissertationsSection> {
             onRefresh: _loadAll,
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: _items.length,
+              itemCount: filtered.length,
               itemBuilder: (ctx, i) {
-                final d = _items[i];
+                final d = filtered[i];
                 return Card(
                   child: Padding(
                     padding: const EdgeInsets.all(12),

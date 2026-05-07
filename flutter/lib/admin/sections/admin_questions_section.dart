@@ -17,6 +17,36 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
   List<Map<String, dynamic>> _questions = [];
   List<Map<String, dynamic>> _categories = [];
   String? _filterCategoryId;
+  String _searchQuery = '';
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  List<Map<String, dynamic>> get _filteredQuestions {
+    if (_searchQuery.trim().isEmpty) return _questions;
+    final q = _searchQuery.trim().toLowerCase();
+    return _questions.where((item) {
+      final text =
+          (item['enonce']?.toString() ?? item['question_text']?.toString() ?? '')
+              .toLowerCase();
+      final expl = (item['explication']?.toString() ?? '').toLowerCase();
+      final cat = (item['category_name']?.toString() ?? '').toLowerCase();
+      final opts = [
+        item['option_a'],
+        item['option_b'],
+        item['option_c'],
+        item['option_d'],
+      ].whereType<String>().join(' ').toLowerCase();
+      return text.contains(q) ||
+          expl.contains(q) ||
+          cat.contains(q) ||
+          opts.contains(q);
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -139,47 +169,113 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
+    final filtered = _filteredQuestions;
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Expanded(
-                child: DropdownButtonFormField<String?>(
-                  initialValue: _filterCategoryId,
-                  decoration: const InputDecoration(labelText: 'Catégorie'),
-                  items: [
-                    const DropdownMenuItem(
-                        value: null, child: Text('Toutes les catégories')),
-                    ..._categories.map((c) => DropdownMenuItem(
-                          value: c['id'].toString(),
-                          child: Text(c['nom']?.toString() ?? ''),
-                        )),
-                  ],
-                  onChanged: (v) {
-                    setState(() => _filterCategoryId = v);
-                    _loadAll();
-                  },
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 280,
+                  child: TextField(
+                    controller: _searchCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Rechercher (énoncé, option, explication...)',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchQuery.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchCtrl.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            ),
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onChanged: (v) => setState(() => _searchQuery = v),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: () => _openEditor(),
-                icon: const Icon(Icons.add),
-                label: const Text('Nouveau'),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: _openBulkImport,
-                icon: const Icon(Icons.upload_file_rounded),
-                label: const Text('Import massif'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF16A34A),
-                  foregroundColor: Colors.white,
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 240,
+                  child: DropdownButtonFormField<String?>(
+                    initialValue: _filterCategoryId,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: 'Catégorie',
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    items: [
+                      const DropdownMenuItem(
+                          value: null, child: Text('Toutes les catégories')),
+                      ..._categories.map((c) => DropdownMenuItem(
+                            value: c['id'].toString(),
+                            child: Text(c['nom']?.toString() ?? '',
+                                overflow: TextOverflow.ellipsis),
+                          )),
+                    ],
+                    onChanged: (v) {
+                      setState(() => _filterCategoryId = v);
+                      _loadAll();
+                    },
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: (_filterCategoryId == null && _searchQuery.isEmpty)
+                      ? null
+                      : () {
+                          _searchCtrl.clear();
+                          setState(() {
+                            _searchQuery = '';
+                            _filterCategoryId = null;
+                          });
+                          _loadAll();
+                        },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Réinitialiser'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () => _openEditor(),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Nouveau'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _openBulkImport,
+                  icon: const Icon(Icons.upload_file_rounded),
+                  label: const Text('Import massif'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF16A34A),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${filtered.length} question(s) affichée(s) / ${_questions.length}',
+              style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w600),
+            ),
           ),
         ),
         Expanded(
@@ -187,9 +283,9 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
             onRefresh: _loadAll,
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: _questions.length,
+              itemCount: filtered.length,
               itemBuilder: (ctx, i) {
-                final q = _questions[i];
+                final q = filtered[i];
                 final opts = (q['options'] as List?) ??
             [
               q['option_a'],
