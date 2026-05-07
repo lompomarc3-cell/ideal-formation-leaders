@@ -62,3 +62,9 @@ find_ali.js
 test_admin_full.js
 list_auth.js
 build_web_output/
+
+# APK builds (use GitHub Releases instead)
+ifl_landing/app/*.apk
+flutter/android/key.properties
+flutter/android/release-key.jks
+flutter/android/app/release-key.jks
