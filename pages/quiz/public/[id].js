@@ -23,6 +23,8 @@ export default function PublicQuizPage() {
   const [loadingQ, setLoadingQ] = useState(true)
   const [error, setError] = useState('')
   const [answersMap, setAnswersMap] = useState({})
+  const [scheduleExpired, setScheduleExpired] = useState(false)
+  const [lockedMessage, setLockedMessage] = useState('')
 
   // Utiliser des refs stables pour éviter les closures stales dans les event listeners
   // Note: touchStartX retiré — le swipe tactile est désactivé pour éviter les changements involontaires de question lors du scroll
@@ -76,6 +78,8 @@ export default function PublicQuizPage() {
         setQuestions(qs)
         setCategoryName(data.categoryName || 'QCM')
         setCategoryType(data.categoryType || 'direct')
+        setScheduleExpired(!!data.scheduleExpired)
+        setLockedMessage(data.lockedMessage || data.message || '')
 
         // Restaurer progression
         const savedIndex = restoreProgressLocal(qs.length)
@@ -339,18 +343,28 @@ export default function PublicQuizPage() {
             </div>
           )}
 
-          {/* Bannière "questions gratuites" */}
+          {/* Bannière "questions gratuites" ou "programmation" */}
           {!loadingQ && !error && total > 0 && !finished && (
-            <div className="mb-4 rounded-2xl p-3 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)' }}>
-              <span className="text-2xl">🆓</span>
-              <div className="flex-1">
-                <p className="text-amber-800 font-bold text-sm">{total} questions gratuites sur ce dossier</p>
-                <p className="text-amber-700 text-xs">Inscrivez-vous pour accéder à toutes les questions</p>
+            scheduleExpired ? (
+              <div className="mb-4 rounded-2xl p-3 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FEF2F2,#FECACA)' }}>
+                <span className="text-2xl">⏰</span>
+                <div className="flex-1">
+                  <p className="text-red-800 font-bold text-sm">{lockedMessage || 'Contenu non disponible pendant la période de programmation'}</p>
+                  <p className="text-red-700 text-xs">Seules les {total} premières questions restent accessibles.</p>
+                </div>
               </div>
-              <Link href="/register" className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>
-                S&apos;inscrire
-              </Link>
-            </div>
+            ) : (
+              <div className="mb-4 rounded-2xl p-3 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)' }}>
+                <span className="text-2xl">🆓</span>
+                <div className="flex-1">
+                  <p className="text-amber-800 font-bold text-sm">{total} questions gratuites sur ce dossier</p>
+                  <p className="text-amber-700 text-xs">Inscrivez-vous pour accéder à toutes les questions</p>
+                </div>
+                <Link href="/register" className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>
+                  S&apos;inscrire
+                </Link>
+              </div>
+            )
           )}
 
           {/* Résultats finaux */}

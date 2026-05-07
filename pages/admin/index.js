@@ -617,12 +617,27 @@ function AdminQuestions({ getToken, onNotif }) {
     } catch {}
   }
 
-  const filtered = search ? questions.filter(q => q.question_text?.toLowerCase().includes(search.toLowerCase())) : questions
+  // 🔍 Filtrage avancé : recherche par mot-clé (énoncé + options + explication + nom dossier)
+  const filtered = (() => {
+    if (!search || !search.trim()) return questions
+    const term = search.trim().toLowerCase()
+    return questions.filter(q => {
+      const fields = [
+        q.question_text,
+        q.option_a, q.option_b, q.option_c, q.option_d,
+        q.explication,
+        q.categorie_nom
+      ]
+      return fields.some(f => (f || '').toString().toLowerCase().includes(term))
+    })
+  })()
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4 mt-1">
-        <h2 className="text-white text-xl font-bold">❓ QCM ({questions.length})</h2>
+        <h2 className="text-white text-xl font-bold">
+          ❓ QCM ({filtered.length}{search || filterCat ? ` / ${questions.length}` : ''})
+        </h2>
         <div className="flex gap-2">
           <button onClick={() => { setShowBulkAdd(true); setShowForm(false); setEditQ(null) }}
             className="px-3 py-2 font-bold text-white rounded-xl text-xs active:scale-95" style={{ background: '#D4A017' }}>
@@ -635,15 +650,35 @@ function AdminQuestions({ getToken, onNotif }) {
         </div>
       </div>
 
-      <select value={filterCat} onChange={e => { setFilterCat(e.target.value); fetchQuestions(e.target.value); setSearch('') }}
+      {/* 📁 Filtre par dossier (catégorie) */}
+      <select value={filterCat} onChange={e => { setFilterCat(e.target.value); fetchQuestions(e.target.value) }}
         className="w-full bg-gray-800 text-white rounded-xl px-4 py-3 mb-3 text-sm border border-gray-700">
-        <option value="">📂 Toutes les catégories</option>
+        <option value="">📂 Tous les dossiers</option>
         {categories.map(c => <option key={c.id} value={c.id}>{c.type === 'direct' ? '📚' : '🎓'} {c.nom}</option>)}
       </select>
 
-      <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-        placeholder="🔍 Rechercher dans les questions..."
-        className="w-full bg-gray-800 text-white rounded-xl px-4 py-2.5 text-sm border border-gray-700 mb-4 focus:outline-none focus:border-amber-500" />
+      {/* 🔍 Recherche par mot-clé (énoncé, options, explication, dossier) */}
+      <div className="relative mb-2">
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="🔍 Rechercher (mot-clé, dossier, énoncé, options, explication...)"
+          className="w-full bg-gray-800 text-white rounded-xl px-4 py-2.5 pr-10 text-sm border border-gray-700 focus:outline-none focus:border-amber-500" />
+        {search && (
+          <button onClick={() => setSearch('')}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white px-2 py-1 text-xs"
+            title="Effacer la recherche">✕</button>
+        )}
+      </div>
+
+      {/* 🧹 Bouton réinitialiser tous les filtres */}
+      {(search || filterCat) && (
+        <div className="flex justify-end mb-3">
+          <button onClick={() => { setSearch(''); setFilterCat(''); fetchQuestions('') }}
+            className="text-xs text-amber-400 hover:text-amber-300 px-2 py-1 rounded hover:bg-gray-800">
+            🧹 Réinitialiser les filtres
+          </button>
+        </div>
+      )}
+      {!(search || filterCat) && <div className="mb-2"></div>}
 
       {showBulkAdd && (
         <div className="mb-4">

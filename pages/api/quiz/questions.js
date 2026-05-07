@@ -150,20 +150,21 @@ export default async function handler(req) {
     // ========================================================
     const isAdmin = profile.role === 'superadmin' || profile.role === 'admin'
 
-    // Si catégorie expirée ET utilisateur non-admin → bloquer totalement
-    if (catExpired && !isAdmin) {
-      return new Response(JSON.stringify({
-        error: `Ce dossier n'est plus disponible.`,
-        expired: true,
-        categoryType: category.type
-      }), { status: 403, headers: { 'Content-Type': 'application/json' } })
-    }
-    
+    // ✅ CORRECTION programmation : le dossier reste visible.
+    // Si la programmation est expirée ET que l'utilisateur n'est pas admin,
+    // on force l'accès limité (5 premières questions gratuites uniquement).
+    // L'admin continue de tout voir normalement.
+    const scheduleLimitForUser = catExpired && !isAdmin
+
     let hasFullAccess = false
     let isLockedForThisUser = false // Dossier professionnel verrouillé pour cet utilisateur
 
     if (isAdmin) {
       hasFullAccess = true
+    } else if (scheduleLimitForUser) {
+      // 🔒 Programmation expirée pour un non-admin : on n'accorde JAMAIS l'accès complet.
+      // Les 5 premières questions seront retournées plus bas (branche !hasFullAccess).
+      hasFullAccess = false
     } else if (profile.subscription_status === 'active') {
       // Vérifier expiration
       const now = new Date()
@@ -272,7 +273,11 @@ export default async function handler(req) {
           isLockedSpecialty: isLockedForThisUser,
           totalFree: questionList.length,
           categoryType: category.type,
-          categoryName: category.nom
+          categoryName: category.nom,
+          scheduleExpired: scheduleLimitForUser,
+          lockedMessage: scheduleLimitForUser
+            ? 'Contenu non disponible pendant la période de programmation'
+            : null
         }), { status: 200, headers: { 'Content-Type': 'application/json' } })
       }
 
@@ -306,7 +311,11 @@ export default async function handler(req) {
           isLockedSpecialty: isLockedForThisUser,
           totalFree: questionList.length,
           categoryType: category.type,
-          categoryName: category.nom
+          categoryName: category.nom,
+          scheduleExpired: scheduleLimitForUser,
+          lockedMessage: scheduleLimitForUser
+            ? 'Contenu non disponible pendant la période de programmation'
+            : null
         }), { status: 200, headers: { 'Content-Type': 'application/json' } })
       }
 
@@ -318,6 +327,20 @@ export default async function handler(req) {
           isLockedSpecialty: true,
           categoryType: category.type
         }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+      }
+
+      // Si programmation expirée et aucune question disponible
+      if (scheduleLimitForUser) {
+        return new Response(JSON.stringify({
+          questions: [],
+          hasFullAccess: false,
+          isLockedSpecialty: false,
+          totalFree: 0,
+          categoryType: category.type,
+          categoryName: category.nom,
+          scheduleExpired: true,
+          lockedMessage: 'Contenu non disponible pendant la période de programmation'
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } })
       }
 
       // Aucune question disponible

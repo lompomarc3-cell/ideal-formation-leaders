@@ -85,6 +85,7 @@ export default async function handler(req) {
     const sorted = (categories || [])
       .map(c => {
         const { description, schedule } = parseDescription(c.description)
+        const expired = isScheduleExpired(schedule, now)
         return {
           id: c.id,
           nom: c.nom,
@@ -94,11 +95,15 @@ export default async function handler(req) {
           prix: c.prix || 0,
           icone: getCatIcon(c.nom),
           ordre: getCatOrdre(c.nom, c.type),
-          _expired: isScheduleExpired(schedule, now)
+          _expired: expired,
+          _is_programmed: !!schedule.enabled,
+          _date_validite: schedule.date,
+          // Si la programmation est expirée → seules 5 questions gratuites accessibles
+          _limited_to_demo: expired
         }
       })
-      // Visiteurs non connectés = jamais admin → masquer les catégories expirées
-      .filter(c => !c._expired)
+      // ✅ CORRECTION: Les dossiers restent visibles même expirés.
+      // Seul l'accès aux questions au-delà de la 5ème est bloqué (cf. public-questions / questions API).
       .sort((a, b) => {
         if (a.type !== b.type) return a.type.localeCompare(b.type)
         return a.ordre - b.ordre

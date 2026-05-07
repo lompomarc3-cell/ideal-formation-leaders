@@ -142,7 +142,9 @@ export default async function handler(req) {
 
     const now = new Date()
 
-    // Trier par ordre officiel, filtrer les catégories expirées (sauf admin)
+    // ✅ CORRECTION programmation : on ne filtre PLUS les catégories expirées.
+    // Les dossiers restent visibles. Seules les questions au-delà de la 5ème
+    // sont bloquées pour les non-admins (cf. /api/quiz/questions et /api/quiz/public-questions).
     const sorted = (categories || [])
       .map(c => {
         const { description, schedule } = parseDescription(c.description)
@@ -158,10 +160,12 @@ export default async function handler(req) {
           ordre: getCatOrdre(c.nom, c.type),
           _expired: expired,
           _is_programmed: !!schedule.enabled,
-          _date_validite: schedule.date
+          _date_validite: schedule.date,
+          // Indicateur pour le front : si non-admin et programmation expirée,
+          // l'accès est limité aux 5 premières questions gratuites.
+          _limited_to_demo: expired && !isAdmin
         }
       })
-      .filter(c => isAdmin ? true : !c._expired)
       .sort((a, b) => {
         // Trier d'abord par type, puis par ordre
         if (a.type !== b.type) return a.type.localeCompare(b.type)

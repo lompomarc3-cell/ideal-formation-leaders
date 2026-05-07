@@ -76,19 +76,12 @@ export default async function handler(req) {
       })
     }
 
-    // 1.bis. Vérifier programmation : si expirée, bloquer les visiteurs (non-admin)
+    // 1.bis. Vérifier programmation.
+    // ✅ CORRECTION: Le dossier reste accessible mais limité aux 5 premières questions gratuites.
+    // L'utilisateur public n'a déjà accès qu'aux 5 premières questions, donc le comportement
+    // reste identique. On ajoute simplement un flag informatif `scheduleExpired`.
     const { schedule: catSchedule } = parseDescription(category.description)
-    if (isScheduleExpired(catSchedule, new Date())) {
-      return new Response(JSON.stringify({
-        error: `Ce dossier n'est plus disponible.`,
-        expired: true,
-        categoryName: category.nom,
-        categoryType: category.type
-      }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-      })
-    }
+    const scheduleExpired = isScheduleExpired(catSchedule, new Date())
 
     // 2. Récupérer les 5 premières questions gratuites de la catégorie
     // D'abord essayer avec is_demo=true, sinon prendre les 5 premières
@@ -144,7 +137,10 @@ export default async function handler(req) {
         isPublic: true,
         categoryName: category.nom,
         categoryType: category.type,
-        message: 'Questions bientôt disponibles pour ce dossier'
+        scheduleExpired,
+        message: scheduleExpired
+          ? 'Contenu non disponible pendant la période de programmation'
+          : 'Questions bientôt disponibles pour ce dossier'
       }), {
         status: 200,
         headers: {
@@ -161,7 +157,13 @@ export default async function handler(req) {
       isPublic: true,
       totalFree: questionList.length,
       categoryName: category.nom,
-      categoryType: category.type
+      categoryType: category.type,
+      scheduleExpired,
+      // Si la programmation est expirée, on signale au front que les questions au-delà de la 5ème
+      // sont indisponibles ("Contenu non disponible pendant la période de programmation").
+      lockedMessage: scheduleExpired
+        ? 'Contenu non disponible pendant la période de programmation'
+        : null
     }), {
       status: 200,
       headers: {

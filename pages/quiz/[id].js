@@ -26,6 +26,8 @@ export default function QuizPage() {
   const [hasFullAccess, setHasFullAccess] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
   const [showPaywallOverlay, setShowPaywallOverlay] = useState(false)
+  const [scheduleExpired, setScheduleExpired] = useState(false)
+  const [lockedMessage, setLockedMessage] = useState('')
   // Map { questionIndex: { selected, answered } } pour mémoriser les réponses
   const [answersMap, setAnswersMap] = useState({})
   
@@ -120,6 +122,8 @@ export default function QuizPage() {
         const qs = qData.questions || []
         setQuestions(qs)
         setHasFullAccess(qData.hasFullAccess || false)
+        setScheduleExpired(!!qData.scheduleExpired)
+        setLockedMessage(qData.lockedMessage || '')
         const cat = catData.categories?.find(c => c.id === id)
         setCategory(cat || null)
 
@@ -473,25 +477,37 @@ export default function QuizPage() {
 
           {/* Bannière "questions gratuites" si accès limité — MASQUÉE en mode dissertation */}
           {!loadingQ && !error && total > 0 && !hasFullAccess && !showUpgrade && !finished && !isDissertationMode && (
-            <div className="mb-4 rounded-2xl p-3 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)' }}>
-              <span className="text-2xl">🆓</span>
-              <div className="flex-1">
-                <p className="text-amber-800 font-bold text-sm">{freeCount} questions gratuites sur ce dossier</p>
-                <p className="text-amber-700 text-xs">Les questions {freeCount+1}+ nécessitent un abonnement 🔒</p>
+            scheduleExpired ? (
+              <div className="mb-4 rounded-2xl p-3 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FEF2F2,#FECACA)' }}>
+                <span className="text-2xl">⏰</span>
+                <div className="flex-1">
+                  <p className="text-red-800 font-bold text-sm">{lockedMessage || 'Contenu non disponible pendant la période de programmation'}</p>
+                  <p className="text-red-700 text-xs">Seules les {freeCount} premières questions restent accessibles.</p>
+                </div>
               </div>
-              <Link href={`/payment?type=${catType}&montant=${catPrice}`} className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>
-                Débloquer
-              </Link>
-            </div>
+            ) : (
+              <div className="mb-4 rounded-2xl p-3 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF7E6,#FFE4B5)' }}>
+                <span className="text-2xl">🆓</span>
+                <div className="flex-1">
+                  <p className="text-amber-800 font-bold text-sm">{freeCount} questions gratuites sur ce dossier</p>
+                  <p className="text-amber-700 text-xs">Les questions {freeCount+1}+ nécessitent un abonnement 🔒</p>
+                </div>
+                <Link href={`/payment?type=${catType}&montant=${catPrice}`} className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#C4521A' }}>
+                  Débloquer
+                </Link>
+              </div>
+            )
           )}
 
           {/* Écran d'upgrade (fin des questions gratuites) */}
           {showUpgrade && !loadingQ && (
             <div className="animate-popIn">
               <div className="bg-white rounded-3xl shadow-xl p-8 border border-amber-100 text-center">
-                <div className="text-7xl mb-4">🔓</div>
+                <div className="text-7xl mb-4">{scheduleExpired ? '⏰' : '🔓'}</div>
                 <h2 className="text-2xl font-extrabold mb-2" style={{ color: '#8B2500' }}>
-                  Vous avez terminé les questions gratuites !
+                  {scheduleExpired
+                    ? 'Contenu non disponible pendant la période de programmation'
+                    : 'Vous avez terminé les questions gratuites !'}
                 </h2>
                 <p className="text-gray-500 mb-3">
                   Dossier : <strong>{category?.nom}</strong>
@@ -502,12 +518,15 @@ export default function QuizPage() {
                     {score}<span className="text-xl text-gray-400">/{freeCount}</span>
                   </p>
                 </div>
+                {!scheduleExpired && (
                 <div className="rounded-2xl p-5 mb-5" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
                   <p className="text-orange-200 text-sm mb-1">Abonnez-vous pour accéder à</p>
                   <p className="text-white font-bold text-lg mb-1">TOUTES les questions de ce dossier</p>
                   <p className="text-2xl font-extrabold text-white">{catPrice.toLocaleString()} FCFA</p>
                 </div>
+                )}
                 <div className="space-y-3">
+                  {!scheduleExpired && (
                   <Link
                     href={`/payment?type=${catType}&montant=${catPrice}`}
                     className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl shadow-lg active:scale-95"
@@ -515,6 +534,7 @@ export default function QuizPage() {
                   >
                     💳 S&apos;abonner – {catPrice.toLocaleString()} FCFA
                   </Link>
+                  )}
                   <button
                     onClick={() => { 
                       setCurrent(0)
