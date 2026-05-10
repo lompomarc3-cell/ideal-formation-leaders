@@ -13,10 +13,11 @@ const String kUssdCode = '*144*10*76223962#';
 const String kUssdTelUri = 'tel:*144*10*76223962%23';
 const String kSupportPhone = '+22676223962';
 
-/// Écran de paiement Orange Money — Guide en 3 étapes
-/// Étape 1 : USSD *144*10*76223962# (5 000 ou 20 000 FCFA)
-/// Étape 2 : Capture d'écran de confirmation
-/// Étape 3 : Envoyer la capture sur WhatsApp + valider la demande
+/// Écran de paiement Orange Money — Guide en 3 étapes.
+/// AMÉLIORATIONS UX :
+/// - Choix Direct/Pro très visuel avec carte explicative (avantages détaillés)
+/// - Pour Pro : sélection du dossier directement intégrée et claire
+/// - Récapitulatif clair de ce que l'utilisateur va débloquer
 class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
 
@@ -43,7 +44,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
           setState(() => _dossierPrincipal = args['dossier'].toString());
         }
       }
-      // Charger les prix dynamiques (avec promo si active) au plus tôt
       context.read<PriceService>().load();
     });
   }
@@ -95,13 +95,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  Future<void> _pickDossier() async {
+    final v = await Navigator.of(context).pushNamed('/select-specialty');
+    if (v is String && mounted) setState(() => _dossierPrincipal = v);
+  }
+
   Future<void> _submit() async {
     if (_typeConcours == 'professionnel' &&
         (_dossierPrincipal == null || _dossierPrincipal!.isEmpty)) {
-      Navigator.of(context).pushNamed('/select-specialty').then((value) {
-        if (value is String) setState(() => _dossierPrincipal = value);
-      });
-      return;
+      await _pickDossier();
+      if (_dossierPrincipal == null) return;
     }
     final auth = context.read<AuthService>();
     if (!auth.isAuthenticated) {
@@ -147,7 +150,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         title: const Text(
-          'Paiement Orange Money',
+          'S\'abonner à IFL',
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
       ),
@@ -159,7 +162,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildTypeSelector(),
+                _buildIntroBanner(),
+                const SizedBox(height: 12),
+                _buildPlanCards(),
                 const SizedBox(height: 12),
                 if (_typeConcours == 'professionnel') _buildDossierPicker(),
                 if (_typeConcours == 'professionnel') const SizedBox(height: 12),
@@ -186,7 +191,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           ),
                         )
                       : const Icon(Icons.send_rounded),
-                  label: const Text('Envoyer ma demande de paiement'),
+                  label: Text(
+                    _typeConcours == 'professionnel' &&
+                            (_dossierPrincipal == null ||
+                                _dossierPrincipal!.isEmpty)
+                        ? 'Choisir un dossier puis envoyer'
+                        : 'Envoyer ma demande de paiement',
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -211,66 +222,86 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildTypeSelector() {
+  Widget _buildIntroBanner() {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFFFE4CC)),
+        color: const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFFED7AA)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Type de concours',
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 14,
-              color: AppColors.darkTerracotta,
+      child: Row(
+        children: const [
+          Icon(Icons.workspace_premium_rounded,
+              color: AppColors.darkTerracotta, size: 24),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Choisissez votre formule ci-dessous, puis suivez les 3 étapes pour payer.',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                color: AppColors.darkTerracotta,
+              ),
             ),
           ),
-          const SizedBox(height: 10),
-          Builder(builder: (context) {
-            final ps = context.watch<PriceService>();
-            return Row(
-              children: [
-                Expanded(
-                  child: _typeChip(
-                    label: 'Direct',
-                    hint: '12 dossiers',
-                    value: 'direct',
-                    price: ps.directPrixEffectif,
-                    oldPrice: ps.directHasPromo ? ps.directPrix : null,
-                    hasPromo: ps.directHasPromo,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _typeChip(
-                    label: 'Professionnel',
-                    hint: 'par dossier',
-                    value: 'professionnel',
-                    price: ps.proPrixEffectif,
-                    oldPrice: ps.proHasPromo ? ps.proPrix : null,
-                    hasPromo: ps.proHasPromo,
-                  ),
-                ),
-              ],
-            );
-          }),
         ],
       ),
     );
   }
 
-  Widget _typeChip({
-    required String label,
-    required String hint,
+  Widget _buildPlanCards() {
+    return Builder(builder: (context) {
+      final ps = context.watch<PriceService>();
+      return Column(
+        children: [
+          _planCard(
+            value: 'direct',
+            title: '🎓 Concours DIRECT',
+            subtitle: 'Une seule formule pour tout débloquer',
+            price: ps.directPrixEffectif,
+            oldPrice: ps.directHasPromo ? ps.directPrix : null,
+            hasPromo: ps.directHasPromo,
+            color: const Color(0xFF1E40AF),
+            bgColor: const Color(0xFFDBEAFE),
+            features: const [
+              '✅ 12 dossiers directs débloqués d\'un coup',
+              '✅ Toutes les questions accessibles',
+              '✅ Paiement unique — pas de dossier à choisir',
+            ],
+          ),
+          const SizedBox(height: 10),
+          _planCard(
+            value: 'professionnel',
+            title: '💼 Concours PROFESSIONNEL',
+            subtitle: 'Choisissez UN dossier + 3 bonus offerts',
+            price: ps.proPrixEffectif,
+            oldPrice: ps.proHasPromo ? ps.proPrix : null,
+            hasPromo: ps.proHasPromo,
+            color: const Color(0xFF9D174D),
+            bgColor: const Color(0xFFFCE7F3),
+            features: const [
+              '✅ 1 dossier au choix parmi 14 dossiers pro',
+              '🎁 Bonus 1 : Entraînement QCM',
+              '🎁 Bonus 2 : Actualités',
+              '🎁 Bonus 3 : Accompagnement final',
+            ],
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _planCard({
     required String value,
+    required String title,
+    required String subtitle,
     required int price,
     int? oldPrice,
     bool hasPromo = false,
+    required Color color,
+    required Color bgColor,
+    required List<String> features,
   }) {
     final selected = _typeConcours == value;
     return InkWell(
@@ -278,79 +309,151 @@ class _PaymentScreenState extends State<PaymentScreen> {
         _typeConcours = value;
         if (value == 'direct') _dossierPrincipal = null;
       }),
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          gradient: selected ? AppColors.buttonGradient : null,
-          color: selected ? null : const Color(0xFFFFF8F0),
-          borderRadius: BorderRadius.circular(14),
+          color: selected ? bgColor : Colors.white,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color:
-                selected ? AppColors.primary : const Color(0xFFFFE4CC),
-            width: 2,
+            color: selected ? color : const Color(0xFFE5E7EB),
+            width: selected ? 2.5 : 1,
           ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.20),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: selected ? Colors.white : AppColors.darkTerracotta,
-                fontWeight: FontWeight.w900,
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(height: 4),
-            if (hasPromo && oldPrice != null)
-              Text(
-                '${_formatPrice(oldPrice)} FCFA',
-                style: TextStyle(
-                  color: selected
-                      ? Colors.white.withValues(alpha: 0.75)
-                      : const Color(0xFF9CA3AF),
-                  fontWeight: FontWeight.w700,
-                  fontSize: 10.5,
-                  decoration: TextDecoration.lineThrough,
+            Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: selected ? color : Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: selected ? color : const Color(0xFF9CA3AF),
+                      width: 2,
+                    ),
+                  ),
+                  child: selected
+                      ? const Icon(Icons.check,
+                          color: Colors.white, size: 14)
+                      : null,
                 ),
-              ),
-            Text(
-              '${_formatPrice(price)} FCFA',
-              style: TextStyle(
-                color: selected ? Colors.white : AppColors.primary,
-                fontWeight: FontWeight.w900,
-                fontSize: 14,
-              ),
-            ),
-            if (hasPromo)
-              Container(
-                margin: const EdgeInsets.only(top: 2),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFBBF24),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'PROMO',
-                  style: TextStyle(
-                    color: Color(0xFF7C2D12),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 9,
-                    letterSpacing: 0.4,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                      color: color,
+                    ),
                   ),
                 ),
+                if (hasPromo)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBBF24),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'PROMO',
+                      style: TextStyle(
+                        color: Color(0xFF7C2D12),
+                        fontWeight: FontWeight.w900,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 32),
+              child: Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF6B7280),
+                ),
               ),
-            const SizedBox(height: 2),
-            Text(
-              hint,
-              style: TextStyle(
-                color: selected
-                    ? Colors.white.withValues(alpha: 0.85)
-                    : const Color(0xFF6B7280),
-                fontSize: 10,
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(left: 32),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (hasPromo && oldPrice != null) ...[
+                    Text(
+                      '${_formatPrice(oldPrice)}',
+                      style: const TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(
+                    '${_formatPrice(price)}',
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      'FCFA',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(left: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: features
+                    .map((f) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 1.5),
+                          child: Text(
+                            f,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: selected
+                                  ? Colors.black87
+                                  : const Color(0xFF374151),
+                              height: 1.4,
+                            ),
+                          ),
+                        ))
+                    .toList(),
               ),
             ),
           ],
@@ -360,45 +463,82 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget _buildDossierPicker() {
+    final hasDossier = _dossierPrincipal != null && _dossierPrincipal!.isNotEmpty;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFFFE4CC)),
+        color: hasDossier ? const Color(0xFFF0FDF4) : const Color(0xFFFEF3C7),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: hasDossier
+              ? const Color(0xFF16A34A)
+              : const Color(0xFFF59E0B),
+          width: 2,
+        ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Dossier à acheter',
+          Row(
+            children: [
+              Icon(
+                hasDossier
+                    ? Icons.check_circle_rounded
+                    : Icons.warning_amber_rounded,
+                color: hasDossier
+                    ? const Color(0xFF16A34A)
+                    : const Color(0xFFF59E0B),
+                size: 22,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  hasDossier
+                      ? '✓ Dossier sélectionné'
+                      : '⚠️ Choisissez un dossier pro',
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 14,
-                    color: AppColors.darkTerracotta,
+                    color: hasDossier
+                        ? const Color(0xFF065F46)
+                        : const Color(0xFF92400E),
                   ),
                 ),
-                Text(
-                  'Choisissez le dossier que vous souhaitez débloquer',
-                  style: TextStyle(color: Color(0xFF6B7280), fontSize: 11),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pushNamed('/select-specialty').then((v) {
-                if (v is String) setState(() => _dossierPrincipal = v);
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          const SizedBox(height: 6),
+          if (hasDossier) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 30),
+              child: Text(
+                _dossierPrincipal!,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
             ),
-            child: Text(_dossierPrincipal ?? 'Choisir →'),
+            const SizedBox(height: 8),
+          ],
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _pickDossier,
+              icon: const Icon(Icons.list_alt_rounded, size: 18),
+              label: Text(hasDossier ? 'Changer de dossier' : 'Choisir un dossier'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                foregroundColor: hasDossier
+                    ? const Color(0xFF065F46)
+                    : const Color(0xFF92400E),
+                side: BorderSide(
+                  color: hasDossier
+                      ? const Color(0xFF16A34A)
+                      : const Color(0xFFF59E0B),
+                ),
+              ),
+            ),
           ),
         ],
       ),

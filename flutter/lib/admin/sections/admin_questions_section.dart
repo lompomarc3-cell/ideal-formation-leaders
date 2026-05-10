@@ -5,6 +5,14 @@ import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import 'admin_bulk_import_dialog.dart';
 
+/// Section "Questions QCM" — gestion CRUD avec préservation stricte de l'ordre.
+///
+/// PRÉSERVATION DE L'ORDRE :
+/// - Les questions sont triées une seule fois (par created_at ASC, fallback id)
+/// - Lors d'une modification, on met à jour la question EN PLACE dans la liste
+///   locale (pas de rechargement complet) → l'ordre visuel reste identique.
+/// - Un numéro d'ordre (#1, #2, ...) est affiché sur chaque carte pour que
+///   l'admin voie clairement la position et constate qu'elle ne change pas.
 class AdminQuestionsSection extends StatefulWidget {
   const AdminQuestionsSection({super.key});
 
@@ -14,6 +22,7 @@ class AdminQuestionsSection extends StatefulWidget {
 
 class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
   bool _loading = true;
+  // Liste ordonnée stable. On NE re-trie JAMAIS après une édition.
   List<Map<String, dynamic>> _questions = [];
   List<Map<String, dynamic>> _categories = [];
   String? _filterCategoryId;
@@ -26,15 +35,26 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
     super.dispose();
   }
 
-  List<Map<String, dynamic>> get _filteredQuestions {
-    if (_searchQuery.trim().isEmpty) return _questions;
+  /// Filtre par recherche + ajoute le numéro d'ordre stable (basé sur la
+  /// position absolue dans la liste source `_questions`).
+  List<MapEntry<int, Map<String, dynamic>>> get _filteredQuestions {
+    final all = List<MapEntry<int, Map<String, dynamic>>>.generate(
+      _questions.length,
+      (i) => MapEntry(i + 1, _questions[i]),
+    );
+    if (_searchQuery.trim().isEmpty) return all;
     final q = _searchQuery.trim().toLowerCase();
-    return _questions.where((item) {
-      final text =
-          (item['enonce']?.toString() ?? item['question_text']?.toString() ?? '')
-              .toLowerCase();
+    return all.where((entry) {
+      final item = entry.value;
+      final text = (item['enonce']?.toString() ??
+              item['question_text']?.toString() ??
+              '')
+          .toLowerCase();
       final expl = (item['explication']?.toString() ?? '').toLowerCase();
-      final cat = (item['category_name']?.toString() ?? '').toLowerCase();
+      final cat = (item['categorie_nom']?.toString() ??
+              item['category_name']?.toString() ??
+              '')
+          .toLowerCase();
       final opts = [
         item['option_a'],
         item['option_b'],
@@ -54,6 +74,22 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadAll());
   }
 
+  /// Tri stable : created_at ASC (avec fallback sur id) — l'API renvoie déjà
+  /// les questions dans cet ordre, mais on s'assure côté client pour être sûr.
+  void _stableSort(List<Map<String, dynamic>> list) {
+    list.sort((a, b) {
+      final aCreated = a['created_at']?.toString() ?? '';
+      final bCreated = b['created_at']?.toString() ?? '';
+      if (aCreated.isNotEmpty && bCreated.isNotEmpty) {
+        final cmp = aCreated.compareTo(bCreated);
+        if (cmp != 0) return cmp;
+      }
+      // Fallback : id (souvent une UUID, donc ordre alpha stable)
+      return (a['id']?.toString() ?? '')
+          .compareTo(b['id']?.toString() ?? '');
+    });
+  }
+
   Future<void> _loadAll() async {
     final auth = context.read<AuthService>();
     setState(() => _loading = true);
@@ -62,13 +98,15 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
       final qs = await auth.api.adminQuestions(auth.token!,
           categorieId: _filterCategoryId);
       if (!mounted) return;
+      final list = (qs['questions'] as List? ?? [])
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+      _stableSort(list);
       setState(() {
         _categories = (cats['categories'] as List? ?? [])
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
-        _questions = (qs['questions'] as List? ?? [])
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
+        _questions = list;
         _loading = false;
       });
     } catch (_) {
@@ -76,11 +114,14 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
     }
   }
 
-  Future<void> _openEditor({Map<String, dynamic>? question}) async {
+  Future<void> _openEditor({Map<String, dynamic>? question, int? orderIndex}) async {
     final res = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (ctx) =>
-          _QuestionEditorDialog(question: question, categories: _categories),
+      builder: (ctx) => _QuestionEditorDialog(
+        question: question,
+        categories: _categories,
+        orderIndex: orderIndex,
+      ),
     );
     if (res == null) return;
     final auth = context.read<AuthService>();
@@ -90,6 +131,7 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
         opts.add('');
       }
       if (question == null) {
+        // Nouvelle question : on recharge tout (la nouvelle ira en fin de liste)
         await auth.api.adminCreateQuestion(
           auth.token!,
           categoryId: res['category_id'],
@@ -101,10 +143,17 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
           bonneReponse: res['reponse_correcte'],
           explication: res['explication'],
         );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ Question créée')),
+        );
+        _loadAll();
       } else {
+        // ✏️ MODIFICATION — on met à jour EN PLACE pour préserver l'ordre.
+        final qid = question['id'].toString();
         await auth.api.adminUpdateQuestion(
           auth.token!,
-          id: question['id'].toString(),
+          id: qid,
           questionText: res['enonce'],
           optionA: opts[0],
           optionB: opts[1],
@@ -113,15 +162,35 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
           bonneReponse: res['reponse_correcte'],
           explication: res['explication'],
         );
+        if (!mounted) return;
+        // Mettre à jour la question dans la liste locale SANS la déplacer
+        final idx = _questions.indexWhere((q) => q['id'].toString() == qid);
+        if (idx != -1) {
+          setState(() {
+            _questions[idx] = {
+              ..._questions[idx],
+              'enonce': res['enonce'],
+              'question_text': res['enonce'],
+              'option_a': opts[0],
+              'option_b': opts[1],
+              'option_c': opts[2],
+              'option_d': opts[3],
+              'reponse_correcte': res['reponse_correcte'],
+              'bonne_reponse': res['reponse_correcte'],
+              'explication': res['explication'],
+              if (res['is_demo'] != null) 'is_demo': res['is_demo'],
+            };
+          });
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                '✅ Question mise à jour — position #${orderIndex ?? "?"} préservée'),
+            backgroundColor: const Color(0xFF16A34A),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(question == null
-                ? 'Question créée'
-                : 'Question mise à jour')),
-      );
-      _loadAll();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -145,7 +214,8 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Supprimer la question ?'),
-        content: Text(q['enonce']?.toString() ?? ''),
+        content: Text(
+            (q['enonce']?.toString() ?? q['question_text']?.toString() ?? '')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -160,8 +230,19 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
     );
     if (ok != true) return;
     final auth = context.read<AuthService>();
-    await auth.api.adminDeleteQuestion(auth.token!, q['id'].toString());
-    _loadAll();
+    try {
+      await auth.api.adminDeleteQuestion(auth.token!, q['id'].toString());
+      if (!mounted) return;
+      // Suppression EN PLACE pour ne pas perturber l'ordre des autres
+      setState(() {
+        _questions.removeWhere((x) => x['id'].toString() == q['id'].toString());
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   @override
@@ -172,6 +253,28 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
     final filtered = _filteredQuestions;
     return Column(
       children: [
+        // Note explicative pour rassurer l'admin
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          color: const Color(0xFFEFF6FF),
+          child: const Row(
+            children: [
+              Icon(Icons.lock_outline, size: 16, color: Color(0xFF1D4ED8)),
+              SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'L\'ordre des questions ne change JAMAIS lorsque vous modifiez une question. Le numéro #N reste fixe.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF1D4ED8),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
           child: SingleChildScrollView(
@@ -285,20 +388,26 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               itemCount: filtered.length,
               itemBuilder: (ctx, i) {
-                final q = filtered[i];
+                final entry = filtered[i];
+                final order = entry.key; // numéro d'ordre stable
+                final q = entry.value;
                 final opts = (q['options'] as List?) ??
-            [
-              q['option_a'],
-              q['option_b'],
-              q['option_c'],
-              q['option_d'],
-            ].where((e) => e != null).toList();
-        final correct = q['reponse_correcte']?.toString() ??
-            q['bonne_reponse']?.toString() ??
-            'A';
-        final text =
-            q['enonce']?.toString() ?? q['question_text']?.toString() ?? '';
+                    [
+                      q['option_a'],
+                      q['option_b'],
+                      q['option_c'],
+                      q['option_d'],
+                    ].where((e) => e != null).toList();
+                final correct = q['reponse_correcte']?.toString() ??
+                    q['bonne_reponse']?.toString() ??
+                    'A';
+                final text = q['enonce']?.toString() ??
+                    q['question_text']?.toString() ??
+                    '';
+                final isProtected =
+                    order <= 5; // 5 premières questions = gratuit
                 return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -306,13 +415,43 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
                       children: [
                         Row(
                           children: [
-                            Expanded(
+                            // Numéro d'ordre stable (badge fixe)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isProtected
+                                    ? const Color(0xFFD1FAE5)
+                                    : const Color(0xFFFEE2E2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                               child: Text(
-                                text,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w700),
+                                '#$order',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                  color: isProtected
+                                      ? const Color(0xFF065F46)
+                                      : const Color(0xFF991B1B),
+                                ),
                               ),
                             ),
+                            const SizedBox(width: 8),
+                            if (isProtected)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF16A34A),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Text('GRATUIT',
+                                    style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white)),
+                              ),
+                            const Spacer(),
                             if (q['is_demo'] == true)
                               Container(
                                 margin: const EdgeInsets.only(left: 4),
@@ -330,6 +469,12 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
                               ),
                           ],
                         ),
+                        const SizedBox(height: 8),
+                        Text(
+                          text,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 13),
+                        ),
                         const SizedBox(height: 6),
                         for (int k = 0; k < opts.length; k++)
                           Text(
@@ -345,19 +490,22 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
                                       : FontWeight.normal,
                             ),
                           ),
-                        if (q['category_name'] != null)
+                        if ((q['categorie_nom'] ?? q['category_name']) !=
+                            null)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Text('📚 ${q['category_name']}',
+                            child: Text(
+                                '📚 ${q['categorie_nom'] ?? q['category_name']}',
                                 style: const TextStyle(
                                     fontSize: 11, color: Colors.black54)),
                           ),
                         Row(
                           children: [
                             TextButton.icon(
-                              onPressed: () => _openEditor(question: q),
+                              onPressed: () =>
+                                  _openEditor(question: q, orderIndex: order),
                               icon: const Icon(Icons.edit, size: 16),
-                              label: const Text('Modifier'),
+                              label: Text('Modifier (#$order)'),
                             ),
                             TextButton.icon(
                               onPressed: () => _delete(q),
@@ -384,7 +532,12 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
 class _QuestionEditorDialog extends StatefulWidget {
   final Map<String, dynamic>? question;
   final List<Map<String, dynamic>> categories;
-  const _QuestionEditorDialog({this.question, required this.categories});
+  final int? orderIndex;
+  const _QuestionEditorDialog({
+    this.question,
+    required this.categories,
+    this.orderIndex,
+  });
 
   @override
   State<_QuestionEditorDialog> createState() => _QuestionEditorDialogState();
@@ -437,17 +590,46 @@ class _QuestionEditorDialogState extends State<_QuestionEditorDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isEdit = widget.question != null;
     return AlertDialog(
-      title: Text(widget.question == null
-          ? 'Nouvelle question'
-          : 'Modifier question'),
+      title: Text(
+          isEdit ? 'Modifier la question' : 'Nouvelle question'),
       content: SingleChildScrollView(
         child: SizedBox(
           width: 500,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (widget.question == null)
+              if (isEdit && widget.orderIndex != null)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.lock_rounded,
+                          size: 16, color: Color(0xFF1D4ED8)),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Question #${widget.orderIndex} — l\'ordre ne sera PAS modifié',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF1D4ED8),
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (!isEdit)
                 DropdownButtonFormField<String>(
                   initialValue: _categoryId,
                   decoration: const InputDecoration(labelText: 'Catégorie *'),
@@ -510,7 +692,7 @@ class _QuestionEditorDialogState extends State<_QuestionEditorDialog> {
         ElevatedButton(
           onPressed: () {
             if (_enonce.text.trim().isEmpty) return;
-            if (widget.question == null && _categoryId == null) return;
+            if (!isEdit && _categoryId == null) return;
             Navigator.pop(context, {
               'category_id': _categoryId,
               'enonce': _enonce.text.trim(),

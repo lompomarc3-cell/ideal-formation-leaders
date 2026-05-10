@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
+/// Section "Paiements" — validation Direct / Pro avec UX améliorée :
+/// - Type de demande (Direct / Pro) clairement affiché en bandeau coloré
+/// - Boutons Valider / Rejeter bien visibles avec confirmation
+/// - Conséquence de la validation expliquée explicitement
 class AdminPaymentsSection extends StatefulWidget {
   const AdminPaymentsSection({super.key});
 
@@ -16,6 +20,8 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
   List<Map<String, dynamic>> _payments = [];
   String _filter = 'pending'; // pending | approved | rejected | all
   String? _error;
+  // Loader par paiement (évite les doubles clics)
+  final Set<String> _processing = {};
 
   @override
   void initState() {
@@ -48,27 +54,106 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
   }
 
   /// Détermine le status d'un paiement.
-  /// Priorité 1 : champ `status` explicite renvoyé par l'API ('pending'|'approved'|'rejected').
-  /// Priorité 2 (fallback ancien format) : déduction depuis `valide` et `admin_notes`.
   String _statusOf(Map<String, dynamic> p) {
     final s = (p['status'] ?? '').toString().toLowerCase();
     if (s == 'pending' || s == 'approved' || s == 'rejected') return s;
-    // Fallback ancien format
     if (p['valide'] == true) return 'approved';
-    final notes = (p['admin_notes'] ?? p['admin_response'] ?? '').toString().toLowerCase();
+    final notes =
+        (p['admin_notes'] ?? p['admin_response'] ?? '').toString().toLowerCase();
     if (p['valide'] == false && notes.contains('rejet')) return 'rejected';
     if (p['valide'] == false && notes.contains('valid')) return 'approved';
-    // valide=false sans notes admin = encore en attente (le backend met valide=false par défaut)
     return 'pending';
+  }
+
+  bool _isDirect(Map<String, dynamic> p) =>
+      (p['type_concours'] ?? '').toString().toLowerCase() == 'direct';
+
+  Future<void> _confirmAndValidate(
+      Map<String, dynamic> payment, bool valide) async {
+    final isDirect = _isDirect(payment);
+    final dossier = payment['dossier_principal']?.toString();
+    final user = (payment['full_name']?.toString().isNotEmpty ?? false)
+        ? payment['full_name'].toString()
+        : (payment['nom']?.toString() ?? payment['user_id']?.toString() ?? '—');
+
+    final consequence = valide
+        ? (isDirect
+            ? '✅ L\'utilisateur va débloquer les 12 DOSSIERS DIRECTS.'
+            : '✅ L\'utilisateur va débloquer le dossier "${dossier ?? "—"}" + les 3 BONUS (Entraînement, Actualités, Accompagnement).')
+        : '❌ L\'utilisateur restera en mode gratuit (5 premières questions par dossier).';
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              valide ? Icons.check_circle : Icons.cancel,
+              color: valide ? Colors.green : Colors.red,
+            ),
+            const SizedBox(width: 8),
+            Text(valide ? 'Valider la demande ?' : 'Rejeter la demande ?'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Utilisateur : $user',
+                style: const TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 6),
+            Text(
+              isDirect
+                  ? '🎓 Type : DIRECT (5 000 FCFA)'
+                  : '💼 Type : PROFESSIONNEL (20 000 FCFA)',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            if (!isDirect && dossier != null) ...[
+              const SizedBox(height: 4),
+              Text('📂 Dossier : $dossier',
+                  style: const TextStyle(fontSize: 13)),
+            ],
+            const Divider(height: 18),
+            Text(
+              consequence,
+              style: TextStyle(
+                color: valide ? Colors.green.shade800 : Colors.red.shade800,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Annuler')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: valide
+                  ? const Color(0xFF16A34A)
+                  : const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(valide ? 'Oui, valider' : 'Oui, rejeter'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await _validate(payment, valide);
   }
 
   Future<void> _validate(Map<String, dynamic> payment, bool valide) async {
     final auth = context.read<AuthService>();
+    final pid = payment['id'].toString();
+    setState(() => _processing.add(pid));
     try {
-      // Utilise PUT /api/admin/payments avec { id, valide, user_id, type_concours, dossier_principal }
       final res = await auth.api.adminValidatePaymentPut(
         auth.token!,
-        id: payment['id'].toString(),
+        id: pid,
         valide: valide,
         userId: payment['user_id']?.toString(),
         typeConcours: payment['type_concours']?.toString(),
@@ -80,11 +165,13 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
           content: Text(res['message']?.toString() ??
               (valide ? '✅ Paiement validé' : '❌ Paiement rejeté')),
           backgroundColor: valide ? Colors.green : Colors.orange,
+          behavior: SnackBarBehavior.floating,
         ));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('⚠️ ${res['error'] ?? "Erreur inconnue"}'),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
         ));
       }
       _load();
@@ -93,6 +180,8 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
       );
+    } finally {
+      if (mounted) setState(() => _processing.remove(pid));
     }
   }
 
@@ -164,19 +253,28 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
   }
 
   Widget _buildFilterBar() {
-    return Padding(
+    final pendingCount =
+        _payments.where((p) => _statusOf(p) == 'pending').length;
+    return Container(
       padding: const EdgeInsets.all(8),
-      child: Wrap(
-        spacing: 6,
-        children: [
-          _chip('En attente (${_payments.where((p) => _statusOf(p) == "pending").length})',
-              'pending'),
-          _chip('Approuvés (${_payments.where((p) => _statusOf(p) == "approved").length})',
-              'approved'),
-          _chip('Rejetés (${_payments.where((p) => _statusOf(p) == "rejected").length})',
-              'rejected'),
-          _chip('Tous (${_payments.length})', 'all'),
-        ],
+      color: Colors.white,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _chip('🟡 En attente ($pendingCount)', 'pending'),
+            const SizedBox(width: 6),
+            _chip(
+                '✅ Approuvés (${_payments.where((p) => _statusOf(p) == "approved").length})',
+                'approved'),
+            const SizedBox(width: 6),
+            _chip(
+                '❌ Rejetés (${_payments.where((p) => _statusOf(p) == "rejected").length})',
+                'rejected'),
+            const SizedBox(width: 6),
+            _chip('Tous (${_payments.length})', 'all'),
+          ],
+        ),
       ),
     );
   }
@@ -198,112 +296,216 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
   Widget _paymentCard(Map<String, dynamic> p) {
     final status = _statusOf(p);
     final montant = p['montant'] ?? 0;
-    final typeConcours = p['type_concours']?.toString() ?? '';
+    final isDirect = _isDirect(p);
     final dossier = p['dossier_principal']?.toString();
+    final pid = p['id'].toString();
+    final processing = _processing.contains(pid);
+
+    // Couleur du bandeau type
+    final typeBg = isDirect ? const Color(0xFFDBEAFE) : const Color(0xFFFCE7F3);
+    final typeFg = isDirect ? const Color(0xFF1E40AF) : const Color(0xFF9D174D);
+    final typeLabel = isDirect
+        ? '🎓 DIRECT — débloquera les 12 dossiers directs'
+        : '💼 PRO — débloquera ${dossier ?? "le dossier choisi"} + 3 bonus';
+
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    (p['full_name']?.toString().isNotEmpty ?? false)
-                        ? p['full_name'].toString()
-                        : (p['nom']?.toString() ?? p['user_id']?.toString() ?? '—'),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w800, fontSize: 14),
-                  ),
-                ),
-                Chip(
-                  label: Text(
-                    status == 'approved'
-                        ? 'Approuvé'
-                        : status == 'rejected'
-                            ? 'Rejeté'
-                            : 'En attente',
-                    style: const TextStyle(fontSize: 10),
-                  ),
-                  backgroundColor: status == 'approved'
-                      ? const Color(0xFFD1FAE5)
-                      : status == 'rejected'
-                          ? const Color(0xFFFEE2E2)
-                          : const Color(0xFFFFF3CD),
-                ),
-              ],
+      margin: const EdgeInsets.only(bottom: 10),
+      elevation: status == 'pending' ? 3 : 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: status == 'pending'
+            ? const BorderSide(color: Color(0xFFF59E0B), width: 2)
+            : BorderSide.none,
+      ),
+      child: Column(
+        children: [
+          // Bandeau type Direct/Pro très visible
+          Container(
+            width: double.infinity,
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: typeBg,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
             ),
-            const SizedBox(height: 4),
-            Text('📞 ${p['phone'] ?? p['numero_paiement'] ?? "—"}',
-                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12)),
-            const SizedBox(height: 4),
-            Text(
-                '${typeConcours.isNotEmpty ? (typeConcours == "direct" ? "🎓 Direct" : "💼 Pro") : "—"} • $montant FCFA${dossier != null ? " • 📂 $dossier" : ""}',
-                style: const TextStyle(
-                    color: Color(0xFF374151),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600)),
-            if ((p['numero_paiement'] ?? '').toString().isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text('📱 Numéro payeur : ${p['numero_paiement']}',
-                  style: const TextStyle(fontSize: 12)),
-            ],
-            if ((p['notes'] ?? '').toString().isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text('📝 ${p['notes']}',
-                  style: const TextStyle(
-                      color: Color(0xFF6B7280),
-                      fontSize: 11,
-                      fontStyle: FontStyle.italic)),
-            ],
-            if ((p['date_demande'] ?? '').toString().isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                  '🕒 Demandé le : ${_formatDate(p['date_demande'].toString())}',
-                  style:
-                      const TextStyle(fontSize: 11, color: Colors.black54)),
-            ],
-            if (status == 'pending') ...[
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _validate(p, false),
-                      icon: const Icon(Icons.close, size: 16),
-                      label: const Text('Rejeter'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFDC2626),
-                        side: const BorderSide(color: Color(0xFFDC2626)),
+            child: Text(
+              typeLabel,
+              style: TextStyle(
+                color: typeFg,
+                fontWeight: FontWeight.w900,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        (p['full_name']?.toString().isNotEmpty ?? false)
+                            ? p['full_name'].toString()
+                            : (p['nom']?.toString() ??
+                                p['user_id']?.toString() ??
+                                '—'),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 14),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _validate(p, true),
-                      icon: const Icon(Icons.check, size: 16),
-                      label: const Text('Valider'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF16A34A),
-                        foregroundColor: Colors.white,
-                      ),
+                    _statusBadge(status),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.phone, size: 14, color: Color(0xFF6B7280)),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${p['phone'] ?? p['numero_paiement'] ?? "—"}',
+                      style: const TextStyle(
+                          color: Color(0xFF6B7280), fontSize: 12),
                     ),
+                    const SizedBox(width: 10),
+                    const Icon(Icons.payments_rounded,
+                        size: 14, color: Color(0xFF374151)),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$montant FCFA',
+                      style: const TextStyle(
+                          color: Color(0xFF374151),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800),
+                    ),
+                  ],
+                ),
+                if ((p['numero_paiement'] ?? '').toString().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text('📱 Numéro payeur : ${p['numero_paiement']}',
+                      style: const TextStyle(fontSize: 12)),
+                ],
+                if ((p['notes'] ?? '').toString().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text('📝 ${p['notes']}',
+                      style: const TextStyle(
+                          color: Color(0xFF6B7280),
+                          fontSize: 11,
+                          fontStyle: FontStyle.italic)),
+                ],
+                if ((p['date_demande'] ?? '').toString().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                      '🕒 Demandé le : ${_formatDate(p['date_demande'].toString())}',
+                      style: const TextStyle(
+                          fontSize: 11, color: Colors.black54)),
+                ],
+                if (status == 'pending') ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: processing
+                              ? null
+                              : () => _confirmAndValidate(p, false),
+                          icon: const Icon(Icons.close, size: 18),
+                          label: const Text('REJETER'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFDC2626),
+                            side: const BorderSide(
+                                color: Color(0xFFDC2626), width: 2),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 12),
+                            textStyle: const TextStyle(
+                                fontWeight: FontWeight.w900, fontSize: 13),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton.icon(
+                          onPressed: processing
+                              ? null
+                              : () => _confirmAndValidate(p, true),
+                          icon: processing
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Icon(Icons.check, size: 18),
+                          label: Text(
+                              processing ? 'En cours...' : '✓ VALIDER'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF16A34A),
+                            foregroundColor: Colors.white,
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 12),
+                            textStyle: const TextStyle(
+                                fontWeight: FontWeight.w900, fontSize: 14),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ],
-            if (status == 'approved' && (p['admin_notes'] ?? '').toString().isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text('ℹ️ ${p['admin_notes']}',
-                    style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF059669),
-                        fontWeight: FontWeight.w600)),
-              ),
-          ],
+                if (status == 'approved' &&
+                    (p['admin_notes'] ?? '').toString().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text('ℹ️ ${p['admin_notes']}',
+                        style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF059669),
+                            fontWeight: FontWeight.w600)),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statusBadge(String status) {
+    Color bg;
+    Color fg;
+    String label;
+    switch (status) {
+      case 'approved':
+        bg = const Color(0xFFD1FAE5);
+        fg = const Color(0xFF065F46);
+        label = '✓ Approuvé';
+        break;
+      case 'rejected':
+        bg = const Color(0xFFFEE2E2);
+        fg = const Color(0xFF991B1B);
+        label = '✗ Rejeté';
+        break;
+      default:
+        bg = const Color(0xFFFEF3C7);
+        fg = const Color(0xFF92400E);
+        label = '⏳ En attente';
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: fg,
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );

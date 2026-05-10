@@ -1,11 +1,20 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
-/// Programmation GLOBALE : une seule date de fin de validité pour TOUTES les catégories.
-/// Après cette date, tous les utilisateurs (sauf admin) ne voient que la démo.
+/// Programmation GLOBALE : une seule date/heure de fin de validité pour TOUTES les catégories.
+/// Après cette date :
+///  - Les DOSSIERS restent visibles (pour pouvoir s'abonner à nouveau)
+///  - Seules les questions d'ordre > 5 deviennent inaccessibles aux non-admins
+///  - L'admin voit TOUT, même après expiration
+///
+/// AMÉLIORATIONS :
+/// - DateTime précis jusqu'à la SECONDE (utile pour tester rapidement)
+/// - Boutons rapides : +1min, +5min, +30min, +1h
+/// - Compte à rebours en temps réel (mise à jour chaque seconde)
 class AdminSchedulesSection extends StatefulWidget {
   const AdminSchedulesSection({super.key});
 
@@ -19,14 +28,29 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
   List<Map<String, dynamic>> _categories = [];
   String? _error;
 
-  // État de la programmation globale (date la plus fréquente parmi les catégories)
+  // État de la programmation globale
   DateTime? _globalDate;
   bool _globalEnabled = false;
+
+  // Timer pour rafraîchir le compte à rebours toutes les secondes
+  Timer? _ticker;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      if (_globalEnabled && _globalDate != null) {
+        setState(() {}); // refresh countdown
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -42,7 +66,6 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
           .map((e) => Map<String, dynamic>.from(e))
           .toList();
 
-      // Déterminer l'état global : si au moins 1 catégorie est programmée, on prend sa date
       DateTime? globalDate;
       bool enabled = false;
       for (final c in cats) {
@@ -89,9 +112,10 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(enabled
-                ? '✅ Programmation globale appliquée à $n catégorie(s)'
-                : '✅ Programmation globale désactivée ($n catégorie(s))'),
+                ? '✅ Programmation appliquée à $n catégorie(s) — fin : ${_formatDate(date)}'
+                : '✅ Programmation désactivée ($n catégorie(s))'),
             backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       } else {
@@ -112,32 +136,121 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
     }
   }
 
-  Future<void> _pickGlobalDate() async {
-    final initial = _globalDate ??
-        DateTime.now().add(const Duration(days: 30));
-    final picked = await showDatePicker(
+  /// Pickers : DATE puis HEURE (heure + minute) puis SECONDE via dialog custom.
+  Future<DateTime?> _pickDateTime({DateTime? initial}) async {
+    final start = initial ?? DateTime.now().add(const Duration(minutes: 5));
+
+    // 1. Date
+    final pickedDate = await showDatePicker(
       context: context,
-      initialDate: initial,
-      firstDate: DateTime.now(),
+      initialDate: start,
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
       lastDate: DateTime(DateTime.now().year + 5),
-      // Forcer la locale française pour le calendrier
       locale: const Locale('fr', 'FR'),
-      helpText: 'Sélectionner une date de fin',
+      helpText: 'Date de fin',
       cancelText: 'Annuler',
-      confirmText: 'Valider',
-      fieldLabelText: 'Saisir une date',
-      fieldHintText: 'jj/mm/aaaa',
-      errorFormatText: 'Format de date invalide',
-      errorInvalidText: 'Date hors limites',
+      confirmText: 'Suivant',
     );
-    if (picked == null) return;
-    // Ajouter 23:59:59 à la date de fin
-    final dateFin = DateTime(picked.year, picked.month, picked.day, 23, 59, 59);
-    if (!mounted) return;
+    if (pickedDate == null) return null;
+
+    if (!mounted) return null;
+    // 2. Heure + minute
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: start.hour, minute: start.minute),
+      helpText: 'Heure de fin (heure : minute)',
+      cancelText: 'Annuler',
+      confirmText: 'Suivant',
+      builder: (ctx, child) => Localizations.override(
+        context: ctx,
+        locale: const Locale('fr', 'FR'),
+        child: MediaQuery(
+          data: MediaQuery.of(ctx).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        ),
+      ),
+    );
+    if (pickedTime == null) return null;
+
+    if (!mounted) return null;
+    // 3. Secondes via dialog custom
+    final seconds = await _pickSeconds(initial: start.second);
+    if (seconds == null) return null;
+
+    return DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+      seconds,
+    );
+  }
+
+  Future<int?> _pickSeconds({int initial = 0}) async {
+    int value = initial;
+    return showDialog<int>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSt) => AlertDialog(
+          title: const Text('Secondes (0 - 59)'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value.toString().padLeft(2, '0'),
+                style: const TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.primary,
+                ),
+              ),
+              Slider(
+                value: value.toDouble(),
+                min: 0,
+                max: 59,
+                divisions: 59,
+                label: value.toString(),
+                onChanged: (v) => setSt(() => value = v.round()),
+              ),
+              const Text(
+                'Astuce : laissez à 0 si vous n\'avez pas besoin de précision',
+                style: TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Annuler')),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, value),
+              child: const Text('Valider'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _quickSet(Duration offset) async {
+    final d = DateTime.now().add(offset);
     setState(() {
-      _globalDate = dateFin;
+      _globalDate = d;
       _globalEnabled = true;
     });
+    await _applyGlobal(enabled: true, date: d);
+  }
+
+  Future<void> _pickGlobalDate() async {
+    final picked = await _pickDateTime(initial: _globalDate);
+    if (picked == null) return;
+    if (!mounted) return;
+    setState(() {
+      _globalDate = picked;
+      _globalEnabled = true;
+    });
+    await _applyGlobal(enabled: true, date: picked);
   }
 
   Future<void> _disableGlobal() async {
@@ -146,7 +259,7 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
       builder: (ctx) => AlertDialog(
         title: const Text('Désactiver la programmation ?'),
         content: const Text(
-            'Toutes les catégories redeviendront visibles sans limite de date.'),
+            'Toutes les questions redeviendront accessibles aux abonnés sans limite de date.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -170,18 +283,23 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
   String _formatDate(DateTime? d) {
     if (d == null) return '—';
     final local = d.toLocal();
-    return '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}/${local.year} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    return '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}/${local.year} à ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}:${local.second.toString().padLeft(2, '0')}';
   }
 
   String? _remainingTime() {
     if (_globalDate == null) return null;
     final diff = _globalDate!.difference(DateTime.now());
-    if (diff.isNegative) return 'EXPIRÉ — Contenu masqué pour les utilisateurs';
-    if (diff.inDays > 0) return 'Fin dans ${diff.inDays}j ${diff.inHours % 24}h';
-    if (diff.inHours > 0) {
-      return 'Fin dans ${diff.inHours}h ${diff.inMinutes % 60}min';
+    if (diff.isNegative) {
+      return '⛔ EXPIRÉ — Questions >5 masquées pour les utilisateurs';
     }
-    return 'Fin dans ${diff.inMinutes}min';
+    final d = diff.inDays;
+    final h = diff.inHours % 24;
+    final m = diff.inMinutes % 60;
+    final s = diff.inSeconds % 60;
+    if (d > 0) return 'Fin dans ${d}j ${h}h ${m}min ${s}s';
+    if (h > 0) return 'Fin dans ${h}h ${m}min ${s}s';
+    if (m > 0) return 'Fin dans ${m}min ${s}s';
+    return 'Fin dans ${s}s';
   }
 
   @override
@@ -205,8 +323,8 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
     }
 
     final remaining = _remainingTime();
-    final expired = _globalDate != null &&
-        _globalDate!.isBefore(DateTime.now());
+    final expired =
+        _globalDate != null && _globalDate!.isBefore(DateTime.now());
     final programmedCount =
         _categories.where((c) => c['is_programmed'] == true).length;
 
@@ -215,7 +333,49 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // ============ CARTE PRINCIPALE : PROGRAMMATION GLOBALE ============
+          // ============ INFO COMPORTEMENT ============
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline_rounded,
+                    color: Color(0xFF1D4ED8), size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Comportement après la date',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                          color: Color(0xFF1D4ED8),
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        '• Les DOSSIERS restent visibles\n'
+                        '• Les 5 premières questions restent gratuites\n'
+                        '• Les questions d\'ordre > 5 deviennent inaccessibles aux non-admins\n'
+                        '• L\'admin voit TOUT, même après expiration',
+                        style: TextStyle(fontSize: 12, height: 1.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ============ CARTE PRINCIPALE ============
           Card(
             elevation: 3,
             color: _globalEnabled
@@ -252,7 +412,7 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Définir une date de fin après laquelle TOUS les QCM et dissertations seront masqués pour les utilisateurs (sauf admin). Seule la démo reste visible.',
+                    'Définir une date/heure de fin précise (jusqu\'à la seconde). Après cette échéance, les questions au-delà de la 5ème seront masquées pour les non-admins.',
                     style: TextStyle(fontSize: 12, color: Colors.black87),
                   ),
                   const SizedBox(height: 16),
@@ -280,10 +440,10 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  'Date de fin : ${_formatDate(_globalDate)}',
+                                  'Fin : ${_formatDate(_globalDate)}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w900,
-                                    fontSize: 14,
+                                    fontSize: 13,
                                     color: expired
                                         ? Colors.red.shade900
                                         : Colors.amber.shade900,
@@ -297,8 +457,11 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
                             Text(
                               remaining,
                               style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures()
+                                ],
                                 color: expired
                                     ? Colors.red.shade900
                                     : Colors.amber.shade900,
@@ -318,17 +481,9 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: _saving
-                                ? null
-                                : () async {
-                                    await _pickGlobalDate();
-                                    if (_globalDate != null) {
-                                      await _applyGlobal(
-                                          enabled: true, date: _globalDate);
-                                    }
-                                  },
+                            onPressed: _saving ? null : _pickGlobalDate,
                             icon: const Icon(Icons.edit_calendar, size: 18),
-                            label: const Text('Modifier la date'),
+                            label: const Text('Modifier'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
@@ -374,17 +529,10 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: _saving
-                            ? null
-                            : () async {
-                                await _pickGlobalDate();
-                                if (_globalDate != null) {
-                                  await _applyGlobal(
-                                      enabled: true, date: _globalDate);
-                                }
-                              },
+                        onPressed: _saving ? null : _pickGlobalDate,
                         icon: const Icon(Icons.lock_clock, size: 18),
-                        label: const Text('Programmer une date de fin globale'),
+                        label: const Text(
+                            'Programmer une fin précise (date + heure + sec.)'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
@@ -401,8 +549,57 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
               ),
             ),
           ),
+          const SizedBox(height: 16),
+
+          // ============ RACCOURCIS POUR TESTER ============
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(Icons.flash_on_rounded,
+                          color: Color(0xFFEAB308), size: 20),
+                      SizedBox(width: 6),
+                      Text(
+                        'Raccourcis pour tester rapidement',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                          color: AppColors.darkTerracotta,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Définit une fin de validité dans X temps depuis maintenant.',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _quickBtn('+ 1 minute', const Duration(minutes: 1)),
+                      _quickBtn('+ 5 minutes', const Duration(minutes: 5)),
+                      _quickBtn('+ 30 secondes',
+                          const Duration(seconds: 30)),
+                      _quickBtn('+ 30 minutes',
+                          const Duration(minutes: 30)),
+                      _quickBtn('+ 1 heure', const Duration(hours: 1)),
+                      _quickBtn('+ 1 jour', const Duration(days: 1)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 20),
-          // ============ LISTE DES CATÉGORIES (état actuel) ============
+
+          // ============ LISTE DES CATÉGORIES ============
           Text(
             '📚 État des ${_categories.length} catégories',
             style: const TextStyle(
@@ -420,8 +617,7 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
             if (dateV != null) {
               try {
                 final d = DateTime.parse(dateV).toLocal();
-                dateStr =
-                    '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+                dateStr = _formatDate(d);
               } catch (_) {
                 dateStr = dateV;
               }
@@ -441,11 +637,11 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
                 subtitle: Text(
                   programmed
                       ? (expired
-                          ? '❌ Expirée le $dateStr (masquée)'
+                          ? '❌ Expirée le $dateStr (questions >5 masquées)'
                           : '⏳ Se ferme le $dateStr')
                       : '✓ Accessible sans limite',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: programmed
                         ? (expired ? Colors.red : Colors.orange.shade700)
                         : Colors.green,
@@ -460,6 +656,20 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
             );
           }),
         ],
+      ),
+    );
+  }
+
+  Widget _quickBtn(String label, Duration offset) {
+    return ElevatedButton.icon(
+      onPressed: _saving ? null : () => _quickSet(offset),
+      icon: const Icon(Icons.timer_outlined, size: 14),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFFEF3C7),
+        foregroundColor: const Color(0xFF92400E),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        elevation: 0,
       ),
     );
   }
