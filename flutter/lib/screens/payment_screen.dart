@@ -136,7 +136,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       if (!mounted) return;
       setState(() {
         _submitting = false;
-        _message = '⚠️ Erreur réseau. Vérifiez votre connexion.';
+        _message = '⚠️ Erreur réseau : ${e.toString().replaceAll('Exception:', '').trim()}. Vérifiez votre connexion.';
       });
     }
   }

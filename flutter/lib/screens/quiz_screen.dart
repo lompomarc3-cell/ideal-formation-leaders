@@ -440,7 +440,7 @@ class _QuizScreenState extends State<QuizScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Question ${_currentIndex + 1} / ${_questions.length}',
+                'Question ${_currentIndex + 1} sur ${_questions.length}',
                 style: const TextStyle(
                     fontWeight: FontWeight.w800, fontSize: 13),
               ),
