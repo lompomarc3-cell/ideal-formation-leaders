@@ -529,22 +529,47 @@ class _QuizScreenState extends State<QuizScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (q.matiere != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      q.matiere!,
-                      style: TextStyle(
+                // Badge numéro de question (#N sur N) + éventuelle matière
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Question ${index + 1} / ${_questions.length}',
+                        style: const TextStyle(
+                          color: Colors.white,
                           fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: color),
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 6),
+                    if (q.matiere != null)
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            q.matiere!,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: color),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
                 const SizedBox(height: 12),
                 Text(
                   q.questionText,

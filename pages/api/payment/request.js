@@ -10,8 +10,9 @@ export default async function handler(req) {
     })
   }
 
-  // 🛡️ Rate limit : 3 demandes de paiement / 5 min / IP, blocage 15 min
-  const rl = rateLimit(req, { key: 'payment-request', max: 3, windowMs: 5 * 60_000, blockMs: 15 * 60_000 })
+  // 🛡️ Rate limit : 10 demandes de paiement / 5 min / IP, blocage 5 min
+  // (assoupli : plusieurs utilisateurs peuvent partager une même IP : cybercafé, famille...)
+  const rl = rateLimit(req, { key: 'payment-request', max: 10, windowMs: 5 * 60_000, blockMs: 5 * 60_000 })
   if (!rl.allowed) return tooManyRequests(rl.resetIn)
 
   const auth = req.headers.get('authorization') || ''

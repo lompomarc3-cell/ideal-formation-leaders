@@ -275,6 +275,53 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
             ],
           ),
         ),
+        // 🚀 Barre d'actions principale TOUJOURS visible (Import massif + Nouveau)
+        Container(
+          width: double.infinity,
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: ElevatedButton.icon(
+                  onPressed: _openBulkImport,
+                  icon: const Icon(Icons.upload_file_rounded),
+                  label: const Text(
+                    'Import massif (50+ questions)',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF16A34A),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    textStyle: const TextStyle(
+                        fontWeight: FontWeight.w900, fontSize: 13),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  onPressed: () => _openEditor(),
+                  icon: const Icon(Icons.add_circle_rounded),
+                  label: const Text(
+                    'Nouvelle question',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    textStyle: const TextStyle(
+                        fontWeight: FontWeight.w900, fontSize: 13),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
           child: SingleChildScrollView(
@@ -347,22 +394,6 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
                         },
                   icon: const Icon(Icons.refresh),
                   label: const Text('Réinitialiser'),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () => _openEditor(),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Nouveau'),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: _openBulkImport,
-                  icon: const Icon(Icons.upload_file_rounded),
-                  label: const Text('Import massif'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF16A34A),
-                    foregroundColor: Colors.white,
-                  ),
                 ),
               ],
             ),
@@ -588,123 +619,362 @@ class _QuestionEditorDialogState extends State<_QuestionEditorDialog> {
     super.dispose();
   }
 
+  Widget _sectionTitle(String emoji, String title, {String? subtitle}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13.5,
+                    color: AppColors.darkTerracotta,
+                  ),
+                ),
+                if (subtitle != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.question != null;
-    return AlertDialog(
-      title: Text(
-          isEdit ? 'Modifier la question' : 'Nouvelle question'),
-      content: SingleChildScrollView(
-        child: SizedBox(
-          width: 500,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (isEdit && widget.orderIndex != null)
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFBFDBFE)),
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 620),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // En-tête coloré
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.darkTerracotta, AppColors.primary],
+                ),
+                borderRadius:
+                    BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isEdit ? Icons.edit_rounded : Icons.add_circle_rounded,
+                    color: Colors.white,
+                    size: 26,
                   ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.lock_rounded,
-                          size: 16, color: Color(0xFF1D4ED8)),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          'Question #${widget.orderIndex} — l\'ordre ne sera PAS modifié',
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isEdit
+                              ? 'Modifier la question'
+                              : 'Nouvelle question',
                           style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF1D4ED8),
-                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                          ),
+                        ),
+                        if (isEdit && widget.orderIndex != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              'Position #${widget.orderIndex} — préservée après modification',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    tooltip: 'Annuler',
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(18, 4, 18, 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Catégorie (création seulement)
+                    if (!isEdit) ...[
+                      _sectionTitle('📚', 'Catégorie',
+                          subtitle: 'Dossier dans lequel ranger la question.'),
+                      DropdownButtonFormField<String>(
+                        initialValue: _categoryId,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          labelText: 'Choisir une catégorie *',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        items: widget.categories
+                            .map((c) => DropdownMenuItem(
+                                  value: c['id'].toString(),
+                                  child: Text(
+                                    c['nom']?.toString() ?? '',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ))
+                            .toList(),
+                        onChanged: (v) => setState(() => _categoryId = v),
+                      ),
+                    ],
+                    // Énoncé
+                    _sectionTitle('❓', 'Énoncé de la question',
+                        subtitle:
+                            'Tapez la question telle qu\'elle apparaîtra à l\'utilisateur.'),
+                    TextField(
+                      controller: _enonce,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: 'Ex: Quelle est la capitale du Burkina Faso ?',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    // Options A/B/C/D + radio de bonne réponse
+                    _sectionTitle('🅰️', 'Options de réponse',
+                        subtitle:
+                            'Cochez le rond vert à côté de la BONNE réponse.'),
+                    for (int i = 0; i < 4; i++)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: _correct == String.fromCharCode(65 + i)
+                                ? const Color(0xFFD1FAE5)
+                                : const Color(0xFFF9FAFB),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: _correct == String.fromCharCode(65 + i)
+                                  ? const Color(0xFF16A34A)
+                                  : const Color(0xFFE5E7EB),
+                              width:
+                                  _correct == String.fromCharCode(65 + i)
+                                      ? 2
+                                      : 1,
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          child: Row(
+                            children: [
+                              Radio<String>(
+                                value: String.fromCharCode(65 + i),
+                                groupValue: _correct,
+                                activeColor: const Color(0xFF16A34A),
+                                onChanged: (v) =>
+                                    setState(() => _correct = v ?? 'A'),
+                              ),
+                              Container(
+                                width: 28,
+                                height: 28,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: _correct ==
+                                          String.fromCharCode(65 + i)
+                                      ? const Color(0xFF16A34A)
+                                      : AppColors.primary,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  String.fromCharCode(65 + i),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: TextField(
+                                  controller: _opts[i],
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        'Texte de l\'option ${String.fromCharCode(65 + i)}',
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                  ),
+                                ),
+                              ),
+                              if (_correct ==
+                                  String.fromCharCode(65 + i))
+                                const Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 6),
+                                  child: Icon(Icons.check_circle,
+                                      color: Color(0xFF16A34A), size: 20),
+                                ),
+                            ],
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    // Explication
+                    _sectionTitle('💡', 'Explication (facultatif)',
+                        subtitle:
+                            'Affichée après la réponse pour expliquer le bon choix.'),
+                    TextField(
+                      controller: _expl,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText:
+                            'Ex: Ouagadougou est la capitale du Burkina Faso depuis 1960.',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    // Démo
+                    const SizedBox(height: 6),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: _isDemo
+                            ? const Color(0xFFFFF7ED)
+                            : const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: _isDemo
+                              ? const Color(0xFFFBBF24)
+                              : const Color(0xFFE5E7EB),
+                        ),
+                      ),
+                      child: SwitchListTile(
+                        dense: true,
+                        title: const Text(
+                          'Question démo (visible sans abonnement)',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 13),
+                        ),
+                        subtitle: const Text(
+                          'À activer pour les 5 premières questions gratuites.',
+                          style: TextStyle(fontSize: 11),
+                        ),
+                        value: _isDemo,
+                        activeColor: AppColors.primary,
+                        onChanged: (v) => setState(() => _isDemo = v),
+                      ),
+                    ),
+                  ],
                 ),
-              if (!isEdit)
-                DropdownButtonFormField<String>(
-                  initialValue: _categoryId,
-                  decoration: const InputDecoration(labelText: 'Catégorie *'),
-                  items: widget.categories
-                      .map((c) => DropdownMenuItem(
-                            value: c['id'].toString(),
-                            child: Text(c['nom']?.toString() ?? ''),
-                          ))
-                      .toList(),
-                  onChanged: (v) => setState(() => _categoryId = v),
-                ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _enonce,
-                maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Énoncé *'),
               ),
-              const SizedBox(height: 8),
-              for (int i = 0; i < 4; i++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: TextField(
-                    controller: _opts[i],
-                    decoration: InputDecoration(
-                        labelText: 'Option ${String.fromCharCode(65 + i)}'),
+            ),
+            // Barre d'actions
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF9FAFB),
+                borderRadius:
+                    BorderRadius.vertical(bottom: Radius.circular(16)),
+                border: Border(
+                    top: BorderSide(color: Color(0xFFE5E7EB))),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close_rounded),
+                      label: const Text('Annuler'),
+                      style: OutlinedButton.styleFrom(
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
                   ),
-                ),
-              DropdownButtonFormField<String>(
-                initialValue: _correct,
-                decoration:
-                    const InputDecoration(labelText: 'Réponse correcte'),
-                items: const [
-                  DropdownMenuItem(value: 'A', child: Text('A')),
-                  DropdownMenuItem(value: 'B', child: Text('B')),
-                  DropdownMenuItem(value: 'C', child: Text('C')),
-                  DropdownMenuItem(value: 'D', child: Text('D')),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () {
+                        if (_enonce.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('L\'énoncé est obligatoire'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+                        if (!isEdit && _categoryId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Choisissez une catégorie pour la question'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+                        Navigator.pop(context, {
+                          'category_id': _categoryId,
+                          'enonce': _enonce.text.trim(),
+                          'options':
+                              _opts.map((c) => c.text.trim()).toList(),
+                          'reponse_correcte': _correct,
+                          'explication': _expl.text.trim(),
+                          'is_demo': _isDemo,
+                        });
+                      },
+                      icon: Icon(isEdit
+                          ? Icons.save_rounded
+                          : Icons.add_circle_rounded),
+                      label: Text(isEdit
+                          ? 'Enregistrer les modifications'
+                          : 'Créer la question'),
+                    ),
+                  ),
                 ],
-                onChanged: (v) => setState(() => _correct = v ?? 'A'),
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _expl,
-                maxLines: 2,
-                decoration: const InputDecoration(labelText: 'Explication'),
-              ),
-              SwitchListTile(
-                title: const Text('Question démo (gratuit)'),
-                value: _isDemo,
-                activeColor: AppColors.primary,
-                onChanged: (v) => setState(() => _isDemo = v),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler')),
-        ElevatedButton(
-          onPressed: () {
-            if (_enonce.text.trim().isEmpty) return;
-            if (!isEdit && _categoryId == null) return;
-            Navigator.pop(context, {
-              'category_id': _categoryId,
-              'enonce': _enonce.text.trim(),
-              'options': _opts.map((c) => c.text.trim()).toList(),
-              'reponse_correcte': _correct,
-              'explication': _expl.text.trim(),
-              'is_demo': _isDemo,
-            });
-          },
-          child: const Text('Enregistrer'),
-        ),
-      ],
     );
   }
 }

@@ -125,12 +125,29 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
       if (!mounted) return;
       setState(() => _submitting = false);
-      if (res['success'] == true || res['payment_id'] != null) {
+      if (res['success'] == true ||
+          res['payment_id'] != null ||
+          res['payment'] != null) {
         setState(() => _message =
             '✅ Demande envoyée ! Notre équipe va valider votre paiement dans un délai de 24h.');
       } else {
-        setState(() => _message =
-            '⚠️ ${res['error'] ?? "Erreur lors de l'envoi de la demande."}');
+        // Message d'erreur enrichi (retry_after pour rate-limit)
+        final err = res['error']?.toString() ?? '';
+        final retry = res['retry_after'];
+        String msg;
+        if (retry != null) {
+          final min = ((retry is num ? retry.toInt() : int.tryParse(retry.toString()) ?? 0) / 60).ceil();
+          msg = '⏳ Trop de tentatives. Veuillez patienter $min minute(s) avant de réessayer.';
+        } else if (err.toLowerCase().contains('dossier')) {
+          msg = '⚠️ Pour un abonnement professionnel, vous devez choisir un dossier principal.';
+        } else if (err.toLowerCase().contains('token')) {
+          msg = '⚠️ Votre session a expiré. Veuillez vous reconnecter.';
+        } else if (err.isNotEmpty) {
+          msg = '⚠️ $err';
+        } else {
+          msg = '⚠️ Erreur lors de l\'envoi de la demande. Vérifiez votre connexion et réessayez.';
+        }
+        setState(() => _message = msg);
       }
     } catch (e) {
       if (!mounted) return;
