@@ -7,6 +7,7 @@ import '../../services/price_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cat_icon.dart';
 import '../../widgets/price_display.dart';
+import '../../widgets/promo_banner.dart';
 
 /// Onglet 2 : Concours direct.
 /// - 12 dossiers
@@ -92,6 +93,8 @@ class _DirectTabState extends State<DirectTab> {
           child: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(child: _buildHeader(hasAccess)),
+              // 🔥 Bandeau clignotant : promo Direct uniquement
+              const SliverToBoxAdapter(child: PromoBanner(type: 'direct')),
               if (_loading)
                 const SliverFillRemaining(
                   hasScrollBody: false,

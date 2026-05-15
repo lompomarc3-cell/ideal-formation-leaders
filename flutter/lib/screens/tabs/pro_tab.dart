@@ -7,6 +7,7 @@ import '../../services/price_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cat_icon.dart';
 import '../../widgets/price_display.dart';
+import '../../widgets/promo_banner.dart';
 
 /// Onglet 3 : Concours professionnel.
 /// - 17 dossiers : 14 payants + 3 bonus (Entraînement QCM, Actualités, Accompagnement)
@@ -137,6 +138,8 @@ class _ProTabState extends State<ProTab> {
           child: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(child: _buildHeader(hasAnyPaid)),
+              // 🔥 Bandeau clignotant : promo Professionnel uniquement
+              const SliverToBoxAdapter(child: PromoBanner(type: 'professionnel')),
               if (_loading)
                 const SliverFillRemaining(
                   hasScrollBody: false,

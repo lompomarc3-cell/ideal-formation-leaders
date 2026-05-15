@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../services/auth_service.dart';
 import '../services/price_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/promo_banner.dart';
 
 const String kOrangeMoneyNumber = '76223962';
 const String kWhatsAppNumber = '22676223962';
@@ -181,6 +182,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
               children: [
                 _buildIntroBanner(),
                 const SizedBox(height: 12),
+                // 🔥 Bandeau clignotant : promo selon le type sélectionné
+                PromoBanner(
+                  type: _typeConcours,
+                  margin: const EdgeInsets.only(bottom: 8),
+                ),
                 _buildPlanCards(),
                 const SizedBox(height: 12),
                 if (_typeConcours == 'professionnel') _buildDossierPicker(),
