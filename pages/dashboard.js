@@ -267,10 +267,13 @@ export default function Dashboard() {
   const hasAccess = (type) => {
     if (!user) return false
     if (user.is_admin) return true
+    // 🔧 FIX #1/#3 : Prendre en compte les flags cumul direct + pro fournis par /api/auth/me
+    if (type === 'direct' && user.has_active_direct === true) return true
+    if (type === 'professionnel' && user.has_active_pro === true) return true
+    // Fallback rétro-compat
     const sub = user.abonnement_type
-    const active = user.subscription_status === 'active'
-    const notExpired = true // Pas de vérification de durée
-    return active && notExpired && (sub === type || sub === 'all')
+    const active = user.subscription_status === 'active' && !user.subscription_expired
+    return active && (sub === type || sub === 'all')
   }
 
   // Vérifie si un dossier professionnel spécifique est débloqué pour cet utilisateur

@@ -35,24 +35,36 @@ export default async function handler(req) {
 
       if (error) throw error
 
+      // 🔧 FIX #4 : Optimisation - récupérer tous les paiements pro en UNE seule requête
+      const proUserIds = (users || []).filter(u => u.subscription_type === 'professionnel' && u.subscription_status === 'active').map(u => u.id)
+      const paymentsByUser = {}
+      if (proUserIds.length > 0) {
+        const { data: allPaidReq } = await supabaseAdmin
+          .from('correction_requests')
+          .select('user_id, message, created_at')
+          .in('user_id', proUserIds)
+          .eq('status', 'approved')
+          .like('message', '%ifl_payment%')
+          .order('created_at', { ascending: false })
+        if (allPaidReq) {
+          for (const r of allPaidReq) {
+            if (!paymentsByUser[r.user_id]) paymentsByUser[r.user_id] = []
+            paymentsByUser[r.user_id].push(r)
+          }
+        }
+      }
+
       const userList = []
       for (const u of (users || [])) {
         const nameParts = (u.full_name || '').trim().split(' ')
         let abonnementType = u.subscription_type
         let dossierPrincipal = null
         let dossiersTousLesDebloques = []
-        
+
         // Pour les abonnés professionnels, récupérer TOUS les dossiers depuis correction_requests
         if (u.subscription_type === 'professionnel' && u.subscription_status === 'active') {
-          const { data: paidReq } = await supabaseAdmin
-            .from('correction_requests')
-            .select('message')
-            .eq('user_id', u.id)
-            .eq('status', 'approved')
-            .like('message', '%ifl_payment%')
-            .order('created_at', { ascending: false })
-          
-          if (paidReq && paidReq.length > 0) {
+          const paidReq = paymentsByUser[u.id] || []
+          if (paidReq.length > 0) {
             const dossiersTrouves = []
             for (const req of paidReq) {
               try {

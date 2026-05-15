@@ -320,6 +320,17 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  // 🔧 FIX #4 : Auto-refresh des infos utilisateur toutes les 15 secondes
+  // pour détecter rapidement quand l'admin valide un paiement.
+  useEffect(() => {
+    if (!user) return
+    const interval = setInterval(() => {
+      const token = localStorage.getItem('ifl_token')
+      if (token) fetchUser(token)
+    }, 15000) // 15 secondes
+    return () => clearInterval(interval)
+  }, [user?.id])
+
   const fetchUser = async (token) => {
     try {
       const res = await fetch('/api/auth/me', {

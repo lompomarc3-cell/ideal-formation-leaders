@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,6 +18,7 @@ class AuthService extends ChangeNotifier {
   AppUser? _user;
   bool _loading = true;
   String? _token;
+  Timer? _autoRefreshTimer;
 
   AppUser? get user => _user;
   bool get loading => _loading;
@@ -24,6 +26,30 @@ class AuthService extends ChangeNotifier {
   bool get isAdmin => _user?.isAdmin ?? false;
   String? get token => _token;
   ApiService get api => _api;
+
+  /// 🔧 FIX #4 : Lance un refresh automatique périodique pour détecter
+  /// rapidement les changements d'abonnement (paiement validé par admin).
+  /// Intervalle : 15 secondes (équilibre entre réactivité et charge serveur).
+  void startAutoRefresh({Duration interval = const Duration(seconds: 15)}) {
+    _autoRefreshTimer?.cancel();
+    if (_token == null || _token!.isEmpty) return;
+    _autoRefreshTimer = Timer.periodic(interval, (_) {
+      if (_token != null && _token!.isNotEmpty) {
+        refreshUser();
+      }
+    });
+  }
+
+  void stopAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = null;
+  }
+
+  @override
+  void dispose() {
+    _autoRefreshTimer?.cancel();
+    super.dispose();
+  }
 
   /// À appeler au démarrage : rétablit la session depuis SharedPreferences.
   Future<void> bootstrap() async {
@@ -41,6 +67,7 @@ class AuthService extends ChangeNotifier {
       }
       if (_token != null && _token!.isNotEmpty) {
         await refreshUser();
+        startAutoRefresh();
       }
     } catch (e) {
       if (kDebugMode) debugPrint('[Auth] bootstrap error: $e');
@@ -79,6 +106,7 @@ class AuthService extends ChangeNotifier {
       notifyListeners();
       // Rafraîchir pour obtenir dossiers_debloques etc.
       refreshUser();
+      startAutoRefresh();
       return null;
     }
     return data['error']?.toString() ?? 'Identifiants incorrects';
@@ -103,12 +131,14 @@ class AuthService extends ChangeNotifier {
       await prefs.setString(_tokenKey, _token!);
       await prefs.setString(_userKey, jsonEncode(_user!.toJson()));
       notifyListeners();
+      startAutoRefresh();
       return null;
     }
     return data['error']?.toString() ?? "Erreur lors de l'inscription";
   }
 
   Future<void> logout() async {
+    stopAutoRefresh();
     _token = null;
     _user = null;
     final prefs = await SharedPreferences.getInstance();

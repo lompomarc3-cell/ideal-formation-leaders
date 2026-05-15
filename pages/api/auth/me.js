@@ -48,41 +48,82 @@ export default async function handler(req) {
 
     const abonnementType = profile.subscription_type || null
 
-    // Pour les abonnements professionnels, récupérer TOUS les dossiers payés et approuvés
+    // 🔧 FIX #1/#3 : Détection de l'expiration
+    const now = new Date()
+    const expiresAt = profile.subscription_expires_at ? new Date(profile.subscription_expires_at) : null
+    const isExpired = !isAdmin && profile.subscription_status === 'active' && expiresAt && expiresAt < now
+    const realStatus = isExpired ? 'expired' : profile.subscription_status
+
+    // 🔧 FIX #3 : CUMUL DIRECT + PRO
+    // Récupérer TOUS les paiements approuvés ET non expirés pour déterminer
+    // - quels dossiers pro sont débloqués
+    // - si l'utilisateur a aussi un abonnement direct actif
     let dossier_principal = null
     let dossiers_principaux = []
-    
-    if (abonnementType === 'professionnel' && profile.subscription_status === 'active') {
-      // Récupérer TOUS les paiements professionnels approuvés (pas juste le dernier)
+    let hasActiveDirect = false
+    let hasActivePro = false
+
+    if (!isAdmin) {
       const { data: paymentRequests } = await supabaseAdmin
         .from('correction_requests')
-        .select('message')
+        .select('message, created_at, status, admin_response')
         .eq('user_id', decoded.userId)
         .eq('status', 'approved')
         .like('message', '%ifl_payment%')
         .order('created_at', { ascending: false })
 
       if (paymentRequests && paymentRequests.length > 0) {
-        for (const req of paymentRequests) {
+        for (const r of paymentRequests) {
           try {
-            const parsed = JSON.parse(req.message)
-            if (parsed.type === 'ifl_payment' && parsed.type_concours === 'professionnel' && parsed.dossier_principal) {
-              if (!dossiers_principaux.includes(parsed.dossier_principal)) {
+            const parsed = JSON.parse(r.message)
+            if (parsed.type !== 'ifl_payment') continue
+
+            // Un paiement validé est considéré actif s'il a moins d'un an
+            const validatedAt = new Date(r.created_at)
+            const validUntil = new Date(validatedAt)
+            validUntil.setFullYear(validUntil.getFullYear() + 1)
+            const isPaymentActive = validUntil > now
+
+            if (!isPaymentActive) continue // ignorer les paiements expirés
+
+            if (parsed.type_concours === 'direct') {
+              hasActiveDirect = true
+            } else if (parsed.type_concours === 'professionnel') {
+              hasActivePro = true
+              if (parsed.dossier_principal && !dossiers_principaux.includes(parsed.dossier_principal)) {
                 dossiers_principaux.push(parsed.dossier_principal)
               }
             }
           } catch {}
         }
       }
-      
-      // dossier_principal = le premier dossier payé (ou le plus récent)
+
       dossier_principal = dossiers_principaux.length > 0 ? dossiers_principaux[0] : null
     }
 
+    // 🔧 FIX #3 : Déterminer le abonnement_type effectif (cumul direct + pro possible)
+    let effectiveType = abonnementType
+    if (hasActiveDirect && hasActivePro) {
+      effectiveType = 'all' // accès complet (direct + pro)
+    } else if (hasActiveDirect) {
+      effectiveType = 'direct'
+    } else if (hasActivePro) {
+      effectiveType = 'professionnel'
+    }
+
     // Calculer les dossiers débloqués (MULTI-DOSSIERS)
-    const dossiersDebloques = abonnementType === 'professionnel' 
-      ? getDossiersDebloquesMulti(dossiers_principaux)
-      : null // null = soit tous (direct/admin), soit aucun
+    let dossiersDebloques = null
+    if (effectiveType === 'all' || effectiveType === 'direct') {
+      // Accès à tout (direct couvre tous les dossiers directs + accompagnements offerts si pro)
+      dossiersDebloques = hasActivePro ? getDossiersDebloquesMulti(dossiers_principaux) : null
+    } else if (effectiveType === 'professionnel') {
+      dossiersDebloques = getDossiersDebloquesMulti(dossiers_principaux)
+    }
+
+    // 🔧 FIX #1 : si tous les paiements sont expirés mais profile dit "active", on remet en expired
+    const finalStatus = isAdmin
+      ? 'active'
+      : (hasActiveDirect || hasActivePro ? 'active' : (isExpired ? 'expired' : realStatus))
 
     return res.json({
       id: profile.id,
@@ -93,9 +134,13 @@ export default async function handler(req) {
       role: profile.role,
       is_admin: isAdmin,
       // Abonnement
-      abonnement_type: abonnementType,
+      abonnement_type: effectiveType,
       abonnement_valide_jusqua: profile.subscription_expires_at,
-      subscription_status: profile.subscription_status,
+      subscription_status: finalStatus,
+      subscription_expired: isExpired || (!hasActiveDirect && !hasActivePro && abonnementType !== null && !isAdmin),
+      // Flags additionnels pour l'UI (cumul direct + pro)
+      has_active_direct: hasActiveDirect || isAdmin,
+      has_active_pro: hasActivePro || isAdmin,
       // Dossier principal pour abonnement professionnel (compatibilité rétro)
       dossier_principal: dossier_principal,
       // Tous les dossiers débloqués (multi-dossiers)
@@ -107,4 +152,3 @@ export default async function handler(req) {
     return res.status(500).json({ error: 'Erreur serveur: ' + error.message })
   }
 }
-

@@ -26,27 +26,45 @@ export default async function handler(req) {
   // GET: lister les demandes de paiement
   if (req.method === 'GET') {
     try {
-      const { data: requests, error } = await supabaseAdmin
+      // 🔧 FIX #4 : Optimisation - filtre côté serveur 'status', et batch la récupération des profiles
+      const url = new URL(req.url)
+      const statusFilter = url.searchParams.get('status') // pending | approved | rejected
+      const limit = Math.min(parseInt(url.searchParams.get('limit') || '100', 10), 500)
+
+      let query = supabaseAdmin
         .from('correction_requests')
         .select('id, user_id, message, status, admin_response, created_at')
         .like('message', '%ifl_payment%')
         .order('created_at', { ascending: false })
-        .limit(100)
+        .limit(limit)
+
+      if (statusFilter && ['pending', 'approved', 'rejected'].includes(statusFilter)) {
+        query = query.eq('status', statusFilter)
+      }
+
+      const { data: requests, error } = await query
 
       if (error) throw error
+
+      // 🚀 OPTIMISATION CRITIQUE : Au lieu d'une requête profiles par paiement (N+1),
+      // on récupère TOUS les profiles concernés en UNE SEULE requête (`in` filter).
+      const userIds = [...new Set((requests || []).map(r => r.user_id).filter(Boolean))]
+      let profilesMap = {}
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabaseAdmin
+          .from('profiles')
+          .select('id, full_name, phone, subscription_type')
+          .in('id', userIds)
+        if (profiles) {
+          for (const p of profiles) profilesMap[p.id] = p
+        }
+      }
 
       const payments = []
       for (const r of requests || []) {
         let parsed = {}
         try { parsed = JSON.parse(r.message) } catch {}
-        
-        // Récupérer infos utilisateur
-        const { data: profile } = await supabaseAdmin
-          .from('profiles')
-          .select('full_name, phone, subscription_type')
-          .eq('id', r.user_id)
-          .maybeSingle()
-
+        const profile = profilesMap[r.user_id] || null
         const nameParts = (profile?.full_name || '').split(' ')
         payments.push({
           id: r.id,
@@ -72,7 +90,12 @@ export default async function handler(req) {
       }
 
       return new Response(JSON.stringify({ payments }), {
-        status: 200, headers: { 'Content-Type': 'application/json' }
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          // Cache court côté CDN pour réduire la charge
+          'Cache-Control': 'private, no-cache'
+        }
       })
     } catch (err) {
       return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
@@ -141,10 +164,35 @@ export default async function handler(req) {
         const expiresAt = new Date()
         expiresAt.setFullYear(expiresAt.getFullYear() + 1)
 
-        // IMPORTANT: La contrainte DB n'accepte que 'direct' et 'professionnel'
-        // Le dossier_principal est stocké dans correction_requests.message (JSON)
-        // et récupéré via l'API /me en cherchant les paiements approuvés (multi-dossiers)
-        const subscriptionTypeValue = (realType === 'professionnel' ? 'professionnel' : 'direct')
+        // 🔧 FIX #3 : NE PAS écraser un abonnement direct existant si on valide un pro (et vice versa).
+        // L'API /me + /quiz/questions parcourent tous les paiements approuvés (cumul direct + pro).
+        // On garde subscription_type sur la valeur la plus permissive existante.
+        const { data: existing } = await supabaseAdmin
+          .from('profiles')
+          .select('subscription_type, subscription_status, subscription_expires_at')
+          .eq('id', user_id)
+          .maybeSingle()
+
+        const now = new Date()
+        const existingActive = existing && existing.subscription_status === 'active' &&
+          (!existing.subscription_expires_at || new Date(existing.subscription_expires_at) > now)
+
+        // Détermine le subscription_type final
+        // Si existant actif et différent de realType → on met 'all' (mais la DB n'accepte que direct/professionnel)
+        // → on garde la valeur existante (le calcul réel se fait via correction_requests dans /me)
+        let subscriptionTypeValue = (realType === 'professionnel' ? 'professionnel' : 'direct')
+        if (existingActive && existing.subscription_type && existing.subscription_type !== subscriptionTypeValue) {
+          // Conserver le type existant : peu importe, le calcul réel est dans correction_requests
+          // On préfère garder ce qui était (rétro-compat)
+          subscriptionTypeValue = existing.subscription_type
+        }
+
+        // Calcul de la date d'expiration : on garde la plus lointaine
+        let finalExpiresAt = expiresAt
+        if (existingActive && existing.subscription_expires_at) {
+          const ex = new Date(existing.subscription_expires_at)
+          if (ex > finalExpiresAt) finalExpiresAt = ex
+        }
 
         // 🚨 CORRECTION CRITIQUE : forcer subscription_status='active' pour débloquer
         // TOUTES les questions du dossier (et pas juste les 5 premières gratuites)
@@ -153,7 +201,7 @@ export default async function handler(req) {
           .update({
             subscription_status: 'active',
             subscription_type: subscriptionTypeValue,
-            subscription_expires_at: expiresAt.toISOString()
+            subscription_expires_at: finalExpiresAt.toISOString()
           })
           .eq('id', user_id)
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -22,19 +24,35 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
   String? _error;
   // Loader par paiement (évite les doubles clics)
   final Set<String> _processing = {};
+  // 🔧 FIX #4 : Polling automatique des nouvelles demandes
+  Timer? _autoRefreshTimer;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _load();
+      // Auto-refresh toutes les 10 secondes (admin)
+      _autoRefreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+        if (mounted && !_loading && _processing.isEmpty) _load(silent: true);
+      });
+    });
   }
 
-  Future<void> _load() async {
+  @override
+  void dispose() {
+    _autoRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _load({bool silent = false}) async {
     final auth = context.read<AuthService>();
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
       final res = await auth.api.adminPayments(auth.token!);
       if (!mounted) return;
@@ -46,10 +64,12 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = e.toString();
-      });
+      if (!silent) {
+        setState(() {
+          _loading = false;
+          _error = e.toString();
+        });
+      }
     }
   }
 

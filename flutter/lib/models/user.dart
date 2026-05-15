@@ -9,6 +9,9 @@ class AppUser {
   final String? abonnementType;
   final String? abonnementValideJusqua;
   final String? subscriptionStatus;
+  final bool subscriptionExpired;
+  final bool hasActiveDirect;
+  final bool hasActivePro;
   final String? dossierPrincipal;
   final List<String> dossiersDebloques;
   final List<String> dossiersPrincipaux;
@@ -25,6 +28,9 @@ class AppUser {
     this.abonnementType,
     this.abonnementValideJusqua,
     this.subscriptionStatus,
+    this.subscriptionExpired = false,
+    this.hasActiveDirect = false,
+    this.hasActivePro = false,
     this.dossierPrincipal,
     this.dossiersDebloques = const [],
     this.dossiersPrincipaux = const [],
@@ -32,7 +38,7 @@ class AppUser {
   });
 
   factory AppUser.fromJson(Map<String, dynamic> json) {
-    List<String> _toStrList(dynamic v) {
+    List<String> toStrList(dynamic v) {
       if (v is List) return v.map((e) => e.toString()).toList();
       return const [];
     }
@@ -48,9 +54,12 @@ class AppUser {
       abonnementType: json['abonnement_type']?.toString(),
       abonnementValideJusqua: json['abonnement_valide_jusqua']?.toString(),
       subscriptionStatus: json['subscription_status']?.toString(),
+      subscriptionExpired: json['subscription_expired'] == true,
+      hasActiveDirect: json['has_active_direct'] == true,
+      hasActivePro: json['has_active_pro'] == true,
       dossierPrincipal: json['dossier_principal']?.toString(),
-      dossiersDebloques: _toStrList(json['dossiers_debloques']),
-      dossiersPrincipaux: _toStrList(json['dossiers_principaux']),
+      dossiersDebloques: toStrList(json['dossiers_debloques']),
+      dossiersPrincipaux: toStrList(json['dossiers_principaux']),
       isActive: json['is_active'] != false,
     );
   }
@@ -66,11 +75,19 @@ class AppUser {
         'abonnement_type': abonnementType,
         'abonnement_valide_jusqua': abonnementValideJusqua,
         'subscription_status': subscriptionStatus,
+        'subscription_expired': subscriptionExpired,
+        'has_active_direct': hasActiveDirect,
+        'has_active_pro': hasActivePro,
         'dossier_principal': dossierPrincipal,
         'dossiers_debloques': dossiersDebloques,
         'dossiers_principaux': dossiersPrincipaux,
         'is_active': isActive,
       };
 
-  bool get hasActiveSubscription => subscriptionStatus == 'active';
+  /// Vrai si l'utilisateur a un abonnement réellement actif (non expiré).
+  bool get hasActiveSubscription =>
+      isAdmin || (subscriptionStatus == 'active' && !subscriptionExpired);
+
+  /// Vrai si l'abonnement a expiré (au moins un jour dans le passé).
+  bool get isExpired => subscriptionExpired;
 }

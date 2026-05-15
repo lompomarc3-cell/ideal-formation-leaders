@@ -44,13 +44,16 @@ export default async function handler(req) {
     }
 
     // 2. Récupérer le hash depuis correction_requests
+    // 🔧 FIX #2 : Récupérer TOUS les enregistrements ifl_auth (sans limite) pour trouver le bon hash
+    // après plusieurs changements de mot de passe ou réinscriptions.
     const { data: authRecords } = await supabaseAdmin
       .from('correction_requests')
-      .select('message, admin_response')
+      .select('message, admin_response, created_at')
       .eq('user_id', profile.id)
       .not('message', 'is', null)
+      .like('message', '%ifl_auth%')
       .order('created_at', { ascending: false })
-      .limit(20)
+      .limit(50)
 
     let passwordHash = null
     if (authRecords && authRecords.length > 0) {
@@ -69,6 +72,33 @@ export default async function handler(req) {
       }
     }
 
+    // 🔧 FIX #2 : Fallback - chercher aussi dans les enregistrements généraux (admin_response)
+    if (!passwordHash) {
+      const { data: anyRecords } = await supabaseAdmin
+        .from('correction_requests')
+        .select('admin_response, message')
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      if (anyRecords) {
+        for (const r of anyRecords) {
+          if (r.admin_response && r.admin_response.startsWith('sha256:')) {
+            passwordHash = r.admin_response
+            break
+          }
+          // Cherche aussi dans message s'il y a un sha256:
+          if (r.message && r.message.includes('sha256:')) {
+            const match = r.message.match(/sha256:[a-f0-9-]+:[a-f0-9]+/i)
+            if (match) {
+              passwordHash = match[0]
+              break
+            }
+          }
+        }
+      }
+    }
+
     if (!passwordHash) {
       return new Response(JSON.stringify({ error: 'Numéro de téléphone ou mot de passe incorrect.' }), {
         status: 401, headers: { 'Content-Type': 'application/json' }
@@ -82,12 +112,22 @@ export default async function handler(req) {
       })
     }
 
+    // 🔧 FIX #2 : NE JAMAIS bloquer la connexion à cause d'un abonnement expiré.
+    // L'utilisateur DOIT pouvoir se reconnecter pour se réabonner.
+    // L'expiration est gérée côté questions.js (limite aux 5 questions gratuites).
+
     const isAdmin = profile.role === 'superadmin' || profile.role === 'admin'
     const token = await generateToken(profile.id, isAdmin)
 
     const nameParts = (profile.full_name || '').trim().split(' ')
     const nom = nameParts[0] || ''
     const prenom = nameParts.slice(1).join(' ') || ''
+
+    // 🔧 FIX #1/#3 : Calculer le statut réel (expired si date passée)
+    const now = new Date()
+    const expiresAt = profile.subscription_expires_at ? new Date(profile.subscription_expires_at) : null
+    const isExpired = profile.subscription_status === 'active' && expiresAt && expiresAt < now
+    const realStatus = isExpired ? 'expired' : profile.subscription_status
 
     return new Response(JSON.stringify({
       success: true,
@@ -102,7 +142,8 @@ export default async function handler(req) {
         is_admin: isAdmin,
         abonnement_type: profile.subscription_type,
         abonnement_valide_jusqua: profile.subscription_expires_at,
-        subscription_status: profile.subscription_status,
+        subscription_status: realStatus,
+        subscription_expired: isExpired,
         is_active: true
       }
     }), { status: 200, headers: { 'Content-Type': 'application/json' } })

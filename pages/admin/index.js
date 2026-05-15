@@ -249,14 +249,20 @@ function AdminPayments({ getToken, onNotif }) {
 
   useEffect(() => { fetchPayments() }, [])
 
-  const fetchPayments = async () => {
-    setLoading(true)
+  // 🔧 FIX #4 : Auto-refresh des paiements toutes les 10 secondes
+  useEffect(() => {
+    const interval = setInterval(() => { fetchPayments(true) }, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchPayments = async (silent = false) => {
+    if (!silent) setLoading(true)
     try {
       const r = await fetch('/api/admin/payments', { headers: { Authorization: `Bearer ${getToken()}` } })
       const d = await r.json()
       setPayments(d.payments || [])
     } catch {}
-    setLoading(false)
+    if (!silent) setLoading(false)
   }
 
   const handleValidate = async (payment, valide) => {
