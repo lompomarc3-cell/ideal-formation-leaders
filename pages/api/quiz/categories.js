@@ -176,8 +176,10 @@ export default async function handler(req) {
       categories: sorted
     }), { status: 200, headers: { 
       'Content-Type': 'application/json',
-      // Cache Cloudflare 5 minutes pour les catégories (données peu changeantes)
-      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60'
+      // 🔧 FIX #1 : Pas de cache CDN car la liste peut inclure des informations
+      // qui dépendent indirectement du compte (rôle admin pour bypass programmation).
+      // On garde un cache navigateur très court pour ne pas dégrader les perfs.
+      'Cache-Control': 'private, max-age=10, must-revalidate'
     } })
 
   } catch (err) {

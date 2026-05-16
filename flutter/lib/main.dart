@@ -22,19 +22,47 @@ void main() {
   runApp(const IFLApp());
 }
 
-class IFLApp extends StatelessWidget {
+class IFLApp extends StatefulWidget {
   const IFLApp({super.key});
+
+  @override
+  State<IFLApp> createState() => _IFLAppState();
+}
+
+class _IFLAppState extends State<IFLApp> with WidgetsBindingObserver {
+  late final AuthService _authService;
+  late final PriceService _priceService;
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = AuthService()..bootstrap();
+    _priceService = PriceService(ApiService())..load();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// 🔧 FIX #1 : Quand l'app revient au premier plan, on rafraîchit immédiatement
+  /// l'utilisateur (cas typique : retour de l'app après validation paiement par l'admin).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _authService.refreshUser();
+      _priceService.load();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<AuthService>(
-          create: (_) => AuthService()..bootstrap(),
-        ),
-        ChangeNotifierProvider<PriceService>(
-          create: (_) => PriceService(ApiService())..load(),
-        ),
+        ChangeNotifierProvider<AuthService>.value(value: _authService),
+        ChangeNotifierProvider<PriceService>.value(value: _priceService),
       ],
       child: MaterialApp(
         title: 'IFL — Idéale Formation of Leaders',

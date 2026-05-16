@@ -320,21 +320,33 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  // 🔧 FIX #4 : Auto-refresh des infos utilisateur toutes les 15 secondes
-  // pour détecter rapidement quand l'admin valide un paiement.
+  // 🔧 FIX #1 (renforcé) : Auto-refresh des infos utilisateur toutes les 5 secondes
+  // + déclenchement immédiat sur retour de focus / visibilité (l'utilisateur revient
+  // sur l'onglet après que l'admin a validé son paiement).
   useEffect(() => {
     if (!user) return
-    const interval = setInterval(() => {
+    const tick = () => {
       const token = localStorage.getItem('ifl_token')
       if (token) fetchUser(token)
-    }, 15000) // 15 secondes
-    return () => clearInterval(interval)
+    }
+    const interval = setInterval(tick, 5000) // 5 secondes
+    const onVisibility = () => { if (document.visibilityState === 'visible') tick() }
+    const onFocus = () => tick()
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('focus', onFocus)
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('focus', onFocus)
+    }
   }, [user?.id])
 
   const fetchUser = async (token) => {
     try {
-      const res = await fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
+      // 🔧 FIX #1 : cache-buster pour éviter tout cache navigateur/CDN sur /api/auth/me
+      const res = await fetch('/api/auth/me?_t=' + Date.now(), {
+        headers: { Authorization: `Bearer ${token}`, 'Cache-Control': 'no-cache' },
+        cache: 'no-store'
       })
       const data = await res.json()
       if (data.id) {
@@ -344,8 +356,7 @@ export function AuthProvider({ children }) {
         setUser(null)
       }
     } catch {
-      localStorage.removeItem('ifl_token')
-      setUser(null)
+      // Erreur réseau : on garde la session existante au lieu de logout brutal
     }
     setLoading(false)
   }

@@ -27,10 +27,10 @@ class AuthService extends ChangeNotifier {
   String? get token => _token;
   ApiService get api => _api;
 
-  /// 🔧 FIX #4 : Lance un refresh automatique périodique pour détecter
+  /// 🔧 FIX #1 (renforcé) : Lance un refresh automatique périodique pour détecter
   /// rapidement les changements d'abonnement (paiement validé par admin).
-  /// Intervalle : 15 secondes (équilibre entre réactivité et charge serveur).
-  void startAutoRefresh({Duration interval = const Duration(seconds: 15)}) {
+  /// Intervalle : 5 secondes (déblocage quasi-immédiat après validation admin).
+  void startAutoRefresh({Duration interval = const Duration(seconds: 5)}) {
     _autoRefreshTimer?.cancel();
     if (_token == null || _token!.isEmpty) return;
     _autoRefreshTimer = Timer.periodic(interval, (_) {

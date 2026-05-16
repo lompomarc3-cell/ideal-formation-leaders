@@ -227,28 +227,33 @@ export default async function handler(req) {
         }
       } catch {}
 
-      // Déterminer l'accès en fonction du type de la catégorie demandée
+      // 🔧 FIX #3 : Logique d'accès STRICTE sans risque de mélange entre Pros.
+      // - direct : accès uniquement si abonnement direct actif
+      // - professionnel : accès uniquement si :
+      //     a) le dossier exact a été payé (présent dans dossiers_paid), OU
+      //     b) c'est un dossier d'accompagnement (bonus inclus avec n'importe quel Pro)
+      // Aucune autre dérogation : on supprime le fallback "isOldFormatNoSpecialty"
+      // qui pouvait, sur d'anciens enregistrements, donner accès à tous les pros.
       if (category.type === 'direct' && hasActiveDirect) {
-        // ✅ Accès TOTAL aux dossiers directs (cumul direct + pro fonctionne ici)
+        // ✅ Accès TOTAL aux dossiers directs
         hasFullAccess = true
-      } else if (category.type === 'professionnel' && hasActivePro) {
-        const isPaidDossier = dossiers_paid.includes(category.nom)
-        const isAccompagnement = DOSSIERS_ACCOMPAGNEMENT.includes(category.nom)
-        // Rétro-compat : aucun dossier précis → accès total
-        const isOldFormatNoSpecialty = dossiers_paid.length === 0
-
-        if (isPaidDossier || isAccompagnement || isOldFormatNoSpecialty) {
-          hasFullAccess = true
+      } else if (category.type === 'professionnel') {
+        if (hasActivePro) {
+          const isPaidDossier = dossiers_paid.includes(category.nom)
+          const isAccompagnement = DOSSIERS_ACCOMPAGNEMENT.includes(category.nom)
+          if (isPaidDossier || isAccompagnement) {
+            hasFullAccess = true
+          } else {
+            // Dossier pro non acheté = verrouillé (5 questions gratuites)
+            isLockedForThisUser = true
+            hasFullAccess = false
+          }
         } else {
-          // Dossier pro non acheté = verrouillé (5 questions gratuites)
-          isLockedForThisUser = true
+          // Aucun abonnement pro actif → 5 questions gratuites
           hasFullAccess = false
         }
-      } else if (category.type === 'professionnel' && hasActiveDirect && !hasActivePro) {
-        // User avec abonnement direct seulement, voulant accéder à un dossier pro = 5 questions gratuites
-        hasFullAccess = false
       } else {
-        // Aucun abonnement actif → 5 questions gratuites
+        // Aucun abonnement actif pour ce type de catégorie → 5 questions gratuites
         hasFullAccess = false
       }
     }
@@ -256,21 +261,47 @@ export default async function handler(req) {
     // ========================================================
     // 4. Requête Supabase selon le niveau d'accès
     // ========================================================
-    // Si pas d'accès complet, ne montrer que les questions gratuites (is_demo=true ou les 5 premières)
+    // Si pas d'accès complet, on retourne TOUJOURS jusqu'à 5 questions gratuites :
+    //   - d'abord les questions marquées is_demo=true (priorité),
+    //   - puis on complète avec les premières questions actives (par created_at)
+    //     jusqu'à atteindre 5, pour les dossiers qui ont moins de 5 demo.
     if (!hasFullAccess) {
-      // D'abord essayer avec is_demo=true
+      // 1) Récupérer les questions is_demo=true (max 5)
       const { data: demoQuestions, error: demoError } = await supabaseAdmin
         .from('questions')
-        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, matiere, difficulte')
+        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, matiere, difficulte, created_at')
         .eq('category_id', categorieId)
         .eq('is_active', true)
         .eq('is_demo', true)
         .order('created_at', { ascending: true })
         .limit(5)
 
-      if (!demoError && demoQuestions && demoQuestions.length >= 1) {
-        // On a des questions is_demo=true, les utiliser (max 5)
-        const questionList = demoQuestions.slice(0, 5).map(q => ({
+      // 2) 🔧 FIX #2 : si on a < 5 demo, compléter avec les premières questions actives
+      //    (en excluant celles déjà sélectionnées) jusqu'à atteindre 5.
+      let combined = (!demoError && demoQuestions) ? [...demoQuestions] : []
+      if (combined.length < 5) {
+        const missing = 5 - combined.length
+        const excludeIds = combined.map(q => q.id)
+        let query = supabaseAdmin
+          .from('questions')
+          .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, matiere, difficulte, created_at')
+          .eq('category_id', categorieId)
+          .eq('is_active', true)
+          .order('created_at', { ascending: true })
+          .limit(missing + excludeIds.length) // on prend de la marge puis on filtre
+        const { data: fillers } = await query
+        if (fillers && fillers.length > 0) {
+          for (const q of fillers) {
+            if (excludeIds.includes(q.id)) continue
+            combined.push(q)
+            if (combined.length >= 5) break
+          }
+        }
+      }
+
+      if (combined.length >= 1) {
+        // On a au moins 1 question, on les retourne (max 5)
+        const questionList = combined.slice(0, 5).map(q => ({
           id: q.id,
           question_text: q.enonce,
           option_a: q.option_a,

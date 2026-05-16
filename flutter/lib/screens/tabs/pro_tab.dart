@@ -74,21 +74,26 @@ class _ProTabState extends State<ProTab> {
     return _bonusKeywords.any((k) => n.contains(k));
   }
 
-  /// Liste des dossiers payants débloqués pour cet utilisateur
+  /// 🔧 FIX #3 : Liste des dossiers payants débloqués pour cet utilisateur.
+  /// Logique STRICTE — pas de fallback "__ALL__" pour un abonné Pro :
+  /// on s'appuie exclusivement sur les dossiers réellement payés tels que
+  /// renvoyés par l'API (dossiers_debloques). Le mélange entre Pros est ainsi
+  /// impossible côté UI.
   List<String> _paidDossiers() {
     final user = context.read<AuthService>().user;
     if (user == null) return [];
     if (user.isAdmin) return ['__ALL__'];
     if (user.subscriptionStatus != 'active') return [];
     final type = (user.abonnementType ?? '').split(':').first;
-    if (type == 'all') return ['__ALL__'];
+    if (type == 'all') {
+      // Abonné cumul (direct + pro) : seuls les dossiers réellement payés
+      // (et leurs bonus) sont accessibles côté Pro.
+      return user.dossiersDebloques;
+    }
     if (type == 'professionnel') {
       // dossiers_debloques: ['Magistrature', 'Justice', ...]
-      if (user.dossiersDebloques.isNotEmpty) {
-        return user.dossiersDebloques;
-      }
-      // ancien format : abonnement direct sans liste
-      return ['__ALL__'];
+      // (toujours renvoyé par l'API ; vide = aucun dossier pro débloqué)
+      return user.dossiersDebloques;
     }
     return [];
   }

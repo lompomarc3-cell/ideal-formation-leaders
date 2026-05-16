@@ -83,24 +83,49 @@ export default async function handler(req) {
     const { schedule: catSchedule } = parseDescription(category.description)
     const scheduleExpired = isScheduleExpired(catSchedule, new Date())
 
-    // 2. Récupérer les 5 premières questions gratuites de la catégorie
-    // D'abord essayer avec is_demo=true, sinon prendre les 5 premières
-    const qRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/questions?category_id=eq.${encodeURIComponent(categorieId)}&is_active=eq.true&select=id,enonce,option_a,option_b,option_c,option_d,reponse_correcte,explication,is_demo,matiere,difficulte&order=created_at.asc&limit=5`,
-      {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json'
+    // 2. 🔧 FIX #2 : récupérer TOUJOURS jusqu'à 5 questions gratuites.
+    //    Priorité aux questions marquées is_demo=true ; on complète avec les
+    //    premières questions actives par created_at si on a moins de 5 demos.
+    const headersSb = {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    }
+
+    // 2a) is_demo=true (max 5)
+    const demoRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/questions?category_id=eq.${encodeURIComponent(categorieId)}&is_active=eq.true&is_demo=eq.true&select=id,enonce,option_a,option_b,option_c,option_d,reponse_correcte,explication,is_demo,matiere,difficulte&order=created_at.asc&limit=5`,
+      { headers: headersSb }
+    )
+    let questions = []
+    if (demoRes.ok) {
+      try { questions = await demoRes.json() } catch { questions = [] }
+    }
+
+    // 2b) Si < 5, compléter avec les premières questions actives (hors doublons)
+    if (!Array.isArray(questions)) questions = []
+    if (questions.length < 5) {
+      const missing = 5 - questions.length
+      const fillRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/questions?category_id=eq.${encodeURIComponent(categorieId)}&is_active=eq.true&select=id,enonce,option_a,option_b,option_c,option_d,reponse_correcte,explication,is_demo,matiere,difficulte&order=created_at.asc&limit=${missing + questions.length}`,
+        { headers: headersSb }
+      )
+      if (fillRes.ok) {
+        const fillers = await fillRes.json().catch(() => [])
+        if (Array.isArray(fillers)) {
+          const existingIds = new Set(questions.map(q => q.id))
+          for (const q of fillers) {
+            if (existingIds.has(q.id)) continue
+            questions.push(q)
+            if (questions.length >= 5) break
+          }
         }
       }
-    )
+    }
 
-    if (!qRes.ok) {
-      const detail = await qRes.text().catch(() => '')
-      console.error('[public-questions] Erreur Supabase questions', qRes.status, detail)
-      // En cas d'erreur Supabase, on retourne une liste vide plutôt que 500
-      // afin que l'utilisateur voie "Questions bientôt disponibles" et non une page d'erreur.
+    // Gestion d'erreur globale (les deux appels ont échoué)
+    if (!demoRes.ok && (!questions || questions.length === 0)) {
+      console.error('[public-questions] Erreur Supabase questions', demoRes.status)
       return new Response(JSON.stringify({
         questions: [],
         hasFullAccess: false,
@@ -113,7 +138,6 @@ export default async function handler(req) {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       })
     }
-    const questions = await qRes.json()
 
     const questionList = (questions || []).map(q => ({
       id: q.id,

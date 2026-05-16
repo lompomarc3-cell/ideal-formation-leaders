@@ -18,7 +18,16 @@ function getDossiersDebloquesMulti(dossiers_principaux) {
 }
 
 export default async function handler(req) {
-  const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type':'application/json'}})
+  // 🔧 FIX #1 : interdiction de cache sur /api/auth/me (réponse spécifique à l'utilisateur,
+  // doit refléter immédiatement la validation d'un paiement par l'admin).
+  const NO_CACHE_HEADERS = {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-store, no-cache, must-revalidate, private, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'CDN-Cache-Control': 'no-store'
+  }
+  const R = (data, status=200) => new Response(JSON.stringify(data), {status, headers: NO_CACHE_HEADERS})
   const res = {
     status: (s) => ({ json: (d) => R(d, s) }),
     json: (d) => R(d, 200)

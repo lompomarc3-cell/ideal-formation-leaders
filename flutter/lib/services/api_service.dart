@@ -63,9 +63,14 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> me(String token) async {
+    // 🔧 FIX #1 : cache-buster + no-cache pour forcer une réponse fraîche
+    // (déblocage immédiat après validation paiement admin).
+    final headers = Map<String, String>.from(_jsonHeaders(token));
+    headers['Cache-Control'] = 'no-cache';
+    headers['Pragma'] = 'no-cache';
     final res = await _client.get(
-      Uri.parse('$baseUrl/api/auth/me'),
-      headers: _jsonHeaders(token),
+      Uri.parse('$baseUrl/api/auth/me?_t=${DateTime.now().millisecondsSinceEpoch}'),
+      headers: headers,
     );
     return _decode(res);
   }
