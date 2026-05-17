@@ -31,6 +31,10 @@ class _QuizScreenState extends State<QuizScreen> {
   bool _requiresSubscription = false;
   bool _isPro = false;
   bool _initDone = false;
+  // ✅ Programmation expirée : dossier visible mais limité aux 5 questions gratuites.
+  // Permet d'afficher un message différencié ("Renouvelez votre abonnement").
+  bool _scheduleExpired = false;
+  String? _lockedMessage;
 
   List<Question> _questions = [];
   int _currentIndex = 0;
@@ -91,6 +95,9 @@ class _QuizScreenState extends State<QuizScreen> {
         _questions = list;
         _answers = List<String?>.filled(list.length, null);
         _hasFullAccess = data['hasFullAccess'] == true;
+        // ✅ Capter l'info "programmation expirée" pour l'affichage UI
+        _scheduleExpired = data['scheduleExpired'] == true;
+        _lockedMessage = data['lockedMessage']?.toString();
         _currentIndex = restoredIndex;
         _loading = false;
       });
@@ -277,10 +284,13 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Bravo, vous avez fini\nles 5 questions gratuites !',
-                  style: TextStyle(
+                  // ✅ Différencier entre "non abonné" et "abonnement expiré (programmation)"
+                  _scheduleExpired
+                      ? 'Vous avez vu les\n5 questions disponibles.'
+                      : 'Bravo, vous avez fini\nles 5 questions gratuites !',
+                  style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 16,
                     height: 1.3,
@@ -291,9 +301,11 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
           const SizedBox(height: 14),
           Text(
-            isPro
-                ? 'Débloquez ce dossier et profitez en plus des 3 dossiers bonus offerts (Entraînement QCM, Actualités, Accompagnement).'
-                : 'Avec 5 000 FCFA, accédez aux 12 dossiers de concours directs.',
+            _scheduleExpired
+                ? 'Votre accès à ce dossier est arrivé à terme. Renouvelez votre abonnement pour récupérer l\'accès complet aux questions.'
+                : isPro
+                    ? 'Débloquez ce dossier et profitez en plus des 3 dossiers bonus offerts (Entraînement QCM, Actualités, Accompagnement).'
+                    : 'Avec 5 000 FCFA, accédez aux 12 dossiers de concours directs.',
             style: const TextStyle(
               fontSize: 13.5,
               height: 1.5,
@@ -477,25 +489,43 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Widget _buildDemoBanner() {
+    // ✅ Message adapté selon le contexte :
+    // - Programmation expirée → "Renouvelez votre abonnement"
+    // - Pas d'abonnement → "5 premières questions gratuites — abonnez-vous"
+    final bool isExpired = _scheduleExpired;
+    final Color bgColor =
+        isExpired ? const Color(0xFFFEE2E2) : const Color(0xFFFFF3D9);
+    final Color borderColor =
+        isExpired ? const Color(0xFFEF4444) : const Color(0xFFFBBF24);
+    final Color textColor =
+        isExpired ? const Color(0xFF991B1B) : const Color(0xFF92400E);
+    final IconData icon = isExpired
+        ? Icons.lock_clock_rounded
+        : Icons.info_outline_rounded;
+    final String message = isExpired
+        ? (_lockedMessage != null && _lockedMessage!.isNotEmpty
+            ? '$_lockedMessage — Renouvelez votre abonnement pour accéder à toutes les questions.'
+            : 'Votre abonnement est expiré. Renouvelez-le pour accéder à toutes les questions.')
+        : '5 premières questions gratuites — abonnez-vous pour tout débloquer.';
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF3D9),
+        color: bgColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFBBF24)),
+        border: Border.all(color: borderColor),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.info_outline_rounded,
-              size: 18, color: Color(0xFF92400E)),
-          SizedBox(width: 8),
+          Icon(icon, size: 18, color: textColor),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '5 premières questions gratuites — abonnez-vous pour tout débloquer.',
+              message,
               style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF92400E),
+                  color: textColor,
                   fontWeight: FontWeight.w700),
             ),
           ),
