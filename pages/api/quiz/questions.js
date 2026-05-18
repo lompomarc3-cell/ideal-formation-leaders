@@ -1,7 +1,12 @@
 export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
-import { parseDescription, isScheduleExpired } from '../../../lib/scheduling'
+import {
+  parseDescription,
+  isScheduleExpired,
+  isScheduleDisabledByAdmin,
+  isPaymentInvalidatedByDisabledSchedule
+} from '../../../lib/scheduling'
 
 // Dossiers d'accompagnement automatiquement débloqués avec tout abonnement professionnel
 const DOSSIERS_ACCOMPAGNEMENT = [
@@ -137,6 +142,12 @@ export default async function handler(req) {
     // ========================================================
     const { schedule: catSchedule } = parseDescription(category.description)
     const catExpired = isScheduleExpired(catSchedule, new Date())
+    // v2.3.0 : programmation explicitement désactivée par l'admin.
+    // Tout paiement validé avant `disabled_at` sera ignoré → l'utilisateur perd l'accès complet.
+    const catDisabledByAdmin = isScheduleDisabledByAdmin(catSchedule)
+    const scheduleDisabledAt = catSchedule && catSchedule.disabled_at
+      ? new Date(catSchedule.disabled_at)
+      : null
 
     // ========================================================
     // 3. Vérifier si l'utilisateur a accès complet
@@ -179,7 +190,32 @@ export default async function handler(req) {
         ? new Date(profile.subscription_expires_at)
         : null
       const profileNotExpired = !profileExpiresAt || profileExpiresAt > now
-      if (profile.subscription_status === 'active' && profileNotExpired) {
+
+      // v2.3.0 : si une programmation a été désactivée, et que le profil n'a pas été
+      // mis à jour depuis (subscription_expires_at antérieur à disabled_at OU pas de
+      // updated_at), on ignore l'abonnement "global" du profil pour ce dossier.
+      // Sécurité : on s'appuie sur subscription_expires_at qui est mis à jour à
+      // chaque validation de paiement.
+      let profileSubInvalidForThisCategory = false
+      if (catDisabledByAdmin && scheduleDisabledAt) {
+        // On considère le profil obsolète pour ce dossier si le "point de référence"
+        // (expires_at) est antérieur à la désactivation + 1 an (= la durée de
+        // validité d'un paiement). Autrement dit, si la date d'expiration courante
+        // a été calculée à partir d'un paiement antérieur à la désactivation.
+        if (profileExpiresAt) {
+          const profilePaidAt = new Date(profileExpiresAt)
+          profilePaidAt.setFullYear(profilePaidAt.getFullYear() - 1)
+          if (profilePaidAt < scheduleDisabledAt) {
+            profileSubInvalidForThisCategory = true
+          }
+        } else {
+          // Pas d'expires_at → on ne peut pas dater le paiement, on l'invalide
+          // par prudence (l'utilisateur devra se réabonner pour confirmer).
+          profileSubInvalidForThisCategory = true
+        }
+      }
+
+      if (profile.subscription_status === 'active' && profileNotExpired && !profileSubInvalidForThisCategory) {
         const { type: subType, dossier_principal: subDossier } = parseSubscriptionType(profile.subscription_type)
         if (subType === 'direct') hasActiveDirect = true
         if (subType === 'professionnel') {
@@ -213,6 +249,13 @@ export default async function handler(req) {
               const validUntil = new Date(validatedAt)
               validUntil.setFullYear(validUntil.getFullYear() + 1)
               if (validUntil < now) continue // expiré → on ignore
+
+              // 🔧 v2.3.0 : si l'admin a désactivé la programmation pour ce dossier,
+              // les paiements antérieurs à la désactivation sont invalidés.
+              // L'utilisateur doit se réabonner pour retrouver l'accès complet.
+              if (isPaymentInvalidatedByDisabledSchedule(catSchedule, validatedAt)) {
+                continue
+              }
 
               if (parsed.type_concours === 'direct') {
                 hasActiveDirect = true
@@ -332,9 +375,12 @@ export default async function handler(req) {
           categoryType: category.type,
           categoryName: category.nom,
           scheduleExpired: scheduleLimitForUser,
-          lockedMessage: scheduleLimitForUser
-            ? 'Contenu non disponible pendant la période de programmation'
-            : null
+          scheduleDisabledByAdmin: !isAdmin && catDisabledByAdmin,
+          lockedMessage: !isAdmin && catDisabledByAdmin
+            ? 'Programmation désactivée par l\'administrateur — renouvelez votre abonnement'
+            : (scheduleLimitForUser
+              ? 'Contenu non disponible pendant la période de programmation'
+              : null)
         }), { status: 200, headers: { 'Content-Type': 'application/json' } })
       }
 
@@ -370,9 +416,12 @@ export default async function handler(req) {
           categoryType: category.type,
           categoryName: category.nom,
           scheduleExpired: scheduleLimitForUser,
-          lockedMessage: scheduleLimitForUser
-            ? 'Contenu non disponible pendant la période de programmation'
-            : null
+          scheduleDisabledByAdmin: !isAdmin && catDisabledByAdmin,
+          lockedMessage: !isAdmin && catDisabledByAdmin
+            ? 'Programmation désactivée par l\'administrateur — renouvelez votre abonnement'
+            : (scheduleLimitForUser
+              ? 'Contenu non disponible pendant la période de programmation'
+              : null)
         }), { status: 200, headers: { 'Content-Type': 'application/json' } })
       }
 
@@ -396,7 +445,10 @@ export default async function handler(req) {
           categoryType: category.type,
           categoryName: category.nom,
           scheduleExpired: true,
-          lockedMessage: 'Contenu non disponible pendant la période de programmation'
+          scheduleDisabledByAdmin: !isAdmin && catDisabledByAdmin,
+          lockedMessage: !isAdmin && catDisabledByAdmin
+            ? 'Programmation désactivée par l\'administrateur — renouvelez votre abonnement'
+            : 'Contenu non disponible pendant la période de programmation'
         }), { status: 200, headers: { 'Content-Type': 'application/json' } })
       }
 

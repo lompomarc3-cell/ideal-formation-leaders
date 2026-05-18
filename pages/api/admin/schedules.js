@@ -61,6 +61,9 @@ export default async function handler(req) {
           question_count: c.question_count || 0,
           date_validite: schedule.date,
           is_programmed: !!schedule.enabled,
+          // v2.3.0 : information sur une éventuelle désactivation persistante
+          disabled_at: schedule.disabled_at || null,
+          is_disabled_by_admin: schedule.enabled === false && !!schedule.disabled_at,
           expired
         }
       })
@@ -101,6 +104,7 @@ export default async function handler(req) {
 
     try {
       // Recuperer les descriptions actuelles pour preserver le texte utilisateur
+      // ET le contexte de programmation (date prevue, etat precedent...).
       const { data: cats, error: fetchErr } = await supabaseAdmin
         .from('categories')
         .select('id, description')
@@ -108,13 +112,37 @@ export default async function handler(req) {
 
       if (fetchErr) throw fetchErr
 
+      const nowIso = new Date().toISOString()
       const results = []
       for (const cat of cats || []) {
-        const { description: userDesc } = parseDescription(cat.description)
-        const newDesc = buildDescription(
-          userDesc,
-          isEnabled ? { date: isoDate, enabled: true } : null
-        )
+        const { description: userDesc, schedule: prevSchedule } = parseDescription(cat.description)
+
+        // 🔧 v2.3.0 - DESACTIVATION : on conserve l'information de désactivation
+        // (avec disabled_at) pour invalider les anciens abonnements de ce dossier.
+        // ACTIVATION  : on remet une programmation active classique et on efface
+        // tout précédent état désactivé.
+        let nextSchedule
+        if (isEnabled) {
+          nextSchedule = { date: isoDate, enabled: true }
+        } else {
+          // Désactivation explicite. On garde la trace via disabled_at uniquement
+          // si une programmation existait précédemment (sinon il n'y a rien à
+          // invalider).
+          const hadProgramming = !!(prevSchedule && (prevSchedule.enabled || prevSchedule.disabled_at || prevSchedule.date))
+          if (hadProgramming) {
+            nextSchedule = {
+              date: prevSchedule.date || null,
+              enabled: false,
+              // Si une désactivation précédente existait, on prend la plus récente
+              // (la nouvelle action admin) pour invalider tout nouvel ancien paiement.
+              disabled_at: nowIso
+            }
+          } else {
+            nextSchedule = null // jamais programmé → état neutre
+          }
+        }
+
+        const newDesc = buildDescription(userDesc, nextSchedule)
         const { error: updErr } = await supabaseAdmin
           .from('categories')
           .update({ description: newDesc })
@@ -123,7 +151,8 @@ export default async function handler(req) {
         results.push({
           id: cat.id,
           success: !updErr,
-          error: updErr?.message || null
+          error: updErr?.message || null,
+          disabled_at: nextSchedule && nextSchedule.disabled_at ? nextSchedule.disabled_at : null
         })
       }
 
@@ -133,6 +162,7 @@ export default async function handler(req) {
         total: results.length,
         date_validite: isoDate,
         enabled: isEnabled,
+        disabled_at: isEnabled ? null : nowIso,
         results
       }), { status: 200, headers: { 'Content-Type': 'application/json' } })
     } catch (err) {

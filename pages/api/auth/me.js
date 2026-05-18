@@ -1,6 +1,11 @@
 export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
+import {
+  parseDescription,
+  isScheduleDisabledByAdmin,
+  isPaymentInvalidatedByDisabledSchedule
+} from '../../../lib/scheduling'
 
 // Dossiers d'accompagnement automatiquement débloqués avec tout abonnement professionnel
 const DOSSIERS_ACCOMPAGNEMENT = [
@@ -71,8 +76,30 @@ export default async function handler(req) {
     let dossiers_principaux = []
     let hasActiveDirect = false
     let hasActivePro = false
+    // v2.3.0 : dossiers dont la programmation a été désactivée par l'admin et
+    // pour lesquels l'utilisateur n'a pas (re)payé après la désactivation.
+    let programming_disabled_folders = []
 
     if (!isAdmin) {
+      // Récupérer les catégories pour connaître l'état programmation/désactivation
+      const { data: allCategories } = await supabaseAdmin
+        .from('categories')
+        .select('id, nom, type, description')
+        .eq('is_active', true)
+        .limit(2000)
+
+      // Construire une map des dossiers désactivés par l'admin avec la date de désactivation
+      const disabledFoldersMap = new Map() // nom -> { disabled_at: Date, schedule }
+      ;(allCategories || []).forEach(cat => {
+        const { schedule } = parseDescription(cat.description)
+        if (isScheduleDisabledByAdmin(schedule)) {
+          disabledFoldersMap.set(cat.nom, {
+            disabled_at: new Date(schedule.disabled_at),
+            schedule
+          })
+        }
+      })
+
       const { data: paymentRequests } = await supabaseAdmin
         .from('correction_requests')
         .select('message, created_at, status, admin_response')
@@ -80,6 +107,13 @@ export default async function handler(req) {
         .eq('status', 'approved')
         .like('message', '%ifl_payment%')
         .order('created_at', { ascending: false })
+
+      // Sets pour suivre les paiements "récents" (post désactivation) par dossier/type
+      const directHasFreshPayment = { value: false }
+      const proFolderHasFreshPayment = new Set()
+      // Et l'inverse : dossiers cibles d'un paiement obsolète, désactivé par l'admin
+      const directHasStalePayment = { value: false }
+      const proFolderHasStalePayment = new Set()
 
       if (paymentRequests && paymentRequests.length > 0) {
         for (const r of paymentRequests) {
@@ -96,16 +130,44 @@ export default async function handler(req) {
             if (!isPaymentActive) continue // ignorer les paiements expirés
 
             if (parsed.type_concours === 'direct') {
+              // Si AU MOINS UN dossier "direct" a été désactivé après ce paiement,
+              // on marque le paiement direct comme obsolète pour CE dossier.
+              // Mais pour l'abonnement global "direct", on garde activeDirect uniquement
+              // si le paiement n'est pas invalidé par tous les dossiers directs concernés.
+              // Pour simplifier la sémantique côté UI (cohérent avec questions.js),
+              // on ne déduit pas globalement "direct" comme invalide — la décision
+              // finale est faite par dossier dans quiz/questions.js.
               hasActiveDirect = true
+              directHasFreshPayment.value = true
             } else if (parsed.type_concours === 'professionnel') {
               hasActivePro = true
-              if (parsed.dossier_principal && !dossiers_principaux.includes(parsed.dossier_principal)) {
-                dossiers_principaux.push(parsed.dossier_principal)
+              if (parsed.dossier_principal) {
+                const folderName = parsed.dossier_principal
+                const disabledInfo = disabledFoldersMap.get(folderName)
+                if (disabledInfo && isPaymentInvalidatedByDisabledSchedule(disabledInfo.schedule, validatedAt)) {
+                  // Paiement antérieur à la désactivation admin -> obsolète pour ce dossier
+                  proFolderHasStalePayment.add(folderName)
+                  // On ne l'ajoute PAS à dossiers_principaux : il a perdu l'accès.
+                } else {
+                  proFolderHasFreshPayment.add(folderName)
+                  if (!dossiers_principaux.includes(folderName)) {
+                    dossiers_principaux.push(folderName)
+                  }
+                }
               }
             }
           } catch {}
         }
       }
+
+      // Calcul des dossiers à signaler comme "programming_disabled_folders" :
+      // ceux que l'utilisateur avait payés MAIS dont la programmation a été désactivée
+      // et pour lesquels il n'a pas refait de paiement valide.
+      proFolderHasStalePayment.forEach(folder => {
+        if (!proFolderHasFreshPayment.has(folder)) {
+          programming_disabled_folders.push(folder)
+        }
+      })
 
       dossier_principal = dossiers_principaux.length > 0 ? dossiers_principaux[0] : null
     }
@@ -155,6 +217,9 @@ export default async function handler(req) {
       // Tous les dossiers débloqués (multi-dossiers)
       dossiers_debloques: dossiersDebloques,
       dossiers_principaux: dossiers_principaux,
+      // v2.3.0 : dossiers pour lesquels la programmation a été désactivée par l'admin
+      // et qui nécessitent un réabonnement (accès limité aux 5 questions gratuites).
+      programming_disabled_folders: programming_disabled_folders,
       is_active: true
     })
   } catch (error) {

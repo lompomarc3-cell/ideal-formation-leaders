@@ -34,6 +34,9 @@ class _QuizScreenState extends State<QuizScreen> {
   // ✅ Programmation expirée : dossier visible mais limité aux 5 questions gratuites.
   // Permet d'afficher un message différencié ("Renouvelez votre abonnement").
   bool _scheduleExpired = false;
+  // v2.3.0 : programmation explicitement désactivée par l'admin.
+  // → Tous les utilisateurs perdent l'accès complet, même les anciens abonnés.
+  bool _scheduleDisabledByAdmin = false;
   String? _lockedMessage;
 
   List<Question> _questions = [];
@@ -97,6 +100,8 @@ class _QuizScreenState extends State<QuizScreen> {
         _hasFullAccess = data['hasFullAccess'] == true;
         // ✅ Capter l'info "programmation expirée" pour l'affichage UI
         _scheduleExpired = data['scheduleExpired'] == true;
+        // v2.3.0 : info "programmation désactivée par l'admin"
+        _scheduleDisabledByAdmin = data['scheduleDisabledByAdmin'] == true;
         _lockedMessage = data['lockedMessage']?.toString();
         _currentIndex = restoredIndex;
         _loading = false;
@@ -286,10 +291,13 @@ class _QuizScreenState extends State<QuizScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  // ✅ Différencier entre "non abonné" et "abonnement expiré (programmation)"
-                  _scheduleExpired
-                      ? 'Vous avez vu les\n5 questions disponibles.'
-                      : 'Bravo, vous avez fini\nles 5 questions gratuites !',
+                  // ✅ Différencier entre "non abonné", "abonnement expiré (programmation)"
+                  //   et "programmation désactivée par l'administrateur" (v2.3.0)
+                  _scheduleDisabledByAdmin
+                      ? 'Programmation désactivée\npar l\'administrateur.'
+                      : _scheduleExpired
+                          ? 'Vous avez vu les\n5 questions disponibles.'
+                          : 'Bravo, vous avez fini\nles 5 questions gratuites !',
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 16,
@@ -301,11 +309,13 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
           const SizedBox(height: 14),
           Text(
-            _scheduleExpired
-                ? 'Votre accès à ce dossier est arrivé à terme. Renouvelez votre abonnement pour récupérer l\'accès complet aux questions.'
-                : isPro
-                    ? 'Débloquez ce dossier et profitez en plus des 3 dossiers bonus offerts (Entraînement QCM, Actualités, Accompagnement).'
-                    : 'Avec 5 000 FCFA, accédez aux 12 dossiers de concours directs.',
+            _scheduleDisabledByAdmin
+                ? 'L\'accès complet à ce dossier a été réinitialisé par l\'administrateur. Renouvelez votre abonnement pour récupérer l\'accès complet aux questions.'
+                : _scheduleExpired
+                    ? 'Votre accès à ce dossier est arrivé à terme. Renouvelez votre abonnement pour récupérer l\'accès complet aux questions.'
+                    : isPro
+                        ? 'Débloquez ce dossier et profitez en plus des 3 dossiers bonus offerts (Entraînement QCM, Actualités, Accompagnement).'
+                        : 'Avec 5 000 FCFA, accédez aux 12 dossiers de concours directs.',
             style: const TextStyle(
               fontSize: 13.5,
               height: 1.5,
@@ -490,9 +500,11 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Widget _buildDemoBanner() {
     // ✅ Message adapté selon le contexte :
-    // - Programmation expirée → "Renouvelez votre abonnement"
-    // - Pas d'abonnement → "5 premières questions gratuites — abonnez-vous"
-    final bool isExpired = _scheduleExpired;
+    // - Programmation désactivée par l'admin (v2.3.0) → message spécifique
+    // - Programmation expirée                       → "Renouvelez votre abonnement"
+    // - Pas d'abonnement                            → "5 premières questions gratuites — abonnez-vous"
+    final bool isDisabled = _scheduleDisabledByAdmin;
+    final bool isExpired = _scheduleExpired || isDisabled;
     final Color bgColor =
         isExpired ? const Color(0xFFFEE2E2) : const Color(0xFFFFF3D9);
     final Color borderColor =
@@ -502,11 +514,13 @@ class _QuizScreenState extends State<QuizScreen> {
     final IconData icon = isExpired
         ? Icons.lock_clock_rounded
         : Icons.info_outline_rounded;
-    final String message = isExpired
-        ? (_lockedMessage != null && _lockedMessage!.isNotEmpty
-            ? '$_lockedMessage — Renouvelez votre abonnement pour accéder à toutes les questions.'
-            : 'Votre abonnement est expiré. Renouvelez-le pour accéder à toutes les questions.')
-        : '5 premières questions gratuites — abonnez-vous pour tout débloquer.';
+    final String message = isDisabled
+        ? 'Programmation désactivée par l\'administrateur — renouvelez votre abonnement pour récupérer l\'accès complet.'
+        : isExpired
+            ? (_lockedMessage != null && _lockedMessage!.isNotEmpty
+                ? '$_lockedMessage — Renouvelez votre abonnement pour accéder à toutes les questions.'
+                : 'Votre abonnement est expiré. Renouvelez-le pour accéder à toutes les questions.')
+            : '5 premières questions gratuites — abonnez-vous pour tout débloquer.';
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
