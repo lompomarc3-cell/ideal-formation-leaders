@@ -132,7 +132,10 @@ export default async function handler(req) {
           _is_programmed: !!schedule.enabled,
           _date_validite: schedule.date,
           // Si la programmation est expirée (individuelle ou globale) → seules 5 questions gratuites accessibles
-          _limited_to_demo: expired
+          _limited_to_demo: expired,
+          // 🆕 is_locked : alias explicite pour le front Flutter/Web
+          is_locked: expired,
+          lock_message: expired ? 'Session expirée - renouvelez' : null
         }
       })
       // ✅ CORRECTION: Les dossiers restent visibles même expirés.

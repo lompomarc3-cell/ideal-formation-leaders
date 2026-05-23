@@ -203,7 +203,11 @@ export default async function handler(req) {
           _date_validite: schedule.date,
           // Indicateur pour le front : si non-admin et programmation expirée (individuelle ou par type),
           // l'accès est limité aux 5 premières questions gratuites.
-          _limited_to_demo: expired && !isAdmin
+          _limited_to_demo: expired && !isAdmin,
+          // 🆕 is_locked : alias explicite pour le front Flutter/Web
+          // true quand la programmation est expirée et que l'utilisateur n'est pas admin
+          is_locked: expired && !isAdmin,
+          lock_message: expired && !isAdmin ? 'Session expirée - renouvelez' : null
         }
       })
       .sort((a, b) => {

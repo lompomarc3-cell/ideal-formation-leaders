@@ -11,6 +11,11 @@ class Category {
   final bool limitedToDemo;
   /// true si le dossier était programmé (a eu une programmation active)
   final bool isProgrammed;
+  /// 🆕 is_locked : flag explicite pour l'affichage verrouillé (après expiration programmée)
+  /// Alias de limitedToDemo, fourni directement par l'API (is_locked)
+  final bool isLocked;
+  /// 🆕 Message affiché quand le dossier est verrouillé
+  final String? lockMessage;
 
   Category({
     required this.id,
@@ -23,6 +28,8 @@ class Category {
     this.ordre = 99,
     this.limitedToDemo = false,
     this.isProgrammed = false,
+    this.isLocked = false,
+    this.lockMessage,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) {
@@ -38,6 +45,9 @@ class Category {
       // _limited_to_demo : renvoyé par /api/quiz/categories quand la programmation est expirée
       limitedToDemo: json['_limited_to_demo'] == true,
       isProgrammed: json['_is_programmed'] == true,
+      // 🆕 is_locked / lock_message : flags explicites renvoyés par l'API v2.3.1
+      isLocked: json['is_locked'] == true || json['_limited_to_demo'] == true,
+      lockMessage: json['lock_message']?.toString() ?? (json['_lock_reason']?.toString()),
     );
   }
 }
