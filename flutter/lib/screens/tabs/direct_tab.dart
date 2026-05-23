@@ -357,59 +357,76 @@ class _DirectTabState extends State<DirectTab> {
             ),
             const Spacer(),
             // (Badge prix supprimé : prix géré globalement, pas par dossier)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: unlocked
-                    ? const Color(0xFFFFF3D9) // jaune doré clair
-                    : cat.limitedToDemo
-                        ? const Color(0xFFFEE2E2) // rouge clair = expiré
-                        : style.tag,
-                borderRadius: BorderRadius.circular(20),
-                border: unlocked
-                    ? Border.all(color: const Color(0xFFFBBF24), width: 1)
-                    : cat.limitedToDemo
-                        ? Border.all(color: const Color(0xFFEF4444), width: 1)
-                        : null,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    unlocked
-                        ? Icons.check_circle_rounded
-                        : cat.limitedToDemo
-                            ? Icons.lock_rounded
-                            : Icons.lock_open_rounded,
-                    size: 11,
-                    color: unlocked
-                        ? const Color(0xFF92400E)
-                        : cat.limitedToDemo
-                            ? const Color(0xFF991B1B)
-                            : style.tagText,
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    unlocked
-                        ? 'Débloqué'
-                        : cat.limitedToDemo
-                            ? 'Session expirée'
-                            : '5 gratuites',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
+            // 🔒 Bannière verrouillage si session expirée
+            if (cat.isLocked)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFEF4444), width: 1),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.lock_rounded, size: 12, color: Color(0xFF991B1B)),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        cat.lockMessage ?? 'Session expirée – renouvelez votre abonnement',
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF991B1B),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: unlocked
+                      ? const Color(0xFFFFF3D9) // jaune doré clair
+                      : style.tag,
+                  borderRadius: BorderRadius.circular(20),
+                  border: unlocked
+                      ? Border.all(color: const Color(0xFFFBBF24), width: 1)
+                      : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      unlocked
+                          ? Icons.check_circle_rounded
+                          : Icons.lock_open_rounded,
+                      size: 11,
                       color: unlocked
                           ? const Color(0xFF92400E)
-                          : cat.limitedToDemo
-                              ? const Color(0xFF991B1B)
-                              : style.tagText,
+                          : style.tagText,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 3),
+                    Text(
+                      unlocked ? 'Débloqué' : '5 gratuites',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: unlocked
+                            ? const Color(0xFF92400E)
+                            : style.tagText,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
             const SizedBox(height: 8),
             Container(
               height: 6,

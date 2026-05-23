@@ -1,7 +1,7 @@
 // API PUBLIQUE - Catégories sans authentification
 // Permet aux visiteurs non connectés de voir les dossiers
 export const runtime = 'edge'
-import { parseDescription, isScheduleExpired } from '../../../lib/scheduling'
+import { parseDescription, isScheduleExpired, isScheduleDisabledByAdmin } from '../../../lib/scheduling'
 
 const SUPABASE_URL = 'https://cyasoaihjjochwhnhwqf.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YXNvYWloampvY2h3aG5od3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTkyMDUsImV4cCI6MjA4OTkzNTIwNX0.iZx5CKV4oY80POmPYs6_PMa-2vG5kNTHhOHD5M3HX44'
@@ -59,7 +59,7 @@ function getCatIcon(nom) {
 
 const ORDRE_MAP = {
   direct: ['actualit','fran','litt','h-g','histoir','svt','psycho','math','physique','pc (','droit','conomie','entra','accomp'],
-  professionnel: ['vie scolaire','casu','actualit','cisu','inspectorat : ies',' ies','iepenf','csap','agrég','agr','capes','hôpital','hopital','sant','justice','magistr','gsp','police','civil','entra','accomp']
+  professionnel: ['casu','vie scolaire','actualit','cisu','inspectorat : ies',' ies','iepenf','csap','agrég','agr','capes','hôpital','hopital','sant','justice','magistr','gsp','police','civil','entra','accomp']
 }
 
 function getCatOrdre(nom, type) {
@@ -112,13 +112,22 @@ export default async function handler(req) {
       direct: isScheduleExpired(directGlobalSch, now),
       professionnel: isScheduleExpired(proGlobalSch, now)
     }
+    // 🔒 Désactivation admin (enabled=false + disabled_at) : verrouille aussi les dossiers
+    const typeGlobalDisabled = {
+      direct: isScheduleDisabledByAdmin(directGlobalSch),
+      professionnel: isScheduleDisabledByAdmin(proGlobalSch)
+    }
 
     const sorted = (categories || [])
       .map(c => {
         const { description, schedule } = parseDescription(c.description)
         const expiredIndividual = isScheduleExpired(schedule, now)
+        const disabledIndividual = isScheduleDisabledByAdmin(schedule)
         const expiredByType = typeGlobalExpired[c.type] || false
+        const disabledByType = typeGlobalDisabled[c.type] || false
         const expired = expiredIndividual || expiredByType
+        // 🔒 Verrouillé si expiré OU désactivé par admin (individuel ou global par type)
+        const locked = expired || disabledIndividual || disabledByType
         return {
           id: c.id,
           nom: c.nom,
@@ -131,11 +140,11 @@ export default async function handler(req) {
           _expired: expired,
           _is_programmed: !!schedule.enabled,
           _date_validite: schedule.date,
-          // Si la programmation est expirée (individuelle ou globale) → seules 5 questions gratuites accessibles
-          _limited_to_demo: expired,
-          // 🆕 is_locked : alias explicite pour le front Flutter/Web
-          is_locked: expired,
-          lock_message: expired ? 'Session expirée - renouvelez' : null
+          // Si verrouillé (expiré ou désactivé) → seules 5 questions gratuites accessibles
+          _limited_to_demo: locked,
+          // 🔒 is_locked : true si expiré OU désactivé par admin
+          is_locked: locked,
+          lock_message: locked ? 'Session expirée – renouvelez votre abonnement' : null
         }
       })
       // ✅ CORRECTION: Les dossiers restent visibles même expirés.

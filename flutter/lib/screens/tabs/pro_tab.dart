@@ -509,42 +509,61 @@ class _ProTabState extends State<ProTab> {
                     ),
                   ),
                 const SizedBox(height: 4),
-                if (!unlocked)
+                // 🔒 Bannière verrouillage si session expirée (is_locked)
+                if (!unlocked && cat.isLocked)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEE2E2),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFEF4444), width: 1),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.lock_rounded, size: 12, color: Color(0xFF991B1B)),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            cat.lockMessage ?? 'Session expirée – renouvelez votre abonnement',
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF991B1B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (!unlocked)
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 6),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
-                      color: cat.limitedToDemo
-                          ? const Color(0xFFFEF3C7) // orange clair = expiré
-                          : const Color(0xFFFEE2E2), // rouge clair = verrouillé
+                      color: const Color(0xFFFEE2E2), // rouge clair = verrouillé
                       borderRadius: BorderRadius.circular(20),
-                      border: cat.limitedToDemo
-                          ? Border.all(color: const Color(0xFFF59E0B), width: 1)
-                          : null,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
-                      children: [
+                      children: const [
                         Icon(
-                          cat.limitedToDemo
-                              ? Icons.lock_clock_outlined
-                              : Icons.lock_outline_rounded,
+                          Icons.lock_outline_rounded,
                           size: 11,
-                          color: cat.limitedToDemo
-                              ? const Color(0xFFB45309)
-                              : const Color(0xFF991B1B),
+                          color: Color(0xFF991B1B),
                         ),
-                        const SizedBox(width: 3),
+                        SizedBox(width: 3),
                         Text(
-                          cat.limitedToDemo ? 'Session expirée' : 'Verrouillé',
+                          'Verrouillé',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
-                            color: cat.limitedToDemo
-                                ? const Color(0xFFB45309)
-                                : const Color(0xFF991B1B),
+                            color: Color(0xFF991B1B),
                           ),
                         ),
                       ],
@@ -581,42 +600,35 @@ class _ProTabState extends State<ProTab> {
                       ],
                     ),
                   ),
-                const SizedBox(height: 4),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        unlocked
-                            ? Icons.lock_open_rounded
-                            : cat.limitedToDemo
-                                ? Icons.refresh_rounded
-                                : Icons.play_circle_outline_rounded,
-                        size: 10,
-                        color: cat.limitedToDemo && !unlocked
-                            ? const Color(0xFFB45309)
-                            : const Color(0xFF6B7280),
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        unlocked
-                            ? 'Accès complet'
-                            : cat.limitedToDemo
-                                ? 'Renouvelez'
-                                : '5 gratuites',
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w700,
-                          color: cat.limitedToDemo && !unlocked
-                              ? const Color(0xFFB45309)
-                              : const Color(0xFF6B7280),
+                // Sous-texte d'action (masqué si is_locked car la bannière au-dessus suffit)
+                if (!cat.isLocked)
+                  const SizedBox(height: 4),
+                if (!cat.isLocked)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          unlocked
+                              ? Icons.lock_open_rounded
+                              : Icons.play_circle_outline_rounded,
+                          size: 10,
+                          color: const Color(0xFF6B7280),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 3),
+                        Text(
+                          unlocked ? 'Accès complet' : '5 gratuites',
+                          style: const TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
                 const SizedBox(height: 8),
                 Container(
                   height: 6,

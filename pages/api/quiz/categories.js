@@ -1,7 +1,7 @@
 export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
-import { parseDescription, isScheduleExpired } from '../../../lib/scheduling'
+import { parseDescription, isScheduleExpired, isScheduleDisabledByAdmin } from '../../../lib/scheduling'
 
 // Lignes de configuration pour la programmation globale par type
 const SCHEDULE_CONFIG_NAMES = {
@@ -176,6 +176,11 @@ export default async function handler(req) {
       direct: isScheduleExpired(directGlobalSch, now),
       professionnel: isScheduleExpired(proGlobalSch, now)
     }
+    // 🔒 Désactivation admin (enabled=false + disabled_at) : verrouille aussi les dossiers
+    const typeGlobalDisabled = {
+      direct: isScheduleDisabledByAdmin(directGlobalSch),
+      professionnel: isScheduleDisabledByAdmin(proGlobalSch)
+    }
 
     // ✅ CORRECTION programmation : on ne filtre PLUS les catégories expirées.
     // Les dossiers restent visibles. Seules les questions au-delà de la 5ème
@@ -183,12 +188,17 @@ export default async function handler(req) {
     const sorted = (categories || [])
       .map(c => {
         const { description, schedule } = parseDescription(c.description)
-        // Expiration individuelle du dossier
+        // Expiration individuelle du dossier (date dépassée)
         const expiredIndividual = isScheduleExpired(schedule, now)
+        // Désactivation individuelle par admin (enabled=false + disabled_at)
+        const disabledIndividual = isScheduleDisabledByAdmin(schedule)
         // Expiration globale par type (programmation séparée direct/pro)
         const expiredByType = typeGlobalExpired[c.type] || false
-        // Un dossier est expiré si sa programmation individuelle OU sa programmation de type global est expirée
+        // Désactivation globale par admin pour ce type
+        const disabledByType = typeGlobalDisabled[c.type] || false
+        // Un dossier est verrouillé si : expiré OU désactivé (individuel OU global par type)
         const expired = expiredIndividual || expiredByType
+        const locked = expired || disabledIndividual || disabledByType
         return {
           id: c.id,
           nom: c.nom,
@@ -201,13 +211,12 @@ export default async function handler(req) {
           _expired: expired,
           _is_programmed: !!schedule.enabled || !!(directGlobalSch?.enabled) || !!(proGlobalSch?.enabled),
           _date_validite: schedule.date,
-          // Indicateur pour le front : si non-admin et programmation expirée (individuelle ou par type),
+          // Indicateur pour le front : si non-admin et programmation expirée/désactivée,
           // l'accès est limité aux 5 premières questions gratuites.
-          _limited_to_demo: expired && !isAdmin,
-          // 🆕 is_locked : alias explicite pour le front Flutter/Web
-          // true quand la programmation est expirée et que l'utilisateur n'est pas admin
-          is_locked: expired && !isAdmin,
-          lock_message: expired && !isAdmin ? 'Session expirée - renouvelez' : null
+          _limited_to_demo: locked && !isAdmin,
+          // 🔒 is_locked : true quand expiré OU désactivé par admin (individuel ou global par type)
+          is_locked: locked && !isAdmin,
+          lock_message: locked && !isAdmin ? 'Session expirée – renouvelez votre abonnement' : null
         }
       })
       .sort((a, b) => {
