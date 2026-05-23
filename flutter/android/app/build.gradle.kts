@@ -14,6 +14,15 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// Résoudre le chemin absolu du keystore depuis le dossier android/
+val keystoreFilePath = if (keystorePropertiesFile.exists()) {
+    val rawPath = keystoreProperties["storeFile"] as String?
+    if (rawPath != null) {
+        val f = rootProject.file(rawPath)
+        if (!f.isAbsolute) rootProject.file(rawPath) else f
+    } else null
+} else null
+
 android {
     namespace = "com.ifl.ifl"
     compileSdk = flutter.compileSdkVersion
@@ -38,10 +47,10 @@ android {
 
     signingConfigs {
         create("release") {
-            if (keystorePropertiesFile.exists()) {
+            if (keystorePropertiesFile.exists() && keystoreFilePath != null) {
                 keyAlias = keystoreProperties["keyAlias"] as String
                 keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = file(keystoreProperties["storeFile"] as String)
+                storeFile = keystoreFilePath
                 storePassword = keystoreProperties["storePassword"] as String
             }
         }
