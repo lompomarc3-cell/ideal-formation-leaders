@@ -7,6 +7,13 @@ import {
   isScheduleExpired
 } from '../../../lib/scheduling'
 
+// Noms des lignes de configuration de programmation globale par type
+// Ces lignes ont is_active=false et sont donc invisibles dans les catégories normales
+const SCHEDULE_CONFIG_NAMES = {
+  direct: '__SCHEDULE_DIRECT__',
+  professionnel: '__SCHEDULE_PRO__'
+}
+
 async function checkAdmin(req) {
   const auth = req.headers.get('authorization') || ''
   const token = auth.replace('Bearer ', '')
@@ -22,13 +29,55 @@ async function checkAdmin(req) {
   return profile.id
 }
 
+/**
+ * Lit la programmation globale pour un type donné (direct ou professionnel).
+ * Utilise une ligne spéciale is_active=false dans la table categories.
+ */
+async function getTypeGlobalSchedule(type) {
+  const configName = SCHEDULE_CONFIG_NAMES[type]
+  if (!configName) return null
+  const { data } = await supabaseAdmin
+    .from('categories')
+    .select('id, description')
+    .eq('nom', configName)
+    .eq('type', type)
+    .eq('is_active', false)
+    .maybeSingle()
+  if (!data) return null
+  const { schedule } = parseDescription(data.description || '')
+  return { id: data.id, schedule }
+}
+
+/**
+ * Met à jour la programmation globale pour un type donné.
+ */
+async function setTypeGlobalSchedule(type, nextSchedule) {
+  const configName = SCHEDULE_CONFIG_NAMES[type]
+  if (!configName) return false
+  // Récupérer l'ID de la ligne config
+  const { data: existing } = await supabaseAdmin
+    .from('categories')
+    .select('id, description')
+    .eq('nom', configName)
+    .eq('type', type)
+    .eq('is_active', false)
+    .maybeSingle()
+  if (!existing) return false
+  const newDesc = buildDescription('', nextSchedule)
+  const { error } = await supabaseAdmin
+    .from('categories')
+    .update({ description: newDesc })
+    .eq('id', existing.id)
+  return !error
+}
+
 // API admin : gestion de la programmation de disparition des contenus.
 // Comme aucune modification de schema n'est possible, on encode dans `categories.description`
 // via le marqueur ___SCHEDULE___ (voir lib/scheduling.js)
 //
-// GET  -> liste toutes les categories avec leur programmation courante
-// POST -> { category_ids: string[], date_validite: ISO | null, enabled: bool }
-//         date_validite=null ou enabled=false => desactive la programmation.
+// GET  -> liste toutes les categories avec leur programmation courante + config globale par type
+// POST -> { category_ids: string[], date_validite: ISO | null, enabled: bool }  (programmation individuelle)
+//      -> { type_global: 'direct'|'professionnel', date_validite: ISO | null, enabled: bool } (programmation globale par type)
 export default async function handler(req) {
   const adminId = await checkAdmin(req)
   if (!adminId) {
@@ -49,6 +98,12 @@ export default async function handler(req) {
 
       if (error) throw error
 
+      // Lire aussi les programmations globales par type
+      const [directConfig, proConfig] = await Promise.all([
+        getTypeGlobalSchedule('direct'),
+        getTypeGlobalSchedule('professionnel')
+      ])
+
       const now = new Date()
       const items = (data || []).map(c => {
         const { description, schedule } = parseDescription(c.description)
@@ -68,7 +123,26 @@ export default async function handler(req) {
         }
       })
 
-      return new Response(JSON.stringify({ categories: items }), {
+      // Formater les configs globales par type
+      const formatConfig = (cfg) => {
+        if (!cfg) return { date_validite: null, enabled: false, expired: false }
+        const expired = isScheduleExpired(cfg.schedule, now)
+        return {
+          date_validite: cfg.schedule.date,
+          enabled: !!cfg.schedule.enabled,
+          expired,
+          disabled_at: cfg.schedule.disabled_at || null
+        }
+      }
+
+      return new Response(JSON.stringify({
+        categories: items,
+        // 🆕 Programmations globales par type
+        type_schedules: {
+          direct: formatConfig(directConfig),
+          professionnel: formatConfig(proConfig)
+        }
+      }), {
         status: 200, headers: { 'Content-Type': 'application/json' }
       })
     } catch (err) {
@@ -81,7 +155,58 @@ export default async function handler(req) {
   if (req.method === 'POST') {
     let body = {}
     try { body = await req.json() } catch {}
-    const { category_ids, date_validite, enabled } = body
+    const { category_ids, date_validite, enabled, type_global } = body
+
+    // ─────────────────────────────────────────────────────────────────────
+    // 🆕 CAS 1 : Programmation globale par type (direct ou professionnel)
+    // ─────────────────────────────────────────────────────────────────────
+    if (type_global && (type_global === 'direct' || type_global === 'professionnel')) {
+      const isEnabled = enabled !== false && !!date_validite
+      let isoDate = null
+      if (isEnabled) {
+        const d = new Date(date_validite)
+        if (isNaN(d.getTime())) {
+          return new Response(JSON.stringify({ error: 'Date invalide' }), {
+            status: 400, headers: { 'Content-Type': 'application/json' }
+          })
+        }
+        isoDate = d.toISOString()
+      }
+      const nowIso = new Date().toISOString()
+      let nextSchedule = null
+      if (isEnabled) {
+        nextSchedule = { date: isoDate, enabled: true }
+      } else {
+        // Lire la config actuelle pour gérer le disabled_at
+        const current = await getTypeGlobalSchedule(type_global)
+        const prevSch = current?.schedule || {}
+        const hadProg = !!(prevSch.enabled || prevSch.disabled_at || prevSch.date)
+        if (hadProg) {
+          nextSchedule = { date: prevSch.date || null, enabled: false, disabled_at: nowIso }
+        }
+      }
+      const ok = await setTypeGlobalSchedule(type_global, nextSchedule)
+      if (!ok) {
+        return new Response(JSON.stringify({ error: 'Ligne de configuration introuvable' }), {
+          status: 500, headers: { 'Content-Type': 'application/json' }
+        })
+      }
+      const label = type_global === 'direct' ? 'Concours directs' : 'Concours professionnels'
+      return new Response(JSON.stringify({
+        success: true,
+        updated: 1,
+        type_global,
+        date_validite: isoDate,
+        enabled: isEnabled,
+        message: isEnabled
+          ? `✅ Programmation globale appliquée aux ${label}`
+          : `✅ Programmation globale désactivée pour les ${label}`
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CAS 2 : Programmation individuelle par catégorie (existant, inchangé)
+    // ─────────────────────────────────────────────────────────────────────
     const isEnabled = enabled !== false && !!date_validite
 
     if (!Array.isArray(category_ids) || category_ids.length === 0) {

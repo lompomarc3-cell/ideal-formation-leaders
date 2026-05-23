@@ -7,6 +7,10 @@ class Category {
   final int prix;
   final String? icone;
   final int ordre;
+  /// true si la programmation est expirée/désactivée → l'utilisateur n'a accès qu'aux 5 premières questions
+  final bool limitedToDemo;
+  /// true si le dossier était programmé (a eu une programmation active)
+  final bool isProgrammed;
 
   Category({
     required this.id,
@@ -17,6 +21,8 @@ class Category {
     this.prix = 0,
     this.icone,
     this.ordre = 99,
+    this.limitedToDemo = false,
+    this.isProgrammed = false,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) {
@@ -29,6 +35,9 @@ class Category {
       prix: (json['prix'] is num) ? (json['prix'] as num).toInt() : 0,
       icone: json['icone']?.toString(),
       ordre: (json['ordre'] is num) ? (json['ordre'] as num).toInt() : 99,
+      // _limited_to_demo : renvoyé par /api/quiz/categories quand la programmation est expirée
+      limitedToDemo: json['_limited_to_demo'] == true,
+      isProgrammed: json['_is_programmed'] == true,
     );
   }
 }

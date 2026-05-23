@@ -103,6 +103,10 @@ class _ProTabState extends State<ProTab> {
   ///  - C'est un dossier payant ET il fait partie de dossiersDebloques
   ///  - C'est un bonus ET au moins un dossier payant a été acheté
   bool _isUnlocked(Category cat) {
+    // Si la programmation est expirée ou désactivée → toujours verrouillé (sauf admin)
+    final auth = context.read<AuthService>();
+    final isAdmin = auth.user?.isAdmin ?? false;
+    if (!isAdmin && cat.limitedToDemo) return false;
     final paid = _paidDossiers();
     if (paid.isEmpty) return false;
     if (paid.contains('__ALL__')) return true;
@@ -511,22 +515,36 @@ class _ProTabState extends State<ProTab> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFEE2E2),
+                      color: cat.limitedToDemo
+                          ? const Color(0xFFFEF3C7) // orange clair = expiré
+                          : const Color(0xFFFEE2E2), // rouge clair = verrouillé
                       borderRadius: BorderRadius.circular(20),
+                      border: cat.limitedToDemo
+                          ? Border.all(color: const Color(0xFFF59E0B), width: 1)
+                          : null,
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.lock_outline_rounded,
-                            size: 11, color: Color(0xFF991B1B)),
-                        SizedBox(width: 3),
+                        Icon(
+                          cat.limitedToDemo
+                              ? Icons.lock_clock_outlined
+                              : Icons.lock_outline_rounded,
+                          size: 11,
+                          color: cat.limitedToDemo
+                              ? const Color(0xFFB45309)
+                              : const Color(0xFF991B1B),
+                        ),
+                        const SizedBox(width: 3),
                         Text(
-                          'Verrouillé',
+                          cat.limitedToDemo ? 'Session expirée' : 'Verrouillé',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF991B1B),
+                            color: cat.limitedToDemo
+                                ? const Color(0xFFB45309)
+                                : const Color(0xFF991B1B),
                           ),
                         ),
                       ],
@@ -573,17 +591,27 @@ class _ProTabState extends State<ProTab> {
                       Icon(
                         unlocked
                             ? Icons.lock_open_rounded
-                            : Icons.play_circle_outline_rounded,
+                            : cat.limitedToDemo
+                                ? Icons.refresh_rounded
+                                : Icons.play_circle_outline_rounded,
                         size: 10,
-                        color: const Color(0xFF6B7280),
+                        color: cat.limitedToDemo && !unlocked
+                            ? const Color(0xFFB45309)
+                            : const Color(0xFF6B7280),
                       ),
                       const SizedBox(width: 3),
                       Text(
-                        unlocked ? 'Accès complet' : '5 gratuites',
-                        style: const TextStyle(
+                        unlocked
+                            ? 'Accès complet'
+                            : cat.limitedToDemo
+                                ? 'Renouvelez'
+                                : '5 gratuites',
+                        style: TextStyle(
                           fontSize: 9.5,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF6B7280),
+                          color: cat.limitedToDemo && !unlocked
+                              ? const Color(0xFFB45309)
+                              : const Color(0xFF6B7280),
                         ),
                       ),
                     ],

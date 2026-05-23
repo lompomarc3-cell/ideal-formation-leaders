@@ -6,6 +6,26 @@ import { parseDescription, isScheduleExpired } from '../../../lib/scheduling'
 const SUPABASE_URL = 'https://cyasoaihjjochwhnhwqf.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YXNvYWloampvY2h3aG5od3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTkyMDUsImV4cCI6MjA4OTkzNTIwNX0.iZx5CKV4oY80POmPYs6_PMa-2vG5kNTHhOHD5M3HX44'
 
+// Noms des lignes de configuration pour la programmation globale par type
+const SCHEDULE_CONFIG = {
+  direct: { nom: '__SCHEDULE_DIRECT__', type: 'direct' },
+  professionnel: { nom: '__SCHEDULE_PRO__', type: 'professionnel' }
+}
+
+async function getTypeGlobalSchedulePublic(type) {
+  const cfg = SCHEDULE_CONFIG[type]
+  if (!cfg) return null
+  const url = `${SUPABASE_URL}/rest/v1/categories?nom=eq.${encodeURIComponent(cfg.nom)}&type=eq.${cfg.type}&is_active=eq.false&select=description`
+  const res = await fetch(url, {
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+  })
+  if (!res.ok) return null
+  const data = await res.json()
+  if (!data || data.length === 0) return null
+  const { schedule } = parseDescription(data[0].description || '')
+  return schedule
+}
+
 function getCatIcon(nom) {
   const n = (nom || '').toLowerCase()
   if (n.includes('culture') || n.includes('actualit')) return '🌍'
@@ -82,10 +102,23 @@ export default async function handler(req) {
     const categories = await res.json()
 
     const now = new Date()
+
+    // Lire les programmations globales par type (parallèle)
+    const [directGlobalSch, proGlobalSch] = await Promise.all([
+      getTypeGlobalSchedulePublic('direct'),
+      getTypeGlobalSchedulePublic('professionnel')
+    ])
+    const typeGlobalExpired = {
+      direct: isScheduleExpired(directGlobalSch, now),
+      professionnel: isScheduleExpired(proGlobalSch, now)
+    }
+
     const sorted = (categories || [])
       .map(c => {
         const { description, schedule } = parseDescription(c.description)
-        const expired = isScheduleExpired(schedule, now)
+        const expiredIndividual = isScheduleExpired(schedule, now)
+        const expiredByType = typeGlobalExpired[c.type] || false
+        const expired = expiredIndividual || expiredByType
         return {
           id: c.id,
           nom: c.nom,
@@ -98,7 +131,7 @@ export default async function handler(req) {
           _expired: expired,
           _is_programmed: !!schedule.enabled,
           _date_validite: schedule.date,
-          // Si la programmation est expirée → seules 5 questions gratuites accessibles
+          // Si la programmation est expirée (individuelle ou globale) → seules 5 questions gratuites accessibles
           _limited_to_demo: expired
         }
       })

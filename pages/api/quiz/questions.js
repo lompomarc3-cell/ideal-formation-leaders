@@ -139,15 +139,33 @@ export default async function handler(req) {
     // ========================================================
     // 2.bis Vérifier la programmation (disparition à date donnée).
     // L'admin continue de tout voir. Les utilisateurs normaux n'ont plus accès.
+    // On vérifie : (a) programmation individuelle du dossier, (b) programmation globale par type.
     // ========================================================
     const { schedule: catSchedule } = parseDescription(category.description)
-    const catExpired = isScheduleExpired(catSchedule, new Date())
+    const now2bis = new Date()
+    const catExpiredIndividual = isScheduleExpired(catSchedule, now2bis)
     // v2.3.0 : programmation explicitement désactivée par l'admin.
-    // Tout paiement validé avant `disabled_at` sera ignoré → l'utilisateur perd l'accès complet.
     const catDisabledByAdmin = isScheduleDisabledByAdmin(catSchedule)
     const scheduleDisabledAt = catSchedule && catSchedule.disabled_at
       ? new Date(catSchedule.disabled_at)
       : null
+
+    // 🆕 Vérifier aussi la programmation globale par type (direct / professionnel)
+    const typeConfigName = category.type === 'direct' ? '__SCHEDULE_DIRECT__' : '__SCHEDULE_PRO__'
+    const { data: typeConfigRow } = await supabaseAdmin
+      .from('categories')
+      .select('description')
+      .eq('nom', typeConfigName)
+      .eq('type', category.type)
+      .eq('is_active', false)
+      .maybeSingle()
+    const typeGlobalSchedule = typeConfigRow
+      ? parseDescription(typeConfigRow.description || '').schedule
+      : null
+    const typeGlobalExpired = isScheduleExpired(typeGlobalSchedule, now2bis)
+
+    // Un dossier est expiré si sa prog individuelle OU sa prog globale par type est expirée
+    const catExpired = catExpiredIndividual || typeGlobalExpired
 
     // ========================================================
     // 3. Vérifier si l'utilisateur a accès complet

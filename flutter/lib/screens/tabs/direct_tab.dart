@@ -67,6 +67,8 @@ class _DirectTabState extends State<DirectTab> {
     final user = auth.user;
     if (user == null) return false;
     if (user.isAdmin) return true;
+    // Si la programmation est expirée ou désactivée → toujours verrouillé (même avec abonnement actif)
+    if (cat.limitedToDemo) return false;
     if (user.subscriptionStatus != 'active') return false;
     final type = (user.abonnementType ?? '').split(':').first;
     return type == 'direct' || type == 'all';
@@ -361,12 +363,15 @@ class _DirectTabState extends State<DirectTab> {
               decoration: BoxDecoration(
                 color: unlocked
                     ? const Color(0xFFFFF3D9) // jaune doré clair
-                    : style.tag,
+                    : cat.limitedToDemo
+                        ? const Color(0xFFFEE2E2) // rouge clair = expiré
+                        : style.tag,
                 borderRadius: BorderRadius.circular(20),
                 border: unlocked
-                    ? Border.all(
-                        color: const Color(0xFFFBBF24), width: 1)
-                    : null,
+                    ? Border.all(color: const Color(0xFFFBBF24), width: 1)
+                    : cat.limitedToDemo
+                        ? Border.all(color: const Color(0xFFEF4444), width: 1)
+                        : null,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -375,21 +380,31 @@ class _DirectTabState extends State<DirectTab> {
                   Icon(
                     unlocked
                         ? Icons.check_circle_rounded
-                        : Icons.lock_open_rounded,
+                        : cat.limitedToDemo
+                            ? Icons.lock_rounded
+                            : Icons.lock_open_rounded,
                     size: 11,
                     color: unlocked
                         ? const Color(0xFF92400E)
-                        : style.tagText,
+                        : cat.limitedToDemo
+                            ? const Color(0xFF991B1B)
+                            : style.tagText,
                   ),
                   const SizedBox(width: 3),
                   Text(
-                    unlocked ? 'Débloqué' : '5 gratuites',
+                    unlocked
+                        ? 'Débloqué'
+                        : cat.limitedToDemo
+                            ? 'Session expirée'
+                            : '5 gratuites',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
                       color: unlocked
                           ? const Color(0xFF92400E)
-                          : style.tagText,
+                          : cat.limitedToDemo
+                              ? const Color(0xFF991B1B)
+                              : style.tagText,
                     ),
                   ),
                 ],

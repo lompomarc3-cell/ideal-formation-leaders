@@ -2,6 +2,31 @@ export const runtime = 'edge'
 import { supabaseAdmin } from '../../../lib/supabase'
 import { verifyToken } from '../../../lib/auth'
 import { parseDescription, isScheduleExpired } from '../../../lib/scheduling'
+
+// Lignes de configuration pour la programmation globale par type
+const SCHEDULE_CONFIG_NAMES = {
+  direct: '__SCHEDULE_DIRECT__',
+  professionnel: '__SCHEDULE_PRO__'
+}
+
+/**
+ * Lit la programmation globale pour un type donné.
+ * Retourne le schedule ou null si non configuré.
+ */
+async function getTypeGlobalSchedule(type) {
+  const configName = SCHEDULE_CONFIG_NAMES[type]
+  if (!configName) return null
+  const { data } = await supabaseAdmin
+    .from('categories')
+    .select('description')
+    .eq('nom', configName)
+    .eq('type', type)
+    .eq('is_active', false)
+    .maybeSingle()
+  if (!data) return null
+  const { schedule } = parseDescription(data.description || '')
+  return schedule
+}
 // Mapping direct: nom partiel → ordre officiel
 const ORDRE_MAP = {
   direct: [
@@ -142,13 +167,28 @@ export default async function handler(req) {
 
     const now = new Date()
 
+    // Lire les programmations globales par type (parallèle pour la perf)
+    const [directGlobalSch, proGlobalSch] = await Promise.all([
+      getTypeGlobalSchedule('direct'),
+      getTypeGlobalSchedule('professionnel')
+    ])
+    const typeGlobalExpired = {
+      direct: isScheduleExpired(directGlobalSch, now),
+      professionnel: isScheduleExpired(proGlobalSch, now)
+    }
+
     // ✅ CORRECTION programmation : on ne filtre PLUS les catégories expirées.
     // Les dossiers restent visibles. Seules les questions au-delà de la 5ème
     // sont bloquées pour les non-admins (cf. /api/quiz/questions et /api/quiz/public-questions).
     const sorted = (categories || [])
       .map(c => {
         const { description, schedule } = parseDescription(c.description)
-        const expired = isScheduleExpired(schedule, now)
+        // Expiration individuelle du dossier
+        const expiredIndividual = isScheduleExpired(schedule, now)
+        // Expiration globale par type (programmation séparée direct/pro)
+        const expiredByType = typeGlobalExpired[c.type] || false
+        // Un dossier est expiré si sa programmation individuelle OU sa programmation de type global est expirée
+        const expired = expiredIndividual || expiredByType
         return {
           id: c.id,
           nom: c.nom,
@@ -159,9 +199,9 @@ export default async function handler(req) {
           icone: getCatIcon(c.nom, c.type),
           ordre: getCatOrdre(c.nom, c.type),
           _expired: expired,
-          _is_programmed: !!schedule.enabled,
+          _is_programmed: !!schedule.enabled || !!(directGlobalSch?.enabled) || !!(proGlobalSch?.enabled),
           _date_validite: schedule.date,
-          // Indicateur pour le front : si non-admin et programmation expirée,
+          // Indicateur pour le front : si non-admin et programmation expirée (individuelle ou par type),
           // l'accès est limité aux 5 premières questions gratuites.
           _limited_to_demo: expired && !isAdmin
         }
