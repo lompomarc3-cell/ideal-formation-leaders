@@ -142,9 +142,12 @@ export default async function handler(req) {
           _date_validite: schedule.date,
           // Si verrouillé (expiré ou désactivé) → seules 5 questions gratuites accessibles
           _limited_to_demo: locked,
-          // 🔒 is_locked : true si expiré OU désactivé par admin
-          is_locked: locked,
-          lock_message: locked ? 'Session expirée – renouvelez votre abonnement' : null
+          // 🔒 CORRECTION : Pour les visiteurs non connectés (jamais abonnés),
+          // on n'affiche PAS le message "Session expirée".
+          // is_locked reste false même si programmation expirée.
+          // Seul _limited_to_demo=true indique la restriction aux 5 questions gratuites.
+          is_locked: false,
+          lock_message: null
         }
       })
       // ✅ CORRECTION: Les dossiers restent visibles même expirés.

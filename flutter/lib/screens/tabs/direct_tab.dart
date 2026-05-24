@@ -357,8 +357,12 @@ class _DirectTabState extends State<DirectTab> {
             ),
             const Spacer(),
             // (Badge prix supprimé : prix géré globalement, pas par dossier)
-            // 🔒 Bannière verrouillage si session expirée
+            // 🔒 Logique d'affichage différenciée :
+            // - Ancien abonné (is_locked=true) → cadenas rouge + message "Session expirée"
+            // - Nouvel utilisateur (limitedToDemo=true mais is_locked=false) → "5 gratuites" normal
+            // - Utilisateur normal ou débloqué → badge normal
             if (cat.isLocked)
+              // 🔴 ANCIEN ABONNÉ avec programmation expirée → cadenas rouge
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 6),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
@@ -388,12 +392,13 @@ class _DirectTabState extends State<DirectTab> {
                 ),
               )
             else
+              // 🟡 NOUVEL UTILISATEUR ou utilisateur normal → badge "5 gratuites" ou "Débloqué"
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: unlocked
-                      ? const Color(0xFFFFF3D9) // jaune doré clair
+                      ? const Color(0xFFFFF3D9) // jaune doré clair = débloqué
                       : style.tag,
                   borderRadius: BorderRadius.circular(20),
                   border: unlocked

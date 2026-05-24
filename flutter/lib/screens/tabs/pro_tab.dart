@@ -509,8 +509,11 @@ class _ProTabState extends State<ProTab> {
                     ),
                   ),
                 const SizedBox(height: 4),
-                // 🔒 Bannière verrouillage si session expirée (is_locked)
+                // 🔒 Logique d'affichage différenciée pour concours pro :
+                // - Ancien abonné (is_locked=true) → cadenas rouge + message "Session expirée"
+                // - Nouvel utilisateur (limitedToDemo=true mais is_locked=false) → badge "Verrouillé" normal (sans message alarmiste)
                 if (!unlocked && cat.isLocked)
+                  // 🔴 ANCIEN ABONNÉ avec programmation expirée → cadenas rouge
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 6),
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),

@@ -10,6 +10,30 @@ const SCHEDULE_CONFIG_NAMES = {
 }
 
 /**
+ * Vérifie si un utilisateur a déjà eu un paiement approuvé (ancien abonné).
+ * Retourne true si l'utilisateur a DÉJÀ payé dans le passé (même si son abonnement est expiré).
+ * Retourne false si c'est un nouvel utilisateur qui n'a jamais payé.
+ */
+async function checkUserHasEverSubscribed(userId) {
+  if (!userId) return false
+  try {
+    // Les paiements IFL sont stockés dans la table correction_requests
+    // avec status='approved' et message JSON contenant type='ifl_payment'
+    // On cherche si l'utilisateur a au moins 1 paiement approuvé dans le passé
+    const { data } = await supabaseAdmin
+      .from('correction_requests')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('status', 'approved')
+      .limit(1)
+    return !!(data && data.length > 0)
+  } catch {
+    // En cas d'erreur, on suppose que l'utilisateur n'a pas d'historique
+    return false
+  }
+}
+
+/**
  * Lit la programmation globale pour un type donné.
  * Retourne le schedule ou null si non configuré.
  */
@@ -167,10 +191,11 @@ export default async function handler(req) {
 
     const now = new Date()
 
-    // Lire les programmations globales par type (parallèle pour la perf)
-    const [directGlobalSch, proGlobalSch] = await Promise.all([
+    // Lire les programmations globales par type ET vérifier l'historique d'abonnement en parallèle
+    const [directGlobalSch, proGlobalSch, hasEverSubscribed] = await Promise.all([
       getTypeGlobalSchedule('direct'),
-      getTypeGlobalSchedule('professionnel')
+      getTypeGlobalSchedule('professionnel'),
+      isAdmin ? Promise.resolve(false) : checkUserHasEverSubscribed(payload.userId)
     ])
     const typeGlobalExpired = {
       direct: isScheduleExpired(directGlobalSch, now),
@@ -199,6 +224,14 @@ export default async function handler(req) {
         // Un dossier est verrouillé si : expiré OU désactivé (individuel OU global par type)
         const expired = expiredIndividual || expiredByType
         const locked = expired || disabledIndividual || disabledByType
+
+        // 🆕 LOGIQUE INTELLIGENTE DE VERROUILLAGE :
+        // - Admin → jamais verrouillé
+        // - Ancien abonné (a déjà eu un paiement approuvé) + programmation expirée → verrouillé + message "Session expirée"
+        // - Nouvel utilisateur (jamais payé) + programmation expirée → PAS de message d'expiration, juste 5 questions gratuites
+        const shouldShowLockMessage = locked && !isAdmin && hasEverSubscribed
+        const limitedToDemo = locked && !isAdmin
+
         return {
           id: c.id,
           nom: c.nom,
@@ -213,10 +246,11 @@ export default async function handler(req) {
           _date_validite: schedule.date,
           // Indicateur pour le front : si non-admin et programmation expirée/désactivée,
           // l'accès est limité aux 5 premières questions gratuites.
-          _limited_to_demo: locked && !isAdmin,
-          // 🔒 is_locked : true quand expiré OU désactivé par admin (individuel ou global par type)
-          is_locked: locked && !isAdmin,
-          lock_message: locked && !isAdmin ? 'Session expirée – renouvelez votre abonnement' : null
+          _limited_to_demo: limitedToDemo,
+          // 🔒 is_locked : uniquement pour les ANCIENS abonnés quand programmation expirée
+          // Les NOUVEAUX utilisateurs (jamais payé) ne voient PAS le cadenas rouge
+          is_locked: shouldShowLockMessage,
+          lock_message: shouldShowLockMessage ? 'Session expirée – renouvelez votre abonnement' : null
         }
       })
       .sort((a, b) => {

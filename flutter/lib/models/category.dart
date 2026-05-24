@@ -42,11 +42,15 @@ class Category {
       prix: (json['prix'] is num) ? (json['prix'] as num).toInt() : 0,
       icone: json['icone']?.toString(),
       ordre: (json['ordre'] is num) ? (json['ordre'] as num).toInt() : 99,
-      // _limited_to_demo : renvoyé par /api/quiz/categories quand la programmation est expirée
+      // _limited_to_demo : renvoyé par l'API quand la programmation est expirée
+      // (vrai même pour les nouveaux utilisateurs qui n'ont jamais payé)
       limitedToDemo: json['_limited_to_demo'] == true,
       isProgrammed: json['_is_programmed'] == true,
-      // 🆕 is_locked / lock_message : flags explicites renvoyés par l'API v2.3.1
-      isLocked: json['is_locked'] == true || json['_limited_to_demo'] == true,
+      // 🆕 CORRECTION : is_locked est UNIQUEMENT vrai si l'API renvoie explicitement is_locked=true
+      // → Cela correspond aux ANCIENS abonnés avec programmation expirée
+      // → Les NOUVEAUX utilisateurs (jamais abonnés) ont is_locked=false même si _limited_to_demo=true
+      // ⚠️ NE PAS fusionner is_locked avec _limited_to_demo ici !
+      isLocked: json['is_locked'] == true,
       lockMessage: json['lock_message']?.toString() ?? (json['_lock_reason']?.toString()),
     );
   }
