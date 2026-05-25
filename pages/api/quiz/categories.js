@@ -5,7 +5,8 @@ import { parseDescription, isScheduleExpired, isScheduleDisabledByAdmin } from '
 
 // Lignes de configuration pour la programmation globale par type
 const SCHEDULE_CONFIG_NAMES = {
-  direct: '__SCHEDULE_DIRECT__',
+  global:        '__SCHEDULE_GLOBAL__',
+  direct:        '__SCHEDULE_DIRECT__',
   professionnel: '__SCHEDULE_PRO__'
 }
 
@@ -36,17 +37,25 @@ async function checkUserHasEverSubscribed(userId) {
 /**
  * Lit la programmation globale pour un type donné.
  * Retourne le schedule ou null si non configuré.
+ * Pour 'global', la ligne est stockée avec type='direct' dans categories.
  */
-async function getTypeGlobalSchedule(type) {
-  const configName = SCHEDULE_CONFIG_NAMES[type]
+async function getTypeGlobalSchedule(typeKey) {
+  const configName = SCHEDULE_CONFIG_NAMES[typeKey]
   if (!configName) return null
-  const { data } = await supabaseAdmin
+
+  // La ligne __SCHEDULE_GLOBAL__ n'a pas de filtre sur `type` car elle est neutre
+  let query = supabaseAdmin
     .from('categories')
     .select('description')
     .eq('nom', configName)
-    .eq('type', type)
     .eq('is_active', false)
-    .maybeSingle()
+
+  // Pour direct et professionnel on filtre aussi par type
+  if (typeKey !== 'global') {
+    query = query.eq('type', typeKey)
+  }
+
+  const { data } = await query.maybeSingle()
   if (!data) return null
   const { schedule } = parseDescription(data.description || '')
   return schedule
@@ -191,19 +200,26 @@ export default async function handler(req) {
 
     const now = new Date()
 
-    // Lire les programmations globales par type ET vérifier l'historique d'abonnement en parallèle
-    const [directGlobalSch, proGlobalSch, hasEverSubscribed] = await Promise.all([
+    // Lire les programmations globales (global + par type) ET vérifier l'historique d'abonnement en parallèle
+    const [globalSch, directGlobalSch, proGlobalSch, hasEverSubscribed] = await Promise.all([
+      getTypeGlobalSchedule('global'),
       getTypeGlobalSchedule('direct'),
       getTypeGlobalSchedule('professionnel'),
       isAdmin ? Promise.resolve(false) : checkUserHasEverSubscribed(payload.userId)
     ])
+
+    // Programmation GLOBALE (s'applique à TOUS les types de dossiers)
+    const globalExpired  = isScheduleExpired(globalSch, now)
+    const globalDisabled = isScheduleDisabledByAdmin(globalSch)
+
+    // Programmation par type (s'applique uniquement aux dossiers du type concerné)
     const typeGlobalExpired = {
-      direct: isScheduleExpired(directGlobalSch, now),
+      direct:        isScheduleExpired(directGlobalSch, now),
       professionnel: isScheduleExpired(proGlobalSch, now)
     }
     // 🔒 Désactivation admin (enabled=false + disabled_at) : verrouille aussi les dossiers
     const typeGlobalDisabled = {
-      direct: isScheduleDisabledByAdmin(directGlobalSch),
+      direct:        isScheduleDisabledByAdmin(directGlobalSch),
       professionnel: isScheduleDisabledByAdmin(proGlobalSch)
     }
 
@@ -217,13 +233,16 @@ export default async function handler(req) {
         const expiredIndividual = isScheduleExpired(schedule, now)
         // Désactivation individuelle par admin (enabled=false + disabled_at)
         const disabledIndividual = isScheduleDisabledByAdmin(schedule)
-        // Expiration globale par type (programmation séparée direct/pro)
+        // Expiration globale TOUS TYPES (programmation globale qui s'applique à tout)
+        const expiredByGlobal = globalExpired
+        const disabledByGlobal = globalDisabled
+        // Expiration par type (direct OU professionnel séparément)
         const expiredByType = typeGlobalExpired[c.type] || false
         // Désactivation globale par admin pour ce type
         const disabledByType = typeGlobalDisabled[c.type] || false
-        // Un dossier est verrouillé si : expiré OU désactivé (individuel OU global par type)
-        const expired = expiredIndividual || expiredByType
-        const locked = expired || disabledIndividual || disabledByType
+        // Un dossier est verrouillé si : expiré OU désactivé (individuel OU global OU par type)
+        const expired = expiredIndividual || expiredByGlobal || expiredByType
+        const locked = expired || disabledIndividual || disabledByGlobal || disabledByType
 
         // 🆕 LOGIQUE INTELLIGENTE DE VERROUILLAGE :
         // - Admin → jamais verrouillé
@@ -242,7 +261,7 @@ export default async function handler(req) {
           icone: getCatIcon(c.nom, c.type),
           ordre: getCatOrdre(c.nom, c.type),
           _expired: expired,
-          _is_programmed: !!schedule.enabled || !!(directGlobalSch?.enabled) || !!(proGlobalSch?.enabled),
+          _is_programmed: !!schedule.enabled || !!(globalSch?.enabled) || !!(directGlobalSch?.enabled) || !!(proGlobalSch?.enabled),
           _date_validite: schedule.date,
           // Indicateur pour le front : si non-admin et programmation expirée/désactivée,
           // l'accès est limité aux 5 premières questions gratuites.

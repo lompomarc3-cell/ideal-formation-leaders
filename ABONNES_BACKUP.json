@@ -1,0 +1,19 @@
+{
+  "backup_date": "2025-05-26",
+  "note": "ABONNÉS RÉELS À RESTAURER APRÈS LES TESTS",
+  "abonnes_actifs": [
+    {"id": "cfe30a6e-e8f9-4e7b-ae9e-a976c7ceb7c0", "phone": "+22677703376", "full_name": "KANE Issa", "subscription_type": "direct", "subscription_expires_at": "2027-05-18T14:31:25.132+00:00"},
+    {"id": "51a6d08f-3495-4a93-8b8c-4c12ed70d83b", "phone": "+22672197872", "full_name": "OUALI Miyemba Olivier", "subscription_type": "direct", "subscription_expires_at": "2027-05-18T22:02:56.487+00:00"},
+    {"id": "ed0ab7ca-6bc0-49af-846b-7c2ac2e12e58", "phone": "+22662741607", "full_name": "OUEDRAOGO Rasmata", "subscription_type": "direct", "subscription_expires_at": "2027-05-19T22:10:56.705+00:00"},
+    {"id": "168a426c-09dc-44c0-a768-66e6031037f1", "phone": "+22678350497", "full_name": "NIAMPA Adama", "subscription_type": "professionnel", "subscription_expires_at": "2027-05-19T23:59:59+00:00"},
+    {"id": "c3c4acb5-fa3e-443f-b624-4faf3d05e324", "phone": "+22665300304", "full_name": "KABORE Natacha", "subscription_type": "direct", "subscription_expires_at": "2027-05-21T14:18:51.468+00:00"},
+    {"id": "8b5ed224-644b-4a20-b255-7b350bfd647f", "phone": "+22662887270", "full_name": "OUEDRAOGO Issa", "subscription_type": "direct", "subscription_expires_at": "2027-05-22T05:44:48.354+00:00"},
+    {"id": "9d861359-6dc6-4553-a489-3edbd2444f43", "phone": "+22667577772", "full_name": "DAKUYO Sylvie Hanfonou", "subscription_type": "direct", "subscription_expires_at": "2027-05-22T14:28:20.491+00:00"},
+    {"id": "a7389811-2544-4aaf-8aec-decb325d7ab0", "phone": "+22655000210", "full_name": "ZOMBRE Adjaratou", "subscription_type": "direct", "subscription_expires_at": "2027-05-23T20:28:54.03+00:00"},
+    {"id": "2f465c9f-01e5-4f8f-a355-2df88393c644", "phone": "+22672942794", "full_name": "LOMPO Damata", "subscription_type": "direct", "subscription_expires_at": "2027-05-24T10:32:23.294+00:00"},
+    {"id": "470ee280-44d7-4816-a3e4-d195b7f58a12", "phone": "+22677772002", "full_name": "YAMPA MOUMINI", "subscription_type": "direct", "subscription_expires_at": "2027-05-24T11:54:28.789+00:00"},
+    {"id": "11dde594-eec9-44d9-8126-f90b88c3dcde", "phone": "+22675346666", "full_name": "NEYA Marcheline", "subscription_type": "professionnel", "subscription_expires_at": "2027-05-24T19:48:24.915+00:00"},
+    {"id": "dca70533-19c7-4f63-bd8b-13c058abe466", "phone": "+22656587173", "full_name": "LAGMA Alimata", "subscription_type": "direct", "subscription_expires_at": "2027-05-25T11:10:27.925+00:00"},
+    {"id": "5c5f4222-248b-4be6-939c-904c2208d346", "phone": "+22676223962", "full_name": "NIAMPA Issa (ADMIN)", "subscription_type": "professionnel", "subscription_expires_at": null}
+  ]
+}

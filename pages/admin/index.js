@@ -1733,29 +1733,35 @@ function AdminSchedules({ getToken, onNotif }) {
   const [saving, setSaving] = useState(false)
   const [filterType, setFilterType] = useState('all')
 
-  // 🆕 États pour la programmation séparée (direct / professionnel)
+  // États pour la programmation groupée (global / direct / professionnel)
+  // Ces états sont gérés via la nouvelle API /api/admin/programmation
   const [typeSchedules, setTypeSchedules] = useState({ direct: {}, professionnel: {} })
+  // Bloc GLOBAL
+  const [globalDate, setGlobalDate] = useState('')
+  const [globalTime, setGlobalTime] = useState('23:59')
+  const [globalEnabled, setGlobalEnabled] = useState(true)
+  const [globalInfo, setGlobalInfo] = useState(null)
+  // Bloc DIRECT
   const [directDate, setDirectDate] = useState('')
   const [directTime, setDirectTime] = useState('23:59')
   const [directEnabled, setDirectEnabled] = useState(true)
+  // Bloc PRO
   const [proDate, setProDate] = useState('')
   const [proTime, setProTime] = useState('23:59')
   const [proEnabled, setProEnabled] = useState(true)
-  const [savingType, setSavingType] = useState(null) // 'direct' | 'professionnel' | null
+  const [savingType, setSavingType] = useState(null) // 'global'|'direct'|'professionnel'|null
 
   useEffect(() => { fetchSchedules() }, [])
 
   const fetchSchedules = async () => {
     setLoading(true)
     try {
+      // Charger les dossiers individuels (ancienne API)
       const r = await fetch('/api/admin/schedules', { headers: { Authorization: `Bearer ${getToken()}` } })
       const d = await r.json()
-      // l'API /api/admin/schedules renvoie { categories: [...], type_schedules: {...} }
       setSchedules(d.categories || d.schedules || [])
-      // 🆕 Charger les états de programmation globale par type
       if (d.type_schedules) {
         setTypeSchedules(d.type_schedules)
-        // Pré-remplir les champs si une programmation active existe
         const ds = d.type_schedules.direct
         if (ds && ds.date_validite) {
           const dt = new Date(ds.date_validite)
@@ -1771,12 +1777,129 @@ function AdminSchedules({ getToken, onNotif }) {
           setProEnabled(ps.enabled)
         }
       }
+      // Charger la programmation globale via la nouvelle API
+      const rProg = await fetch('/api/admin/programmation', { headers: { Authorization: `Bearer ${getToken()}` } })
+      const dProg = await rProg.json()
+      if (dProg.global_end_date) {
+        const dt = new Date(dProg.global_end_date)
+        setGlobalDate(dt.toISOString().split('T')[0])
+        setGlobalTime(dt.toTimeString().slice(0,5))
+        setGlobalEnabled(dProg.global_enabled)
+        setGlobalInfo({ end_date: dProg.global_end_date, enabled: dProg.global_enabled, expired: dProg.global_expired })
+      }
     } catch {}
     setLoading(false)
   }
 
-  // 🆕 Sauvegarder la programmation globale pour un type
+  // Sauvegarder via la nouvelle API /api/admin/programmation
+  const saveProgrammation = async (type, dateVal, timeVal, enab) => {
+    if (enab && !dateVal) return onNotif('Choisissez une date de fin de validité', 'error')
+    setSavingType(type)
+    try {
+      let iso = null
+      if (enab && dateVal) {
+        const [h, m] = (timeVal || '23:59').split(':')
+        iso = new Date(`${dateVal}T${h.padStart(2,'0')}:${m.padStart(2,'0')}:00`).toISOString()
+      }
+      const r = await fetch('/api/admin/programmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ type, end_date: iso })
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif(d.message || `✅ Programmation ${type} mise à jour`, 'success')
+        fetchSchedules()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
+    setSavingType(null)
+  }
+
+  // Sauvegarder la programmation globale pour un type (rétrocompatibilité avec schedules)
   const saveTypeGlobal = async (type) => {
+    const isDir = type === 'direct'
+    const enab = isDir ? directEnabled : proEnabled
+    const dateVal = isDir ? directDate : proDate
+    const timeVal = isDir ? directTime : proTime
+    // Utiliser la nouvelle API pour direct/pro aussi
+    await saveProgrammation(type, dateVal, timeVal, enab)
+    // Mettre aussi à jour via l'ancienne API pour la rétrocompatibilité
+    try {
+      let iso = null
+      if (enab && dateVal) {
+        const [h, m] = (timeVal || '23:59').split(':')
+        iso = new Date(`${dateVal}T${h.padStart(2,'0')}:${m.padStart(2,'0')}:00`).toISOString()
+      }
+      await fetch('/api/admin/schedules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ type_global: type, date_validite: iso, enabled: enab })
+      })
+    } catch {}
+  }
+
+  // Sauvegarder la programmation GLOBALE (nouveau)
+  const saveGlobal = () => saveProgrammation('global', globalDate, globalTime, globalEnabled)
+
+  // Désactiver la programmation globale
+  const disableGlobal = async () => {
+    setSavingType('global')
+    try {
+      const r = await fetch('/api/admin/programmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ type: 'global', end_date: null })
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif(d.message || '✅ Programmation globale désactivée', 'success')
+        setGlobalDate(''); setGlobalEnabled(true); setGlobalInfo(null)
+        fetchSchedules()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
+    setSavingType(null)
+  }
+
+  // Raccourci : programmer GLOBAL rapidement
+  const quickScheduleGlobal = async (seconds) => {
+    setSavingType('global')
+    try {
+      const target = new Date(Date.now() + seconds * 1000)
+      const iso = target.toISOString()
+      const yyyy = target.getFullYear()
+      const mm = String(target.getMonth() + 1).padStart(2, '0')
+      const dd = String(target.getDate()).padStart(2, '0')
+      const hh = String(target.getHours()).padStart(2, '0')
+      const mi = String(target.getMinutes()).padStart(2, '0')
+      setGlobalDate(`${yyyy}-${mm}-${dd}`); setGlobalTime(`${hh}:${mi}`); setGlobalEnabled(true)
+      const r = await fetch('/api/admin/programmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ type: 'global', end_date: iso })
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif(`✅ Prog. GLOBALE : fin dans ${formatRelative(seconds)}`, 'success')
+        fetchSchedules()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
+    setSavingType(null)
+  }
+
+  // Ancienne fonction saveTypeGlobal pour rétrocompatibilité (maintenant utilise saveProgrammation)
+  const saveTypeGlobalOld = async (type) => {
     const isDir = type === 'direct'
     const enab = isDir ? directEnabled : proEnabled
     const dateVal = isDir ? directDate : proDate
@@ -2000,6 +2123,11 @@ function AdminSchedules({ getToken, onNotif }) {
     return new Date(s.date_validite).toLocaleString('fr-FR')
   }
 
+  const fmtDate = (iso) => {
+    if (!iso) return null
+    return new Date(iso).toLocaleString('fr-FR')
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4 mt-1">
@@ -2008,13 +2136,81 @@ function AdminSchedules({ getToken, onNotif }) {
       </div>
 
       <div className="bg-amber-900/20 border border-amber-800/50 rounded-xl p-3 mb-4 text-xs text-amber-200">
-        💡 Programmez la <b>disparition automatique</b> d'un ou plusieurs sous-dossiers à une date précise. Après cette date, les utilisateurs non-admin ne verront plus ce contenu. L'administrateur continue de le voir même après expiration.
+        💡 Programmez la <b>disparition automatique</b> des contenus à une date précise. Après cette date, les utilisateurs non-admin perdent l'accès complet. L'administrateur continue de tout voir.
       </div>
 
-      {/* 🆕 Section : Programmation globale par type */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* BLOC GLOBAL – s'applique à TOUS les dossiers (directs + pros)     */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
       <div className="mb-5">
-        <h3 className="text-amber-300 font-bold text-sm mb-3">🎯 Programmation groupée (par type de concours)</h3>
-        <p className="text-gray-400 text-xs mb-3">Appliquer une date d'expiration à <b>TOUS</b> les dossiers directs ou <b>TOUS</b> les professionnels en une seule action.</p>
+        <h3 className="text-red-400 font-bold text-sm mb-3">🌐 Programmation GLOBALE (tous types)</h3>
+        <p className="text-gray-400 text-xs mb-3">S'applique simultanément aux <b>12 dossiers Directs ET aux 17 dossiers Professionnels</b>. Priorité maximale.</p>
+
+        <div className="bg-gray-800 rounded-2xl p-4 border border-red-700/60 mb-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-white font-bold text-sm">🌐 Tous concours (GLOBAL)</span>
+            {globalInfo?.end_date && (
+              <span className={`text-xs px-2 py-1 rounded-lg font-bold ${globalInfo.expired ? 'bg-red-900/60 text-red-300' : 'bg-emerald-900/50 text-emerald-300'}`}>
+                {globalInfo.expired ? '⚠️ EXPIRÉ' : '⏰ Actif'} : {fmtDate(globalInfo.end_date)}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-xs text-white cursor-pointer">
+              <input type="checkbox" checked={globalEnabled} onChange={e => setGlobalEnabled(e.target.checked)} className="w-4 h-4 accent-red-500" />
+              <span>Activer</span>
+            </label>
+          </div>
+          {globalEnabled && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-gray-400 text-xs mb-1 block">Date de fin *</label>
+                <input type="datetime-local" value={globalDate && globalTime ? `${globalDate}T${globalTime}` : ''}
+                  onChange={e => {
+                    const v = e.target.value
+                    if (v) { setGlobalDate(v.slice(0,10)); setGlobalTime(v.slice(11,16)) }
+                  }}
+                  className="w-full bg-gray-700 text-white rounded-xl px-3 py-2 text-sm" />
+              </div>
+              <div className="flex flex-col justify-end">
+                <p className="text-gray-500 text-xs">
+                  {globalDate ? `📅 ${new Date(`${globalDate}T${globalTime}:00`).toLocaleString('fr-FR')}` : ''}
+                </p>
+              </div>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button onClick={saveGlobal} disabled={savingType !== null}
+              className="flex-1 py-2.5 text-sm font-bold text-white rounded-xl active:scale-95 disabled:opacity-50"
+              style={{ background: globalEnabled ? '#DC2626' : '#6B7280' }}>
+              {savingType === 'global' ? '⏳...' : (globalEnabled ? '🌐 Appliquer GLOBAL' : '🚫 Désactiver GLOBAL')}
+            </button>
+            {globalInfo?.end_date && (
+              <button onClick={disableGlobal} disabled={savingType !== null}
+                className="px-3 py-2.5 text-xs font-bold rounded-xl bg-red-900/50 text-red-300 hover:bg-red-900 disabled:opacity-50">
+                Retirer
+              </button>
+            )}
+          </div>
+
+          <div className="pt-2 border-t border-gray-700/50">
+            <p className="text-xs text-gray-400 mb-2 font-semibold">⚡ Raccourcis pour tester rapidement :</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[[30,'+ 30 sec'],[60,'+ 1 min'],[300,'+ 5 min'],[1800,'+ 30 min'],[3600,'+ 1 h'],[86400,'+ 1 j']].map(([s,l]) => (
+                <button key={s} onClick={() => quickScheduleGlobal(s)} disabled={savingType !== null}
+                  className="py-1.5 text-xs font-bold rounded-lg bg-red-900/40 text-red-200 hover:bg-red-900/70 disabled:opacity-50 border border-red-800/40">{l}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* BLOCS DIRECT + PRO – programmation séparée par type               */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      <div className="mb-5">
+        <h3 className="text-amber-300 font-bold text-sm mb-3">🎯 Programmation par type de concours</h3>
+        <p className="text-gray-400 text-xs mb-3">Appliquer une date d'expiration à <b>TOUS</b> les dossiers directs ou <b>TOUS</b> les professionnels séparément.</p>
 
         {/* Concours Directs */}
         <div className="bg-gray-800 rounded-2xl p-4 border border-blue-700/50 mb-3 space-y-3">
