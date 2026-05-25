@@ -58,6 +58,8 @@ export default function AdminDashboard() {
     { id: 'dissertations', label: '📝 Dissertations', icon: '📝' },
     { id: 'categories', label: '📁 Dossiers', icon: '📁' },
     { id: 'schedules', label: '⏰ Programmation', icon: '⏰' },
+    { id: 'concours_direct', label: '📚 Prog. Directs', icon: '📚' },
+    { id: 'concours_pro', label: '🎓 Prog. Pro', icon: '🎓' },
     { id: 'prices', label: '💰 Prix', icon: '💰' },
     { id: 'promotions', label: '🎯 Promotions', icon: '🎯' },
     { id: 'password', label: '🔑 Mot de passe', icon: '🔑' },
@@ -120,6 +122,8 @@ export default function AdminDashboard() {
           {activeSection === 'dissertations' && <AdminDissertations getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'categories' && <AdminCategories getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'schedules' && <AdminSchedules getToken={getToken} onNotif={showNotif} />}
+          {activeSection === 'concours_direct' && <AdminConcoursSession type="direct" getToken={getToken} onNotif={showNotif} />}
+          {activeSection === 'concours_pro' && <AdminConcoursSession type="professionnel" getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'prices' && <AdminPrices getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'promotions' && <AdminPromotions getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'password' && <AdminChangePassword getToken={getToken} onNotif={showNotif} user={user} />}
@@ -2241,6 +2245,673 @@ function AdminSchedules({ getToken, onNotif }) {
               </label>
             )
           })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* =================== PROGRAMMATION CONCOURS (Direct / Pro) =================== */
+
+// Formulaire d'une épreuve
+function EpreuveForm({ epreuve, index, onChange, onDelete }) {
+  return (
+    <div className="bg-gray-700 rounded-xl p-3 border border-gray-600 space-y-2">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-amber-300 text-xs font-bold">📝 Épreuve {index + 1}</span>
+        <button onClick={() => onDelete(index)} className="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded hover:bg-red-900/30">
+          ✕ Supprimer
+        </button>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="col-span-2">
+          <label className="text-gray-400 text-xs mb-1 block">Matière *</label>
+          <input
+            type="text"
+            value={epreuve.matiere || ''}
+            onChange={e => onChange(index, 'matiere', e.target.value)}
+            placeholder="Ex: Mathématiques, Français..."
+            className="w-full bg-gray-600 text-white rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Durée (min)</label>
+          <input
+            type="number"
+            min="0"
+            value={epreuve.duree_min || ''}
+            onChange={e => onChange(index, 'duree_min', parseInt(e.target.value) || 0)}
+            placeholder="120"
+            className="w-full bg-gray-600 text-white rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="text-gray-400 text-xs mb-1 block">Coefficient</label>
+          <input
+            type="number"
+            min="0.5"
+            step="0.5"
+            value={epreuve.coefficient || ''}
+            onChange={e => onChange(index, 'coefficient', parseFloat(e.target.value) || 1)}
+            placeholder="1"
+            className="w-full bg-gray-600 text-white rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="col-span-2">
+          <label className="text-gray-400 text-xs mb-1 block">Type d&apos;épreuve</label>
+          <select
+            value={epreuve.type_epreuve || 'ecrit'}
+            onChange={e => onChange(index, 'type_epreuve', e.target.value)}
+            className="w-full bg-gray-600 text-white rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="ecrit">📝 Écrit</option>
+            <option value="oral">🎤 Oral</option>
+            <option value="pratique">🔧 Pratique</option>
+            <option value="qcm">✅ QCM</option>
+            <option value="dossier">📂 Dossier</option>
+          </select>
+        </div>
+        <div className="col-span-2">
+          <label className="text-gray-400 text-xs mb-1 block">Description (optionnel)</label>
+          <input
+            type="text"
+            value={epreuve.description || ''}
+            onChange={e => onChange(index, 'description', e.target.value)}
+            placeholder="Détails supplémentaires..."
+            className="w-full bg-gray-600 text-white rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Modal formulaire session concours
+function SessionForm({ session, type, onSave, onCancel, saving }) {
+  const isNew = !session?.id
+  const isDirect = type === 'direct'
+
+  const [form, setForm] = useState({
+    type,
+    titre: session?.titre || '',
+    annee: session?.annee || new Date().getFullYear(),
+    date_debut: session?.date_debut ? session.date_debut.slice(0, 16) : '',
+    date_cloture: session?.date_cloture ? session.date_cloture.slice(0, 16) : '',
+    date_examen: session?.date_examen ? session.date_examen.slice(0, 16) : '',
+    date_resultats: session?.date_resultats ? session.date_resultats.slice(0, 16) : '',
+    lieu: session?.lieu || '',
+    description: session?.description || '',
+    conditions: session?.conditions || '',
+    epreuves: session?.epreuves || [],
+    postes: session?.postes || '',
+    nombre_postes: session?.nombre_postes || 0,
+    statut: session?.statut || 'brouillon',
+    is_visible: session?.is_visible !== false,
+  })
+
+  const [errors, setErrors] = useState([])
+
+  const set = (key, val) => setForm(f => ({ ...f, [key]: val }))
+
+  const addEpreuve = () => {
+    set('epreuves', [...form.epreuves, { matiere: '', duree_min: 60, coefficient: 1, type_epreuve: 'ecrit', description: '' }])
+  }
+
+  const updateEpreuve = (idx, key, val) => {
+    const next = [...form.epreuves]
+    next[idx] = { ...next[idx], [key]: val }
+    set('epreuves', next)
+  }
+
+  const deleteEpreuve = (idx) => {
+    set('epreuves', form.epreuves.filter((_, i) => i !== idx))
+  }
+
+  const validate = () => {
+    const errs = []
+    if (!form.titre.trim() || form.titre.trim().length < 3) errs.push('Le titre est obligatoire (min 3 caractères)')
+    if (form.date_debut && form.date_cloture && new Date(form.date_cloture) <= new Date(form.date_debut)) {
+      errs.push('La date de clôture doit être après la date de début')
+    }
+    if (form.date_cloture && form.date_examen && new Date(form.date_examen) <= new Date(form.date_cloture)) {
+      errs.push("La date de l'épreuve doit être après la clôture des inscriptions")
+    }
+    if (form.date_examen && form.date_resultats && new Date(form.date_resultats) <= new Date(form.date_examen)) {
+      errs.push('La date des résultats doit être après la date des épreuves')
+    }
+    if (form.statut === 'publie' && !form.date_examen) {
+      errs.push("Une session publiée doit avoir une date d'épreuve")
+    }
+    form.epreuves.forEach((ep, i) => {
+      if (!ep.matiere?.trim()) errs.push(`Épreuve ${i + 1} : matière obligatoire`)
+    })
+    return errs
+  }
+
+  const handleSubmit = () => {
+    const errs = validate()
+    setErrors(errs)
+    if (errs.length > 0) return
+    const payload = {
+      ...form,
+      id: session?.id || undefined,
+      date_debut: form.date_debut ? new Date(form.date_debut).toISOString() : null,
+      date_cloture: form.date_cloture ? new Date(form.date_cloture).toISOString() : null,
+      date_examen: form.date_examen ? new Date(form.date_examen).toISOString() : null,
+      date_resultats: form.date_resultats ? new Date(form.date_resultats).toISOString() : null,
+      annee: parseInt(form.annee) || new Date().getFullYear(),
+      nombre_postes: parseInt(form.nombre_postes) || 0,
+    }
+    onSave(payload)
+  }
+
+  const inputCls = "w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm border border-gray-600 focus:border-amber-500 focus:outline-none"
+  const labelCls = "text-gray-400 text-xs mb-1 block font-medium"
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-4" style={{ background: 'rgba(0,0,0,0.85)' }}>
+      <div className="w-full max-w-lg mx-4 rounded-2xl shadow-2xl" style={{ background: '#1F1106', border: '1px solid #C4521A' }}>
+        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <div>
+            <h3 className="text-white font-bold text-base">
+              {isNew ? '➕ Nouvelle session' : '✏️ Modifier la session'}
+            </h3>
+            <p className="text-xs mt-0.5" style={{ color: isDirect ? '#93C5FD' : '#6EE7B7' }}>
+              {isDirect ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
+            </p>
+          </div>
+          <button onClick={onCancel} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-700 text-lg">✕</button>
+        </div>
+
+        <div className="p-4 space-y-4 max-h-[75vh] overflow-y-auto">
+          {errors.length > 0 && (
+            <div className="bg-red-900/40 border border-red-700 rounded-xl p-3">
+              {errors.map((e, i) => <p key={i} className="text-red-300 text-xs">⚠️ {e}</p>)}
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <h4 className="text-amber-300 text-xs font-bold uppercase tracking-wider">📋 Informations générales</h4>
+            <div>
+              <label className={labelCls}>Titre de la session *</label>
+              <input type="text" value={form.titre} onChange={e => set('titre', e.target.value)}
+                placeholder={isDirect ? "Ex: Concours ENS 2026" : "Ex: Concours MENA 2026 - Grade 1"}
+                className={inputCls} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Année</label>
+                <input type="number" value={form.annee} onChange={e => set('annee', e.target.value)}
+                  min="2020" max="2035" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Statut</label>
+                <select value={form.statut} onChange={e => set('statut', e.target.value)} className={inputCls}>
+                  <option value="brouillon">📝 Brouillon</option>
+                  <option value="publie">✅ Publié</option>
+                  <option value="archive">🗄️ Archivé</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Lieu</label>
+              <input type="text" value={form.lieu} onChange={e => set('lieu', e.target.value)}
+                placeholder="Ex: Ouagadougou, Bobo-Dioulasso..." className={inputCls} />
+            </div>
+            <label className="flex items-center gap-3 bg-gray-800 rounded-xl px-3 py-2.5 cursor-pointer">
+              <input type="checkbox" checked={form.is_visible} onChange={e => set('is_visible', e.target.checked)}
+                className="w-4 h-4 accent-amber-500" />
+              <div>
+                <p className="text-white text-sm font-medium">Visible pour les utilisateurs</p>
+                <p className="text-gray-400 text-xs">Les utilisateurs verront cette session sur leur tableau de bord</p>
+              </div>
+            </label>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-amber-300 text-xs font-bold uppercase tracking-wider">📅 Calendrier</h4>
+            <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-3 text-xs text-gray-400 space-y-1">
+              <p>⚠️ <b>Règles de cohérence :</b></p>
+              <p>• Clôture → après début inscriptions</p>
+              <p>• Date épreuve → après clôture</p>
+              <p>• Date résultats → après épreuve</p>
+            </div>
+            <div>
+              <label className={labelCls}>📌 Début des inscriptions</label>
+              <input type="datetime-local" value={form.date_debut} onChange={e => set('date_debut', e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>🔒 Clôture des inscriptions</label>
+              <input type="datetime-local" value={form.date_cloture} onChange={e => set('date_cloture', e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>✍️ Date de l&apos;épreuve {form.statut === 'publie' ? '*' : ''}</label>
+              <input type="datetime-local" value={form.date_examen} onChange={e => set('date_examen', e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>🏆 Date des résultats</label>
+              <input type="datetime-local" value={form.date_resultats} onChange={e => set('date_resultats', e.target.value)} className={inputCls} />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-amber-300 text-xs font-bold uppercase tracking-wider">🏢 Postes et Profils</h4>
+            <div>
+              <label className={labelCls}>Profils / Postes ouverts</label>
+              <textarea value={form.postes} onChange={e => set('postes', e.target.value)}
+                rows={2} placeholder={isDirect ? "Ex: Professeurs ENS, ENSETP..." : "Ex: Inspecteurs pédagogiques, IAPC..."}
+                className={inputCls + " resize-none"} />
+            </div>
+            <div>
+              <label className={labelCls}>Nombre de postes</label>
+              <input type="number" min="0" value={form.nombre_postes} onChange={e => set('nombre_postes', e.target.value)}
+                className={inputCls} />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-amber-300 text-xs font-bold uppercase tracking-wider">📋 Conditions d&apos;inscription</h4>
+            <textarea value={form.conditions} onChange={e => set('conditions', e.target.value)}
+              rows={3} placeholder="Diplômes requis, âge limite, nationalité, pièces à fournir..."
+              className={inputCls + " resize-none"} />
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-amber-300 text-xs font-bold uppercase tracking-wider">📝 Description</h4>
+            <textarea value={form.description} onChange={e => set('description', e.target.value)}
+              rows={3} placeholder="Description générale du concours, contexte, informations complémentaires..."
+              className={inputCls + " resize-none"} />
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-amber-300 text-xs font-bold uppercase tracking-wider">📚 Épreuves ({form.epreuves.length})</h4>
+              <button onClick={addEpreuve}
+                className="px-3 py-1.5 text-xs font-bold text-white rounded-lg"
+                style={{ background: '#C4521A' }}>
+                + Ajouter
+              </button>
+            </div>
+            {form.epreuves.length === 0 ? (
+              <div className="bg-gray-800 rounded-xl p-4 text-center text-gray-400 text-xs">
+                Aucune épreuve. Cliquez sur &quot;Ajouter&quot; pour créer une épreuve.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {form.epreuves.map((ep, i) => (
+                  <EpreuveForm key={i} epreuve={ep} index={i} onChange={updateEpreuve} onDelete={deleteEpreuve} />
+                ))}
+              </div>
+            )}
+            {form.epreuves.length > 0 && (
+              <div className="bg-gray-800/50 rounded-xl p-3 text-xs text-gray-400">
+                <p className="font-bold text-gray-300 mb-1">📊 Récapitulatif :</p>
+                <p>• {form.epreuves.length} épreuve(s)</p>
+                <p>• Durée totale : {form.epreuves.reduce((s, e) => s + (e.duree_min || 0), 0)} min</p>
+                <p>• Total coefficients : {form.epreuves.reduce((s, e) => s + (parseFloat(e.coefficient) || 0), 0)}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="p-4 border-t border-gray-700 flex gap-3">
+          <button onClick={onCancel} className="flex-1 py-3 text-sm font-bold text-gray-300 rounded-xl bg-gray-700 hover:bg-gray-600 active:scale-95">
+            Annuler
+          </button>
+          <button onClick={handleSubmit} disabled={saving}
+            className="flex-1 py-3 text-sm font-bold text-white rounded-xl active:scale-95 disabled:opacity-50"
+            style={{ background: '#C4521A' }}>
+            {saving ? '⏳ Enregistrement...' : (isNew ? '✅ Créer la session' : '✅ Enregistrer')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Carte d'affichage d'une session
+function SessionCard({ session, onEdit, onDelete, onDuplicate }) {
+  const [expanded, setExpanded] = useState(false)
+
+  const fmt = (iso) => iso ? new Date(iso).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'
+
+  const statutColors = {
+    brouillon: { bg: 'bg-gray-700', text: 'text-gray-300', label: '📝 Brouillon' },
+    publie: { bg: 'bg-green-900/50', text: 'text-green-300', label: '✅ Publié' },
+    archive: { bg: 'bg-gray-800', text: 'text-gray-500', label: '🗄️ Archivé' }
+  }
+  const sc = statutColors[session.statut] || statutColors.brouillon
+
+  const now = new Date()
+  const examenDate = session.date_examen ? new Date(session.date_examen) : null
+
+  let timeStatus = null
+  if (examenDate) {
+    const diff = examenDate - now
+    if (diff < 0) timeStatus = { label: 'Épreuve passée', color: 'text-red-400' }
+    else if (diff < 7 * 24 * 3600000) timeStatus = { label: `Épreuve dans ${Math.ceil(diff / 86400000)} j`, color: 'text-amber-400' }
+    else timeStatus = { label: `Épreuve le ${fmtDate(session.date_examen)}`, color: 'text-green-400' }
+  }
+
+  return (
+    <div className={`rounded-2xl border ${expanded ? 'border-amber-600' : 'border-gray-700'} bg-gray-800 overflow-hidden`}>
+      <div className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span className={`text-xs px-2 py-0.5 rounded-lg font-bold ${sc.bg} ${sc.text}`}>{sc.label}</span>
+              {session.is_visible && <span className="text-xs px-2 py-0.5 rounded-lg font-bold bg-blue-900/40 text-blue-300">👁️ Visible</span>}
+              {timeStatus && <span className={`text-xs font-semibold ${timeStatus.color}`}>{timeStatus.label}</span>}
+            </div>
+            <h4 className="text-white font-bold text-sm leading-tight">{session.titre}</h4>
+            <p className="text-gray-400 text-xs mt-0.5">
+              {session.annee} • {session.lieu || 'Lieu non défini'} • {session.epreuves?.length || 0} épreuve(s)
+              {session.nombre_postes > 0 && ` • ${session.nombre_postes} poste(s)`}
+            </p>
+          </div>
+          <button onClick={() => setExpanded(!expanded)}
+            className="text-gray-400 text-xs px-2 py-1 rounded hover:text-white hover:bg-gray-700 flex-shrink-0">
+            {expanded ? '▲' : '▼'}
+          </button>
+        </div>
+        {!expanded && session.date_examen && (
+          <p className="text-amber-300 text-xs mt-2">✍️ Épreuve : {fmt(session.date_examen)}</p>
+        )}
+      </div>
+
+      {expanded && (
+        <div className="px-4 pb-4 space-y-3 border-t border-gray-700 pt-3">
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: '📌 Début inscriptions', val: fmt(session.date_debut) },
+              { label: '🔒 Clôture inscriptions', val: fmt(session.date_cloture) },
+              { label: '✍️ Date épreuve', val: fmt(session.date_examen) },
+              { label: '🏆 Date résultats', val: fmt(session.date_resultats) },
+            ].map(({ label, val }) => (
+              <div key={label} className="bg-gray-700 rounded-xl p-2">
+                <p className="text-gray-400 text-xs">{label}</p>
+                <p className="text-white text-xs font-semibold mt-0.5">{val}</p>
+              </div>
+            ))}
+          </div>
+          {session.postes && (
+            <div className="bg-gray-700 rounded-xl p-3">
+              <p className="text-gray-400 text-xs mb-1">🏢 Postes ouverts :</p>
+              <p className="text-white text-xs">{session.postes}</p>
+            </div>
+          )}
+          {session.conditions && (
+            <div className="bg-gray-700 rounded-xl p-3">
+              <p className="text-gray-400 text-xs mb-1">📋 Conditions :</p>
+              <p className="text-white text-xs whitespace-pre-line">{session.conditions}</p>
+            </div>
+          )}
+          {session.description && (
+            <div className="bg-gray-700 rounded-xl p-3">
+              <p className="text-gray-400 text-xs mb-1">📝 Description :</p>
+              <p className="text-white text-xs whitespace-pre-line">{session.description}</p>
+            </div>
+          )}
+          {session.epreuves?.length > 0 && (
+            <div>
+              <p className="text-gray-400 text-xs mb-2 font-semibold">📚 Épreuves ({session.epreuves.length}) :</p>
+              <div className="space-y-1.5">
+                {session.epreuves.map((ep, i) => (
+                  <div key={i} className="bg-gray-700 rounded-xl px-3 py-2 flex items-center justify-between">
+                    <div>
+                      <p className="text-white text-xs font-semibold">{ep.matiere}</p>
+                      <p className="text-gray-400 text-xs">
+                        {ep.type_epreuve || 'Écrit'}
+                        {ep.duree_min ? ` • ${ep.duree_min} min` : ''}
+                        {ep.description ? ` • ${ep.description}` : ''}
+                      </p>
+                    </div>
+                    <span className="text-amber-300 text-xs font-bold ml-2 flex-shrink-0">Coef. {ep.coefficient || 1}</span>
+                  </div>
+                ))}
+                <div className="bg-gray-800 rounded-xl px-3 py-2 text-xs text-gray-400 flex justify-between">
+                  <span>Total : {session.epreuves.reduce((s, e) => s + (e.duree_min || 0), 0)} min</span>
+                  <span>Coef. total : {session.epreuves.reduce((s, e) => s + (parseFloat(e.coefficient) || 0), 0)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="px-4 pb-4 flex gap-2">
+        <button onClick={() => onEdit(session)}
+          className="flex-1 py-2 text-xs font-bold text-white rounded-xl"
+          style={{ background: '#1D4ED8' }}>
+          ✏️ Modifier
+        </button>
+        <button onClick={() => onDuplicate(session.id)}
+          className="px-3 py-2 text-xs font-bold rounded-xl bg-gray-700 text-gray-300 hover:bg-gray-600">
+          📋 Copier
+        </button>
+        <button onClick={() => onDelete(session.id)}
+          className="px-3 py-2 text-xs font-bold rounded-xl bg-red-900/40 text-red-300 hover:bg-red-900/70">
+          🗑️
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// Composant principal : Programmation d'un type de concours
+function AdminConcoursSession({ type, getToken, onNotif }) {
+  const isDirect = type === 'direct'
+  const [sessions, setSessions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [editingSession, setEditingSession] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [filterStatut, setFilterStatut] = useState('all')
+  const [confirmDelete, setConfirmDelete] = useState(null)
+
+  useEffect(() => { fetchSessions() }, [type])
+
+  const fetchSessions = async () => {
+    setLoading(true)
+    try {
+      const r = await fetch(`/api/admin/concours?type=${type}`, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      })
+      const d = await r.json()
+      if (d.sessions !== undefined) {
+        setSessions(d.sessions)
+      } else {
+        onNotif(d.error || 'Erreur chargement', 'error')
+      }
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
+    setLoading(false)
+  }
+
+  const handleSave = async (data) => {
+    setSaving(true)
+    try {
+      const r = await fetch('/api/admin/concours', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify(data)
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif(d.message || '✅ Session enregistrée', 'success')
+        setShowForm(false)
+        setEditingSession(null)
+        fetchSessions()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
+    setSaving(false)
+  }
+
+  const handleDelete = async (id) => {
+    try {
+      const r = await fetch('/api/admin/concours', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ action: 'delete', id })
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif('✅ Session supprimée', 'success')
+        setConfirmDelete(null)
+        fetchSessions()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
+  }
+
+  const handleDuplicate = async (id) => {
+    try {
+      const r = await fetch('/api/admin/concours', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ action: 'duplicate', id })
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif('✅ Session dupliquée', 'success')
+        fetchSessions()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
+  }
+
+  const filtered = sessions.filter(s => filterStatut === 'all' ? true : s.statut === filterStatut)
+  const nbPublies = sessions.filter(s => s.statut === 'publie').length
+  const nbBrouillons = sessions.filter(s => s.statut === 'brouillon').length
+  const nbArchives = sessions.filter(s => s.statut === 'archive').length
+
+  const nextExamen = sessions
+    .filter(s => s.date_examen && new Date(s.date_examen) > new Date() && s.statut === 'publie')
+    .sort((a, b) => new Date(a.date_examen) - new Date(b.date_examen))[0]
+
+  return (
+    <div>
+      {showForm && (
+        <SessionForm
+          session={editingSession}
+          type={type}
+          onSave={handleSave}
+          onCancel={() => { setShowForm(false); setEditingSession(null) }}
+          saving={saving}
+        />
+      )}
+
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
+          <div className="bg-gray-900 rounded-2xl p-6 max-w-sm mx-4 border border-red-700">
+            <p className="text-white font-bold mb-2">🗑️ Supprimer cette session ?</p>
+            <p className="text-gray-400 text-sm mb-4">Cette action est irréversible.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(null)} className="flex-1 py-2.5 text-sm font-bold text-gray-300 rounded-xl bg-gray-700">Annuler</button>
+              <button onClick={() => handleDelete(confirmDelete)} className="flex-1 py-2.5 text-sm font-bold text-white rounded-xl bg-red-700 hover:bg-red-600">Supprimer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-4 mt-1">
+        <div>
+          <h2 className="text-white text-xl font-bold">
+            {isDirect ? '📚 Programmation Concours Directs' : '🎓 Programmation Concours Professionnels'}
+          </h2>
+          <p className="text-gray-400 text-xs mt-0.5">
+            Gérez les sessions, dates, épreuves et conditions
+          </p>
+        </div>
+        <button onClick={fetchSessions} className="text-gray-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-gray-800">🔄</button>
+      </div>
+
+      <div className={`rounded-xl p-3 mb-4 text-xs border ${isDirect ? 'bg-blue-900/20 border-blue-800/50 text-blue-200' : 'bg-cyan-900/20 border-cyan-800/50 text-cyan-200'}`}>
+        💡 Programmez les sessions de concours avec leurs dates, épreuves et conditions. Les sessions <b>publiées et visibles</b> seront affichées aux candidats.
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        {[
+          { label: 'Total', value: sessions.length, color: isDirect ? '#1D4ED8' : '#0E7490' },
+          { label: 'Publiés', value: nbPublies, color: '#059669' },
+          { label: 'Brouillons', value: nbBrouillons, color: '#6B7280' },
+        ].map((c, i) => (
+          <div key={i} className="rounded-2xl p-3 text-white text-center" style={{ background: c.color }}>
+            <div className="text-2xl font-extrabold">{c.value}</div>
+            <div className="text-xs opacity-80 mt-0.5">{c.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {nextExamen && (
+        <div className={`rounded-xl p-3 mb-4 border ${isDirect ? 'bg-amber-900/20 border-amber-700/50' : 'bg-emerald-900/20 border-emerald-700/50'}`}>
+          <p className="text-xs font-bold mb-1" style={{ color: isDirect ? '#FCD34D' : '#6EE7B7' }}>
+            ⏰ Prochain concours publié :
+          </p>
+          <p className="text-white text-sm font-semibold">{nextExamen.titre}</p>
+          <p className="text-gray-300 text-xs mt-0.5">
+            ✍️ {new Date(nextExamen.date_examen).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
+        </div>
+      )}
+
+      <button
+        onClick={() => { setEditingSession(null); setShowForm(true) }}
+        className="w-full py-3 font-bold text-white rounded-2xl mb-4 active:scale-95 flex items-center justify-center gap-2"
+        style={{ background: isDirect ? '#1D4ED8' : '#0E7490' }}>
+        <span className="text-lg">➕</span>
+        <span>Nouvelle session {isDirect ? 'Concours Direct' : 'Concours Professionnel'}</span>
+      </button>
+
+      {sessions.length > 0 && (
+        <div className="flex gap-2 mb-3">
+          <select value={filterStatut} onChange={e => setFilterStatut(e.target.value)}
+            className="flex-1 bg-gray-800 text-white rounded-xl px-3 py-2 text-sm border border-gray-700">
+            <option value="all">Tous les statuts ({sessions.length})</option>
+            <option value="publie">✅ Publiés ({nbPublies})</option>
+            <option value="brouillon">📝 Brouillons ({nbBrouillons})</option>
+            <option value="archive">🗄️ Archivés ({nbArchives})</option>
+          </select>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="py-12 text-center"><div className="spinner mx-auto"></div></div>
+      ) : filtered.length === 0 ? (
+        <div className="bg-gray-800 rounded-2xl p-8 text-center">
+          <div className="text-5xl mb-3">{isDirect ? '📚' : '🎓'}</div>
+          <p className="text-white font-bold mb-1">
+            {sessions.length === 0 ? 'Aucune session créée' : 'Aucun résultat'}
+          </p>
+          <p className="text-gray-400 text-sm">
+            {sessions.length === 0
+              ? `Créez votre première session de concours ${isDirect ? 'direct' : 'professionnel'}`
+              : 'Essayez un autre filtre'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(s => (
+            <SessionCard
+              key={s.id}
+              session={s}
+              onEdit={(sess) => { setEditingSession(sess); setShowForm(true) }}
+              onDelete={(id) => setConfirmDelete(id)}
+              onDuplicate={handleDuplicate}
+            />
+          ))}
         </div>
       )}
     </div>
