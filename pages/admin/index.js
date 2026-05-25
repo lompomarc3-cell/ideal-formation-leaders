@@ -1803,6 +1803,87 @@ function AdminSchedules({ getToken, onNotif }) {
     setSavingType(null)
   }
 
+  // 🆕 Raccourci : programmer une fin relative (X secondes depuis maintenant) pour un type
+  const quickScheduleType = async (type, seconds) => {
+    setSavingType(type)
+    try {
+      const target = new Date(Date.now() + seconds * 1000)
+      const iso = target.toISOString()
+      // Mise à jour des champs date/heure visibles
+      const yyyy = target.getFullYear()
+      const mm = String(target.getMonth() + 1).padStart(2, '0')
+      const dd = String(target.getDate()).padStart(2, '0')
+      const hh = String(target.getHours()).padStart(2, '0')
+      const mi = String(target.getMinutes()).padStart(2, '0')
+      const dateStr = `${yyyy}-${mm}-${dd}`
+      const timeStr = `${hh}:${mi}`
+      if (type === 'direct') {
+        setDirectDate(dateStr); setDirectTime(timeStr); setDirectEnabled(true)
+      } else {
+        setProDate(dateStr); setProTime(timeStr); setProEnabled(true)
+      }
+      const r = await fetch('/api/admin/schedules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ type_global: type, date_validite: iso, enabled: true })
+      })
+      const d = await r.json()
+      if (d.success) {
+        const label = type === 'direct' ? 'directs' : 'pros'
+        onNotif(`✅ Programmation ${label} : fin dans ${formatRelative(seconds)}`, 'success')
+        fetchSchedules()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
+    setSavingType(null)
+  }
+
+  // Helper format relatif
+  const formatRelative = (s) => {
+    if (s < 60) return `${s} sec`
+    if (s < 3600) return `${Math.round(s/60)} min`
+    if (s < 86400) return `${Math.round(s/3600)} h`
+    return `${Math.round(s/86400)} j`
+  }
+
+  // 🆕 Raccourci : programmation individuelle relative (sélection courante)
+  const quickScheduleSelected = async (seconds) => {
+    if (selected.size === 0) return onNotif('Sélectionnez au moins une catégorie', 'error')
+    setSaving(true)
+    try {
+      const target = new Date(Date.now() + seconds * 1000)
+      const iso = target.toISOString()
+      const yyyy = target.getFullYear()
+      const mm = String(target.getMonth() + 1).padStart(2, '0')
+      const dd = String(target.getDate()).padStart(2, '0')
+      const hh = String(target.getHours()).padStart(2, '0')
+      const mi = String(target.getMinutes()).padStart(2, '0')
+      setDate(`${yyyy}-${mm}-${dd}`); setTime(`${hh}:${mi}`); setEnabled(true)
+      const r = await fetch('/api/admin/schedules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({
+          category_ids: Array.from(selected),
+          date_validite: iso,
+          enabled: true
+        })
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif(`✅ Programmation appliquée à ${d.updated} dossier(s) : fin dans ${formatRelative(seconds)}`, 'success')
+        fetchSchedules()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
+    setSaving(false)
+  }
+
   // 🆕 Désactiver la programmation globale pour un type
   const disableTypeGlobal = async (type) => {
     setSavingType(type)
@@ -1974,6 +2055,25 @@ function AdminSchedules({ getToken, onNotif }) {
               </button>
             )}
           </div>
+
+          {/* 🆕 Raccourcis pour tester rapidement (DIRECT) */}
+          <div className="pt-2 border-t border-gray-700/50">
+            <p className="text-xs text-gray-400 mb-2 font-semibold">⚡ Raccourcis pour tester rapidement :</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              <button onClick={() => quickScheduleType('direct', 30)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 30 sec</button>
+              <button onClick={() => quickScheduleType('direct', 60)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 1 min</button>
+              <button onClick={() => quickScheduleType('direct', 300)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 5 min</button>
+              <button onClick={() => quickScheduleType('direct', 1800)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 30 min</button>
+              <button onClick={() => quickScheduleType('direct', 3600)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 1 h</button>
+              <button onClick={() => quickScheduleType('direct', 86400)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 1 j</button>
+            </div>
+          </div>
         </div>
 
         {/* Concours Professionnels */}
@@ -2019,6 +2119,25 @@ function AdminSchedules({ getToken, onNotif }) {
               </button>
             )}
           </div>
+
+          {/* 🆕 Raccourcis pour tester rapidement (PRO) */}
+          <div className="pt-2 border-t border-gray-700/50">
+            <p className="text-xs text-gray-400 mb-2 font-semibold">⚡ Raccourcis pour tester rapidement :</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              <button onClick={() => quickScheduleType('professionnel', 30)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 30 sec</button>
+              <button onClick={() => quickScheduleType('professionnel', 60)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 1 min</button>
+              <button onClick={() => quickScheduleType('professionnel', 300)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 5 min</button>
+              <button onClick={() => quickScheduleType('professionnel', 1800)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 30 min</button>
+              <button onClick={() => quickScheduleType('professionnel', 3600)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 1 h</button>
+              <button onClick={() => quickScheduleType('professionnel', 86400)} disabled={savingType !== null}
+                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 1 j</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2059,6 +2178,25 @@ function AdminSchedules({ getToken, onNotif }) {
               Retirer prog.
             </button>
           )}
+        </div>
+
+        {/* 🆕 Raccourcis pour tester rapidement (sélection courante) */}
+        <div className="pt-2 border-t border-gray-700/50">
+          <p className="text-xs text-gray-400 mb-2 font-semibold">⚡ Raccourcis (appliqués à la sélection : {selected.size}) :</p>
+          <div className="grid grid-cols-3 gap-1.5">
+            <button onClick={() => quickScheduleSelected(30)} disabled={saving || selected.size === 0}
+              className="py-1.5 text-xs font-bold rounded-lg bg-amber-900/40 text-amber-200 hover:bg-amber-900/70 disabled:opacity-50 border border-amber-800/40">+ 30 sec</button>
+            <button onClick={() => quickScheduleSelected(60)} disabled={saving || selected.size === 0}
+              className="py-1.5 text-xs font-bold rounded-lg bg-amber-900/40 text-amber-200 hover:bg-amber-900/70 disabled:opacity-50 border border-amber-800/40">+ 1 min</button>
+            <button onClick={() => quickScheduleSelected(300)} disabled={saving || selected.size === 0}
+              className="py-1.5 text-xs font-bold rounded-lg bg-amber-900/40 text-amber-200 hover:bg-amber-900/70 disabled:opacity-50 border border-amber-800/40">+ 5 min</button>
+            <button onClick={() => quickScheduleSelected(1800)} disabled={saving || selected.size === 0}
+              className="py-1.5 text-xs font-bold rounded-lg bg-amber-900/40 text-amber-200 hover:bg-amber-900/70 disabled:opacity-50 border border-amber-800/40">+ 30 min</button>
+            <button onClick={() => quickScheduleSelected(3600)} disabled={saving || selected.size === 0}
+              className="py-1.5 text-xs font-bold rounded-lg bg-amber-900/40 text-amber-200 hover:bg-amber-900/70 disabled:opacity-50 border border-amber-800/40">+ 1 h</button>
+            <button onClick={() => quickScheduleSelected(86400)} disabled={saving || selected.size === 0}
+              className="py-1.5 text-xs font-bold rounded-lg bg-amber-900/40 text-amber-200 hover:bg-amber-900/70 disabled:opacity-50 border border-amber-800/40">+ 1 j</button>
+          </div>
         </div>
       </div>
 
