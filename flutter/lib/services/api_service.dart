@@ -557,7 +557,7 @@ class ApiService {
     return _decode(res);
   }
 
-  // ==================== ADMIN - SCHEDULES ====================
+  // ==================== ADMIN - SCHEDULES (ancienne API par catégorie) ====================
 
   Future<Map<String, dynamic>> adminSchedules(String token) async {
     final res = await _client.get(
@@ -580,6 +580,34 @@ class ApiService {
         'category_ids': categoryIds,
         'date_validite': dateValidite,
         'enabled': enabled,
+      }),
+    );
+    return _decode(res);
+  }
+
+  // ==================== ADMIN - PROGRAMMATION GLOBALE PAR TYPE ====================
+  // Nouvelle API : GET /api/admin/programmation  → { global_end_date, direct_end_date, professional_end_date }
+  // POST /api/admin/programmation → { type: 'global'|'direct'|'professionnel', end_date: ISO|null }
+
+  Future<Map<String, dynamic>> adminProgrammation(String token) async {
+    final res = await _client.get(
+      Uri.parse('$baseUrl/api/admin/programmation'),
+      headers: _jsonHeaders(token),
+    );
+    return _decode(res);
+  }
+
+  Future<Map<String, dynamic>> adminSetProgrammation(
+    String token, {
+    required String type, // 'global' | 'direct' | 'professionnel'
+    String? endDate,       // ISO ou null pour désactiver
+  }) async {
+    final res = await _client.post(
+      Uri.parse('$baseUrl/api/admin/programmation'),
+      headers: _jsonHeaders(token),
+      body: jsonEncode({
+        'type': type,
+        'end_date': endDate,
       }),
     );
     return _decode(res);
