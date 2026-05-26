@@ -10,7 +10,7 @@ import 'tabs/about_tab.dart';
 /// Squelette principal de l'application : 5 onglets de navigation.
 /// 1. Accueil      → Dashboard            (orange)
 /// 2. Direct       → 12 dossiers directs  (orange)
-/// 3. Pro          → 17 dossiers pros     (bleu ciel)
+/// 3. Pro          → 18 dossiers pros     (bleu ciel)
 /// 4. Profil       → Infos utilisateur    (orange)
 /// 5. À propos     → 3 sous-pages         (orange)
 class MainShell extends StatefulWidget {

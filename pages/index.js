@@ -75,7 +75,7 @@ const ICON_IMAGES = {
   chart:      '/icons/direct_chart.svg',
   pencil:     '/icons/direct_pencil.svg',
   target:     '/icons/direct_target.svg',
-  // Concours professionnels (17)
+  // Concours professionnels (18)
   school:     '/icons/pro_school.svg',
   newspaper:  '/icons/pro_newspaper.svg',
   building:   '/icons/pro_building.svg',
@@ -290,7 +290,7 @@ export default function Home() {
   }
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA)\n✅ Concours professionnels – 17 dossiers (20 000 FCFA)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA)\n✅ Concours professionnels – 18 dossiers (20 000 FCFA)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Formation Burkina Faso', text, url: APP_URL })
@@ -316,7 +316,7 @@ export default function Home() {
     <>
       <Head>
         <title>IFL – Idéale Formation of Leaders | Concours Burkina Faso</title>
-        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Démo gratuite de 10 questions. Concours directs (12 dossiers) et professionnels (17 dossiers)." />
+        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Démo gratuite de 10 questions. Concours directs (12 dossiers) et professionnels (18 dossiers)." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="theme-color" content="#8B2500" />
         {/* PWA */}
@@ -437,7 +437,7 @@ export default function Home() {
                   </div>
                   <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF7E8', color: '#B45309' }}>🏅 Évolution de carrière</div>
                   <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
-                  <p className="text-gray-500 text-xs mb-2">17 dossiers spécialisés</p>
+                  <p className="text-gray-500 text-xs mb-2">18 dossiers spécialisés</p>
                   <div style={{ color: '#C4521A' }}>
                     <PromoPrice type="professionnel" prices={publicPrices} size="lg" />
                   </div>
@@ -622,7 +622,7 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-white font-extrabold text-2xl mb-1">Concours Professionnels</h2>
-                    <p className="text-blue-200 text-sm">17 dossiers spécialisés</p>
+                    <p className="text-blue-200 text-sm">18 dossiers spécialisés</p>
                   </div>
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -645,7 +645,7 @@ export default function Home() {
             <div className="max-w-lg mx-auto px-4 pt-5" style={{ background: '#EFF6FF' }}>
               <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '1px solid #BFDBFE' }}>
                 <span className="text-sm">🆓</span>
-                <p className="text-xs font-semibold flex-1" style={{ color: '#1D4ED8' }}>5 questions gratuites — 14 dossiers pro + 3 bonus inclus</p>
+                <p className="text-xs font-semibold flex-1" style={{ color: '#1D4ED8' }}>5 questions gratuites — 15 dossiers pro + 3 bonus inclus</p>
                 <Link href="/select-specialty" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#1D4ED8' }}>
                   <PromoPrice type="professionnel" prices={publicPrices} size="sm" lightTheme />
                 </Link>
@@ -672,7 +672,7 @@ export default function Home() {
               <div className="mt-4 rounded-2xl p-4 flex items-center justify-between border-2 bg-white" style={{ borderColor: '#1D4ED8' }}>
                 <div>
                   <p className="font-bold text-sm" style={{ color: '#1D4ED8' }}>Choisir votre spécialité</p>
-                  <p className="text-gray-500 text-xs">14 dossiers spécialisés disponibles</p>
+                  <p className="text-gray-500 text-xs">15 dossiers spécialisés disponibles</p>
                 </div>
                 <Link href="/select-specialty"
                   className="px-5 py-2.5 font-extrabold text-white rounded-xl text-sm active:scale-95 shadow-md inline-flex items-center gap-1"
@@ -850,7 +850,7 @@ export default function Home() {
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       {[
                         { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>, val: '12', label: 'Dossiers directs' },
-                        { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>, val: '17', label: 'Dossiers pro' },
+                        { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>, val: '18', label: 'Dossiers pro' },
                         { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>, val: '5', label: 'Questions gratuites' },
                         { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C4521A" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>, val: '100%', label: 'Burkina Faso' }
                       ].map((s, i) => (
@@ -886,7 +886,7 @@ export default function Home() {
                         </div>
                         <div>
                           <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Professionnels</p>
-                          <p className="text-gray-500 text-xs">17 dossiers – <strong style={{ color: '#C4521A' }}>
+                          <p className="text-gray-500 text-xs">18 dossiers – <strong style={{ color: '#C4521A' }}>
                             <PromoPrice type="professionnel" prices={publicPrices} size="sm" />
                           </strong></p>
                         </div>

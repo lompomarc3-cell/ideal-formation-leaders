@@ -304,7 +304,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             color: const Color(0xFF9D174D),
             bgColor: const Color(0xFFFCE7F3),
             features: const [
-              '✅ 1 dossier au choix parmi 14 dossiers pro',
+              '✅ 1 dossier au choix parmi 15 dossiers pro',
               '🎁 Bonus 1 : Entraînement QCM',
               '🎁 Bonus 2 : Actualités',
               '🎁 Bonus 3 : Accompagnement final',

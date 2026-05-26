@@ -11,7 +11,7 @@ export const DOSSIERS_ACCOMPAGNEMENT = [
   'Accompagnement final'
 ]
 
-// Les 17 dossiers professionnels
+// Les 18 dossiers professionnels
 const DOSSIERS_PRO = [
   { nom: 'Spécialités Vie scolaire (CASU-AASU)', icone: '🏫', desc: 'Conseillers et Assistants en Vie Scolaire' },
   { nom: 'Actualités et culture générale', icone: '🌍', desc: 'Culture générale et actualités nationales', isAccompagnement: true },
