@@ -408,7 +408,7 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
           _buildTypeCard(
             type: 'professionnel',
             label: '💼 Programmation CONCOURS PRO',
-            subtitle: '17 dossiers professionnels uniquement',
+            subtitle: '18 dossiers professionnels uniquement',
             badgeColor: const Color(0xFF059669),
             date: _proDate,
             enabled: _proEnabled,
