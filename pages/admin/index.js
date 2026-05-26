@@ -234,7 +234,7 @@ function AdminStats({ stats, recentUsers, questionsByCategory, loading, onRefres
                 const acc = ['Actualités et culture générale','Entraînement QCM','Accompagnement final']
                 const dp = u.dossiers_principaux.filter(d => !acc.includes(d))
                 if (dp.length === 0) return null
-                if (dp.length >= 14) return <span className="text-xs font-bold block text-right" style={{ color: '#D4A017' }}>🏆 17 dossiers</span>
+                if (dp.length >= 14) return <span className="text-xs font-bold block text-right" style={{ color: '#D4A017' }}>🏆 18 dossiers</span>
                 return <span className="text-xs text-amber-300 block text-right">{dp.map(d => `🎓 ${d}`).join(', ')}</span>
               })()}
             </div>
@@ -443,7 +443,7 @@ function AdminUsers({ getToken, onNotif }) {
                     const dp = (u.dossiers_principaux || []).filter(d => !acc.includes(d))
                     if (dp.length >= 14) return (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)', color: 'white' }}>
-                        🏆 Accès complet (17 dossiers)
+                        🏆 Accès complet (18 dossiers)
                       </span>
                     )
                     if (dp.length > 0) return (
@@ -1737,18 +1737,23 @@ function AdminSchedules({ getToken, onNotif }) {
   // Ces états sont gérés via la nouvelle API /api/admin/programmation
   const [typeSchedules, setTypeSchedules] = useState({ direct: {}, professionnel: {} })
   // Bloc GLOBAL
+  const [globalDatetime, setGlobalDatetime] = useState('')
   const [globalDate, setGlobalDate] = useState('')
   const [globalTime, setGlobalTime] = useState('23:59')
   const [globalEnabled, setGlobalEnabled] = useState(true)
   const [globalInfo, setGlobalInfo] = useState(null)
   // Bloc DIRECT
+  const [directDatetime, setDirectDatetime] = useState('')
   const [directDate, setDirectDate] = useState('')
   const [directTime, setDirectTime] = useState('23:59')
   const [directEnabled, setDirectEnabled] = useState(true)
+  const [directInfo, setDirectInfo] = useState(null)
   // Bloc PRO
+  const [proDatetime, setProDatetime] = useState('')
   const [proDate, setProDate] = useState('')
   const [proTime, setProTime] = useState('23:59')
   const [proEnabled, setProEnabled] = useState(true)
+  const [proInfo, setProInfo] = useState(null)
   const [savingType, setSavingType] = useState(null) // 'global'|'direct'|'professionnel'|null
 
   useEffect(() => { fetchSchedules() }, [])
@@ -1777,29 +1782,76 @@ function AdminSchedules({ getToken, onNotif }) {
           setProEnabled(ps.enabled)
         }
       }
-      // Charger la programmation globale via la nouvelle API
+      // Charger la programmation globale + direct + pro via la nouvelle API
       const rProg = await fetch('/api/admin/programmation', { headers: { Authorization: `Bearer ${getToken()}` } })
       const dProg = await rProg.json()
+      // --- GLOBAL ---
       if (dProg.global_end_date) {
         const dt = new Date(dProg.global_end_date)
-        setGlobalDate(dt.toISOString().split('T')[0])
-        setGlobalTime(dt.toTimeString().slice(0,5))
+        const yyyy = dt.getFullYear()
+        const mm = String(dt.getMonth()+1).padStart(2,'0')
+        const dd = String(dt.getDate()).padStart(2,'0')
+        const hh = String(dt.getHours()).padStart(2,'0')
+        const mi = String(dt.getMinutes()).padStart(2,'0')
+        const ss = String(dt.getSeconds()).padStart(2,'0')
+        setGlobalDate(`${yyyy}-${mm}-${dd}`)
+        setGlobalTime(`${hh}:${mi}`)
+        setGlobalDatetime(`${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`)
         setGlobalEnabled(dProg.global_enabled)
         setGlobalInfo({ end_date: dProg.global_end_date, enabled: dProg.global_enabled, expired: dProg.global_expired })
+      } else {
+        setGlobalInfo(null)
+      }
+      // --- DIRECT ---
+      if (dProg.direct_end_date) {
+        const dt = new Date(dProg.direct_end_date)
+        const yyyy = dt.getFullYear()
+        const mm = String(dt.getMonth()+1).padStart(2,'0')
+        const dd = String(dt.getDate()).padStart(2,'0')
+        const hh = String(dt.getHours()).padStart(2,'0')
+        const mi = String(dt.getMinutes()).padStart(2,'0')
+        const ss = String(dt.getSeconds()).padStart(2,'0')
+        setDirectDate(`${yyyy}-${mm}-${dd}`)
+        setDirectTime(`${hh}:${mi}`)
+        setDirectDatetime(`${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`)
+        setDirectEnabled(dProg.direct_enabled)
+        setDirectInfo({ end_date: dProg.direct_end_date, enabled: dProg.direct_enabled, expired: dProg.direct_expired })
+      } else {
+        setDirectInfo(null)
+      }
+      // --- PRO ---
+      if (dProg.professional_end_date) {
+        const dt = new Date(dProg.professional_end_date)
+        const yyyy = dt.getFullYear()
+        const mm = String(dt.getMonth()+1).padStart(2,'0')
+        const dd = String(dt.getDate()).padStart(2,'0')
+        const hh = String(dt.getHours()).padStart(2,'0')
+        const mi = String(dt.getMinutes()).padStart(2,'0')
+        const ss = String(dt.getSeconds()).padStart(2,'0')
+        setProDate(`${yyyy}-${mm}-${dd}`)
+        setProTime(`${hh}:${mi}`)
+        setProDatetime(`${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`)
+        setProEnabled(dProg.professional_enabled)
+        setProInfo({ end_date: dProg.professional_end_date, enabled: dProg.professional_enabled, expired: dProg.professional_expired })
+      } else {
+        setProInfo(null)
       }
     } catch {}
     setLoading(false)
   }
 
   // Sauvegarder via la nouvelle API /api/admin/programmation
-  const saveProgrammation = async (type, dateVal, timeVal, enab) => {
-    if (enab && !dateVal) return onNotif('Choisissez une date de fin de validité', 'error')
+  // datetimeVal = valeur ISO complète du champ datetime-local (inclut secondes)
+  const saveProgrammation = async (type, datetimeVal, enab) => {
+    if (enab && !datetimeVal) return onNotif('Choisissez une date de fin de validité', 'error')
     setSavingType(type)
     try {
       let iso = null
-      if (enab && dateVal) {
-        const [h, m] = (timeVal || '23:59').split(':')
-        iso = new Date(`${dateVal}T${h.padStart(2,'0')}:${m.padStart(2,'0')}:00`).toISOString()
+      if (enab && datetimeVal) {
+        // datetimeVal est déjà au format YYYY-MM-DDTHH:MM:SS (avec secondes)
+        const d = new Date(datetimeVal)
+        if (isNaN(d.getTime())) return onNotif('Date invalide', 'error')
+        iso = d.toISOString()
       }
       const r = await fetch('/api/admin/programmation', {
         method: 'POST',
@@ -1819,45 +1871,36 @@ function AdminSchedules({ getToken, onNotif }) {
     setSavingType(null)
   }
 
-  // Sauvegarder la programmation globale pour un type (rétrocompatibilité avec schedules)
+  // Sauvegarder la programmation pour DIRECT ou PRO via la nouvelle API
   const saveTypeGlobal = async (type) => {
     const isDir = type === 'direct'
     const enab = isDir ? directEnabled : proEnabled
-    const dateVal = isDir ? directDate : proDate
-    const timeVal = isDir ? directTime : proTime
-    // Utiliser la nouvelle API pour direct/pro aussi
-    await saveProgrammation(type, dateVal, timeVal, enab)
-    // Mettre aussi à jour via l'ancienne API pour la rétrocompatibilité
-    try {
-      let iso = null
-      if (enab && dateVal) {
-        const [h, m] = (timeVal || '23:59').split(':')
-        iso = new Date(`${dateVal}T${h.padStart(2,'0')}:${m.padStart(2,'0')}:00`).toISOString()
-      }
-      await fetch('/api/admin/schedules', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ type_global: type, date_validite: iso, enabled: enab })
-      })
-    } catch {}
+    const datetimeVal = isDir ? directDatetime : proDatetime
+    await saveProgrammation(type, datetimeVal, enab)
   }
 
-  // Sauvegarder la programmation GLOBALE (nouveau)
-  const saveGlobal = () => saveProgrammation('global', globalDate, globalTime, globalEnabled)
+  // Sauvegarder la programmation GLOBALE
+  const saveGlobal = () => saveProgrammation('global', globalDatetime, globalEnabled)
 
-  // Désactiver la programmation globale
-  const disableGlobal = async () => {
-    setSavingType('global')
+  // Désactiver une programmation (global / direct / professionnel)
+  const disableProg = async (type) => {
+    setSavingType(type)
     try {
       const r = await fetch('/api/admin/programmation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ type: 'global', end_date: null })
+        body: JSON.stringify({ type, end_date: null })
       })
       const d = await r.json()
       if (d.success) {
-        onNotif(d.message || '✅ Programmation globale désactivée', 'success')
-        setGlobalDate(''); setGlobalEnabled(true); setGlobalInfo(null)
+        onNotif(d.message || `✅ Programmation ${type} désactivée`, 'success')
+        if (type === 'global') {
+          setGlobalDatetime(''); setGlobalDate(''); setGlobalEnabled(true); setGlobalInfo(null)
+        } else if (type === 'direct') {
+          setDirectDatetime(''); setDirectDate(''); setDirectEnabled(true); setDirectInfo(null)
+        } else {
+          setProDatetime(''); setProDate(''); setProEnabled(true); setProInfo(null)
+        }
         fetchSchedules()
       } else {
         onNotif(d.error || 'Erreur', 'error')
@@ -1868,9 +1911,11 @@ function AdminSchedules({ getToken, onNotif }) {
     setSavingType(null)
   }
 
-  // Raccourci : programmer GLOBAL rapidement
-  const quickScheduleGlobal = async (seconds) => {
-    setSavingType('global')
+  const disableGlobal = () => disableProg('global')
+
+  // Raccourci : programmer rapidement (tous types) via la nouvelle API
+  const quickScheduleNew = async (type, seconds) => {
+    setSavingType(type)
     try {
       const target = new Date(Date.now() + seconds * 1000)
       const iso = target.toISOString()
@@ -1879,15 +1924,24 @@ function AdminSchedules({ getToken, onNotif }) {
       const dd = String(target.getDate()).padStart(2, '0')
       const hh = String(target.getHours()).padStart(2, '0')
       const mi = String(target.getMinutes()).padStart(2, '0')
-      setGlobalDate(`${yyyy}-${mm}-${dd}`); setGlobalTime(`${hh}:${mi}`); setGlobalEnabled(true)
+      const ss = String(target.getSeconds()).padStart(2, '0')
+      const dtStr = `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`
+      if (type === 'global') {
+        setGlobalDatetime(dtStr); setGlobalDate(`${yyyy}-${mm}-${dd}`); setGlobalTime(`${hh}:${mi}`); setGlobalEnabled(true)
+      } else if (type === 'direct') {
+        setDirectDatetime(dtStr); setDirectDate(`${yyyy}-${mm}-${dd}`); setDirectTime(`${hh}:${mi}`); setDirectEnabled(true)
+      } else {
+        setProDatetime(dtStr); setProDate(`${yyyy}-${mm}-${dd}`); setProTime(`${hh}:${mi}`); setProEnabled(true)
+      }
       const r = await fetch('/api/admin/programmation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ type: 'global', end_date: iso })
+        body: JSON.stringify({ type, end_date: iso })
       })
       const d = await r.json()
       if (d.success) {
-        onNotif(`✅ Prog. GLOBALE : fin dans ${formatRelative(seconds)}`, 'success')
+        const labels = { global: 'GLOBALE', direct: 'DIRECT', professionnel: 'PRO' }
+        onNotif(`✅ Prog. ${labels[type]} : fin dans ${formatRelative(seconds)}`, 'success')
         fetchSchedules()
       } else {
         onNotif(d.error || 'Erreur', 'error')
@@ -1898,75 +1952,10 @@ function AdminSchedules({ getToken, onNotif }) {
     setSavingType(null)
   }
 
-  // Ancienne fonction saveTypeGlobal pour rétrocompatibilité (maintenant utilise saveProgrammation)
-  const saveTypeGlobalOld = async (type) => {
-    const isDir = type === 'direct'
-    const enab = isDir ? directEnabled : proEnabled
-    const dateVal = isDir ? directDate : proDate
-    const timeVal = isDir ? directTime : proTime
-    if (enab && !dateVal) return onNotif('Choisissez une date de fin de validité', 'error')
-    setSavingType(type)
-    try {
-      let iso = null
-      if (enab && dateVal) {
-        const [h, m] = (timeVal || '23:59').split(':')
-        iso = new Date(`${dateVal}T${h.padStart(2,'0')}:${m.padStart(2,'0')}:00`).toISOString()
-      }
-      const r = await fetch('/api/admin/schedules', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ type_global: type, date_validite: iso, enabled: enab })
-      })
-      const d = await r.json()
-      if (d.success) {
-        onNotif(d.message || `✅ Programmation ${type} mise à jour`, 'success')
-        fetchSchedules()
-      } else {
-        onNotif(d.error || 'Erreur', 'error')
-      }
-    } catch {
-      onNotif('Erreur réseau', 'error')
-    }
-    setSavingType(null)
-  }
+  const quickScheduleGlobal = (s) => quickScheduleNew('global', s)
 
-  // 🆕 Raccourci : programmer une fin relative (X secondes depuis maintenant) pour un type
-  const quickScheduleType = async (type, seconds) => {
-    setSavingType(type)
-    try {
-      const target = new Date(Date.now() + seconds * 1000)
-      const iso = target.toISOString()
-      // Mise à jour des champs date/heure visibles
-      const yyyy = target.getFullYear()
-      const mm = String(target.getMonth() + 1).padStart(2, '0')
-      const dd = String(target.getDate()).padStart(2, '0')
-      const hh = String(target.getHours()).padStart(2, '0')
-      const mi = String(target.getMinutes()).padStart(2, '0')
-      const dateStr = `${yyyy}-${mm}-${dd}`
-      const timeStr = `${hh}:${mi}`
-      if (type === 'direct') {
-        setDirectDate(dateStr); setDirectTime(timeStr); setDirectEnabled(true)
-      } else {
-        setProDate(dateStr); setProTime(timeStr); setProEnabled(true)
-      }
-      const r = await fetch('/api/admin/schedules', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ type_global: type, date_validite: iso, enabled: true })
-      })
-      const d = await r.json()
-      if (d.success) {
-        const label = type === 'direct' ? 'directs' : 'pros'
-        onNotif(`✅ Programmation ${label} : fin dans ${formatRelative(seconds)}`, 'success')
-        fetchSchedules()
-      } else {
-        onNotif(d.error || 'Erreur', 'error')
-      }
-    } catch {
-      onNotif('Erreur réseau', 'error')
-    }
-    setSavingType(null)
-  }
+  // Raccourci : programmer une fin relative pour un type (direct ou professionnel)
+  const quickScheduleType = (type, seconds) => quickScheduleNew(type, seconds)
 
   // Helper format relatif
   const formatRelative = (s) => {
@@ -2011,29 +2000,8 @@ function AdminSchedules({ getToken, onNotif }) {
     setSaving(false)
   }
 
-  // 🆕 Désactiver la programmation globale pour un type
-  const disableTypeGlobal = async (type) => {
-    setSavingType(type)
-    try {
-      const r = await fetch('/api/admin/schedules', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ type_global: type, date_validite: null, enabled: false })
-      })
-      const d = await r.json()
-      if (d.success) {
-        onNotif(d.message || `✅ Programmation ${type} désactivée`, 'success')
-        if (type === 'direct') { setDirectDate(''); setDirectEnabled(true) }
-        else { setProDate(''); setProEnabled(true) }
-        fetchSchedules()
-      } else {
-        onNotif(d.error || 'Erreur', 'error')
-      }
-    } catch {
-      onNotif('Erreur réseau', 'error')
-    }
-    setSavingType(null)
-  }
+  // Désactiver la programmation globale pour un type (redirige vers disableProg)
+  const disableTypeGlobal = (type) => disableProg(type)
 
   const toggleOne = (id) => {
     setSelected(prev => {
@@ -2144,7 +2112,7 @@ function AdminSchedules({ getToken, onNotif }) {
       {/* ══════════════════════════════════════════════════════════════════ */}
       <div className="mb-5">
         <h3 className="text-red-400 font-bold text-sm mb-3">🌐 Programmation GLOBALE (tous types)</h3>
-        <p className="text-gray-400 text-xs mb-3">S'applique simultanément aux <b>12 dossiers Directs ET aux 17 dossiers Professionnels</b>. Priorité maximale.</p>
+        <p className="text-gray-400 text-xs mb-3">S'applique simultanément aux <b>12 dossiers Directs ET aux 18 dossiers Professionnels</b>. Priorité maximale.</p>
 
         <div className="bg-gray-800 rounded-2xl p-4 border border-red-700/60 mb-3 space-y-3">
           <div className="flex items-center justify-between">
@@ -2162,21 +2130,20 @@ function AdminSchedules({ getToken, onNotif }) {
             </label>
           </div>
           {globalEnabled && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-gray-400 text-xs mb-1 block">Date de fin *</label>
-                <input type="datetime-local" value={globalDate && globalTime ? `${globalDate}T${globalTime}` : ''}
-                  onChange={e => {
-                    const v = e.target.value
-                    if (v) { setGlobalDate(v.slice(0,10)); setGlobalTime(v.slice(11,16)) }
-                  }}
-                  className="w-full bg-gray-700 text-white rounded-xl px-3 py-2 text-sm" />
-              </div>
-              <div className="flex flex-col justify-end">
-                <p className="text-gray-500 text-xs">
-                  {globalDate ? `📅 ${new Date(`${globalDate}T${globalTime}:00`).toLocaleString('fr-FR')}` : ''}
+            <div>
+              <label className="text-gray-400 text-xs mb-1 block">Date et heure de fin *</label>
+              <input type="datetime-local" step="1" value={globalDatetime}
+                onChange={e => {
+                  const v = e.target.value
+                  setGlobalDatetime(v)
+                  if (v) { setGlobalDate(v.slice(0,10)); setGlobalTime(v.slice(11,16)) }
+                }}
+                className="w-full bg-gray-700 text-white rounded-xl px-3 py-2 text-sm" />
+              {globalDatetime && (
+                <p className="text-gray-400 text-xs mt-1">
+                  📅 {new Date(globalDatetime).toLocaleString('fr-FR', { dateStyle:'full', timeStyle:'medium' })}
                 </p>
-              </div>
+              )}
             </div>
           )}
           <div className="flex gap-2">
@@ -2186,7 +2153,7 @@ function AdminSchedules({ getToken, onNotif }) {
               {savingType === 'global' ? '⏳...' : (globalEnabled ? '🌐 Appliquer GLOBAL' : '🚫 Désactiver GLOBAL')}
             </button>
             {globalInfo?.end_date && (
-              <button onClick={disableGlobal} disabled={savingType !== null}
+              <button onClick={() => disableProg('global')} disabled={savingType !== null}
                 className="px-3 py-2.5 text-xs font-bold rounded-xl bg-red-900/50 text-red-300 hover:bg-red-900 disabled:opacity-50">
                 Retirer
               </button>
@@ -2216,10 +2183,13 @@ function AdminSchedules({ getToken, onNotif }) {
         <div className="bg-gray-800 rounded-2xl p-4 border border-blue-700/50 mb-3 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-white font-bold text-sm">📚 Concours Directs (12 dossiers)</span>
-            {typeSchedules.direct?.date_validite && (
-              <span className={`text-xs px-2 py-1 rounded-lg font-bold ${typeSchedules.direct.expired ? 'bg-red-900/50 text-red-300' : 'bg-amber-900/50 text-amber-300'}`}>
-                {typeSchedules.direct.expired ? '⚠️ EXPIRÉ' : '⏰ Actif'} : {fmtTypeSch(typeSchedules.direct)}
+            {directInfo?.end_date && (
+              <span className={`text-xs px-2 py-1 rounded-lg font-bold ${directInfo.expired ? 'bg-red-900/50 text-red-300' : 'bg-blue-900/50 text-blue-300'}`}>
+                {directInfo.expired ? '⚠️ EXPIRÉ' : '⏰ Actif'} : {fmtDate(directInfo.end_date)}
               </span>
+            )}
+            {!directInfo?.end_date && (
+              <span className="text-xs px-2 py-1 rounded-lg bg-gray-700/50 text-gray-400">Aucune programmation active</span>
             )}
           </div>
           <div className="flex items-center gap-3">
@@ -2229,49 +2199,44 @@ function AdminSchedules({ getToken, onNotif }) {
             </label>
           </div>
           {directEnabled && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-gray-400 text-xs mb-1 block">Date de fin *</label>
-                <input type="date" value={directDate} onChange={e => setDirectDate(e.target.value)}
-                  className="w-full bg-gray-700 text-white rounded-xl px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="text-gray-400 text-xs mb-1 block">Heure</label>
-                <input type="time" value={directTime} onChange={e => setDirectTime(e.target.value)}
-                  className="w-full bg-gray-700 text-white rounded-xl px-3 py-2 text-sm" />
-              </div>
+            <div>
+              <label className="text-gray-400 text-xs mb-1 block">Date et heure de fin *</label>
+              <input type="datetime-local" step="1" value={directDatetime}
+                onChange={e => {
+                  const v = e.target.value
+                  setDirectDatetime(v)
+                  if (v) { setDirectDate(v.slice(0,10)); setDirectTime(v.slice(11,16)) }
+                }}
+                className="w-full bg-gray-700 text-white rounded-xl px-3 py-2 text-sm" />
+              {directDatetime && (
+                <p className="text-gray-400 text-xs mt-1">
+                  📅 {new Date(directDatetime).toLocaleString('fr-FR', { dateStyle:'full', timeStyle:'medium' })}
+                </p>
+              )}
             </div>
           )}
           <div className="flex gap-2">
             <button onClick={() => saveTypeGlobal('direct')} disabled={savingType !== null}
               className="flex-1 py-2.5 text-sm font-bold text-white rounded-xl active:scale-95 disabled:opacity-50"
               style={{ background: directEnabled ? '#1D4ED8' : '#6B7280' }}>
-              {savingType === 'direct' ? '⏳...' : (directEnabled ? '⏰ Appliquer aux directs' : '🚫 Désactiver directs')}
+              {savingType === 'direct' ? '⏳...' : (directEnabled ? '⏰ Appliquer aux Directs' : '🚫 Désactiver Directs')}
             </button>
-            {typeSchedules.direct?.date_validite && (
-              <button onClick={() => disableTypeGlobal('direct')} disabled={savingType !== null}
+            {directInfo?.end_date && (
+              <button onClick={() => disableProg('direct')} disabled={savingType !== null}
                 className="px-3 py-2.5 text-xs font-bold rounded-xl bg-red-900/50 text-red-300 hover:bg-red-900 disabled:opacity-50">
                 Retirer
               </button>
             )}
           </div>
 
-          {/* 🆕 Raccourcis pour tester rapidement (DIRECT) */}
+          {/* Raccourcis pour tester rapidement (DIRECT) */}
           <div className="pt-2 border-t border-gray-700/50">
             <p className="text-xs text-gray-400 mb-2 font-semibold">⚡ Raccourcis pour tester rapidement :</p>
             <div className="grid grid-cols-3 gap-1.5">
-              <button onClick={() => quickScheduleType('direct', 30)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 30 sec</button>
-              <button onClick={() => quickScheduleType('direct', 60)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 1 min</button>
-              <button onClick={() => quickScheduleType('direct', 300)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 5 min</button>
-              <button onClick={() => quickScheduleType('direct', 1800)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 30 min</button>
-              <button onClick={() => quickScheduleType('direct', 3600)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 1 h</button>
-              <button onClick={() => quickScheduleType('direct', 86400)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">+ 1 j</button>
+              {[[30,'+ 30 sec'],[60,'+ 1 min'],[300,'+ 5 min'],[1800,'+ 30 min'],[3600,'+ 1 h'],[86400,'+ 1 j']].map(([s,l]) => (
+                <button key={s} onClick={() => quickScheduleType('direct', s)} disabled={savingType !== null}
+                  className="py-1.5 text-xs font-bold rounded-lg bg-blue-900/40 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50 border border-blue-800/40">{l}</button>
+              ))}
             </div>
           </div>
         </div>
@@ -2279,11 +2244,14 @@ function AdminSchedules({ getToken, onNotif }) {
         {/* Concours Professionnels */}
         <div className="bg-gray-800 rounded-2xl p-4 border border-cyan-700/50 mb-3 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-white font-bold text-sm">🎓 Concours Professionnels (17 dossiers)</span>
-            {typeSchedules.professionnel?.date_validite && (
-              <span className={`text-xs px-2 py-1 rounded-lg font-bold ${typeSchedules.professionnel.expired ? 'bg-red-900/50 text-red-300' : 'bg-amber-900/50 text-amber-300'}`}>
-                {typeSchedules.professionnel.expired ? '⚠️ EXPIRÉ' : '⏰ Actif'} : {fmtTypeSch(typeSchedules.professionnel)}
+            <span className="text-white font-bold text-sm">🎓 Concours Professionnels (18 dossiers)</span>
+            {proInfo?.end_date && (
+              <span className={`text-xs px-2 py-1 rounded-lg font-bold ${proInfo.expired ? 'bg-red-900/50 text-red-300' : 'bg-cyan-900/50 text-cyan-300'}`}>
+                {proInfo.expired ? '⚠️ EXPIRÉ' : '⏰ Actif'} : {fmtDate(proInfo.end_date)}
               </span>
+            )}
+            {!proInfo?.end_date && (
+              <span className="text-xs px-2 py-1 rounded-lg bg-gray-700/50 text-gray-400">Aucune programmation active</span>
             )}
           </div>
           <div className="flex items-center gap-3">
@@ -2293,49 +2261,44 @@ function AdminSchedules({ getToken, onNotif }) {
             </label>
           </div>
           {proEnabled && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-gray-400 text-xs mb-1 block">Date de fin *</label>
-                <input type="date" value={proDate} onChange={e => setProDate(e.target.value)}
-                  className="w-full bg-gray-700 text-white rounded-xl px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="text-gray-400 text-xs mb-1 block">Heure</label>
-                <input type="time" value={proTime} onChange={e => setProTime(e.target.value)}
-                  className="w-full bg-gray-700 text-white rounded-xl px-3 py-2 text-sm" />
-              </div>
+            <div>
+              <label className="text-gray-400 text-xs mb-1 block">Date et heure de fin *</label>
+              <input type="datetime-local" step="1" value={proDatetime}
+                onChange={e => {
+                  const v = e.target.value
+                  setProDatetime(v)
+                  if (v) { setProDate(v.slice(0,10)); setProTime(v.slice(11,16)) }
+                }}
+                className="w-full bg-gray-700 text-white rounded-xl px-3 py-2 text-sm" />
+              {proDatetime && (
+                <p className="text-gray-400 text-xs mt-1">
+                  📅 {new Date(proDatetime).toLocaleString('fr-FR', { dateStyle:'full', timeStyle:'medium' })}
+                </p>
+              )}
             </div>
           )}
           <div className="flex gap-2">
             <button onClick={() => saveTypeGlobal('professionnel')} disabled={savingType !== null}
               className="flex-1 py-2.5 text-sm font-bold text-white rounded-xl active:scale-95 disabled:opacity-50"
               style={{ background: proEnabled ? '#0E7490' : '#6B7280' }}>
-              {savingType === 'professionnel' ? '⏳...' : (proEnabled ? '⏰ Appliquer aux pros' : '🚫 Désactiver pros')}
+              {savingType === 'professionnel' ? '⏳...' : (proEnabled ? '⏰ Appliquer aux Pros' : '🚫 Désactiver Pros')}
             </button>
-            {typeSchedules.professionnel?.date_validite && (
-              <button onClick={() => disableTypeGlobal('professionnel')} disabled={savingType !== null}
+            {proInfo?.end_date && (
+              <button onClick={() => disableProg('professionnel')} disabled={savingType !== null}
                 className="px-3 py-2.5 text-xs font-bold rounded-xl bg-red-900/50 text-red-300 hover:bg-red-900 disabled:opacity-50">
                 Retirer
               </button>
             )}
           </div>
 
-          {/* 🆕 Raccourcis pour tester rapidement (PRO) */}
+          {/* Raccourcis pour tester rapidement (PRO) */}
           <div className="pt-2 border-t border-gray-700/50">
             <p className="text-xs text-gray-400 mb-2 font-semibold">⚡ Raccourcis pour tester rapidement :</p>
             <div className="grid grid-cols-3 gap-1.5">
-              <button onClick={() => quickScheduleType('professionnel', 30)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 30 sec</button>
-              <button onClick={() => quickScheduleType('professionnel', 60)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 1 min</button>
-              <button onClick={() => quickScheduleType('professionnel', 300)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 5 min</button>
-              <button onClick={() => quickScheduleType('professionnel', 1800)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 30 min</button>
-              <button onClick={() => quickScheduleType('professionnel', 3600)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 1 h</button>
-              <button onClick={() => quickScheduleType('professionnel', 86400)} disabled={savingType !== null}
-                className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">+ 1 j</button>
+              {[[30,'+ 30 sec'],[60,'+ 1 min'],[300,'+ 5 min'],[1800,'+ 30 min'],[3600,'+ 1 h'],[86400,'+ 1 j']].map(([s,l]) => (
+                <button key={s} onClick={() => quickScheduleType('professionnel', s)} disabled={savingType !== null}
+                  className="py-1.5 text-xs font-bold rounded-lg bg-cyan-900/40 text-cyan-200 hover:bg-cyan-900/70 disabled:opacity-50 border border-cyan-800/40">{l}</button>
+              ))}
             </div>
           </div>
         </div>
