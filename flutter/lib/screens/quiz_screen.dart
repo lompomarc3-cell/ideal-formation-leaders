@@ -22,6 +22,22 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
+  // ── 🆕 MISSION : Score & progression après 50 questions ───────────────
+  // Ce comportement s'applique UNIQUEMENT au dossier "Entraînement QCM"
+  // (présent en concours DIRECT et en concours PROFESSIONNEL).
+  // IDs Supabase connus (sécurité supplémentaire en plus du nom) :
+  static const Set<String> _entrainementQcmIds = {
+    'cf24b3f1-3961-4fea-9702-0bf9fba50fdf', // Entraînement QCM (direct)
+    '593a1774-e87c-414e-9a2d-c6d7dd44a51a', // Entraînement QCM (professionnel)
+  };
+  static const int _milestoneStep = 50;
+
+  // Nombre de réponses fournies dans la session courante (toutes catégories).
+  int _answeredCount = 0;
+  // Empêche d'afficher plusieurs fois le dialogue pour le même palier.
+  int _lastMilestoneShown = 0;
+  bool _milestoneSaving = false;
+
   bool _loading = true;
   String? _error;
   String? _categoryId;
@@ -121,6 +137,21 @@ class _QuizScreenState extends State<QuizScreen> {
     }
   }
 
+  /// 🆕 Détecte si le dossier en cours est bien "Entraînement QCM".
+  /// On teste à la fois l'ID Supabase (le plus fiable) et le nom normalisé
+  /// (sans accent ni casse) pour rester robuste.
+  bool get _isEntrainementQcm {
+    if (_categoryId != null && _entrainementQcmIds.contains(_categoryId)) {
+      return true;
+    }
+    final normalized = _categoryName
+        .toLowerCase()
+        .replaceAll('î', 'i')
+        .replaceAll('ï', 'i')
+        .trim();
+    return normalized == 'entrainement qcm';
+  }
+
   Future<void> _selectAnswer(String letter) async {
     if (_answers[_currentIndex] != null) return;
     final q = _questions[_currentIndex];
@@ -128,6 +159,8 @@ class _QuizScreenState extends State<QuizScreen> {
     setState(() {
       _answers[_currentIndex] = letter;
       if (correct) _correctCount++;
+      // 🆕 Une nouvelle réponse a été fournie dans cette session.
+      _answeredCount++;
     });
 
     final auth = context.read<AuthService>();
@@ -141,6 +174,128 @@ class _QuizScreenState extends State<QuizScreen> {
           score: _correctCount,
         );
       } catch (_) {}
+    }
+
+    // 🆕 MISSION : après 50 réponses (uniquement Entraînement QCM),
+    // afficher le score + la progression, puis laisser continuer.
+    _maybeShowMilestone();
+  }
+
+  /// 🆕 Affiche le récapitulatif de progression quand l'utilisateur atteint
+  /// un palier de 50 réponses, uniquement dans le dossier "Entraînement QCM".
+  void _maybeShowMilestone() {
+    if (!_isEntrainementQcm) return;
+    if (_answeredCount == 0) return;
+    if (_answeredCount % _milestoneStep != 0) return;
+    if (_answeredCount == _lastMilestoneShown) return;
+
+    _lastMilestoneShown = _answeredCount;
+    final milestone = _answeredCount;
+    // Sauvegarde optionnelle du milestone (score à 50 / 100 / ...).
+    _saveMilestone(milestone, _correctCount);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _showMilestoneDialog(milestone, _correctCount);
+    });
+  }
+
+  /// 🆕 Dialogue de progression affiché tous les 50 questions.
+  void _showMilestoneDialog(int milestone, int score) {
+    final color = _isPro ? const Color(0xFF0EA5E9) : AppColors.primary;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.insights_rounded, color: color, size: 28),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text('Votre progression',
+                  style: TextStyle(fontWeight: FontWeight.w900)),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                children: [
+                  const Text('✅ Score',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 13)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$score / $_milestoneStep',
+                    style: TextStyle(
+                        fontSize: 30,
+                        color: color,
+                        fontWeight: FontWeight.w900),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              '📈 Progression : vous avez complété $milestone / $milestone questions.',
+              style: const TextStyle(
+                  fontSize: 13.5, height: 1.5, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '👉 Vous pouvez continuer avec les questions suivantes.',
+              style: TextStyle(
+                  fontSize: 13.5,
+                  height: 1.5,
+                  color: Color(0xFF374151)),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton.icon(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.arrow_forward_rounded),
+            label: const Text('Continuer'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 🆕 Sauvegarde optionnelle du milestone dans Supabase (table
+  /// `quiz_milestones`). Échoue silencieusement : ne doit jamais bloquer
+  /// l'expérience utilisateur.
+  Future<void> _saveMilestone(int questionCount, int score) async {
+    final auth = context.read<AuthService>();
+    if (!auth.isAuthenticated || _categoryId == null) return;
+    if (_milestoneSaving) return;
+    _milestoneSaving = true;
+    try {
+      await auth.api.saveQuizMilestone(
+        auth.token!,
+        categorieId: _categoryId!,
+        questionCount: questionCount,
+        scoreAt50: score,
+      );
+    } catch (_) {
+      // silencieux : la sauvegarde du milestone est optionnelle
+    } finally {
+      _milestoneSaving = false;
     }
   }
 

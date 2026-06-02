@@ -215,6 +215,26 @@ class ApiService {
     return _decode(res);
   }
 
+  /// 🆕 MISSION : sauvegarde optionnelle du palier de 50 questions atteint
+  /// dans le dossier "Entraînement QCM" (table Supabase `quiz_milestones`).
+  Future<Map<String, dynamic>> saveQuizMilestone(
+    String token, {
+    required String categorieId,
+    required int questionCount,
+    required int scoreAt50,
+  }) async {
+    final res = await _client.post(
+      Uri.parse('$baseUrl/api/quiz/save-milestone'),
+      headers: _jsonHeaders(token),
+      body: jsonEncode({
+        'categorie_id': categorieId,
+        'question_count': questionCount,
+        'score_at_50': scoreAt50,
+      }),
+    );
+    return _decode(res);
+  }
+
   Future<Map<String, dynamic>> userStats(String token) async {
     final res = await _client.get(
       Uri.parse('$baseUrl/api/quiz/user-stats'),
