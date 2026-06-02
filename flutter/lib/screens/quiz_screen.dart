@@ -178,19 +178,24 @@ class _QuizScreenState extends State<QuizScreen> {
 
     // 🆕 MISSION : après 50 réponses (uniquement Entraînement QCM),
     // afficher le score + la progression, puis laisser continuer.
-    _maybeShowMilestone();
+    // On se base sur le nombre de réponses fournies (palier 50, 100, 150…).
+    _maybeShowMilestone(_answeredCount);
   }
 
   /// 🆕 Affiche le récapitulatif de progression quand l'utilisateur atteint
-  /// un palier de 50 réponses, uniquement dans le dossier "Entraînement QCM".
-  void _maybeShowMilestone() {
+  /// un palier de 50 questions, uniquement dans le dossier "Entraînement QCM".
+  ///
+  /// [reached] = nombre de questions atteintes (réponses fournies OU position
+  /// dans le quiz). Le dialogue s'affiche exactement à 50, 100, 150, etc.
+  void _maybeShowMilestone(int reached) {
     if (!_isEntrainementQcm) return;
-    if (_answeredCount == 0) return;
-    if (_answeredCount % _milestoneStep != 0) return;
-    if (_answeredCount == _lastMilestoneShown) return;
+    if (reached <= 0) return;
+    if (reached % _milestoneStep != 0) return;
+    // Empêche d'afficher deux fois le même palier (réponse + navigation).
+    if (reached <= _lastMilestoneShown) return;
 
-    _lastMilestoneShown = _answeredCount;
-    final milestone = _answeredCount;
+    _lastMilestoneShown = reached;
+    final milestone = reached;
     // Sauvegarde optionnelle du milestone (score à 50 / 100 / ...).
     _saveMilestone(milestone, _correctCount);
 
@@ -236,7 +241,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           fontWeight: FontWeight.w700, fontSize: 13)),
                   const SizedBox(height: 4),
                   Text(
-                    '$score / $_milestoneStep',
+                    '$score / $milestone',
                     style: TextStyle(
                         fontSize: 30,
                         color: color,
@@ -247,7 +252,7 @@ class _QuizScreenState extends State<QuizScreen> {
             ),
             const SizedBox(height: 14),
             Text(
-              '📈 Progression : vous avez complété $milestone / $milestone questions.',
+              '📈 Progression : vous avez complété $milestone questions.',
               style: const TextStyle(
                   fontSize: 13.5, height: 1.5, fontWeight: FontWeight.w600),
             ),
@@ -595,6 +600,11 @@ class _QuizScreenState extends State<QuizScreen> {
               setState(() => _currentIndex = i);
               _saveProgressIndex(i);
               _maybeShowSubscribeInvite();
+              // 🆕 Filet de sécurité : si l'utilisateur arrive sur la 51e
+              // question (index 50), la 101e (index 100), etc., on déclenche
+              // aussi le palier au cas où il aurait sauté des réponses.
+              // `i` est l'index 0-based ⇒ `i` = nombre de questions franchies.
+              _maybeShowMilestone(i);
             },
             itemBuilder: (_, i) => _buildQuestionCard(_questions[i], i),
           ),
