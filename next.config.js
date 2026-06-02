@@ -3,6 +3,15 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
+  // 🔧 Build stabilité : forcer un seul worker de prerendering/export.
+  // Le build parallèle (4 CPU) provoquait une race condition intermittente
+  // (ENOENT rename .next/export/*.html → .next/server/pages/*.html) qui
+  // faisait échouer next-on-pages. Avec 1 seul worker, le build est
+  // déterministe et passe du premier coup.
+  experimental: {
+    cpus: 1,
+    workerThreads: false,
+  },
   eslint: {
     ignoreDuringBuilds: true
   },

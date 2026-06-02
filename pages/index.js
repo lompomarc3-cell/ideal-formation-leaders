@@ -1,3 +1,4 @@
+export const runtime = 'experimental-edge'
 import Head from 'next/head'
 import Link from 'next/link'
 import { IFL_USSD_CODE, IFL_USSD_TEL, IFL_PHONE, IFL_PHONE_DISPLAY, whatsappLink, telLink } from '../lib/contact'

@@ -1,3 +1,4 @@
+export const runtime = 'experimental-edge'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
