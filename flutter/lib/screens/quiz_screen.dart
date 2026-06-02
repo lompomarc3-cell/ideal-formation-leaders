@@ -32,8 +32,6 @@ class _QuizScreenState extends State<QuizScreen> {
   };
   static const int _milestoneStep = 50;
 
-  // Nombre de réponses fournies dans la session courante (toutes catégories).
-  int _answeredCount = 0;
   // Empêche d'afficher plusieurs fois le dialogue pour le même palier.
   int _lastMilestoneShown = 0;
   bool _milestoneSaving = false;
@@ -156,11 +154,12 @@ class _QuizScreenState extends State<QuizScreen> {
     if (_answers[_currentIndex] != null) return;
     final q = _questions[_currentIndex];
     final correct = q.bonneReponse.toUpperCase() == letter.toUpperCase();
+    // Numéro de la question répondue (1-based) : c'est la valeur qui sert
+    // de référence pour les paliers 50/100/150… (= "fin de la question 50").
+    final answeredQuestionNumber = _currentIndex + 1;
     setState(() {
       _answers[_currentIndex] = letter;
       if (correct) _correctCount++;
-      // 🆕 Une nouvelle réponse a été fournie dans cette session.
-      _answeredCount++;
     });
 
     final auth = context.read<AuthService>();
@@ -176,17 +175,19 @@ class _QuizScreenState extends State<QuizScreen> {
       } catch (_) {}
     }
 
-    // 🆕 MISSION : après 50 réponses (uniquement Entraînement QCM),
-    // afficher le score + la progression, puis laisser continuer.
-    // On se base sur le nombre de réponses fournies (palier 50, 100, 150…).
-    _maybeShowMilestone(_answeredCount);
+    // 🆕 MISSION : à la fin de la question 50 (puis 100, 150…), uniquement
+    // dans le dossier "Entraînement QCM", afficher le score + la progression
+    // puis laisser continuer. On se base sur le NUMÉRO de la question répondue
+    // (position absolue dans le quiz), exactement comme demandé par le client :
+    // "quand l'utilisateur atteint la question 50, avant de passer à 51".
+    _maybeShowMilestone(answeredQuestionNumber);
   }
 
   /// 🆕 Affiche le récapitulatif de progression quand l'utilisateur atteint
   /// un palier de 50 questions, uniquement dans le dossier "Entraînement QCM".
   ///
-  /// [reached] = nombre de questions atteintes (réponses fournies OU position
-  /// dans le quiz). Le dialogue s'affiche exactement à 50, 100, 150, etc.
+  /// [reached] = numéro de question atteint (position 1-based dans le quiz).
+  /// Le dialogue s'affiche exactement à 50, 100, 150, etc.
   void _maybeShowMilestone(int reached) {
     if (!_isEntrainementQcm) return;
     if (reached <= 0) return;
@@ -196,12 +197,14 @@ class _QuizScreenState extends State<QuizScreen> {
 
     _lastMilestoneShown = reached;
     final milestone = reached;
+    // Score affiché = nombre de bonnes réponses cumulées sur ce palier.
+    final scoreAtMilestone = _correctCount;
     // Sauvegarde optionnelle du milestone (score à 50 / 100 / ...).
-    _saveMilestone(milestone, _correctCount);
+    _saveMilestone(milestone, scoreAtMilestone);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _showMilestoneDialog(milestone, _correctCount);
+      _showMilestoneDialog(milestone, scoreAtMilestone);
     });
   }
 
