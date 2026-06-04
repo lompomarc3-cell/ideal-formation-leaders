@@ -227,10 +227,10 @@ class _CategoryEditorDialogState extends State<_CategoryEditorDialog> {
                 decoration: const InputDecoration(labelText: 'Type *'),
                 items: const [
                   DropdownMenuItem(
-                      value: 'direct', child: Text('Direct (5000 FCFA)')),
+                      value: 'direct', child: Text('Direct (5000 FCFA par an)')),
                   DropdownMenuItem(
                       value: 'professionnel',
-                      child: Text('Professionnel (20000 FCFA)')),
+                      child: Text('Professionnel (20000 FCFA par an)')),
                 ],
                 onChanged: (v) => setState(() => _type = v ?? 'direct'),
               ),

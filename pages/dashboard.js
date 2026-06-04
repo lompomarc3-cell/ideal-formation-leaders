@@ -157,7 +157,7 @@ export default function Dashboard() {
   }, [router.isReady, router.query])
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA)\n✅ Concours professionnels – 18 dossiers (20 000 FCFA)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 18 dossiers (20 000 FCFA par an)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
     if (navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Idéale Formation of Leaders', text, url: APP_URL })
@@ -329,11 +329,11 @@ export default function Dashboard() {
     },
     {
       q: "Comment effectuer le paiement Orange Money ?",
-      a: "Composez *144*10*76223962# sur votre téléphone Orange, saisissez le montant (5 000 ou 20 000 FCFA), confirmez avec votre code secret.\nBénéficiaire : +226 76 22 39 62"
+      a: "Composez *144*10*76223962# sur votre téléphone Orange, saisissez le montant (5 000 ou 20 000 FCFA par an), confirmez avec votre code secret.\nBénéficiaire : +226 76 22 39 62"
     },
     {
       q: "Quelle est la différence entre les deux formules ?",
-      a: "📚 Concours Directs (5 000 FCFA) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA) : 18 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)"
+      a: "📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 18 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)"
     },
     {
       q: "Mon abonnement n'est pas activé après paiement ?",
@@ -702,7 +702,7 @@ export default function Dashboard() {
                   <Link href={`/payment?type=direct&montant=${prices.direct}`}
                     className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0"
                     style={{ background: '#EA580C' }}>
-                    {prices.direct.toLocaleString()} FCFA
+                    {prices.direct.toLocaleString()} FCFA par an
                   </Link>
                 </div>
               )}
@@ -734,10 +734,10 @@ export default function Dashboard() {
                       {promos.professionnel ? (
                         <p className="text-blue-200 text-sm mb-3">
                           <span className="line-through opacity-70">{prices.professionnel.toLocaleString()}</span>{' '}
-                          <strong className="text-yellow-300">{promos.professionnel.prix.toLocaleString()} FCFA</strong> 🎯 PROMO – 18 dossiers spécialisés
+                          <strong className="text-yellow-300">{promos.professionnel.prix.toLocaleString()} FCFA par an</strong> 🎯 PROMO – 18 dossiers spécialisés
                         </p>
                       ) : (
-                        <p className="text-blue-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA – 18 dossiers spécialisés</p>
+                        <p className="text-blue-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA par an – 18 dossiers spécialisés</p>
                       )}
                       <button onClick={() => setActiveMainTab('concours-professionnel')} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#1D4ED8' }}>
                         Voir les concours professionnels →
@@ -850,8 +850,7 @@ export default function Dashboard() {
                   <Link href="/select-specialty"
                     className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0"
                     style={{ background: '#1D4ED8' }}>
-                    {prices.professionnel.toLocaleString()} FCFA
-                  </Link>
+                    {prices.professionnel.toLocaleString()} FCFA par an
                 </div>
               )}
 
@@ -1239,7 +1238,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Directs</p>
-                          <p className="text-gray-500 text-xs">12 dossiers – <strong style={{ color: '#C4521A' }}>5 000 FCFA</strong></p>
+                          <p className="text-gray-500 text-xs">12 dossiers – <strong style={{ color: '#C4521A' }}>5 000 FCFA par an</strong></p>
                         </div>
                       </div>
                       <div className="rounded-2xl p-4 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF8E0,#FFE8A0)' }}>
@@ -1248,7 +1247,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Professionnels</p>
-                          <p className="text-gray-500 text-xs">18 dossiers – <strong style={{ color: '#C4521A' }}>20 000 FCFA</strong></p>
+                          <p className="text-gray-500 text-xs">18 dossiers – <strong style={{ color: '#C4521A' }}>20 000 FCFA par an</strong></p>
                         </div>
                       </div>
                     </div>
@@ -1345,12 +1344,12 @@ export default function Dashboard() {
                           <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center justify-center gap-1">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                             <p className="text-xs text-orange-100">Directs (12 dossiers)</p>
-                            <p className="font-extrabold">5 000 FCFA</p>
+                            <p className="font-extrabold">5 000 FCFA par an</p>
                           </div>
                           <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center justify-center gap-1">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
                             <p className="text-xs text-orange-100">Pro (18 dossiers)</p>
-                            <p className="font-extrabold">20 000 FCFA</p>
+                            <p className="font-extrabold">20 000 FCFA par an</p>
                           </div>
                         </div>
                       </div>

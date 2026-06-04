@@ -195,8 +195,8 @@ class AboutAppPage extends StatelessWidget {
     const txt =
         '🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n'
         '✅ Des milliers de QCM\n'
-        '✅ Concours directs – 12 dossiers (5 000 FCFA)\n'
-        '✅ Concours professionnels – 18 dossiers (20 000 FCFA / dossier)\n'
+        '✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n'
+        '✅ Concours professionnels – 18 dossiers (20 000 FCFA par an / dossier)\n'
         '✅ 5 questions gratuites par dossier\n\n'
         '👉 $kAppUrl';
     try {

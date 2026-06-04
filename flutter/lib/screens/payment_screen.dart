@@ -446,7 +446,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   const Padding(
                     padding: EdgeInsets.only(bottom: 4),
                     child: Text(
-                      'FCFA',
+                      'FCFA par an',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -590,7 +590,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            '${_formatPrice(_amount)} FCFA',
+            '${_formatPrice(_amount)} FCFA par an',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 32,
@@ -644,7 +644,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       number: 1,
       title: 'Composez le code USSD',
       description:
-          'Sur votre téléphone, composez le code ci-dessous puis payez ${_formatPrice(_amount)} FCFA au numéro $kOrangeMoneyNumber.',
+          'Sur votre téléphone, composez le code ci-dessous puis payez ${_formatPrice(_amount)} FCFA par an au numéro $kOrangeMoneyNumber.',
       child: Column(
         children: [
           Container(

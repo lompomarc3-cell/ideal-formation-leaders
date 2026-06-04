@@ -49,7 +49,7 @@ class _AdminScreenState extends State<AdminScreen> {
     _AdminTab(
       '💳 Paiements',
       Icons.payment,
-      'Valider ou rejeter les demandes Direct (5 000 FCFA) et Pro (20 000 FCFA).',
+      'Valider ou rejeter les demandes Direct (5 000 FCFA par an) et Pro (20 000 FCFA par an).',
       Color(0xFF16A34A),
     ),
     _AdminTab(
@@ -476,9 +476,9 @@ class _AdminScreenState extends State<AdminScreen> {
           _guideItem('💳',
               'Pour valider un paiement : ouvrez "Paiements" → bouton "Valider" (vert) ou "Rejeter" (rouge).'),
           _guideItem('🎓',
-              'Direct (5 000 FCFA) → débloque les 12 dossiers directs.'),
+              'Direct (5 000 FCFA par an) → débloque les 12 dossiers directs.'),
           _guideItem('💼',
-              'Pro (20 000 FCFA) → débloque le dossier choisi + 3 bonus.'),
+              'Pro (20 000 FCFA par an) → débloque le dossier choisi + 3 bonus.'),
           _guideItem('🗓️',
               'Programmation : choisissez date + heure + minute pour tester.'),
           _guideItem('❓',
@@ -588,13 +588,13 @@ class _AdminScreenState extends State<AdminScreen> {
                 const SizedBox(height: 6),
                 const Text('• 5 premières questions gratuites par dossier',
                     style: TextStyle(fontSize: 12)),
-                const Text('• 15 dossiers professionnels (20 000 FCFA chacun)',
+                const Text('• 15 dossiers professionnels (20 000 FCFA par an chacun)',
                     style: TextStyle(fontSize: 12)),
                 const Text(
                     '• 3 bonus offerts (Entraînement QCM, Actualités, Accompagnement)',
                     style: TextStyle(fontSize: 12)),
                 const Text(
-                    '• 12 dossiers directs (5 000 FCFA pour tout débloquer)',
+                    '• 12 dossiers directs (5 000 FCFA par an pour tout débloquer)',
                     style: TextStyle(fontSize: 12)),
                 const Divider(height: 18),
                 const Text(

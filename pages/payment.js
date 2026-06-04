@@ -218,12 +218,12 @@ export default function Payment() {
               {promos.direct ? (
                 <div className="mt-2">
                   <p className="text-xs font-extrabold inline-block px-1.5 py-0.5 rounded" style={{ background: '#FEF3C7', color: '#16a34a' }}>🎯 PROMO</p>
-                  <p className="text-xs line-through text-gray-400 mt-0.5">{(prices.direct || 5000).toLocaleString()} FCFA</p>
-                  <p className="font-extrabold text-lg" style={{ color: '#16a34a' }}>{promos.direct.prix.toLocaleString()} FCFA</p>
+                  <p className="text-xs line-through text-gray-400 mt-0.5">{(prices.direct || 5000).toLocaleString()} FCFA par an</p>
+                  <p className="font-extrabold text-lg" style={{ color: '#16a34a' }}>{promos.direct.prix.toLocaleString()} FCFA par an</p>
                 </div>
               ) : (
                 <p className="font-extrabold text-lg mt-2" style={{ color: '#C4521A' }}>
-                  {(prices.direct || 5000).toLocaleString()} FCFA
+                  {(prices.direct || 5000).toLocaleString()} FCFA par an
                 </p>
               )}
               {selectedType === 'direct' && <span className="text-xs font-bold" style={{ color: '#C4521A' }}>✓ Sélectionné</span>}
@@ -243,12 +243,12 @@ export default function Payment() {
               {promos.professionnel ? (
                 <div className="mt-2">
                   <p className="text-xs font-extrabold inline-block px-1.5 py-0.5 rounded" style={{ background: '#FEF3C7', color: '#16a34a' }}>🎯 PROMO</p>
-                  <p className="text-xs line-through text-gray-400 mt-0.5">{(prices.professionnel || 20000).toLocaleString()} FCFA</p>
-                  <p className="font-extrabold text-lg" style={{ color: '#16a34a' }}>{promos.professionnel.prix.toLocaleString()} FCFA</p>
+                  <p className="text-xs line-through text-gray-400 mt-0.5">{(prices.professionnel || 20000).toLocaleString()} FCFA par an</p>
+                  <p className="font-extrabold text-lg" style={{ color: '#16a34a' }}>{promos.professionnel.prix.toLocaleString()} FCFA par an</p>
                 </div>
               ) : (
                 <p className="font-extrabold text-lg mt-2" style={{ color: '#C4521A' }}>
-                  {(prices.professionnel || 20000).toLocaleString()} FCFA
+                  {(prices.professionnel || 20000).toLocaleString()} FCFA par an
                 </p>
               )}
               {selectedType === 'professionnel' ? (
@@ -313,12 +313,12 @@ export default function Payment() {
                 <p className="text-orange-100 text-xs">Montant</p>
                 {hasPromo ? (
                   <>
-                    <p className="text-orange-100 text-sm line-through opacity-80">{originalPrice.toLocaleString()} FCFA</p>
-                    <p className="font-extrabold text-xl">{currentPrice.toLocaleString()} FCFA</p>
+                    <p className="text-orange-100 text-sm line-through opacity-80">{originalPrice.toLocaleString()} FCFA par an</p>
+                    <p className="font-extrabold text-xl">{currentPrice.toLocaleString()} FCFA par an</p>
                     <p className="text-yellow-300 text-xs font-bold">🎯 PROMO</p>
                   </>
                 ) : (
-                  <p className="font-extrabold text-xl">{currentPrice.toLocaleString()} FCFA</p>
+                  <p className="font-extrabold text-xl">{currentPrice.toLocaleString()} FCFA par an</p>
                 )}
               </div>
             </div>
@@ -370,8 +370,8 @@ export default function Payment() {
                   </span>
                 ) : (
                   hasPromo
-                    ? <>✅ Confirmer – <span className="line-through opacity-70 text-base">{originalPrice.toLocaleString()}</span> {currentPrice.toLocaleString()} FCFA 🎯</>
-                    : `✅ Confirmer – ${currentPrice.toLocaleString()} FCFA`
+                    ? <>✅ Confirmer – <span className="line-through opacity-70 text-base">{originalPrice.toLocaleString()}</span> {currentPrice.toLocaleString()} FCFA par an 🎯</>
+                    : `✅ Confirmer – ${currentPrice.toLocaleString()} FCFA par an`
                 )}
               </button>
             </form>

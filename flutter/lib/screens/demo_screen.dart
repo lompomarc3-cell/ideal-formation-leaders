@@ -335,8 +335,8 @@ class _DemoScreenState extends State<DemoScreen> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Concours directs : 5 000 FCFA pour les 12 dossiers.\n'
-            'Concours pros : 20 000 FCFA / dossier (3 bonus offerts).',
+            'Concours directs : 5 000 FCFA par an pour les 12 dossiers.\n'
+            'Concours pros : 20 000 FCFA par an / dossier (3 bonus offerts).',
             style: TextStyle(color: Colors.white, fontSize: 12, height: 1.45),
           ),
           const SizedBox(height: 14),

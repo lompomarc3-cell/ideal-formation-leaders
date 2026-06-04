@@ -64,7 +64,7 @@ class _AdminPricesSectionState extends State<AdminPricesSection> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Prix actuel : $currentPrice FCFA',
+            Text('Prix actuel : $currentPrice FCFA par an',
                 style: const TextStyle(
                     fontSize: 13, color: Colors.black54)),
             const SizedBox(height: 12),
@@ -114,7 +114,7 @@ class _AdminPricesSectionState extends State<AdminPricesSection> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(r['message']?.toString() ??
-                '✅ Prix ${type == "direct" ? "Direct" : "Pro"} mis à jour : $res FCFA'),
+                '✅ Prix ${type == "direct" ? "Direct" : "Pro"} mis à jour : $res FCFA par an'),
             backgroundColor: Colors.green,
           ),
         );
@@ -261,7 +261,7 @@ class _PriceCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text('$price FCFA',
+                Text('$price FCFA par an',
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w900,
@@ -273,7 +273,7 @@ class _PriceCard extends StatelessWidget {
                     )),
                 if (hasPromo) ...[
                   const SizedBox(width: 12),
-                  Text('$promoPrice FCFA',
+                  Text('$promoPrice FCFA par an',
                       style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w900,

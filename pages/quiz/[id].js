@@ -522,7 +522,7 @@ export default function QuizPage() {
                 <div className="rounded-2xl p-5 mb-5" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>
                   <p className="text-orange-200 text-sm mb-1">Abonnez-vous pour accéder à</p>
                   <p className="text-white font-bold text-lg mb-1">TOUTES les questions de ce dossier</p>
-                  <p className="text-2xl font-extrabold text-white">{catPrice.toLocaleString()} FCFA</p>
+                  <p className="text-2xl font-extrabold text-white">{catPrice.toLocaleString()} FCFA par an</p>
                 </div>
                 )}
                 <div className="space-y-3">
@@ -532,7 +532,7 @@ export default function QuizPage() {
                     className="block w-full py-4 text-center text-lg font-bold text-white rounded-xl shadow-lg active:scale-95"
                     style={{ background: '#C4521A' }}
                   >
-                    💳 S&apos;abonner – {catPrice.toLocaleString()} FCFA
+                    💳 S&apos;abonner – {catPrice.toLocaleString()} FCFA par an
                   </Link>
                   )}
                   <button
@@ -674,7 +674,7 @@ export default function QuizPage() {
                       className="block w-full py-4 text-center text-base font-bold text-white rounded-xl shadow-lg active:scale-95 mb-3"
                       style={{ background: 'linear-gradient(135deg,#C4521A,#8B2500)' }}
                     >
-                      💳 Débloquer tout – {catPrice.toLocaleString()} FCFA
+                      💳 Débloquer tout – {catPrice.toLocaleString()} FCFA par an
                     </Link>
                     <button
                       onClick={() => {
@@ -821,7 +821,7 @@ export default function QuizPage() {
                         className="block w-full py-3.5 text-center font-bold text-white rounded-xl active:scale-95"
                         style={{ background: 'linear-gradient(135deg,#C4521A,#8B2500)' }}
                       >
-                        💳 Débloquer – {catPrice.toLocaleString()} FCFA
+                        💳 Débloquer – {catPrice.toLocaleString()} FCFA par an
                       </Link>
                     )}
 

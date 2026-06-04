@@ -124,8 +124,8 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
             const SizedBox(height: 6),
             Text(
               isDirect
-                  ? '🎓 Type : DIRECT (5 000 FCFA)'
-                  : '💼 Type : PROFESSIONNEL (20 000 FCFA)',
+                  ? '🎓 Type : DIRECT (5 000 FCFA par an)'
+                  : '💼 Type : PROFESSIONNEL (20 000 FCFA par an)',
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
             if (!isDirect && dossier != null) ...[
@@ -396,7 +396,7 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
                         size: 14, color: Color(0xFF374151)),
                     const SizedBox(width: 4),
                     Text(
-                      '$montant FCFA',
+                      '$montant FCFA par an',
                       style: const TextStyle(
                           color: Color(0xFF374151),
                           fontSize: 12,

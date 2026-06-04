@@ -111,7 +111,7 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
       builder: (ctx) => AlertDialog(
         title: const Text('Supprimer la promotion ?'),
         content: Text(
-            'Cette promotion ne sera plus affichée sur l\'app.\n\n${promo['type_concours']} • ${promo['prix_promo']} FCFA'),
+            'Cette promotion ne sera plus affichée sur l\'app.\n\n${promo['type_concours']} • ${promo['prix_promo']} FCFA par an'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -304,7 +304,7 @@ class _AdminPromotionsSectionState extends State<AdminPromotionsSection> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                '${p['prix_promo'] ?? '—'} FCFA',
+                                '${p['prix_promo'] ?? '—'} FCFA par an',
                                 style: const TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w900,

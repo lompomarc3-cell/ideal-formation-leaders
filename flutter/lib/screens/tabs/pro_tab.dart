@@ -11,7 +11,7 @@ import '../../widgets/promo_banner.dart';
 
 /// Onglet 3 : Concours professionnel.
 /// - 18 dossiers : 15 payants + 3 bonus (Entraînement QCM, Actualités, Accompagnement)
-/// - 20 000 FCFA par dossier payant
+/// - 20 000 FCFA par an par dossier payant
 /// - Les 3 bonus restent verrouillés (5 gratuites uniquement)
 ///   tant qu'aucun dossier payant n'a été acheté
 /// - Dès qu'un dossier payant est acheté, les 3 bonus deviennent débloqués

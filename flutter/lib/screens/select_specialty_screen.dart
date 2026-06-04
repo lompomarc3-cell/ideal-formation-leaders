@@ -89,7 +89,7 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '💰 20 000 FCFA par dossier payant',
+                        '💰 20 000 FCFA par an / dossier payant',
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           color: AppColors.darkTerracotta,

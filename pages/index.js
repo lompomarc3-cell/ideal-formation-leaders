@@ -291,7 +291,7 @@ export default function Home() {
   }
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA)\n✅ Concours professionnels – 18 dossiers (20 000 FCFA)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 18 dossiers (20 000 FCFA par an)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Formation Burkina Faso', text, url: APP_URL })

@@ -54,7 +54,7 @@ class PriceService extends ChangeNotifier {
   int get proPrixEffectif =>
       _proHasPromo && _proPrixPromo != null ? _proPrixPromo! : _proPrix;
 
-  /// Format "5 000 FCFA"
+  /// Format "5 000 FCFA par an"
   static String formatFcfa(int v) {
     final s = v.toString();
     final buf = StringBuffer();
@@ -62,7 +62,7 @@ class PriceService extends ChangeNotifier {
       if (i > 0 && (s.length - i) % 3 == 0) buf.write(' ');
       buf.write(s[i]);
     }
-    return '${buf.toString()} FCFA';
+    return '${buf.toString()} FCFA par an';
   }
 
   /// Compte à rebours de fin de promo, ou null si non applicable.

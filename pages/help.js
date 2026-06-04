@@ -15,7 +15,7 @@ export default function Help() {
   const [openFaq, setOpenFaq] = useState(null)
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs (5 000 FCFA)\n✅ Concours professionnels (20 000 FCFA)\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs (5 000 FCFA par an)\n✅ Concours professionnels (20 000 FCFA par an)\n\n👉 ${APP_URL}`
     if (typeof navigator !== 'undefined' && navigator.share) {
       try { await navigator.share({ title: 'IFL', text, url: APP_URL }) } catch {}
     } else {
@@ -30,11 +30,11 @@ export default function Help() {
     },
     {
       q: 'Comment effectuer le paiement Orange Money ?',
-      a: 'Composez *144*10*76223962# sur votre téléphone Orange, saisissez le montant (5 000 ou 20 000 FCFA), confirmez avec votre code secret.\nBénéficiaire : +226 76 22 39 62'
+      a: 'Composez *144*10*76223962# sur votre téléphone Orange, saisissez le montant (5 000 ou 20 000 FCFA par an), confirmez avec votre code secret.\nBénéficiaire : +226 76 22 39 62'
     },
     {
       q: 'Quelle est la différence entre les deux formules ?',
-      a: '📚 Concours Directs (5 000 FCFA) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Informatique, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA) : 18 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)'
+      a: '📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Informatique, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 18 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)'
     },
     {
       q: 'Mon abonnement n\'est pas activé après paiement ?',
@@ -122,12 +122,12 @@ export default function Help() {
                 <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center gap-1">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                   <p className="text-xs text-orange-100">Directs (12 dossiers)</p>
-                  <p className="font-extrabold">5 000 FCFA</p>
+                  <p className="font-extrabold">5 000 FCFA par an</p>
                 </div>
                 <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center gap-1">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
                   <p className="text-xs text-orange-100">Pro (18 dossiers)</p>
-                  <p className="font-extrabold">20 000 FCFA</p>
+                  <p className="font-extrabold">20 000 FCFA par an</p>
                 </div>
               </div>
             </div>

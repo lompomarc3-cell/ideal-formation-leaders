@@ -314,7 +314,7 @@ function AdminPayments({ getToken, onNotif }) {
                 </span>
               </div>
               <div className="flex flex-wrap gap-2 mb-3">
-                <span className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm font-bold">{(p.montant || 0).toLocaleString()} FCFA</span>
+                <span className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm font-bold">{(p.montant || 0).toLocaleString()} FCFA par an</span>
                 <span className="bg-gray-700 text-gray-300 px-3 py-1 rounded-lg text-sm">{p.type_concours === 'direct' ? '📚 Directs' : '🎓 Professionnels'}</span>
                 <span className="text-gray-500 text-xs self-center">{p.date_demande ? new Date(p.date_demande).toLocaleDateString('fr-FR') : ''}</span>
               </div>
@@ -538,8 +538,8 @@ function UserEditForm({ user, onSave, onCancel }) {
         <select value={form.abonnement_type} onChange={e => setForm(p => ({ ...p, abonnement_type: e.target.value, dossier_principal: '' }))}
           className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm">
           <option value="">Aucun abonnement</option>
-          <option value="direct">📚 Concours Directs (5 000 FCFA)</option>
-          <option value="professionnel">🎓 Concours Professionnels (20 000 FCFA)</option>
+          <option value="direct">📚 Concours Directs (5 000 FCFA par an)</option>
+          <option value="professionnel">🎓 Concours Professionnels (20 000 FCFA par an)</option>
           <option value="all">🎯 Les deux</option>
         </select>
       </div>
@@ -934,7 +934,7 @@ function AdminCategories({ getToken, onNotif }) {
                   <p className="text-white font-semibold text-sm">{c.nom}</p>
                   <div className="flex gap-3 mt-1">
                     <span className="text-xs text-amber-400">{c.question_count_real !== undefined ? c.question_count_real : c.question_count || 0} questions</span>
-                    {c.prix && <span className="text-xs text-gray-400">{c.prix.toLocaleString()} FCFA</span>}
+                    {c.prix && <span className="text-xs text-gray-400">{c.prix.toLocaleString()} FCFA par an</span>}
                   </div>
                 </div>
                 <div className="flex gap-2 ml-3">
@@ -1109,13 +1109,13 @@ function PriceEditor({ price, onSave }) {
         {price.type_concours === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
       </p>
       <p className="text-gray-400 text-sm mb-3">
-        Prix normal : <span className="text-amber-400 font-bold">{(normalPrice || 0).toLocaleString()} FCFA</span>
+        Prix normal : <span className="text-amber-400 font-bold">{(normalPrice || 0).toLocaleString()} FCFA par an</span>
       </p>
       {hasActivePromo && (
         <div className="rounded-xl p-3 mb-3" style={{ background: 'linear-gradient(135deg,#7c2d12,#9a3412)' }}>
           <p className="text-amber-200 text-xs font-bold mb-1">🎯 PROMOTION EN COURS</p>
           <p className="text-white text-sm">
-            Prix promo actif : <span className="font-extrabold text-amber-300">{(price.prix_promo || 0).toLocaleString()} FCFA</span>
+            Prix promo actif : <span className="font-extrabold text-amber-300">{(price.prix_promo || 0).toLocaleString()} FCFA par an</span>
           </p>
           {price.promo_date_fin && (
             <p className="text-amber-200 text-xs mt-1">
@@ -1267,7 +1267,7 @@ function AdminPromotions({ getToken, onNotif }) {
                       {p.type_concours === 'direct' ? '📚 Concours Directs' : '🎓 Concours Professionnels'}
                     </p>
                     <p className="text-2xl font-extrabold mt-1" style={{ color: '#D4A017' }}>
-                      {(p.prix_promo || 0).toLocaleString()} FCFA
+                      {(p.prix_promo || 0).toLocaleString()} FCFA par an
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1">

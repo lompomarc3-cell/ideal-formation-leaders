@@ -478,7 +478,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     ? 'Votre accès à ce dossier est arrivé à terme. Renouvelez votre abonnement pour récupérer l\'accès complet aux questions.'
                     : isPro
                         ? 'Débloquez ce dossier et profitez en plus des 3 dossiers bonus offerts (Entraînement QCM, Actualités, Accompagnement).'
-                        : 'Avec 5 000 FCFA, accédez aux 12 dossiers de concours directs.',
+                        : 'Avec 5 000 FCFA par an, accédez aux 12 dossiers de concours directs.',
             style: const TextStyle(
               fontSize: 13.5,
               height: 1.5,

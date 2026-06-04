@@ -11,7 +11,7 @@ import '../../widgets/promo_banner.dart';
 
 /// Onglet 2 : Concours direct.
 /// - 12 dossiers
-/// - Prix unique : 5 000 FCFA pour l'ensemble
+/// - Prix unique : 5 000 FCFA par an pour l'ensemble
 /// - 5 premières questions gratuites par dossier
 class DirectTab extends StatefulWidget {
   const DirectTab({super.key});
