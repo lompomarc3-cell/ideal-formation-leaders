@@ -851,6 +851,7 @@ export default function Dashboard() {
                     className="px-3 py-1.5 text-xs font-bold text-white rounded-lg flex-shrink-0"
                     style={{ background: '#1D4ED8' }}>
                     {prices.professionnel.toLocaleString()} FCFA par an
+                  </Link>
                 </div>
               )}
 

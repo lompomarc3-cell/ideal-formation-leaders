@@ -22,15 +22,32 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  // ── 🆕 MISSION : Score & progression après 50 questions ───────────────
-  // Ce comportement s'applique UNIQUEMENT au dossier "Entraînement QCM"
-  // (présent en concours DIRECT et en concours PROFESSIONNEL).
-  // IDs Supabase connus (sécurité supplémentaire en plus du nom) :
-  static const Set<String> _entrainementQcmIds = {
-    'cf24b3f1-3961-4fea-9702-0bf9fba50fdf', // Entraînement QCM (direct)
-    '593a1774-e87c-414e-9a2d-c6d7dd44a51a', // Entraînement QCM (professionnel)
-  };
+  // ── 🆕 MISSION : Score & progression tous les 50 questions ────────────
+  // v2 : ce comportement s'applique désormais à TOUS les dossiers QCM
+  // (concours DIRECT et PROFESSIONNEL), et plus seulement à "Entraînement QCM".
+  //
+  // ⚠️ Les dossiers de type DISSERTATION / sujet long (Police, CSAPÉ,
+  // Magistrature, Professeur Agrégé, CAPES) ne passent pas par cet écran :
+  // ils sont routés en amont vers `/police-exam` (PoliceExamScreen) et ne
+  // contiennent pas de questions QCM. On ajoute néanmoins une GARDE de
+  // sécurité (`_isDissertationDossier`) au cas où l'un d'eux atterrirait ici.
   static const int _milestoneStep = 50;
+
+  // Mots-clés permettant de reconnaître un dossier de type dissertation /
+  // sujet long (filet de sécurité — l'exclusion principale est faite par le
+  // routage vers PoliceExamScreen).
+  static const List<String> _dissertationKeywords = [
+    'police',
+    'csapé',
+    'csape',
+    'magistrature',
+    'professeur agr', // Professeur Agrégé
+    'capes',
+    'dissertation',
+    'sujet',
+    'corrigé',
+    'corrige',
+  ];
 
   // Empêche d'afficher plusieurs fois le dialogue pour le même palier.
   int _lastMilestoneShown = 0;
@@ -135,19 +152,31 @@ class _QuizScreenState extends State<QuizScreen> {
     }
   }
 
-  /// 🆕 Détecte si le dossier en cours est bien "Entraînement QCM".
-  /// On teste à la fois l'ID Supabase (le plus fiable) et le nom normalisé
-  /// (sans accent ni casse) pour rester robuste.
-  bool get _isEntrainementQcm {
-    if (_categoryId != null && _entrainementQcmIds.contains(_categoryId)) {
-      return true;
-    }
+  /// 🆕 Garde de sécurité : reconnaît un dossier de type dissertation /
+  /// sujet long à partir de son nom. Ces dossiers ne doivent JAMAIS afficher
+  /// les paliers de progression QCM (ils n'ont pas de questions notées sur
+  /// /50). En pratique ils sont déjà routés vers PoliceExamScreen, mais on
+  /// double la sécurité ici.
+  bool get _isDissertationDossier {
     final normalized = _categoryName
         .toLowerCase()
         .replaceAll('î', 'i')
         .replaceAll('ï', 'i')
         .trim();
-    return normalized == 'entrainement qcm';
+    return _dissertationKeywords.any((kw) => normalized.contains(kw));
+  }
+
+  /// 🆕 Indique si la fonctionnalité "score & progression tous les 50
+  /// questions" doit être active pour le dossier en cours.
+  ///
+  /// v2 : active pour TOUS les dossiers QCM (direct + professionnel), SAUF
+  /// les dossiers de type dissertation. On exige aussi un dossier qui
+  /// comporte au moins un palier complet (>= 50 questions) pour éviter
+  /// d'afficher le dialogue dans un mini-dossier.
+  bool get _qcmMilestonesEnabled {
+    if (_isDissertationDossier) return false;
+    if (_questions.length < _milestoneStep) return false;
+    return true;
   }
 
   Future<void> _selectAnswer(String letter) async {
@@ -184,12 +213,26 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   /// 🆕 Affiche le récapitulatif de progression quand l'utilisateur atteint
-  /// un palier de 50 questions, uniquement dans le dossier "Entraînement QCM".
+  /// un palier de 50 questions, dans TOUS les dossiers QCM (sauf dissertation).
   ///
   /// [reached] = numéro de question atteint (position 1-based dans le quiz).
   /// Le dialogue s'affiche exactement à 50, 100, 150, etc.
+
+  /// 🆕 Message d'encouragement personnalisé selon le score obtenu sur le
+  /// palier courant. Adapte le ton en fonction du pourcentage de réussite.
+  String _getEncouragementMessage(int score, int total) {
+    if (total <= 0) return '💪 Continuez, chaque question vous fait progresser !';
+    final double percentage = score / total * 100;
+    if (percentage >= 90) return '🎉 Exceptionnel ! Vous êtes un champion !';
+    if (percentage >= 75) return '🌟 Très bien ! Continuez sur cette lancée !';
+    if (percentage >= 60) return '📚 Bon travail ! Vous progressez bien !';
+    if (percentage >= 50) {
+      return '👍 Pas mal ! Un peu plus d\'effort et vous y êtes !';
+    }
+    return '💪 Courage ! Chaque question vous rapproche de la réussite !';
+  }
   void _maybeShowMilestone(int reached) {
-    if (!_isEntrainementQcm) return;
+    if (!_qcmMilestonesEnabled) return;
     if (reached <= 0) return;
     if (reached % _milestoneStep != 0) return;
     // Empêche d'afficher deux fois le même palier (réponse + navigation).
@@ -209,8 +252,11 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   /// 🆕 Dialogue de progression affiché tous les 50 questions.
+  /// Enrichi avec : icône de célébration 🎉, score, progression, message
+  /// d'encouragement personnalisé selon le pourcentage de réussite.
   void _showMilestoneDialog(int milestone, int score) {
     final color = _isPro ? const Color(0xFF0EA5E9) : AppColors.primary;
+    final encouragement = _getEncouragementMessage(score, milestone);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -219,10 +265,11 @@ class _QuizScreenState extends State<QuizScreen> {
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.insights_rounded, color: color, size: 28),
+            const Icon(Icons.celebration_rounded,
+                color: Color(0xFFF59E0B), size: 30),
             const SizedBox(width: 8),
             const Expanded(
-              child: Text('Votre progression',
+              child: Text('🎉 Félicitations !',
                   style: TextStyle(fontWeight: FontWeight.w900)),
             ),
           ],
@@ -231,6 +278,15 @@ class _QuizScreenState extends State<QuizScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Bandeau "applaudissements" / célébration visuelle.
+            Center(
+              child: Text(
+                '👏 🎊 👏',
+                style: TextStyle(
+                    fontSize: 30, color: color, fontWeight: FontWeight.w900),
+              ),
+            ),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
@@ -259,7 +315,29 @@ class _QuizScreenState extends State<QuizScreen> {
               style: const TextStyle(
                   fontSize: 13.5, height: 1.5, fontWeight: FontWeight.w600),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
+            // Message d'encouragement personnalisé selon le score.
+            Container(
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                encouragement,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.4,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.blue[700],
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
             const Text(
               '👉 Vous pouvez continuer avec les questions suivantes.',
               style: TextStyle(
