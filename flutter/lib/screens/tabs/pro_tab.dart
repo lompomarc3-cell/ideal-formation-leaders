@@ -10,7 +10,7 @@ import '../../widgets/price_display.dart';
 import '../../widgets/promo_banner.dart';
 
 /// Onglet 3 : Concours professionnel.
-/// - 29 dossiers : 15 payants + 3 bonus (Entraînement QCM, Actualités, Accompagnement)
+/// - 29 dossiers : 26 payants + 3 bonus (Entraînement QCM, Actualités, Accompagnement)
 /// - 20 000 FCFA par an par dossier payant
 /// - Les 3 bonus restent verrouillés (5 gratuites uniquement)
 ///   tant qu'aucun dossier payant n'a été acheté
@@ -298,7 +298,7 @@ class _ProTabState extends State<ProTab> {
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Text(
-                    '15 dossiers payants',
+                    '26 dossiers payants',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,

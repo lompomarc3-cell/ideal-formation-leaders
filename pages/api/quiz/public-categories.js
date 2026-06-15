@@ -68,14 +68,33 @@ function getCatIcon(nom) {
 
 const ORDRE_MAP = {
   direct: ['actualit','fran','litt','h-g','histoir','svt','psycho','math','physique','pc (','droit','conomie','entra','accomp'],
-  professionnel: ['casu','vie scolaire','actualit','cisu','inspectorat : ies',' ies','iepenf','csap','agrég','agr','capes','hôpital','hopital','sant','justice','magistr','gsp','police','civil','entra','accomp']
+  professionnel: [
+    'casu','vie scolaire',
+    'actualit',
+    'cisu',
+    'inspectorat : ies',' ies',
+    'iepenf','iepe',
+    'csap','capé','cape',
+    'agrég','agr',
+    'capes',
+    'hôpital','hopital','administrateur des h',
+    'sant','elevage','élevage','animale','agriculture','agricult',
+    'justice',
+    'magistr',
+    'gsp',
+    'police','douane',
+    'impôt','impot','travail','enaref','affaires étrangères','affaires etrangeres','étrangère','etrangere',
+    'civil',
+    'entra',
+    'accomp'
+  ]
 }
 
 function getCatOrdre(nom, type) {
   const n = (nom || '').toLowerCase()
   const list = ORDRE_MAP[type] || []
   for (let i = 0; i < list.length; i++) {
-    if (n.includes(list[i])) return i + 1
+    if (n.includes(list[i].toLowerCase())) return i + 1
   }
   return 99
 }
