@@ -73,7 +73,7 @@ class _AdminScreenState extends State<AdminScreen> {
     _AdminTab(
       '📚 Catégories',
       Icons.category,
-      'Les 26 dossiers pro + 3 bonus + dossiers directs.',
+      'Les 27 dossiers pro payants + 3 bonus + 12 dossiers directs.',
       Color(0xFF0891B2),
     ),
     _AdminTab(
@@ -588,7 +588,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 const SizedBox(height: 6),
                 const Text('• 5 premières questions gratuites par dossier',
                     style: TextStyle(fontSize: 12)),
-                const Text('• 26 dossiers professionnels (20 000 FCFA par an chacun)',
+                const Text('• 27 dossiers professionnels payants + 3 bonus (20 000 FCFA par an chacun)',
                     style: TextStyle(fontSize: 12)),
                 const Text(
                     '• 3 bonus offerts (Entraînement QCM, Actualités, Accompagnement)',
