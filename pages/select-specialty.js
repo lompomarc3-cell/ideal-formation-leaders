@@ -12,7 +12,7 @@ export const DOSSIERS_ACCOMPAGNEMENT = [
   'Accompagnement final'
 ]
 
-// Les 18 dossiers professionnels
+// Les 29 dossiers professionnels
 const DOSSIERS_PRO = [
   { nom: 'Spécialités Vie scolaire (CASU-AASU)', icone: '🏫', desc: 'Conseillers et Assistants en Vie Scolaire' },
   { nom: 'Actualités et culture générale', icone: '🌍', desc: 'Culture générale et actualités nationales', isAccompagnement: true },
@@ -30,7 +30,20 @@ const DOSSIERS_PRO = [
   { nom: 'Spécialités police', icone: '👮', desc: 'Corps de police nationale' },
   { nom: 'Administrateur civil', icone: '📋', desc: 'Administration publique générale' },
   { nom: 'Entraînement QCM', icone: '✏️', desc: 'QCM d\'entraînement transversaux', isAccompagnement: true },
-  { nom: 'Accompagnement final', icone: '🎯', desc: 'Révision finale et conseils', isAccompagnement: true }
+  { nom: 'Accompagnement final', icone: '🎯', desc: 'Révision finale et conseils', isAccompagnement: true },
+  // 🆕 12 nouveaux dossiers professionnels
+  { nom: 'CAPÉ', icone: '🎓', desc: 'Certificat d\'Aptitude Pédagogique de l\'Enseignement' },
+  { nom: 'Inspecteur des Impôts', icone: '🔍', desc: 'Concours Inspecteur des Impôts – Fiscalité' },
+  { nom: 'Contrôleur des Impôts', icone: '🔍', desc: 'Concours Contrôleur des Impôts – Administration fiscale' },
+  { nom: 'ENAREF B&A (IFPBF)', icone: '🏛️', desc: 'École Nationale des Régies Financières – Branche A' },
+  { nom: 'Inspecteur du Travail', icone: '📋', desc: 'Concours Inspecteur du Travail – Droit social' },
+  { nom: 'Contrôleur du Travail', icone: '📋', desc: 'Concours Contrôleur du Travail – Inspection' },
+  { nom: "Technicien Supérieur d'Élevage et Santé Animale", icone: '💊', desc: 'Technicien Supérieur d\'Élevage et Santé Animale' },
+  { nom: "Ingénieur d'Élevage et Santé Animale", icone: '💊', desc: 'Ingénieur d\'Élevage et Santé Animale' },
+  { nom: "Technicien Supérieur d'Agriculture", icone: '🌿', desc: 'Technicien Supérieur Agriculture – Agronomie' },
+  { nom: 'Ingénieur en Agriculture', icone: '🌿', desc: 'Ingénieur Agriculture – Développement rural' },
+  { nom: 'Conseiller des Affaires Étrangères', icone: '🌍', desc: 'Diplomatie et relations internationales' },
+  { nom: 'Douane : Contrôleur & Inspecteur', icone: '🛡️', desc: 'Douane – Contrôleur et Inspecteur des Douanes' },
 ]
 
 // Dossiers qu'on peut choisir comme principal (hors dossiers d'accompagnement)
@@ -65,6 +78,22 @@ const PRO_ICON_MAP = {
   'entraîn': '/icons/direct_pencil.svg',
   'accompagn': '/icons/direct_target.svg',
   'final': '/icons/direct_target.svg',
+  // 🆕 Nouveaux dossiers
+  'capé': '/icons/pro_cape.svg',
+  'cape': '/icons/pro_cape.svg',
+  'impôt': '/icons/pro_impots_inspecteur.svg',
+  'impot': '/icons/pro_impots_inspecteur.svg',
+  'travail': '/icons/pro_travail_controleur.svg',
+  'élevage': '/icons/pro_elevage_technicien.svg',
+  'elevage': '/icons/pro_elevage_technicien.svg',
+  'animale': '/icons/pro_elevage_technicien.svg',
+  'agriculture': '/icons/pro_agriculture_technicien.svg',
+  'agricult': '/icons/pro_agriculture_technicien.svg',
+  'affaires étrangères': '/icons/pro_affaires_etrangeres.svg',
+  'affaires etrangeres': '/icons/pro_affaires_etrangeres.svg',
+  'étrangère': '/icons/pro_affaires_etrangeres.svg',
+  'etrangere': '/icons/pro_affaires_etrangeres.svg',
+  'douane': '/icons/pro_douane.svg',
 }
 
 function getCatIconSrc(nom) {

@@ -15,7 +15,7 @@ import {
 // `categories` avec is_active=false :
 //   __SCHEDULE_GLOBAL__  → programmation globale (tous types)
 //   __SCHEDULE_DIRECT__  → programmation concours directs (12 dossiers)
-//   __SCHEDULE_PRO__     → programmation concours professionnels (18 dossiers)
+//   __SCHEDULE_PRO__     → programmation concours professionnels (29 dossiers)
 //
 // GET  → { global_end_date, direct_end_date, professional_end_date }
 // POST → { type: 'global'|'direct'|'professionnel', end_date: ISO|null }
@@ -180,7 +180,7 @@ export default async function handler(req) {
     const labels = {
       global: 'tous les concours (global)',
       direct: 'les concours directs (12 dossiers)',
-      professionnel: 'les concours professionnels (18 dossiers)'
+      professionnel: 'les concours professionnels (29 dossiers)'
     }
 
     return new Response(JSON.stringify({

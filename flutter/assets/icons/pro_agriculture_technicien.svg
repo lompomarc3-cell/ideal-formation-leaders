@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="14" fill="none"/>
+  <!-- Sol -->
+  <rect x="4" y="46" width="56" height="10" rx="3" fill="#854D0E"/>
+  <!-- Plante/blé -->
+  <rect x="30" y="18" width="4" height="30" rx="2" fill="#166534"/>
+  <ellipse cx="32" cy="16" rx="8" ry="10" fill="#16A34A"/>
+  <ellipse cx="22" cy="22" rx="7" ry="9" fill="#15803D" transform="rotate(-30 22 22)"/>
+  <ellipse cx="42" cy="22" rx="7" ry="9" fill="#15803D" transform="rotate(30 42 22)"/>
+  <!-- Soleil -->
+  <circle cx="50" cy="14" r="8" fill="#FBBF24"/>
+  <line x1="50" y1="4" x2="50" y2="1" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="14" x2="63" y2="14" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>
+  <line x1="57" y1="7" x2="59" y2="5" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>
+  <!-- Outil agricole -->
+  <rect x="8" y="28" width="4" height="18" rx="2" fill="#0369A1"/>
+  <path d="M4 28 Q8 22 12 28" fill="#0EA5E9"/>
+</svg>

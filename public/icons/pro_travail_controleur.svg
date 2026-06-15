@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="14" fill="none"/>
+  <!-- Presse-papiers -->
+  <rect x="12" y="14" width="40" height="46" rx="5" fill="#0369A1"/>
+  <rect x="22" y="8" width="20" height="10" rx="4" fill="#075985"/>
+  <!-- Lignes de texte -->
+  <line x1="20" y1="30" x2="44" y2="30" stroke="#BAE6FD" stroke-width="2" stroke-linecap="round"/>
+  <line x1="20" y1="38" x2="44" y2="38" stroke="#BAE6FD" stroke-width="2" stroke-linecap="round"/>
+  <line x1="20" y1="46" x2="36" y2="46" stroke="#BAE6FD" stroke-width="2" stroke-linecap="round"/>
+  <!-- Grande coche verte -->
+  <circle cx="44" cy="46" r="10" fill="#10B981"/>
+  <polyline points="38,46 42,50 50,40" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

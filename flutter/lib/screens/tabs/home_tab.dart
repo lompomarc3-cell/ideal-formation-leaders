@@ -41,7 +41,7 @@ class _HomeTabState extends State<HomeTab> {
         '🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n'
         '✅ Des milliers de QCM\n'
         '✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n'
-        '✅ Concours professionnels – 18 dossiers (20 000 FCFA par an / dossier)\n'
+        '✅ Concours professionnels – 29 dossiers (20 000 FCFA par an / dossier)\n'
         '✅ 5 questions gratuites par dossier\n\n'
         '👉 $kAppUrl';
     try {

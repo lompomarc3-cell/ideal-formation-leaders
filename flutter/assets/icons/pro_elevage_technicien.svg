@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="14" fill="none"/>
+  <!-- Corps de vache stylisé -->
+  <ellipse cx="30" cy="36" rx="18" ry="12" fill="#0369A1"/>
+  <!-- Tête -->
+  <ellipse cx="48" cy="28" rx="9" ry="7" fill="#0369A1"/>
+  <!-- Oreilles -->
+  <ellipse cx="41" cy="22" rx="4" ry="3" fill="#0EA5E9"/>
+  <ellipse cx="55" cy="22" rx="4" ry="3" fill="#0EA5E9"/>
+  <!-- Museau -->
+  <ellipse cx="55" cy="30" rx="5" ry="3.5" fill="#7DD3FC"/>
+  <circle cx="53" cy="30" r="1" fill="#0369A1"/>
+  <circle cx="57" cy="30" r="1" fill="#0369A1"/>
+  <!-- Pattes -->
+  <rect x="16" y="46" width="5" height="10" rx="2" fill="#075985"/>
+  <rect x="24" y="46" width="5" height="10" rx="2" fill="#075985"/>
+  <rect x="34" y="46" width="5" height="10" rx="2" fill="#075985"/>
+  <!-- Stéthoscope -->
+  <circle cx="14" cy="20" r="6" stroke="#FBBF24" stroke-width="2.5" fill="none"/>
+  <path d="M14 26 Q14 38 22 40" stroke="#FBBF24" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+</svg>

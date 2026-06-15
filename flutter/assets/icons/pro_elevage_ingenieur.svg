@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="14" fill="none"/>
+  <!-- Microscope -->
+  <rect x="26" y="40" width="18" height="6" rx="3" fill="#0369A1"/>
+  <rect x="31" y="20" width="8" height="22" rx="2" fill="#0369A1"/>
+  <rect x="26" y="16" width="18" height="6" rx="3" fill="#0EA5E9"/>
+  <rect x="32" y="8" width="6" height="10" rx="3" fill="#075985"/>
+  <circle cx="35" cy="8" r="5" stroke="#BAE6FD" stroke-width="2.5" fill="none"/>
+  <!-- Plateau microscope -->
+  <rect x="20" y="38" width="30" height="4" rx="2" fill="#1E40AF"/>
+  <rect x="28" y="44" width="4" height="8" rx="2" fill="#1E40AF"/>
+  <rect x="38" y="44" width="4" height="8" rx="2" fill="#1E40AF"/>
+  <!-- ADN/hélice stylisée -->
+  <path d="M8 16 Q12 20 8 24 Q12 28 8 32" stroke="#FBBF24" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M18 16 Q14 20 18 24 Q14 28 18 32" stroke="#FBBF24" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <line x1="8" y1="20" x2="18" y2="20" stroke="#F59E0B" stroke-width="1.5"/>
+  <line x1="8" y1="24" x2="18" y2="24" stroke="#F59E0B" stroke-width="1.5"/>
+  <line x1="8" y1="28" x2="18" y2="28" stroke="#F59E0B" stroke-width="1.5"/>
+</svg>

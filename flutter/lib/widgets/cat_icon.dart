@@ -53,14 +53,35 @@ String? _keyFromCategoryName(String nom, String catType) {
   final n = nom.toLowerCase();
   final isPro = catType == 'professionnel';
   if (isPro) {
-    if (n.contains('justice') || n.contains('droit')) return 'justice';
+    if (n.contains('justice') || (n.contains('droit') && !n.contains('impôt') && !n.contains('impot') && !n.contains('travail'))) return 'justice';
     if (n.contains('actualit') || n.contains('culture')) return 'newspaper';
     if (n.contains('magistr')) return 'judge';
     if (n.contains('police')) return 'badge';
     if (n.contains('gsp')) return 'shield';
     if (n.contains('vie scolaire') || n.contains('casu')) return 'school';
-    if (n.contains('cisu') || n.contains('enaref')) return 'building';
-    if (n.contains('iepenf')) return 'search2';
+    if (n.contains('cisu') || n.contains('enaref')) return 'enaref';
+    if (n.contains('iepenf') || n.contains('iepe')) return 'search2';
+    // 🆕 Nouveaux dossiers – priorité AVANT les règles génériques
+    if (n.contains('capé') || n.contains('cape')) return 'cape';
+    if (n.contains('impôt') || n.contains('impot')) {
+      if (n.contains('inspect')) return 'impots_inspecteur';
+      return 'impots_controleur';
+    }
+    if (n.contains('travail')) {
+      if (n.contains('inspect')) return 'travail_inspecteur';
+      return 'travail_controleur';
+    }
+    if (n.contains('élevage') || n.contains('elevage') || n.contains('santé animale') || n.contains('sante animale')) {
+      if (n.contains('ingénieur') || n.contains('ingenieur')) return 'elevage_ingenieur';
+      return 'elevage_technicien';
+    }
+    if (n.contains('agriculture')) {
+      if (n.contains('ingénieur') || n.contains('ingenieur')) return 'agriculture_ingenieur';
+      return 'agriculture_technicien';
+    }
+    if (n.contains('affaires étrangères') || n.contains('affaires etrangeres') || n.contains('étrangère') || n.contains('etrangere') || n.contains('diplomatique')) return 'affaires_etrangeres';
+    if (n.contains('douane')) return 'douane';
+    // Règles génériques existantes
     if (n.contains('inspect') || n.contains('ies')) return 'search';
     if (n.contains('csap')) return 'graduation';
     if (n.contains('agrég') || n.contains('agreg')) return 'scroll';
@@ -164,23 +185,36 @@ const Map<String, IconStyle> _directIconColors = {
 
 // Palette Pro = bleu ciel / bleu marin harmonisée (pas de vert / pas de violet)
 const Map<String, IconStyle> _proIconColors = {
-  'school':     IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
-  'newspaper':  IconStyle(bgGradient: [Color(0xFF0284C7), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0284C7)),
-  'building':   IconStyle(bgGradient: [Color(0xFF075985), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF075985)),
-  'search':     IconStyle(bgGradient: [Color(0xFF1E40AF), Color(0xFF3B82F6)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E40AF)),
-  'search2':    IconStyle(bgGradient: [Color(0xFF2563EB), Color(0xFF60A5FA)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF2563EB)),
-  'graduation': IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
-  'scroll':     IconStyle(bgGradient: [Color(0xFF0E7490), Color(0xFF22D3EE)], border: Color(0xFFA5F3FC), tag: Color(0xFFECFEFF), tagText: Color(0xFF0E7490)),
-  'openbook':   IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
-  'hospital':   IconStyle(bgGradient: [Color(0xFF0284C7), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0284C7)),
-  'health':     IconStyle(bgGradient: [Color(0xFF155E75), Color(0xFF06B6D4)], border: Color(0xFFA5F3FC), tag: Color(0xFFECFEFF), tagText: Color(0xFF155E75)),
-  'justice':    IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
-  'judge':      IconStyle(bgGradient: [Color(0xFF1E40AF), Color(0xFF3B82F6)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E40AF)),
-  'shield':     IconStyle(bgGradient: [Color(0xFF075985), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF075985)),
-  'badge':      IconStyle(bgGradient: [Color(0xFF1E3A8A), Color(0xFF2563EB)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E3A8A)),
-  'clipboard':  IconStyle(bgGradient: [Color(0xFF0E7490), Color(0xFF06B6D4)], border: Color(0xFFA5F3FC), tag: Color(0xFFECFEFF), tagText: Color(0xFF0E7490)),
-  'pencil':     IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
-  'target':     IconStyle(bgGradient: [Color(0xFF0284C7), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0284C7)),
+  'school':                 IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
+  'newspaper':              IconStyle(bgGradient: [Color(0xFF0284C7), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0284C7)),
+  'building':               IconStyle(bgGradient: [Color(0xFF075985), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF075985)),
+  'search':                 IconStyle(bgGradient: [Color(0xFF1E40AF), Color(0xFF3B82F6)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E40AF)),
+  'search2':                IconStyle(bgGradient: [Color(0xFF2563EB), Color(0xFF60A5FA)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF2563EB)),
+  'graduation':             IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
+  'scroll':                 IconStyle(bgGradient: [Color(0xFF0E7490), Color(0xFF22D3EE)], border: Color(0xFFA5F3FC), tag: Color(0xFFECFEFF), tagText: Color(0xFF0E7490)),
+  'openbook':               IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
+  'hospital':               IconStyle(bgGradient: [Color(0xFF0284C7), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0284C7)),
+  'health':                 IconStyle(bgGradient: [Color(0xFF155E75), Color(0xFF06B6D4)], border: Color(0xFFA5F3FC), tag: Color(0xFFECFEFF), tagText: Color(0xFF155E75)),
+  'justice':                IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
+  'judge':                  IconStyle(bgGradient: [Color(0xFF1E40AF), Color(0xFF3B82F6)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E40AF)),
+  'shield':                 IconStyle(bgGradient: [Color(0xFF075985), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF075985)),
+  'badge':                  IconStyle(bgGradient: [Color(0xFF1E3A8A), Color(0xFF2563EB)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E3A8A)),
+  'clipboard':              IconStyle(bgGradient: [Color(0xFF0E7490), Color(0xFF06B6D4)], border: Color(0xFFA5F3FC), tag: Color(0xFFECFEFF), tagText: Color(0xFF0E7490)),
+  'pencil':                 IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
+  'target':                 IconStyle(bgGradient: [Color(0xFF0284C7), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0284C7)),
+  // 🆕 Nouveaux dossiers professionnels
+  'cape':                   IconStyle(bgGradient: [Color(0xFF1E40AF), Color(0xFF3B82F6)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E40AF)),
+  'impots_inspecteur':      IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
+  'impots_controleur':      IconStyle(bgGradient: [Color(0xFF075985), Color(0xFF0284C7)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF075985)),
+  'enaref':                 IconStyle(bgGradient: [Color(0xFF1E3A8A), Color(0xFF2563EB)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E3A8A)),
+  'travail_inspecteur':     IconStyle(bgGradient: [Color(0xFF0E7490), Color(0xFF22D3EE)], border: Color(0xFFA5F3FC), tag: Color(0xFFECFEFF), tagText: Color(0xFF0E7490)),
+  'travail_controleur':     IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
+  'elevage_technicien':     IconStyle(bgGradient: [Color(0xFF155E75), Color(0xFF06B6D4)], border: Color(0xFFA5F3FC), tag: Color(0xFFECFEFF), tagText: Color(0xFF155E75)),
+  'elevage_ingenieur':      IconStyle(bgGradient: [Color(0xFF0284C7), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0284C7)),
+  'agriculture_technicien': IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
+  'agriculture_ingenieur':  IconStyle(bgGradient: [Color(0xFF075985), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF075985)),
+  'affaires_etrangeres':    IconStyle(bgGradient: [Color(0xFF1E40AF), Color(0xFF3B82F6)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E40AF)),
+  'douane':                 IconStyle(bgGradient: [Color(0xFF075985), Color(0xFF0369A1)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF075985)),
 };
 
 IconStyle iconStyleFor(String? icone, String catType, {String? categoryName}) {

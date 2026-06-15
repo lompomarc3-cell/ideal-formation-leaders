@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="14" fill="none"/>
+  <!-- Loupe -->
+  <circle cx="26" cy="26" r="14" stroke="#0369A1" stroke-width="4" fill="#EFF6FF"/>
+  <line x1="36" y1="36" x2="52" y2="52" stroke="#0369A1" stroke-width="5" stroke-linecap="round"/>
+  <!-- Pièce de monnaie dans la loupe -->
+  <circle cx="26" cy="26" r="8" fill="#FBBF24"/>
+  <text x="26" y="31" text-anchor="middle" font-size="10" font-weight="bold" fill="#92400E">F</text>
+</svg>

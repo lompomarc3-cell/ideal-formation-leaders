@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="14" fill="none"/>
+  <!-- Calculatrice -->
+  <rect x="14" y="8" width="36" height="48" rx="6" fill="#0369A1"/>
+  <rect x="18" y="13" width="28" height="12" rx="3" fill="#BAE6FD"/>
+  <!-- Touches -->
+  <rect x="18" y="30" width="7" height="7" rx="2" fill="#0EA5E9"/>
+  <rect x="28" y="30" width="7" height="7" rx="2" fill="#0EA5E9"/>
+  <rect x="38" y="30" width="7" height="7" rx="2" fill="#FBBF24"/>
+  <rect x="18" y="40" width="7" height="7" rx="2" fill="#0EA5E9"/>
+  <rect x="28" y="40" width="7" height="7" rx="2" fill="#0EA5E9"/>
+  <rect x="38" y="40" width="7" height="14" rx="2" fill="#F59E0B"/>
+  <rect x="18" y="50" width="7" height="7" rx="2" fill="#0EA5E9"/>
+  <rect x="28" y="50" width="7" height="7" rx="2" fill="#0EA5E9"/>
+  <!-- Afficheur -->
+  <text x="44" y="22" text-anchor="end" font-size="8" fill="#0369A1" font-weight="bold">12.5%</text>
+</svg>

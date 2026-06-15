@@ -157,7 +157,7 @@ export default function Dashboard() {
   }, [router.isReady, router.query])
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 18 dossiers (20 000 FCFA par an)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 29 dossiers (20 000 FCFA par an)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
     if (navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Idéale Formation of Leaders', text, url: APP_URL })
@@ -302,7 +302,7 @@ export default function Dashboard() {
       if (dossiersProPrincipaux.length === 0) {
         parts.push('Concours professionnels (accompagnements)')
       } else if (dossiersProPrincipaux.length >= 14) {
-        parts.push('Accès complet Concours professionnels (18 dossiers)')
+        parts.push('Accès complet Concours professionnels (29 dossiers)')
       } else {
         parts.push(dossiersProPrincipaux.join(', '))
       }
@@ -333,7 +333,7 @@ export default function Dashboard() {
     },
     {
       q: "Quelle est la différence entre les deux formules ?",
-      a: "📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 18 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)"
+      a: "📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 29 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)"
     },
     {
       q: "Mon abonnement n'est pas activé après paiement ?",
@@ -459,7 +459,7 @@ export default function Dashboard() {
                                 </div>
                                 {dp.length >= 14 ? (
                                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)' }}>
-                                    🏆 Accès complet (18 dossiers)
+                                    🏆 Accès complet (29 dossiers)
                                   </span>
                                 ) : dp.length > 0 ? (
                                   <div className="flex flex-wrap gap-1">
@@ -526,7 +526,7 @@ export default function Dashboard() {
                   </div>
                   <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF7E8', color: '#B45309' }}>🏅 Évolution carrière</div>
                   <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
-                  <p className="text-gray-500 text-xs mb-2">18 dossiers spécialisés</p>
+                  <p className="text-gray-500 text-xs mb-2">29 dossiers spécialisés</p>
                   {promos.professionnel ? (
                     <>
                       <p className="text-xs font-bold mb-0.5" style={{ color: '#16a34a' }}>🎯 PROMO</p>
@@ -734,10 +734,10 @@ export default function Dashboard() {
                       {promos.professionnel ? (
                         <p className="text-blue-200 text-sm mb-3">
                           <span className="line-through opacity-70">{prices.professionnel.toLocaleString()}</span>{' '}
-                          <strong className="text-yellow-300">{promos.professionnel.prix.toLocaleString()} FCFA par an</strong> 🎯 PROMO – 18 dossiers spécialisés
+                          <strong className="text-yellow-300">{promos.professionnel.prix.toLocaleString()} FCFA par an</strong> 🎯 PROMO – 29 dossiers spécialisés
                         </p>
                       ) : (
-                        <p className="text-blue-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA par an – 18 dossiers spécialisés</p>
+                        <p className="text-blue-200 text-sm mb-3">{prices.professionnel.toLocaleString()} FCFA par an – 29 dossiers spécialisés</p>
                       )}
                       <button onClick={() => setActiveMainTab('concours-professionnel')} className="inline-block px-6 py-2.5 bg-white font-bold rounded-xl text-sm" style={{ color: '#1D4ED8' }}>
                         Voir les concours professionnels →
@@ -770,7 +770,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-white font-extrabold text-2xl mb-1">Concours Professionnels</h2>
-                    <p className="text-blue-200 text-sm">18 dossiers spécialisés</p>
+                    <p className="text-blue-200 text-sm">29 dossiers spécialisés</p>
                   </div>
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -866,7 +866,7 @@ export default function Dashboard() {
                         const dp = (user.dossiers_principaux || []).filter(d => !acc.includes(d))
                         if (dp.length >= 14) return (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
-                            🏆 Accès complet (18 dossiers)
+                            🏆 Accès complet (29 dossiers)
                           </span>
                         )
                         if (dp.length > 0) return (
@@ -1065,7 +1065,7 @@ export default function Dashboard() {
                               {dossiersPrincipaux.length >= 14 ? (
                                 <div>
                                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
-                                    🏆 Accès complet (18 dossiers)
+                                    🏆 Accès complet (29 dossiers)
                                   </span>
                                 </div>
                               ) : dossiersPrincipaux.length > 0 ? (
@@ -1248,7 +1248,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Professionnels</p>
-                          <p className="text-gray-500 text-xs">18 dossiers – <strong style={{ color: '#C4521A' }}>20 000 FCFA par an</strong></p>
+                          <p className="text-gray-500 text-xs">29 dossiers – <strong style={{ color: '#C4521A' }}>20 000 FCFA par an</strong></p>
                         </div>
                       </div>
                     </div>
@@ -1349,7 +1349,7 @@ export default function Dashboard() {
                           </div>
                           <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center justify-center gap-1">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                            <p className="text-xs text-orange-100">Pro (18 dossiers)</p>
+                            <p className="text-xs text-orange-100">Pro (29 dossiers)</p>
                             <p className="font-extrabold">20 000 FCFA par an</p>
                           </div>
                         </div>
