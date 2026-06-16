@@ -44,6 +44,8 @@ class _QuizScreenState extends State<QuizScreen> {
     'magistrature',
     'professeur agr', // Professeur Agrégé
     'capes',
+    'capé',   // CAPÉ → reclassé en dossier dissertation (sujets longs)
+    'cape',   // variante sans accent
     'dissertation',
     'sujet',
     'corrigé',

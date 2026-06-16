@@ -20,12 +20,14 @@ async function checkAdmin(req) {
 // 🚨 PHASE 2 — Liste blanche des sous-dossiers professionnels acceptant les dissertations
 const DISSERTATION_ALLOWED_KEYWORDS = [
   'csapé', 'csape',
+  'capé', 'cape',   // CAPÉ reclassé en dossier dissertation
   'agrégé', 'agrege',
   'capes',
   'magistrature',
   'inspectorat', 'ies', 'iepenf',
   'administrateur civil',
   'administrateur des hôpitaux', 'administrateur des hopitaux',
+  'greffier', 'parquet',  // GREFFIER, SECRÉTAIRE DE GREFFIER ET PARQUET
   'justice',
   'casu', 'aasu', 'cisu', 'aisu', 'enaref'
 ]
@@ -116,7 +118,7 @@ export default async function handler(req) {
       }
       if (!canCategoryHaveDissertation(cat)) {
         return new Response(JSON.stringify({
-          error: `Les dissertations ne sont pas autorisées dans le sous-dossier "${cat.nom}". Réservé aux concours professionnels (Magistrature, CSAPÉ, Agrégés, CAPES, etc.).`
+          error: `Les dissertations ne sont pas autorisées dans le sous-dossier "${cat.nom}". Réservé aux concours professionnels (Magistrature, CSAPÉ, CAPÉ, Agrégés, CAPES, GREFFIER, etc.).`
         }), { status: 400, headers: { 'Content-Type': 'application/json' } })
       }
     } catch (err) {

@@ -49,6 +49,7 @@ function getCatIcon(nom) {
   if (n.includes('capes')) return '📖'
   if (n.includes('hôpital') || n.includes('hopital') || n.includes('pital')) return '🏥'
   if (n.includes('santé') || n.includes('sant')) return '💊'
+  if (n.includes('greffier') || n.includes('parquet')) return '⚖️'  // GREFFIER, SECRÉTAIRE DE GREFFIER ET PARQUET
   if (n.includes('justice')) return '⚖️'
   if (n.includes('magistr')) return '👨‍⚖️'
   if (n.includes('gsp')) return '🛡️'
@@ -71,7 +72,7 @@ const ORDRE_MAP = {
   professionnel: [
     'casu','vie scolaire',
     'actualit',
-    'cisu',
+    'cisu','aisu',  // CISU/AISU (nouveau nom)
     'inspectorat : ies',' ies',
     'iepenf','iepe',
     'csap','capé','cape',
@@ -79,6 +80,7 @@ const ORDRE_MAP = {
     'capes',
     'hôpital','hopital','administrateur des h',
     'sant','elevage','élevage','animale','agriculture','agricult',
+    'greffier','parquet',  // GREFFIER, SECRÉTAIRE DE GREFFIER ET PARQUET
     'justice',
     'magistr',
     'gsp',

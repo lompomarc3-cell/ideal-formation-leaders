@@ -82,7 +82,8 @@ const ORDRE_MAP = {
     { match: 'vie scolaire', ordre: 1 },
     { match: 'casu', ordre: 1 },
     { match: 'actualit', ordre: 2 },
-    { match: 'cisu', ordre: 3 },
+    { match: 'cisu', ordre: 3 },     // CISU/AISU (nouveau nom)
+    { match: 'aisu', ordre: 3 },      // variante AISU
     { match: 'inspectorat : ies', ordre: 4 },
     { match: ' ies', ordre: 4 },
     { match: 'iepenf', ordre: 5 },
@@ -102,7 +103,9 @@ const ORDRE_MAP = {
     { match: 'animale', ordre: 10 },
     { match: 'agriculture', ordre: 10 },
     { match: 'agricult', ordre: 10 },
-    { match: 'justice', ordre: 11 },
+    { match: 'greffier', ordre: 11 },  // GREFFIER, SECR\u00c9TAIRE DE GREFFIER ET PARQUET
+    { match: 'parquet', ordre: 11 },   // variante PARQUET
+    { match: 'justice', ordre: 11 },   // gard\u00e9 pour compatibilit\u00e9 r\u00e9troactive
     { match: 'magistr', ordre: 12 },
     { match: 'gsp', ordre: 13 },
     { match: 'police', ordre: 14 },
@@ -157,6 +160,7 @@ function getCatIcon(nom, catType) {
   if (n.includes('capes')) return '📖'
   if (n.includes('hôpital') || n.includes('hopital') || n.includes('pital')) return '🏥'
   if (n.includes('santé') || n.includes('sant')) return '💊'
+  if (n.includes('greffier') || n.includes('parquet')) return '⚖️'  // GREFFIER, SECRÉTAIRE DE GREFFIER ET PARQUET
   if (n.includes('justice')) return '⚖️'
   if (n.includes('magistr')) return '👨‍⚖️'
   if (n.includes('gsp')) return '🛡️'

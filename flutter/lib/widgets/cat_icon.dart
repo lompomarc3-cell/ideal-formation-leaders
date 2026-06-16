@@ -53,13 +53,14 @@ String? _keyFromCategoryName(String nom, String catType) {
   final n = nom.toLowerCase();
   final isPro = catType == 'professionnel';
   if (isPro) {
+    if (n.contains('greffier') || n.contains('parquet')) return 'justice'; // GREFFIER, SECRÉTAIRE DE GREFFIER ET PARQUET
     if (n.contains('justice') || (n.contains('droit') && !n.contains('impôt') && !n.contains('impot') && !n.contains('travail'))) return 'justice';
     if (n.contains('actualit') || n.contains('culture')) return 'newspaper';
     if (n.contains('magistr')) return 'judge';
     if (n.contains('police')) return 'badge';
     if (n.contains('gsp')) return 'shield';
     if (n.contains('vie scolaire') || n.contains('casu')) return 'school';
-    if (n.contains('cisu') || n.contains('enaref')) return 'enaref';
+    if (n.contains('cisu') || n.contains('aisu') || n.contains('enaref')) return 'enaref'; // CISU/AISU (nouveau nom)
     if (n.contains('iepenf') || n.contains('iepe')) return 'search2';
     // 🆕 Nouveaux dossiers – priorité AVANT les règles génériques
     if (n.contains('capé') || n.contains('cape')) return 'cape';

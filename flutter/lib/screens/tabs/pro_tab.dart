@@ -28,9 +28,10 @@ class _ProTabState extends State<ProTab> {
   List<Category> _categories = [];
 
   // Mots-clés pour reconnaître les 3 dossiers bonus
+  // ⚠️ FIX : 'culture générale' uniquement (pas 'culture' seul qui matcherait 'agriculture')
   static const List<String> _bonusKeywords = [
     'entraînement', 'entrainement', 'actualité', 'actualite',
-    'culture', 'accompagnement', 'bonus', 'qcm général', 'qcm general'
+    'culture générale', 'culture generale', 'accompagnement', 'bonus', 'qcm général', 'qcm general'
   ];
 
   @override
@@ -298,7 +299,7 @@ class _ProTabState extends State<ProTab> {
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Text(
-                    '27 dossiers payants',
+                    '27 dossiers payants (QCM + Dissertations)',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
@@ -408,7 +409,9 @@ class _ProTabState extends State<ProTab> {
             n.contains('csape') ||
             n.contains('magistrature') ||
             n.contains('professeur agr') ||
-            n.contains('capes');
+            n.contains('capes') ||
+            n.contains('capé') || // CAPÉ → reclassé en dossier dissertation
+            n == 'cape';           // variante stricte pour éviter de matcher d'autres noms
         if (isLongFormatDossier) {
           Navigator.of(context).pushNamed('/police-exam', arguments: {
             'categoryId': cat.id,
