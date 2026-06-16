@@ -316,7 +316,15 @@ B) 12
 C) 13
 D) 14
 Réponse: C
-Explication: Le pays compte 13 régions.''',
+Explication: Le pays compte 13 régions.
+
+Q: Calculer (1/2) + (3/4) = ?
+A) 5/4
+B) 4/6
+C) 3/4
+D) 1/4
+Réponse: A
+Explication: (1/2) + (3/4) = (2/4) + (3/4) = 5/4''',
                     style: TextStyle(
                       fontSize: 11,
                       fontFamily: 'monospace',
@@ -329,7 +337,9 @@ Explication: Le pays compte 13 régions.''',
                   '• Séparez chaque question par une ligne vide\n'
                   '• Variantes acceptées : Q:, Question:, A), A., A:, Réponse:, Bonne réponse:\n'
                   '• L\'explication est optionnelle\n'
-                  '• Les doublons sont automatiquement ignorés',
+                  '• Les doublons sont automatiquement ignorés\n'
+                  '• 🧮 Formules LaTeX supportées : entourez de \$ (ex: \$\\frac{1}{2}\$)\n'
+                  '• Symboles directs acceptés : ², ³, °, ±, ×, ÷, ≤, ≥, π',
                   style: TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
                 ),
               ],

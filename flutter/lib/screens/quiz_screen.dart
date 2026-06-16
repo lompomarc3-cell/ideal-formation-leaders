@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/category.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/math_text.dart';
 
 /// Écran QCM principal :
 ///  - Flèches gauche / droite TOUJOURS cliquables (on peut sauter une question
@@ -861,7 +862,9 @@ class _QuizScreenState extends State<QuizScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text(
+                // 🧮 Support LaTeX : MathText rend les formules $...$ et $$...$$
+                // ainsi que les symboles Unicode math (², ³, °, ±, ×, ÷…)
+                MathText(
                   q.questionText,
                   style: const TextStyle(
                       fontSize: 16,
@@ -893,7 +896,8 @@ class _QuizScreenState extends State<QuizScreen> {
                           fontWeight: FontWeight.w900,
                           color: AppColors.darkTerracotta)),
                   const SizedBox(height: 6),
-                  Text(q.explication ?? '',
+                  // 🧮 Support LaTeX dans les explications
+                  MathText(q.explication ?? '',
                       style:
                           const TextStyle(height: 1.5, fontSize: 13.5)),
                 ],
@@ -959,7 +963,9 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(text,
+                // 🧮 Support LaTeX pour les options de réponse
+                child: MathText(
+                    text,
                     style: TextStyle(
                       fontSize: 14,
                       color: textColor,

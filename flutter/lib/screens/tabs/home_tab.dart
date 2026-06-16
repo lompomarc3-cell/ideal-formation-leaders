@@ -41,7 +41,7 @@ class _HomeTabState extends State<HomeTab> {
         '🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n'
         '✅ Des milliers de QCM\n'
         '✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n'
-        '✅ Concours professionnels – 29 dossiers (20 000 FCFA par an / dossier)\n'
+        '✅ Concours professionnels – 30 dossiers (20 000 FCFA par an / dossier)\n'
         '✅ 5 questions gratuites par dossier\n\n'
         '👉 $kAppUrl';
     try {
@@ -343,7 +343,7 @@ class _HomeTabState extends State<HomeTab> {
     final label = ps.proLabel;
     return _OfferCard(
       title: '🎓 Concours professionnels',
-      subtitle: '15 dossiers payants + 3 bonus',
+      subtitle: '27 dossiers payants + 3 bonus',
       price: hasPromo && prixPromo != null ? _fmt(prixPromo) : _fmt(prix),
       oldPrice: hasPromo && prixPromo != null ? _fmt(prix) : null,
       promoLabel: hasPromo ? (label ?? 'PROMO') : null,
@@ -358,7 +358,7 @@ class _HomeTabState extends State<HomeTab> {
       gradient: const LinearGradient(
         colors: [Color(0xFF0EA5E9), Color(0xFF0369A1)],
       ),
-      cta: 'Voir les 18 dossiers',
+      cta: 'Voir les 30 dossiers',
       onCta: () => MainShell.of(context)?.goTo(2),
       foregroundColor: const Color(0xFF075985),
       loading: ps.loading && !ps.loaded,

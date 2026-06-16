@@ -76,7 +76,7 @@ const ICON_IMAGES = {
   chart:      '/icons/direct_chart.svg',
   pencil:     '/icons/direct_pencil.svg',
   target:     '/icons/direct_target.svg',
-  // Concours professionnels (18)
+  // Concours professionnels (30)
   school:     '/icons/pro_school.svg',
   newspaper:  '/icons/pro_newspaper.svg',
   building:   '/icons/pro_building.svg',
@@ -291,7 +291,7 @@ export default function Home() {
   }
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 29 dossiers (20 000 FCFA par an)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 30 dossiers (20 000 FCFA par an)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Formation Burkina Faso', text, url: APP_URL })
@@ -317,7 +317,7 @@ export default function Home() {
     <>
       <Head>
         <title>IFL – Idéale Formation of Leaders | Concours Burkina Faso</title>
-        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Démo gratuite de 10 questions. Concours directs (12 dossiers) et professionnels (29 dossiers)." />
+        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Démo gratuite de 10 questions. Concours directs (12 dossiers) et professionnels (30 dossiers)." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="theme-color" content="#8B2500" />
         {/* PWA */}
@@ -438,7 +438,7 @@ export default function Home() {
                   </div>
                   <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF7E8', color: '#B45309' }}>🏅 Évolution de carrière</div>
                   <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
-                  <p className="text-gray-500 text-xs mb-2">29 dossiers spécialisés</p>
+                  <p className="text-gray-500 text-xs mb-2">30 dossiers spécialisés</p>
                   <div style={{ color: '#C4521A' }}>
                     <PromoPrice type="professionnel" prices={publicPrices} size="lg" />
                   </div>

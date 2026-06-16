@@ -157,7 +157,7 @@ export default function Dashboard() {
   }, [router.isReady, router.query])
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 29 dossiers (20 000 FCFA par an)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 30 dossiers (20 000 FCFA par an)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
     if (navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Idéale Formation of Leaders', text, url: APP_URL })
@@ -302,7 +302,7 @@ export default function Dashboard() {
       if (dossiersProPrincipaux.length === 0) {
         parts.push('Concours professionnels (accompagnements)')
       } else if (dossiersProPrincipaux.length >= 14) {
-        parts.push('Accès complet Concours professionnels (29 dossiers)')
+        parts.push('Accès complet Concours professionnels (30 dossiers)')
       } else {
         parts.push(dossiersProPrincipaux.join(', '))
       }
@@ -333,7 +333,7 @@ export default function Dashboard() {
     },
     {
       q: "Quelle est la différence entre les deux formules ?",
-      a: "📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 29 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)"
+      a: "📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 30 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)"
     },
     {
       q: "Mon abonnement n'est pas activé après paiement ?",
@@ -1349,7 +1349,7 @@ export default function Dashboard() {
                           </div>
                           <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center justify-center gap-1">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                            <p className="text-xs text-orange-100">Pro (29 dossiers)</p>
+                            <p className="text-xs text-orange-100">Pro (30 dossiers)</p>
                             <p className="font-extrabold">20 000 FCFA par an</p>
                           </div>
                         </div>

@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
-/// Programmation par type : GLOBALE, CONCOURS DIRECT (12 dossiers), CONCOURS PRO (29 dossiers).
+/// Programmation par type : GLOBALE, CONCOURS DIRECT (12 dossiers), CONCOURS PRO (30 dossiers).
 ///
 /// Chaque bloc a :
 ///  - Un état indépendant (date, enabled, expired)
@@ -408,7 +408,7 @@ class _AdminSchedulesSectionState extends State<AdminSchedulesSection> {
           _buildTypeCard(
             type: 'professionnel',
             label: '💼 Programmation CONCOURS PRO',
-            subtitle: '29 dossiers professionnels uniquement',
+            subtitle: '30 dossiers professionnels uniquement',
             badgeColor: const Color(0xFF059669),
             date: _proDate,
             enabled: _proEnabled,
