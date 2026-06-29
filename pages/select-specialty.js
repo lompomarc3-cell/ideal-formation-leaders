@@ -12,10 +12,10 @@ export const DOSSIERS_ACCOMPAGNEMENT = [
   'Accompagnement final'
 ]
 
-// Les 29 dossiers professionnels
+// Les 36 dossiers professionnels (33 payants + 3 bonus)
 const DOSSIERS_PRO = [
+  // ── Dossiers payants (1–33) ──
   { nom: 'Spécialités Vie scolaire (CASU-AASU)', icone: '🏫', desc: 'Conseillers et Assistants en Vie Scolaire' },
-  { nom: 'Actualités et culture générale', icone: '🌍', desc: 'Culture générale et actualités nationales', isAccompagnement: true },
   { nom: 'Spécialités CISU/AISU/ENAREF', icone: '🏛️', desc: 'Inspecteurs et Administrateurs Scolaires' },
   { nom: 'Inspectorat : IES', icone: '🔍', desc: 'Inspecteur de l\'Enseignement Secondaire' },
   { nom: 'Inspectorat : IEPENF', icone: '🔎', desc: 'Inspecteur Éducation de Base et NFE' },
@@ -29,9 +29,6 @@ const DOSSIERS_PRO = [
   { nom: 'Spécialités GSP', icone: '🛡️', desc: 'Gestion et Sécurité Publique' },
   { nom: 'Spécialités police', icone: '👮', desc: 'Corps de police nationale' },
   { nom: 'Administrateur civil', icone: '📋', desc: 'Administration publique générale' },
-  { nom: 'Entraînement QCM', icone: '✏️', desc: 'QCM d\'entraînement transversaux', isAccompagnement: true },
-  { nom: 'Accompagnement final', icone: '🎯', desc: 'Révision finale et conseils', isAccompagnement: true },
-  // 🆕 12 nouveaux dossiers professionnels
   { nom: 'CAPÉ', icone: '🎓', desc: 'Certificat d\'Aptitude Pédagogique de l\'Enseignement' },
   { nom: 'Inspecteur des Impôts', icone: '🔍', desc: 'Concours Inspecteur des Impôts – Fiscalité' },
   { nom: 'Contrôleur des Impôts', icone: '🔍', desc: 'Concours Contrôleur des Impôts – Administration fiscale' },
@@ -44,6 +41,17 @@ const DOSSIERS_PRO = [
   { nom: 'Ingénieur en Agriculture', icone: '🌿', desc: 'Ingénieur Agriculture – Développement rural' },
   { nom: 'Conseiller des Affaires Étrangères', icone: '🌍', desc: 'Diplomatie et relations internationales' },
   { nom: 'Douane : Contrôleur & Inspecteur', icone: '🛡️', desc: 'Douane – Contrôleur et Inspecteur des Douanes' },
+  // 🆕 6 NOUVEAUX dossiers professionnels (dossiers 28–33)
+  { nom: 'AGENT SPÉCIALISÉ EN GRH', icone: '🧑‍💼', desc: 'Agent Spécialisé en Gestion des Ressources Humaines' },
+  { nom: 'ASSISTANT EN GRH', icone: '📝', desc: 'Assistant en Gestion des Ressources Humaines' },
+  { nom: 'CONSEILLER EN GRH', icone: '💼', desc: 'Conseiller en Gestion des Ressources Humaines' },
+  { nom: 'Technicien Supérieur Géomètre et Agent', icone: '📐', desc: 'Technicien Supérieur Géomètre et Agent Foncier' },
+  { nom: 'Ingénieur de Conception du Génie Rural (B1 à A1)', icone: '🌾', desc: 'Ingénieur de Conception du Génie Rural' },
+  { nom: 'Ingénieur de Conception en Hydraulique', icone: '💧', desc: 'Ingénieur de Conception en Hydraulique' },
+  // ── 3 Dossiers BONUS (toujours à la fin – débloqués avec tout dossier payant) ──
+  { nom: 'Actualités et culture générale', icone: '🌍', desc: 'Culture générale et actualités nationales', isAccompagnement: true },
+  { nom: 'Entraînement QCM', icone: '✏️', desc: 'QCM d\'entraînement transversaux', isAccompagnement: true },
+  { nom: 'Accompagnement final', icone: '🎯', desc: 'Révision finale et conseils', isAccompagnement: true },
 ]
 
 // Dossiers qu'on peut choisir comme principal (hors dossiers d'accompagnement)
@@ -94,6 +102,14 @@ const PRO_ICON_MAP = {
   'étrangère': '/icons/pro_affaires_etrangeres.svg',
   'etrangere': '/icons/pro_affaires_etrangeres.svg',
   'douane': '/icons/pro_douane.svg',
+  // 🆕 6 nouveaux dossiers GRH + Géomètre + Génie Rural + Hydraulique
+  'grh': '/icons/pro_grh.svg',
+  'ressources humaines': '/icons/pro_grh.svg',
+  'géomètre': '/icons/pro_geometre.svg',
+  'geometre': '/icons/pro_geometre.svg',
+  'génie rural': '/icons/pro_genie_rural.svg',
+  'genie rural': '/icons/pro_genie_rural.svg',
+  'hydraulique': '/icons/pro_hydraulique.svg',
 }
 
 function getCatIconSrc(nom) {

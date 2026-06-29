@@ -1065,7 +1065,7 @@ export default function Dashboard() {
                               {dossiersPrincipaux.length >= 14 ? (
                                 <div>
                                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
-                                    🏆 Accès complet (29 dossiers)
+                                    🏆 Accès complet (35 dossiers payants)
                                   </span>
                                 </div>
                               ) : dossiersPrincipaux.length > 0 ? (
