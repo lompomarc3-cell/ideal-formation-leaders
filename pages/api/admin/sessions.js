@@ -18,7 +18,7 @@ async function verifyAdmin(req) {
   const { data, error } = await sb.auth.getUser(token)
   if (error || !data?.user) return null
   const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).single()
-  if (!profile || profile.role !== 'superadmin') return null
+  if (!profile || !['admin', 'superadmin'].includes(profile.role)) return null
   return data.user
 }
 

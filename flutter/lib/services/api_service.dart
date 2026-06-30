@@ -753,6 +753,20 @@ class ApiService {
     return _decode(res);
   }
 
+  // ==================== SESSIONS SPÉCIALES PUBLIQUES ====================
+
+  Future<Map<String, dynamic>> publicSpecialSessions() async {
+    try {
+      final res = await _client.get(
+        Uri.parse('$baseUrl/api/sessions/public'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      return _decode(res);
+    } catch (_) {
+      return {'sessions': []};
+    }
+  }
+
   // ==================== ADMIN - SESSIONS SPÉCIALES ====================
 
   Future<Map<String, dynamic>> adminSessions(String token) async {

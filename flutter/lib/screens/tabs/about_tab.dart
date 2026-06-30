@@ -254,7 +254,7 @@ class AboutAppPage extends StatelessWidget {
           const SizedBox(height: 4),
           const Center(
             child: Text(
-              'Version 3.0.5',
+              'Version 3.0.6',
               style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
             ),
           ),
