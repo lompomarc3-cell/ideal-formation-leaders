@@ -755,11 +755,11 @@ class ApiService {
 
   // ==================== SESSIONS SPÉCIALES PUBLIQUES ====================
 
-  Future<Map<String, dynamic>> publicSpecialSessions() async {
+  Future<Map<String, dynamic>> publicSpecialSessions([String? token]) async {
     try {
       final res = await _client.get(
         Uri.parse('$baseUrl/api/sessions/public'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _jsonHeaders(token),
       );
       return _decode(res);
     } catch (_) {

@@ -49,12 +49,15 @@ export default async function handler(req) {
         )
       }
 
-      // Pagination optionnelle (perPage=0 → tout retourner sans limit)
+      // Pagination optionnelle (perPage=0 → tout retourner sans limite Supabase)
       if (perPage > 0) {
         const offset = (page - 1) * perPage
         query = query.range(offset, offset + perPage - 1)
+      } else {
+        // CRITIQUE : Supabase retourne max 1000 lignes par défaut.
+        // Pour récupérer TOUTES les questions (8000+), on doit spécifier une range large.
+        query = query.range(0, 49999) // Supporte jusqu'à 50 000 questions
       }
-      // Pas de .limit() : on retourne TOUT ce qui correspond au filtre
 
       const { data: questions, error, count } = await query
 
