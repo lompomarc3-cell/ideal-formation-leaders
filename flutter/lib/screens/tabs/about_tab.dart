@@ -254,7 +254,7 @@ class AboutAppPage extends StatelessWidget {
           const SizedBox(height: 4),
           const Center(
             child: Text(
-              'Version 3.0.4',
+              'Version 3.0.5',
               style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
             ),
           ),
@@ -726,7 +726,7 @@ class AboutPrivacyPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '6. Contact',
+                  '6. Notre équipe développeur',
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 14,
@@ -735,9 +735,14 @@ class AboutPrivacyPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Pour toute question relative à votre vie privée ou pour '
-                  'exercer vos droits, contactez-nous :',
-                  style: TextStyle(fontSize: 13, height: 1.55),
+                  'Notre équipe développeur est à votre disposition pour tout besoin :',
+                  style: TextStyle(fontSize: 13, height: 1.55, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Que ce soit pour une question, une demande d\'application similaire, '
+                  'ou un service de développement logiciel, n\'hésitez pas à nous contacter.',
+                  style: TextStyle(fontSize: 12, height: 1.5, color: Color(0xFF6B7280)),
                 ),
                 const SizedBox(height: 12),
                 Container(
