@@ -14,18 +14,9 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
-// Résoudre le chemin absolu du keystore depuis le dossier android/
-val keystoreFilePath = if (keystorePropertiesFile.exists()) {
-    val rawPath = keystoreProperties["storeFile"] as String?
-    if (rawPath != null) {
-        val f = rootProject.file(rawPath)
-        if (!f.isAbsolute) rootProject.file(rawPath) else f
-    } else null
-} else null
-
 android {
     namespace = "com.ifl.ifl"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -39,18 +30,19 @@ android {
 
     defaultConfig {
         applicationId = "com.ifl.ifl"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        minSdk = 21
+        targetSdk = 35
+        versionCode = 39
+        versionName = "3.0.2"
+        multiDexEnabled = true
     }
 
     signingConfigs {
         create("release") {
-            if (keystorePropertiesFile.exists() && keystoreFilePath != null) {
+            if (keystorePropertiesFile.exists()) {
                 keyAlias = keystoreProperties["keyAlias"] as String
                 keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = keystoreFilePath
+                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
                 storePassword = keystoreProperties["storePassword"] as String
             }
         }
@@ -63,6 +55,15 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
+    }
+
+    // APK universel - pas de split par ABI
+    splits {
+        abi {
+            isEnable = false
         }
     }
 }
