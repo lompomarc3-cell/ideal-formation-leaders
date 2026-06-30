@@ -16,7 +16,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.ifl.ifl"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -30,10 +30,10 @@ android {
 
     defaultConfig {
         applicationId = "com.ifl.ifl"
-        minSdk = 21
-        targetSdk = 35
-        versionCode = 39
-        versionName = "3.0.2"
+        minSdk = flutter.minSdkVersion
+        targetSdk = 36
+        versionCode = 40
+        versionName = "3.0.3"
         multiDexEnabled = true
     }
 
@@ -44,6 +44,9 @@ android {
                 keyPassword = keystoreProperties["keyPassword"] as String
                 storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
                 storePassword = keystoreProperties["storePassword"] as String
+                // CRUCIAL : Activer V1 + V2 pour Google Play Protect
+                enableV1Signing = true
+                enableV2Signing = true
             }
         }
     }
@@ -55,8 +58,12 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 
