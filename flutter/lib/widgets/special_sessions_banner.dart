@@ -5,10 +5,12 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 
-/// Bannière des sessions spéciales — v3.0.6
+/// Bannière des sessions spéciales — v3.0.7
 /// Affiche les offres à durée limitée avec compte à rebours
+/// [filterType] : 'direct', 'professionnel', ou null (affiche tout)
 class SpecialSessionsBanner extends StatefulWidget {
-  const SpecialSessionsBanner({super.key});
+  final String? filterType;
+  const SpecialSessionsBanner({super.key, this.filterType});
 
   @override
   State<SpecialSessionsBanner> createState() => _SpecialSessionsBannerState();
@@ -52,10 +54,13 @@ class _SpecialSessionsBannerState extends State<SpecialSessionsBanner>
           .map((e) => Map<String, dynamic>.from(e))
           .where((s) {
             // Filtrer sessions actives et non expirées
-            if (s['is_active'] != true) return false;
             final endDate = DateTime.tryParse(s['end_date']?.toString() ?? '');
             if (endDate == null) return false;
-            return endDate.isAfter(DateTime.now());
+            if (!endDate.isAfter(DateTime.now())) return false;
+            // Filtre optionnel par type
+            final ft = widget.filterType;
+            if (ft != null && s['type']?.toString() != ft) return false;
+            return true;
           })
           .toList();
 

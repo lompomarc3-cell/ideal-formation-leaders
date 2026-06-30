@@ -790,8 +790,18 @@ class ApiService {
   Future<Map<String, dynamic>> adminDeleteSession(
       String token, String id) async {
     final res = await _client.delete(
-      Uri.parse('$baseUrl/api/admin/sessions/$id'),
+      Uri.parse('$baseUrl/api/admin/sessions?id=$id'),
       headers: _jsonHeaders(token),
+    );
+    return _decode(res);
+  }
+
+  Future<Map<String, dynamic>> adminUpdateSession(
+      String token, Map<String, dynamic> body) async {
+    final res = await _client.put(
+      Uri.parse('$baseUrl/api/admin/sessions'),
+      headers: _jsonHeaders(token),
+      body: jsonEncode(body),
     );
     return _decode(res);
   }

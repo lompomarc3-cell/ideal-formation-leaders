@@ -599,7 +599,10 @@ function AdminQuestions({ getToken, onNotif }) {
   const fetchQuestions = async (catId = '') => {
     setLoading(true)
     try {
-      const url = catId ? `/api/admin/questions?categorie_id=${catId}` : '/api/admin/questions'
+      // per_page=0 → retourner TOUTES les questions sans limite Supabase (8671+)
+      const url = catId
+        ? `/api/admin/questions?categorie_id=${catId}&per_page=0`
+        : '/api/admin/questions?per_page=0'
       const r = await fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } })
       const d = await r.json()
       setQuestions(d.questions || [])

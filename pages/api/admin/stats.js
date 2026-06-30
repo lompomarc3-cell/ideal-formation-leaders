@@ -40,14 +40,14 @@ export default async function handler(req) {
     const directSubscribers = allUsers ? allUsers.filter(u => u.subscription_type === 'direct' && u.subscription_status === 'active').length : 0
     const proSubscribers = allUsers ? allUsers.filter(u => u.subscription_type === 'professionnel' && u.subscription_status === 'active').length : 0
 
-    // Total questions actives
-    const { data: questions } = await supabaseAdmin
+    // Total questions actives — utilise count: 'exact' pour ne pas charger toutes les lignes
+    const { count: totalQuestions } = await supabaseAdmin
       .from('questions')
-      .select('id, category_id')
+      .select('id', { count: 'exact', head: true })
       .eq('is_active', true)
-    const totalQuestions = questions ? questions.length : 0
 
-    // Catégories actives avec comptage de questions
+    // Pour la répartition par catégorie on charge les IDs uniquement (pagination interne Supabase)
+    // On utilise la colonne question_count déjà calculée dans categories
     const { data: cats } = await supabaseAdmin
       .from('categories')
       .select('id, nom, type, question_count, is_active, created_at')
@@ -75,16 +75,13 @@ export default async function handler(req) {
       .like('message', '%ifl_payment%')
     const approvedPaymentsCount = approvedPayments ? approvedPayments.length : 0
 
-    // Questions par catégorie (enrichies)
-    const questionsByCategory = (cats || []).map(c => {
-      const qCount = questions ? questions.filter(q => q.category_id === c.id).length : 0
-      return {
-        id: c.id,
-        nom: c.nom,
-        type: c.type,
-        question_count: qCount
-      }
-    })
+    // Questions par catégorie — utilise question_count stocké en base (évite de recharger 8000+ lignes)
+    const questionsByCategory = (cats || []).map(c => ({
+      id: c.id,
+      nom: c.nom,
+      type: c.type,
+      question_count: c.question_count || 0
+    }))
 
     // 10 derniers inscrits — avec dossiers pro débloqués
     const recentUsersSlice = (allUsers || []).slice(0, 10)

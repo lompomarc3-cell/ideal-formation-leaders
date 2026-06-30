@@ -254,7 +254,7 @@ class AboutAppPage extends StatelessWidget {
           const SizedBox(height: 4),
           const Center(
             child: Text(
-              'Version 3.0.6',
+              'Version 3.0.7',
               style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
             ),
           ),
@@ -269,20 +269,6 @@ class AboutAppPage extends StatelessWidget {
               'gratuites par dossier pour découvrir le contenu, et des '
               'abonnements pour débloquer l\'accès complet.',
               style: TextStyle(fontSize: 13.5, height: 1.5),
-            ),
-          ),
-          const SizedBox(height: 12),
-          _card(
-            icon: Icons.shield_rounded,
-            title: 'Politique de confidentialité',
-            child: const Text(
-              'Vos données personnelles (téléphone, nom, prénom) sont utilisées '
-              'uniquement pour gérer votre compte, votre abonnement et votre '
-              'progression. Elles ne sont jamais revendues à des tiers. Les '
-              'mots de passe sont stockés sous forme chiffrée. Vous pouvez à '
-              'tout moment demander la suppression de votre compte en nous '
-              'contactant via WhatsApp.',
-              style: TextStyle(fontSize: 13, height: 1.5),
             ),
           ),
           const SizedBox(height: 12),

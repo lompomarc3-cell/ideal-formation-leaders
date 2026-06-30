@@ -7,6 +7,7 @@ import '../../services/auth_service.dart';
 import '../../services/price_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/promo_banner.dart';
+import '../../widgets/special_sessions_banner.dart';
 import '../main_shell.dart';
 
 const String kAppUrl = 'https://ideal-formation-leaders.pages.dev';
@@ -80,6 +81,8 @@ class _HomeTabState extends State<HomeTab> {
               const SizedBox(height: 8),
               // 🔥 Bandeau clignotant promo (Direct + Pro)
               const PromoBanner(type: 'all'),
+              // ⚡ Sessions spéciales actives
+              const SpecialSessionsBanner(),
               _buildDemoCard(),
               const SizedBox(height: 12),
               _buildOfferDirectDynamic(),
