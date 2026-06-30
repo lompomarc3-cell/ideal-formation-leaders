@@ -98,7 +98,7 @@ class _AdminScreenState extends State<AdminScreen> {
     _AdminTab(
       '⚡ Sessions',
       Icons.flash_on,
-      'Créer des sessions d'accès temporaire (Direct ou Pro) avec durée, prix et dates.',
+      "Créer des sessions d'accès temporaire (Direct ou Pro) avec durée, prix et dates.",
       Color(0xFF7C3AED),
     ),
     _AdminTab(

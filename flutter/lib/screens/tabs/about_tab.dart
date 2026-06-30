@@ -254,7 +254,7 @@ class AboutAppPage extends StatelessWidget {
           const SizedBox(height: 4),
           const Center(
             child: Text(
-              'Version 2.1.0',
+              'Version 3.0.1',
               style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
             ),
           ),
@@ -526,7 +526,7 @@ class AboutTeamPage extends StatelessWidget {
                   'Notre équipe est également auteure de plusieurs livres et '
                   'guides sur les concours directs et professionnels. Nous mettons '
                   'toute cette expérience pédagogique à votre service à travers '
-                  'des milliers de QCM rigoureusement conçus.'
+                  'des milliers de QCM rigoureusement conçus.',
                   style: TextStyle(fontSize: 13.5, height: 1.6),
                 ),
               ],

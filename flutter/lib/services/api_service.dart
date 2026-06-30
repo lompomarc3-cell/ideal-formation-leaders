@@ -17,33 +17,7 @@ class ApiService {
     final h = <String, String>{'Content-Type': 'application/json'};
     if (token != null && token.isNotEmpty) {
       h['Authorization'] = 'Bearer $token';
-    
-  // ── Sessions spéciales ──
-  Future<Map<String, dynamic>> adminSessions(String token) async {
-    final res = await _client.get(
-      Uri.parse('$baseUrl/api/admin/sessions'),
-      headers: _authHeaders(token),
-    );
-    return _decode(res);
-  }
-
-  Future<Map<String, dynamic>> adminCreateSession(String token, Map<String, dynamic> body) async {
-    final res = await _client.post(
-      Uri.parse('$baseUrl/api/admin/sessions'),
-      headers: _jsonHeaders(token),
-      body: jsonEncode(body),
-    );
-    return _decode(res);
-  }
-
-  Future<Map<String, dynamic>> adminDeleteSession(String token, String id) async {
-    final res = await _client.delete(
-      Uri.parse('$baseUrl/api/admin/sessions/$id'),
-      headers: _authHeaders(token),
-    );
-    return _decode(res);
-  }
-}
+    }
     return h;
   }
 
@@ -603,7 +577,7 @@ class ApiService {
     return _decode(res);
   }
 
-  // ==================== ADMIN - SCHEDULES (ancienne API par catégorie) ====================
+  // ==================== ADMIN - SCHEDULES ====================
 
   Future<Map<String, dynamic>> adminSchedules(String token) async {
     final res = await _client.get(
@@ -632,8 +606,6 @@ class ApiService {
   }
 
   // ==================== ADMIN - PROGRAMMATION GLOBALE PAR TYPE ====================
-  // Nouvelle API : GET /api/admin/programmation  → { global_end_date, direct_end_date, professional_end_date }
-  // POST /api/admin/programmation → { type: 'global'|'direct'|'professionnel', end_date: ISO|null }
 
   Future<Map<String, dynamic>> adminProgrammation(String token) async {
     final res = await _client.get(
@@ -774,16 +746,19 @@ class ApiService {
     );
     return _decode(res);
   }
-  // ── Sessions spéciales ──
+
+  // ==================== ADMIN - SESSIONS SPÉCIALES ====================
+
   Future<Map<String, dynamic>> adminSessions(String token) async {
     final res = await _client.get(
       Uri.parse('$baseUrl/api/admin/sessions'),
-      headers: _authHeaders(token),
+      headers: _jsonHeaders(token),
     );
     return _decode(res);
   }
 
-  Future<Map<String, dynamic>> adminCreateSession(String token, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> adminCreateSession(
+      String token, Map<String, dynamic> body) async {
     final res = await _client.post(
       Uri.parse('$baseUrl/api/admin/sessions'),
       headers: _jsonHeaders(token),
@@ -792,12 +767,12 @@ class ApiService {
     return _decode(res);
   }
 
-  Future<Map<String, dynamic>> adminDeleteSession(String token, String id) async {
+  Future<Map<String, dynamic>> adminDeleteSession(
+      String token, String id) async {
     final res = await _client.delete(
       Uri.parse('$baseUrl/api/admin/sessions/$id'),
-      headers: _authHeaders(token),
+      headers: _jsonHeaders(token),
     );
     return _decode(res);
   }
-
 }
