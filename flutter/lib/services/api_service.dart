@@ -277,11 +277,16 @@ class ApiService {
     return _decode(res);
   }
 
-  Future<Map<String, dynamic>> adminUsers(String token) async {
-    final res = await _client.get(
-      Uri.parse('$baseUrl/api/admin/users'),
-      headers: _jsonHeaders(token),
-    );
+  Future<Map<String, dynamic>> adminUsers(String token,
+      {int page = 1, int perPage = 50, String? search}) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+    };
+    if (search != null && search.isNotEmpty) params['search'] = search;
+    final uri = Uri.parse('$baseUrl/api/admin/users')
+        .replace(queryParameters: params);
+    final res = await _client.get(uri, headers: _jsonHeaders(token));
     return _decode(res);
   }
 
@@ -412,12 +417,13 @@ class ApiService {
   // ==================== ADMIN - QUESTIONS ====================
 
   Future<Map<String, dynamic>> adminQuestions(String token,
-      {String? categorieId}) async {
-    final qp = categorieId != null ? '?categorie_id=$categorieId' : '';
-    final res = await _client.get(
-      Uri.parse('$baseUrl/api/admin/questions$qp'),
-      headers: _jsonHeaders(token),
-    );
+      {String? categorieId, String? search}) async {
+    final params = <String, String>{};
+    if (categorieId != null) params['categorie_id'] = categorieId;
+    if (search != null && search.isNotEmpty) params['search'] = search;
+    final uri = Uri.parse('$baseUrl/api/admin/questions')
+        .replace(queryParameters: params.isEmpty ? null : params);
+    final res = await _client.get(uri, headers: _jsonHeaders(token));
     return _decode(res);
   }
 

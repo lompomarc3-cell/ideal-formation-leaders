@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="enrc1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+  <!-- Bâtiment institutionnel -->
+  <rect x="10" y="30" width="44" height="26" rx="2" fill="url(#enrc1)"/>
+  <!-- Fronton triangulaire -->
+  <polygon points="6,30 32,10 58,30" fill="#1E3A8A"/>
+  <!-- Colonnes -->
+  <rect x="16" y="30" width="5" height="26" fill="#1E40AF"/>
+  <rect x="30" y="30" width="5" height="26" fill="#1E40AF"/>
+  <rect x="44" y="30" width="5" height="26" fill="#1E40AF"/>
+  <!-- Fenêtres -->
+  <rect x="20" y="38" width="8" height="8" rx="1" fill="white" opacity="0.8"/>
+  <rect x="37" y="38" width="8" height="8" rx="1" fill="white" opacity="0.8"/>
+  <!-- Porte centrale -->
+  <rect x="26" y="44" width="12" height="12" rx="1" fill="#93C5FD" opacity="0.9"/>
+  <!-- Étoile / emblème au fronton -->
+  <circle cx="32" cy="22" r="4" fill="#FBBF24"/>
+  <!-- Lettre C -->
+  <text x="30" y="26" font-family="Arial" font-size="6" font-weight="bold" fill="#1E3A8A">C</text>
+</svg>

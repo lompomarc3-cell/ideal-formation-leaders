@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,12 +8,12 @@ import 'admin_bulk_import_dialog.dart';
 
 /// Section "Questions QCM" — gestion CRUD avec préservation stricte de l'ordre.
 ///
-/// PRÉSERVATION DE L'ORDRE :
-/// - Les questions sont triées une seule fois (par created_at ASC, fallback id)
-/// - Lors d'une modification, on met à jour la question EN PLACE dans la liste
-///   locale (pas de rechargement complet) → l'ordre visuel reste identique.
-/// - Un numéro d'ordre (#1, #2, ...) est affiché sur chaque carte pour que
-///   l'admin voie clairement la position et constate qu'elle ne change pas.
+/// AMÉLIORATIONS v3.0.6 :
+/// - Recherche Full-Text côté serveur (Supabase) avec debounce 400ms
+/// - Recherche dans : énoncé, options A/B/C/D, explication
+/// - Filtre par catégorie combiné avec la recherche
+/// - Retourne TOUS les résultats (pas de limite cachée)
+/// - Total affiché en temps réel
 class AdminQuestionsSection extends StatefulWidget {
   const AdminQuestionsSection({super.key});
 
@@ -22,50 +23,29 @@ class AdminQuestionsSection extends StatefulWidget {
 
 class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
   bool _loading = true;
+  bool _searching = false;
   // Liste ordonnée stable. On NE re-trie JAMAIS après une édition.
   List<Map<String, dynamic>> _questions = [];
   List<Map<String, dynamic>> _categories = [];
   String? _filterCategoryId;
   String _searchQuery = '';
+  int _totalCount = 0;
   final TextEditingController _searchCtrl = TextEditingController();
+  Timer? _debounceTimer;
 
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
-  /// Filtre par recherche + ajoute le numéro d'ordre stable (basé sur la
-  /// position absolue dans la liste source `_questions`).
+  /// Toutes les questions chargées avec numéro d'ordre stable.
   List<MapEntry<int, Map<String, dynamic>>> get _filteredQuestions {
-    final all = List<MapEntry<int, Map<String, dynamic>>>.generate(
+    return List<MapEntry<int, Map<String, dynamic>>>.generate(
       _questions.length,
       (i) => MapEntry(i + 1, _questions[i]),
     );
-    if (_searchQuery.trim().isEmpty) return all;
-    final q = _searchQuery.trim().toLowerCase();
-    return all.where((entry) {
-      final item = entry.value;
-      final text = (item['enonce']?.toString() ??
-              item['question_text']?.toString() ??
-              '')
-          .toLowerCase();
-      final expl = (item['explication']?.toString() ?? '').toLowerCase();
-      final cat = (item['categorie_nom']?.toString() ??
-              item['category_name']?.toString() ??
-              '')
-          .toLowerCase();
-      final opts = [
-        item['option_a'],
-        item['option_b'],
-        item['option_c'],
-        item['option_d'],
-      ].whereType<String>().join(' ').toLowerCase();
-      return text.contains(q) ||
-          expl.contains(q) ||
-          cat.contains(q) ||
-          opts.contains(q);
-    }).toList();
   }
 
   @override
@@ -74,43 +54,50 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadAll());
   }
 
-  /// Tri stable : created_at ASC (avec fallback sur id) — l'API renvoie déjà
-  /// les questions dans cet ordre, mais on s'assure côté client pour être sûr.
-  void _stableSort(List<Map<String, dynamic>> list) {
-    list.sort((a, b) {
-      final aCreated = a['created_at']?.toString() ?? '';
-      final bCreated = b['created_at']?.toString() ?? '';
-      if (aCreated.isNotEmpty && bCreated.isNotEmpty) {
-        final cmp = aCreated.compareTo(bCreated);
-        if (cmp != 0) return cmp;
-      }
-      // Fallback : id (souvent une UUID, donc ordre alpha stable)
-      return (a['id']?.toString() ?? '')
-          .compareTo(b['id']?.toString() ?? '');
+  /// Déclenche une recherche avec debounce de 400ms (évite les requêtes trop fréquentes).
+  void _onSearchChanged(String value) {
+    _debounceTimer?.cancel();
+    setState(() => _searchQuery = value);
+    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+      _loadAll(isSearch: true);
     });
   }
 
-  Future<void> _loadAll() async {
+  Future<void> _loadAll({bool isSearch = false}) async {
     final auth = context.read<AuthService>();
-    setState(() => _loading = true);
+    if (isSearch) {
+      setState(() => _searching = true);
+    } else {
+      setState(() => _loading = true);
+    }
     try {
-      final cats = await auth.api.adminCategories(auth.token!);
-      final qs = await auth.api.adminQuestions(auth.token!,
-          categorieId: _filterCategoryId);
+      // Charger les catégories seulement au premier chargement
+      if (!isSearch && _categories.isEmpty) {
+        final cats = await auth.api.adminCategories(auth.token!);
+        if (mounted) {
+          _categories = (cats['categories'] as List? ?? [])
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
+        }
+      }
+      // Recherche Full-Text côté serveur (retourne TOUS les résultats)
+      final qs = await auth.api.adminQuestions(
+        auth.token!,
+        categorieId: _filterCategoryId,
+        search: _searchQuery.trim().isEmpty ? null : _searchQuery.trim(),
+      );
       if (!mounted) return;
       final list = (qs['questions'] as List? ?? [])
           .map((e) => Map<String, dynamic>.from(e))
           .toList();
-      _stableSort(list);
       setState(() {
-        _categories = (cats['categories'] as List? ?? [])
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
         _questions = list;
+        _totalCount = (qs['total'] as int?) ?? list.length;
         _loading = false;
+        _searching = false;
       });
     } catch (_) {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) setState(() { _loading = false; _searching = false; });
     }
   }
 
@@ -333,15 +320,25 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
                   child: TextField(
                     controller: _searchCtrl,
                     decoration: InputDecoration(
-                      hintText: 'Rechercher (énoncé, option, explication...)',
-                      prefixIcon: const Icon(Icons.search),
+                      hintText: 'Recherche serveur (mot-clé, catégorie...)',
+                      prefixIcon: _searching
+                          ? const SizedBox(
+                              width: 20, height: 20,
+                              child: Padding(
+                                padding: EdgeInsets.all(10),
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            )
+                          : const Icon(Icons.search),
                       suffixIcon: _searchQuery.isEmpty
                           ? null
                           : IconButton(
                               icon: const Icon(Icons.clear),
                               onPressed: () {
                                 _searchCtrl.clear();
+                                _debounceTimer?.cancel();
                                 setState(() => _searchQuery = '');
+                                _loadAll();
                               },
                             ),
                       isDense: true,
@@ -349,7 +346,7 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onChanged: (v) => setState(() => _searchQuery = v),
+                    onChanged: _onSearchChanged,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -385,6 +382,7 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
                   onPressed: (_filterCategoryId == null && _searchQuery.isEmpty)
                       ? null
                       : () {
+                          _debounceTimer?.cancel();
                           _searchCtrl.clear();
                           setState(() {
                             _searchQuery = '';
@@ -404,7 +402,9 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              '${filtered.length} question(s) affichée(s) / ${_questions.length}',
+              _searchQuery.isEmpty && _filterCategoryId == null
+                  ? '${_questions.length} question(s) — Total base : $_totalCount'
+                  : '${_questions.length} résultat(s) trouvé(s) sur $_totalCount questions',
               style: const TextStyle(
                   fontSize: 12,
                   color: Colors.black54,

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="gr1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0369A1"/>
+      <stop offset="100%" stop-color="#0EA5E9"/>
+    </linearGradient>
+  </defs>
+  <!-- Sol / champ -->
+  <rect x="4" y="44" width="56" height="16" rx="4" fill="url(#gr1)"/>
+  <!-- Épis de blé (symbolique) -->
+  <line x1="20" y1="44" x2="20" y2="20" stroke="#FBBF24" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="20" cy="17" rx="4" ry="7" fill="#FBBF24"/>
+  <ellipse cx="16" cy="22" rx="3" ry="6" fill="#FBBF24" transform="rotate(-20 16 22)"/>
+  <ellipse cx="24" cy="22" rx="3" ry="6" fill="#FBBF24" transform="rotate(20 24 22)"/>
+  <!-- Outil / pelle -->
+  <line x1="40" y1="44" x2="50" y2="14" stroke="#1E40AF" stroke-width="3.5" stroke-linecap="round"/>
+  <ellipse cx="47" cy="11" rx="6" ry="4" fill="#0369A1" transform="rotate(-30 47 11)"/>
+  <!-- Engrenage (ingénierie) -->
+  <circle cx="32" cy="36" r="4" fill="white" opacity="0.9"/>
+  <line x1="32" y1="28" x2="32" y2="44" stroke="white" stroke-width="2" opacity="0.7"/>
+  <line x1="24" y1="36" x2="40" y2="36" stroke="white" stroke-width="2" opacity="0.7"/>
+</svg>

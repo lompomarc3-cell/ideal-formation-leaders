@@ -757,12 +757,12 @@ class AboutPrivacyPage extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.person_rounded,
+                          Icon(Icons.groups_rounded,
                               color: AppColors.primary, size: 18),
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Marc LOMPO – YOUGA DIGITAL SERVICE',
+                              'YOUGA DIGITAL SERVICE',
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 13.5,
@@ -815,8 +815,31 @@ class AboutPrivacyPage extends StatelessWidget {
             ),
           ),
 
+          // Mention conception d'applications
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF86EFAC)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.code_rounded, color: Color(0xFF16A34A), size: 18),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Pour tout besoin de conception d\'application ou développement logiciel, contactez-nous.',
+                    style: TextStyle(fontSize: 12.5, fontStyle: FontStyle.italic, color: Color(0xFF15803D)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // Bouton WhatsApp
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(

@@ -23,15 +23,36 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'Accès refusé' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
   }
 
-  // GET: liste des utilisateurs non admin
+  // GET: liste des utilisateurs non admin (pagination complète)
   if (req.method === 'GET') {
     try {
-      const { data: users, error } = await supabaseAdmin
+      const urlObj = new URL(req.url)
+      const page = parseInt(urlObj.searchParams.get('page') || '1', 10)
+      const perPage = parseInt(urlObj.searchParams.get('per_page') || '50', 10)
+      const searchQ = (urlObj.searchParams.get('search') || '').trim()
+      const offset = (page - 1) * perPage
+
+      // Compter le total d'abord
+      let countQuery = supabaseAdmin
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .not('role', 'in', '("admin","superadmin")')
+      if (searchQ) {
+        countQuery = countQuery.or(`full_name.ilike.%${searchQ}%,phone.ilike.%${searchQ}%`)
+      }
+      const { count: totalCount } = await countQuery
+
+      // Récupérer la page demandée (SANS limite cachée)
+      let dataQuery = supabaseAdmin
         .from('profiles')
         .select('id, full_name, phone, role, subscription_type, subscription_status, subscription_expires_at, created_at')
         .not('role', 'in', '("admin","superadmin")')
         .order('created_at', { ascending: false })
-        .limit(100)
+        .range(offset, offset + perPage - 1)
+      if (searchQ) {
+        dataQuery = dataQuery.or(`full_name.ilike.%${searchQ}%,phone.ilike.%${searchQ}%`)
+      }
+      const { data: users, error } = await dataQuery
 
       if (error) throw error
 
@@ -109,7 +130,15 @@ export default async function handler(req) {
         })
       }
 
-      return new Response(JSON.stringify({ users: userList }), {
+      return new Response(JSON.stringify({
+        users: userList,
+        pagination: {
+          total: totalCount || 0,
+          page,
+          per_page: perPage,
+          total_pages: Math.ceil((totalCount || 0) / perPage)
+        }
+      }), {
         status: 200, headers: { 'Content-Type': 'application/json' }
       })
     } catch (err) {

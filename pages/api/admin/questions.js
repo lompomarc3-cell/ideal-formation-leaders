@@ -25,20 +25,39 @@ export default async function handler(req) {
 
   const url = new URL(req.url)
 
-  // GET: lister les questions
+  // GET: lister les questions (avec recherche Full-Text et pagination)
   if (req.method === 'GET') {
     try {
       const categorieId = url.searchParams.get('categorie_id')
-      
+      const searchQ = (url.searchParams.get('search') || '').trim()
+      const page = parseInt(url.searchParams.get('page') || '1', 10)
+      const perPage = parseInt(url.searchParams.get('per_page') || '0', 10) // 0 = tout retourner
+
       let query = supabaseAdmin
         .from('questions')
-        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, is_active, category_id, categories(nom, type)')
+        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, is_active, category_id, categories(nom, type)', { count: 'exact' })
         .eq('is_active', true)
-        .limit(2000)
+        .order('created_at', { ascending: true })
 
+      // Filtre par catégorie
       if (categorieId) query = query.eq('category_id', categorieId)
 
-      const { data: questions, error } = await query
+      // Recherche Full-Text : sur énoncé, options, explication
+      if (searchQ) {
+        const like = `%${searchQ}%`
+        query = query.or(
+          `enonce.ilike.${like},option_a.ilike.${like},option_b.ilike.${like},option_c.ilike.${like},option_d.ilike.${like},explication.ilike.${like}`
+        )
+      }
+
+      // Pagination optionnelle (perPage=0 → tout retourner sans limit)
+      if (perPage > 0) {
+        const offset = (page - 1) * perPage
+        query = query.range(offset, offset + perPage - 1)
+      }
+      // Pas de .limit() : on retourne TOUT ce qui correspond au filtre
+
+      const { data: questions, error, count } = await query
 
       if (error) throw error
 
@@ -56,7 +75,8 @@ export default async function handler(req) {
           bonne_reponse: q.reponse_correcte,
           explication: q.explication,
           is_demo: q.is_demo
-        }))
+        })),
+        total: count || 0
       }), { status: 200, headers: { 'Content-Type': 'application/json' } })
     } catch (err) {
       return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })

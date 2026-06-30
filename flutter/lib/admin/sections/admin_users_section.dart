@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,6 +6,7 @@ import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
 /// Gestion complète des utilisateurs : liste, édition d'abonnement, suppression.
+/// v3.0.6 — Suppression limite 100, pagination 50/page, recherche serveur.
 class AdminUsersSection extends StatefulWidget {
   const AdminUsersSection({super.key});
 
@@ -17,6 +19,12 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
   List<Map<String, dynamic>> _users = [];
   String _search = '';
   String? _error;
+  int _page = 1;
+  int _totalCount = 0;
+  int _totalPages = 1;
+  static const int _perPage = 50;
+  Timer? _searchDebounce;
+  final TextEditingController _searchCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -24,19 +32,36 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
-  Future<void> _load() async {
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load({int? page}) async {
     final auth = context.read<AuthService>();
+    final targetPage = page ?? _page;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final res = await auth.api.adminUsers(auth.token!);
+      final res = await auth.api.adminUsers(
+        auth.token!,
+        page: targetPage,
+        perPage: _perPage,
+        search: _search.trim().isEmpty ? null : _search.trim(),
+      );
       if (!mounted) return;
+      final pagination = res['pagination'] as Map<String, dynamic>?;
       setState(() {
         _users = (res['users'] as List? ?? [])
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
+        _page = targetPage;
+        _totalCount = (pagination?['total'] as int?) ?? _users.length;
+        _totalPages = (pagination?['total_pages'] as int?) ?? 1;
         _loading = false;
       });
     } catch (e) {
@@ -48,16 +73,15 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
     }
   }
 
-  List<Map<String, dynamic>> get _filtered {
-    if (_search.isEmpty) return _users;
-    final q = _search.toLowerCase();
-    return _users.where((u) {
-      return (u['phone']?.toString() ?? '').toLowerCase().contains(q) ||
-          (u['full_name']?.toString() ?? '').toLowerCase().contains(q) ||
-          (u['nom']?.toString() ?? '').toLowerCase().contains(q) ||
-          (u['prenom']?.toString() ?? '').toLowerCase().contains(q);
-    }).toList();
+  void _onSearchChanged(String v) {
+    _searchDebounce?.cancel();
+    setState(() => _search = v);
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      _load(page: 1);
+    });
   }
+
+  List<Map<String, dynamic>> get _filtered => _users;
 
   bool _isActive(Map<String, dynamic> u) {
     return u['subscription_status'] == 'active';
@@ -182,32 +206,65 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
     }
     return Column(
       children: [
+        // Barre de recherche + compteur total
         Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
           child: Row(
             children: [
               Expanded(
                 child: TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Rechercher par nom, téléphone…',
-                    prefixIcon: Icon(Icons.search),
+                  controller: _searchCtrl,
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher nom, téléphone…',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _search.isEmpty ? null : IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchDebounce?.cancel();
+                        _searchCtrl.clear();
+                        setState(() => _search = '');
+                        _load(page: 1);
+                      },
+                    ),
                     isDense: true,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
-                  onChanged: (v) => setState(() => _search = v),
+                  onChanged: _onSearchChanged,
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                '${_filtered.length}/${_users.length}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.darkTerracotta,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '$_totalCount inscrits',
+                    style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.darkTerracotta, fontSize: 13),
+                  ),
+                  Text('Page $_page/$_totalPages', style: const TextStyle(fontSize: 10, color: Colors.black54)),
+                ],
               ),
             ],
           ),
         ),
+        // Pagination
+        if (_totalPages > 1)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: _page > 1 ? () => _load(page: _page - 1) : null,
+                ),
+                Text('Page $_page / $_totalPages', style: const TextStyle(fontWeight: FontWeight.w700)),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: _page < _totalPages ? () => _load(page: _page + 1) : null,
+                ),
+              ],
+            ),
+          ),
         Expanded(
           child: _filtered.isEmpty
               ? const Center(
@@ -215,7 +272,7 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
                       style: TextStyle(color: Colors.black54)),
                 )
               : RefreshIndicator(
-                  onRefresh: _load,
+                  onRefresh: () => _load(page: 1),
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     itemCount: _filtered.length,

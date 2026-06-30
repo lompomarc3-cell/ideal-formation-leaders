@@ -60,8 +60,16 @@ String? _keyFromCategoryName(String nom, String catType) {
     if (n.contains('police')) return 'badge';
     if (n.contains('gsp')) return 'shield';
     if (n.contains('vie scolaire') || n.contains('casu')) return 'school';
-    if (n.contains('cisu') || n.contains('aisu') || n.contains('enaref')) return 'enaref'; // CISU/AISU (nouveau nom)
+    if (n.contains('enaref') && (n.contains('cycle c') || n.contains('cycle_c'))) return 'enaref_c'; // ENAREF CYCLE C
+    if (n.contains('cisu') || n.contains('aisu') || n.contains('enaref')) return 'enaref'; // CISU/AISU/ENAREF
     if (n.contains('iepenf') || n.contains('iepe')) return 'search2';
+    // 🆕 7 nouveaux dossiers professionnels v3.0.6
+    if (n.contains('agent') && n.contains('grh')) return 'grh_agent';
+    if (n.contains('assistant') && n.contains('grh')) return 'grh_assistant';
+    if (n.contains('conseiller') && n.contains('grh')) return 'target'; // conseiller → target (objectif)
+    if (n.contains('géomètre') || n.contains('geometre')) return 'geometre';
+    if (n.contains('génie rural') || n.contains('genie rural')) return 'genie_rural';
+    if (n.contains('hydraulique')) return 'hydraulique';
     // 🆕 Nouveaux dossiers – priorité AVANT les règles génériques
     if (n.contains('capé') || n.contains('cape')) return 'cape';
     if (n.contains('impôt') || n.contains('impot')) {
@@ -216,6 +224,13 @@ const Map<String, IconStyle> _proIconColors = {
   'agriculture_ingenieur':  IconStyle(bgGradient: [Color(0xFF075985), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF075985)),
   'affaires_etrangeres':    IconStyle(bgGradient: [Color(0xFF1E40AF), Color(0xFF3B82F6)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E40AF)),
   'douane':                 IconStyle(bgGradient: [Color(0xFF075985), Color(0xFF0369A1)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF075985)),
+  // 🆕 7 nouveaux dossiers v3.0.6
+  'grh_agent':              IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
+  'grh_assistant':          IconStyle(bgGradient: [Color(0xFF0E7490), Color(0xFF06B6D4)], border: Color(0xFFA5F3FC), tag: Color(0xFFECFEFF), tagText: Color(0xFF0E7490)),
+  'geometre':               IconStyle(bgGradient: [Color(0xFF1E40AF), Color(0xFF3B82F6)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E40AF)),
+  'genie_rural':            IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
+  'hydraulique':            IconStyle(bgGradient: [Color(0xFF0284C7), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0284C7)),
+  'enaref_c':               IconStyle(bgGradient: [Color(0xFF1E3A8A), Color(0xFF2563EB)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E3A8A)),
 };
 
 IconStyle iconStyleFor(String? icone, String catType, {String? categoryName}) {
