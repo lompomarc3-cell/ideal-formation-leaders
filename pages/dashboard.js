@@ -157,7 +157,7 @@ export default function Dashboard() {
   }, [router.isReady, router.query])
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 30 dossiers (20 000 FCFA par an)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 37 dossiers (20 000 FCFA par an / dossier)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
     if (navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Idéale Formation of Leaders', text, url: APP_URL })
@@ -302,7 +302,7 @@ export default function Dashboard() {
       if (dossiersProPrincipaux.length === 0) {
         parts.push('Concours professionnels (accompagnements)')
       } else if (dossiersProPrincipaux.length >= 14) {
-        parts.push('Accès complet Concours professionnels (30 dossiers)')
+        parts.push('Accès complet Concours professionnels (37 dossiers : 34 payants + 3 bonus)')
       } else {
         parts.push(dossiersProPrincipaux.join(', '))
       }
@@ -459,7 +459,7 @@ export default function Dashboard() {
                                 </div>
                                 {dp.length >= 14 ? (
                                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)' }}>
-                                    🏆 Accès complet (29 dossiers)
+                                    🏆 Accès complet (34 dossiers payants)
                                   </span>
                                 ) : dp.length > 0 ? (
                                   <div className="flex flex-wrap gap-1">
@@ -866,7 +866,7 @@ export default function Dashboard() {
                         const dp = (user.dossiers_principaux || []).filter(d => !acc.includes(d))
                         if (dp.length >= 14) return (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
-                            🏆 Accès complet (29 dossiers)
+                            🏆 Accès complet (34 dossiers payants)
                           </span>
                         )
                         if (dp.length > 0) return (
@@ -1065,7 +1065,7 @@ export default function Dashboard() {
                               {dossiersPrincipaux.length >= 14 ? (
                                 <div>
                                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
-                                    🏆 Accès complet (35 dossiers payants)
+                                    🏆 Accès complet (34 dossiers payants)
                                   </span>
                                 </div>
                               ) : dossiersPrincipaux.length > 0 ? (
@@ -1349,7 +1349,7 @@ export default function Dashboard() {
                           </div>
                           <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center justify-center gap-1">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                            <p className="text-xs text-orange-100">Pro (30 dossiers)</p>
+                            <p className="text-xs text-orange-100">Pro (37 dossiers)</p>
                             <p className="font-extrabold">20 000 FCFA par an</p>
                           </div>
                         </div>

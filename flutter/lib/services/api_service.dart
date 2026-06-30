@@ -17,7 +17,33 @@ class ApiService {
     final h = <String, String>{'Content-Type': 'application/json'};
     if (token != null && token.isNotEmpty) {
       h['Authorization'] = 'Bearer $token';
-    }
+    
+  // ── Sessions spéciales ──
+  Future<Map<String, dynamic>> adminSessions(String token) async {
+    final res = await _client.get(
+      Uri.parse('$baseUrl/api/admin/sessions'),
+      headers: _authHeaders(token),
+    );
+    return _decode(res);
+  }
+
+  Future<Map<String, dynamic>> adminCreateSession(String token, Map<String, dynamic> body) async {
+    final res = await _client.post(
+      Uri.parse('$baseUrl/api/admin/sessions'),
+      headers: _jsonHeaders(token),
+      body: jsonEncode(body),
+    );
+    return _decode(res);
+  }
+
+  Future<Map<String, dynamic>> adminDeleteSession(String token, String id) async {
+    final res = await _client.delete(
+      Uri.parse('$baseUrl/api/admin/sessions/$id'),
+      headers: _authHeaders(token),
+    );
+    return _decode(res);
+  }
+}
     return h;
   }
 
@@ -748,4 +774,30 @@ class ApiService {
     );
     return _decode(res);
   }
+  // ── Sessions spéciales ──
+  Future<Map<String, dynamic>> adminSessions(String token) async {
+    final res = await _client.get(
+      Uri.parse('$baseUrl/api/admin/sessions'),
+      headers: _authHeaders(token),
+    );
+    return _decode(res);
+  }
+
+  Future<Map<String, dynamic>> adminCreateSession(String token, Map<String, dynamic> body) async {
+    final res = await _client.post(
+      Uri.parse('$baseUrl/api/admin/sessions'),
+      headers: _jsonHeaders(token),
+      body: jsonEncode(body),
+    );
+    return _decode(res);
+  }
+
+  Future<Map<String, dynamic>> adminDeleteSession(String token, String id) async {
+    final res = await _client.delete(
+      Uri.parse('$baseUrl/api/admin/sessions/$id'),
+      headers: _authHeaders(token),
+    );
+    return _decode(res);
+  }
+
 }

@@ -34,7 +34,7 @@ export default async function handler(req) {
         .from('questions')
         .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, is_active, category_id, categories(nom, type)')
         .eq('is_active', true)
-        .limit(200)
+        .limit(2000)
 
       if (categorieId) query = query.eq('category_id', categorieId)
 

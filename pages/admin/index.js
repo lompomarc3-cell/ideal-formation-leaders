@@ -63,6 +63,7 @@ export default function AdminDashboard() {
     { id: 'concours_pro', label: '🎓 Prog. Pro', icon: '🎓' },
     { id: 'prices', label: '💰 Prix', icon: '💰' },
     { id: 'promotions', label: '🎯 Promotions', icon: '🎯' },
+    { id: 'sessions_speciales', label: '⚡ Sessions', icon: '⚡' },
     { id: 'password', label: '🔑 Mot de passe', icon: '🔑' },
   ]
 
@@ -127,7 +128,11 @@ export default function AdminDashboard() {
           {activeSection === 'concours_pro' && <AdminConcoursSession type="professionnel" getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'prices' && <AdminPrices getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'promotions' && <AdminPromotions getToken={getToken} onNotif={showNotif} />}
-          {activeSection === 'password' && <AdminChangePassword getToken={getToken} onNotif={showNotif} user={user} />}
+          {activeSection === 'sessions_speciales' && (
+          <SessionsSpecialesSection token={token} notify={notify} />
+        )}
+
+        {activeSection === 'password' && <AdminChangePassword getToken={getToken} onNotif={showNotif} user={user} />}
         </div>
       </div>
     </>

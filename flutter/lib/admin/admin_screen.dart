@@ -14,10 +14,11 @@ import 'sections/admin_schedules_section.dart';
 import 'sections/admin_prices_section.dart';
 import 'sections/admin_promotions_section.dart';
 import 'sections/admin_change_password_section.dart';
+import 'sections/admin_sessions_section.dart';
 
 /// Panneau d'administration complet (équivalent pages/admin/index.js).
-/// 10 sections : Stats, Paiements, Utilisateurs, Questions QCM, Dissertations,
-/// Catégories, Programmation, Prix, Promotions, Changement mot de passe.
+/// 11 sections : Stats, Paiements, Utilisateurs, Questions QCM, Dissertations,
+/// Catégories, Programmation, Prix, Promotions, Sessions spéciales, Changement mot de passe.
 ///
 /// AMÉLIORATIONS UX :
 /// - Tuiles d'accueil cliquables (au lieu de petites tabs serrées)
@@ -93,6 +94,12 @@ class _AdminScreenState extends State<AdminScreen> {
       Icons.local_offer,
       'Créer des promotions à durée limitée.',
       Color(0xFFDB2777),
+    ),
+    _AdminTab(
+      '⚡ Sessions',
+      Icons.flash_on,
+      'Créer des sessions d'accès temporaire (Direct ou Pro) avec durée, prix et dates.',
+      Color(0xFF7C3AED),
     ),
     _AdminTab(
       '🔐 Mot de passe',
@@ -558,6 +565,8 @@ class _AdminScreenState extends State<AdminScreen> {
       case 8:
         return const AdminPromotionsSection();
       case 9:
+        return const AdminSessionsSection();
+      case 10:
         return const AdminChangePasswordSection();
     }
     return const SizedBox.shrink();
@@ -588,7 +597,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 const SizedBox(height: 6),
                 const Text('• 5 premières questions gratuites par dossier',
                     style: TextStyle(fontSize: 12)),
-                const Text('• 27 dossiers professionnels payants + 3 bonus (20 000 FCFA par an chacun)',
+                const Text('• 34 dossiers professionnels payants + 3 bonus (20 000 FCFA par an chacun)',
                     style: TextStyle(fontSize: 12)),
                 const Text(
                     '• Total : 37 dossiers professionnels (34 payants + 3 bonus offerts)',

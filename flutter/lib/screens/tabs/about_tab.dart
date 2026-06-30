@@ -14,7 +14,7 @@ const String kPlayStoreUrl =
 /// 3 sous-pages :
 /// 5.1 À propos de l'application
 /// 5.2 À propos de l'équipe
-/// 5.3 À propos du développeur
+/// 5.3 Politique de confidentialité
 class AboutTab extends StatelessWidget {
   const AboutTab({super.key});
 
@@ -100,12 +100,12 @@ class AboutTab extends StatelessWidget {
           ),
           _menuTile(
             context,
-            icon: Icons.terminal_rounded,
-            title: "Le développeur",
-            subtitle: "Marc LOMPO",
+            icon: Icons.privacy_tip_rounded,
+            title: "Politique de confidentialité",
+            subtitle: "Données, droits, contact",
             color: const Color(0xFF8B2500),
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const AboutDevPage()),
+              MaterialPageRoute(builder: (_) => const AboutPrivacyPage()),
             ),
           ),
         ],
@@ -524,9 +524,9 @@ class AboutTeamPage extends StatelessWidget {
                 SizedBox(height: 10),
                 Text(
                   'Notre équipe est également auteure de plusieurs livres et '
-                  'guides sur les concours directs. Nous mettons toute cette '
-                  'expérience pédagogique à votre service à travers des '
-                  'milliers de QCM rigoureusement conçus.',
+                  'guides sur les concours directs et professionnels. Nous mettons '
+                  'toute cette expérience pédagogique à votre service à travers '
+                  'des milliers de QCM rigoureusement conçus.'
                   style: TextStyle(fontSize: 13.5, height: 1.6),
                 ),
               ],
@@ -574,20 +574,45 @@ class AboutTeamPage extends StatelessWidget {
 }
 
 // ============================================================
-// 5.3 — À propos du développeur
+// 5.3 — Politique de confidentialité
 // ============================================================
 
-class AboutDevPage extends StatelessWidget {
-  const AboutDevPage({super.key});
+class AboutPrivacyPage extends StatelessWidget {
+  const AboutPrivacyPage({super.key});
 
   Future<void> _whatsApp() async {
     final uri = Uri.parse('https://wa.me/$kDevWhatsApp');
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
-  Future<void> _call() async {
-    final uri = Uri.parse('tel:+$kDevWhatsApp');
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Widget _section(String title, String content) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFFE4CC)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 14,
+              color: AppColors.darkTerracotta,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content,
+            style: const TextStyle(fontSize: 13, height: 1.55),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -599,128 +624,129 @@ class AboutDevPage extends StatelessWidget {
         foregroundColor: Colors.white,
         elevation: 0,
         title: const Text(
-          'Le développeur',
+          'Politique de confidentialité',
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // En-tête
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF8B2500), Color(0xFFC4521A)],
               ),
               borderRadius: BorderRadius.circular(22),
             ),
-            child: Column(
+            child: const Column(
               children: [
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 3),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'ML',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 32,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Text(
-                  'Marc LOMPO',
+                Icon(Icons.privacy_tip_rounded, color: Colors.white, size: 48),
+                SizedBox(height: 10),
+                Text(
+                  'Politique de confidentialité',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
-                    fontSize: 22,
+                    fontSize: 16,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    '💼 Ingénieur en transformation digitale',
-                    style: TextStyle(
-                      color: Color(0xFFFFE0A0),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                SizedBox(height: 4),
+                Text(
+                  'IFL – Idéale Formation of Leaders',
+                  style: TextStyle(color: Color(0xFFFFE0A0), fontSize: 12),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 18),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFFFE4CC)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  '📞 Contact',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 15,
-                    color: AppColors.darkTerracotta,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  onPressed: _whatsApp,
-                  icon: const Icon(Icons.chat_rounded),
-                  label: const Text('WhatsApp +226 72 66 21 61'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.whatsapp,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                OutlinedButton.icon(
-                  onPressed: _call,
-                  icon: const Icon(Icons.call_rounded),
-                  label: const Text('Appeler +226 72 66 21 61'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: const BorderSide(
-                        color: AppColors.primary, width: 2),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ],
+
+          // Section 1 : Données collectées
+          _section(
+            '1. Données collectées',
+            'Nous collectons uniquement les informations nécessaires à '
+            'votre inscription : numéro de téléphone, nom, prénom. '
+            'Aucune donnée bancaire n\'est stockée sur nos serveurs. '
+            'Les justificatifs de paiement sont traités manuellement '
+            'et conservés de manière sécurisée.',
+          ),
+
+          // Section 2 : Utilisation des données
+          _section(
+            '2. Utilisation des données',
+            'Vos données sont utilisées exclusivement pour : gérer votre '
+            'compte et votre abonnement, suivre votre progression dans '
+            'les QCM, vous contacter en cas de besoin lié à votre abonnement. '
+            'Elles ne sont jamais utilisées à des fins commerciales ou publicitaires.',
+          ),
+
+          // Section 3 : Protection des données
+          _section(
+            '3. Protection des données',
+            'Vos mots de passe sont stockés sous forme chiffrée '
+            '(hachage sécurisé). L\'accès à vos données est strictement '
+            'limité à l\'équipe administrative d\'IFL. Nous utilisons '
+            'des connexions sécurisées (HTTPS/TLS) pour toutes les '
+            'communications entre l\'application et nos serveurs.',
+          ),
+
+          // Section 4 : Partage des données
+          _section(
+            '4. Partage des données',
+            'Vos données personnelles ne sont jamais vendues, louées '
+            'ou cédées à des tiers. Elles ne sont partagées avec aucun '
+            'partenaire commercial. Seule l\'équipe IFL a accès à vos '
+            'informations, dans le strict cadre de la gestion de votre compte.',
+          ),
+
+          // Section 5 : Vos droits (contexte burkinabé)
+          _section(
+            '5. Vos droits (contexte burkinabè)',
+            'Conformément aux principes de protection des données en vigueur '
+            'au Burkina Faso, vous disposez des droits suivants :\n'
+            '• Droit d\'accès à vos données personnelles\n'
+            '• Droit de rectification de vos informations\n'
+            '• Droit à la suppression de votre compte\n'
+            '• Droit d\'opposition au traitement de vos données\n'
+            'Pour exercer ces droits, contactez-nous via WhatsApp.',
+          ),
+
+          // Section 6 : Contact
+          _section(
+            '6. Contact',
+            'Pour toute question relative à votre vie privée ou pour '
+            'exercer vos droits, contactez YOUGA DIGITAL SERVICE via '
+            'WhatsApp au +226 72 66 21 61. Nous nous engageons à '
+            'répondre dans un délai de 48 heures ouvrées.',
+          ),
+
+          // Bouton WhatsApp
+          const SizedBox(height: 6),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _whatsApp,
+              icon: const Icon(Icons.chat_rounded),
+              label: const Text('Contacter via WhatsApp +226 72 66 21 61'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.whatsapp,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
             ),
           ),
-          const SizedBox(height: 30),
+
+          // Copyright
+          const SizedBox(height: 28),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
+            child: const Column(
               children: [
-                const Icon(
-                  Icons.copyright_rounded,
-                  color: Color(0xFF9CA3AF),
-                  size: 22,
-                ),
-                const SizedBox(height: 6),
-                const Text(
+                Icon(Icons.copyright_rounded, color: Color(0xFF9CA3AF), size: 22),
+                SizedBox(height: 6),
+                Text(
                   'YOUGA DIGITAL SERVICE',
                   style: TextStyle(
                     color: Color(0xFF6B7280),
@@ -729,13 +755,10 @@ class AboutDevPage extends StatelessWidget {
                     letterSpacing: 1.2,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
-                  'Tous droits réservés © ${DateTime.now().year}',
-                  style: const TextStyle(
-                    color: Color(0xFF9CA3AF),
-                    fontSize: 11,
-                  ),
+                  'Tous droits réservés © 2026',
+                  style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 11),
                 ),
               ],
             ),
