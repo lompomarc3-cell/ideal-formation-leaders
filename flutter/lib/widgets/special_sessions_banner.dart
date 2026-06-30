@@ -266,69 +266,190 @@ class _SpecialSessionsBannerState extends State<SpecialSessionsBanner>
     );
   }
 
-  void _onSessionTap(Map<String, dynamic> session) {
+  Future<void> _onSessionTap(Map<String, dynamic> session) async {
+    final auth = context.read<AuthService>();
+    if (!auth.isAuthenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez vous connecter pour profiter de cette offre')),
+      );
+      return;
+    }
+
+    final isDirect = session['type'] == 'direct';
+    final prix = session['prix'] as int? ?? 0;
+    final originalPrix = isDirect ? 5000 : 20000;
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            const Icon(Icons.bolt_rounded, color: Color(0xFFC4521A)),
-            const SizedBox(width: 8),
-            Expanded(child: Text(session['label']?.toString() ?? 'Offre spéciale')),
-          ],
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        contentPadding: EdgeInsets.zero,
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(session['description']?.toString() ?? ''),
-            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF8F0),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFFD0A0)),
+                gradient: LinearGradient(
+                  colors: isDirect
+                      ? [const Color(0xFFC4521A), const Color(0xFFD4A017)]
+                      : [const Color(0xFF0369A1), const Color(0xFF0EA5E9)],
+                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('💰 Prix : ${session['prix']} FCFA',
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
-                  Text('📅 Durée : ${session['duration_days']} jours',
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
-                  if (session['dossier_nom'] != null)
-                    Text('📂 Dossier : ${session['dossier_nom']}',
-                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                  const Icon(Icons.bolt_rounded, color: Colors.white, size: 48),
+                  const SizedBox(height: 12),
+                  Text(
+                    session['label']?.toString() ?? 'Offre spéciale',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
-            const Text(
-              'Pour souscrire, contactez-nous via WhatsApp.',
-              style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (session['description'] != null) ...[
+                    Text(
+                      session['description'].toString(),
+                      style: const TextStyle(fontSize: 14, color: Color(0xFF4B5563)),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9FAFB),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                    ),
+                    child: Column(
+                      children: [
+                        _infoRow(Icons.timer_outlined, 'Durée', '${session['duration_days']} jours'),
+                        if (session['dossier_nom'] != null)
+                          _infoRow(Icons.folder_outlined, 'Dossier', session['dossier_nom']),
+                        const Divider(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Prix promo', style: TextStyle(fontWeight: FontWeight.w600)),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '$originalPrix FCFA',
+                                  style: const TextStyle(
+                                    decoration: TextDecoration.lineThrough,
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  '$prix FCFA',
+                                  style: TextStyle(
+                                    color: isDirect ? const Color(0xFFC4521A) : const Color(0xFF0369A1),
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isDirect ? const Color(0xFFC4521A) : const Color(0xFF0369A1),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        _processPurchase(session['id'].toString());
+                      },
+                      child: const Text('PROFITER DE L\'OFFRE', style: TextStyle(fontWeight: FontWeight.w900)),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Plus tard', style: TextStyle(color: Colors.grey)),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Fermer'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.whatsapp,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              // Ouvrir WhatsApp
-            },
-            child: const Text('WhatsApp'),
-          ),
+      ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Colors.grey),
+          const SizedBox(width: 8),
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
         ],
       ),
     );
+  }
+
+  Future<void> _processPurchase(String sessionId) async {
+    final auth = context.read<AuthService>();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final res = await auth.api.purchaseSession(auth.token!, sessionId);
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+
+      if (res['success'] == true) {
+        await auth.refreshUser();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🎉 Offre activée avec succès ! Profitez bien.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _load(); // Reload sessions
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(res['error'] ?? 'Une erreur est survenue')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur réseau')),
+      );
+    }
   }
 }

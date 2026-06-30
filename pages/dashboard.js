@@ -1387,22 +1387,7 @@ export default function Dashboard() {
                       <span className="text-lg">📋</span> Politique & règles communautaires
                     </h3>
                     <div className="space-y-2">
-                      <details className="rounded-2xl border border-amber-100 overflow-hidden" style={{ background: '#FFFBF5' }}>
-                        <summary className="px-4 py-3.5 font-bold text-gray-800 text-sm cursor-pointer flex items-center justify-between list-none">
-                          <span className="flex items-center gap-2"><span>🔒</span> Politique de confidentialité</span>
-                          <span style={{ color: '#C4521A', fontSize: 18, fontWeight: 700 }}>+</span>
-                        </summary>
-                        <div className="px-4 pb-4 pt-2">
-                          <div className="h-px bg-amber-100 mb-3"></div>
-                          <div className="text-gray-600 text-xs leading-relaxed space-y-2">
-                            <p><strong className="text-gray-800">1. Données collectées</strong><br/>IFL collecte uniquement les informations nécessaires à la création et à la gestion de votre compte : numéro de téléphone, nom, prénom et données de progression dans les dossiers.</p>
-                            <p><strong className="text-gray-800">2. Utilisation des données</strong><br/>Vos données sont utilisées exclusivement pour gérer votre abonnement, sauvegarder votre progression et améliorer nos services. Elles ne sont jamais vendues ni partagées avec des tiers.</p>
-                            <p><strong className="text-gray-800">3. Sécurité</strong><br/>Vos informations sont stockées de manière sécurisée. Votre mot de passe est chiffré et inaccessible à notre équipe.</p>
-                            <p><strong className="text-gray-800">4. Suppression du compte</strong><br/>Vous pouvez demander la suppression de votre compte à tout moment en contactant notre équipe via WhatsApp au +226 76 22 39 62.</p>
-                            <p><strong className="text-gray-800">5. Contact</strong><br/>Pour toute question relative à vos données personnelles, contactez-nous au +226 76 22 39 62.</p>
-                          </div>
-                        </div>
-                      </details>
+
                       <details className="rounded-2xl border border-amber-100 overflow-hidden" style={{ background: '#FFFBF5' }}>
                         <summary className="px-4 py-3.5 font-bold text-gray-800 text-sm cursor-pointer flex items-center justify-between list-none">
                           <span className="flex items-center gap-2"><span>🤝</span> Règles communautaires</span>

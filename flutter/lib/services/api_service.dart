@@ -805,4 +805,15 @@ class ApiService {
     );
     return _decode(res);
   }
+
+  // SESSIONS SPÉCIALES - ACHAT
+  Future<Map<String, dynamic>> purchaseSession(
+      String token, String sessionId) async {
+    final res = await _client.post(
+      Uri.parse('$baseUrl/api/sessions/purchase'),
+      headers: _jsonHeaders(token),
+      body: jsonEncode({'session_id': sessionId}),
+    );
+    return _decode(res);
+  }
 }

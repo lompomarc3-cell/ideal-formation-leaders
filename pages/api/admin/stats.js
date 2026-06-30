@@ -40,18 +40,15 @@ export default async function handler(req) {
     const directSubscribers = allUsers ? allUsers.filter(u => u.subscription_type === 'direct' && u.subscription_status === 'active').length : 0
     const proSubscribers = allUsers ? allUsers.filter(u => u.subscription_type === 'professionnel' && u.subscription_status === 'active').length : 0
 
-    // Total questions actives — utilise count: 'exact' pour ne pas charger toutes les lignes
+    // Total questions — toutes les questions en base (8671+)
     const { count: totalQuestions } = await supabaseAdmin
       .from('questions')
       .select('id', { count: 'exact', head: true })
-      .eq('is_active', true)
 
-    // Pour la répartition par catégorie on charge les IDs uniquement (pagination interne Supabase)
-    // On utilise la colonne question_count déjà calculée dans categories
+    // Toutes les catégories (Directs + Pro)
     const { data: cats } = await supabaseAdmin
       .from('categories')
       .select('id, nom, type, question_count, is_active, created_at')
-      .eq('is_active', true)
       .order('type', { ascending: true })
       .order('created_at', { ascending: true })
     

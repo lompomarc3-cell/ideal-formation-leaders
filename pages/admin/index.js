@@ -128,9 +128,7 @@ export default function AdminDashboard() {
           {activeSection === 'concours_pro' && <AdminConcoursSession type="professionnel" getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'prices' && <AdminPrices getToken={getToken} onNotif={showNotif} />}
           {activeSection === 'promotions' && <AdminPromotions getToken={getToken} onNotif={showNotif} />}
-          {activeSection === 'sessions_speciales' && (
-          <SessionsSpecialesSection token={token} notify={notify} />
-        )}
+          {activeSection === 'sessions_speciales' && <AdminSessionsSpeciales getToken={getToken} onNotif={showNotif} />}
 
         {activeSection === 'password' && <AdminChangePassword getToken={getToken} onNotif={showNotif} user={user} />}
         </div>
@@ -3082,6 +3080,304 @@ function AdminConcoursSession({ type, getToken, onNotif }) {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+
+/* =================== SESSIONS SPÉCIALES =================== */
+function AdminSessionsSpeciales({ getToken, onNotif }) {
+  const [sessions, setSessions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [editingSession, setEditingSession] = useState(null)
+  const [search, setSearch] = useState('')
+
+  useEffect(() => { fetchSessions() }, [])
+
+  const fetchSessions = async () => {
+    setLoading(true)
+    try {
+      const r = await fetch('/api/admin/sessions', { headers: { Authorization: `Bearer ${getToken()}` } })
+      const d = await r.json()
+      setSessions(d.sessions || [])
+    } catch (err) {
+      onNotif('Erreur lors du chargement des sessions', 'error')
+    }
+    setLoading(false)
+  }
+
+  const handleSave = async (formData) => {
+    try {
+      const method = formData.id ? 'PUT' : 'POST'
+      const r = await fetch('/api/admin/sessions', {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify(formData)
+      })
+      const d = await r.json()
+      if (d.session || d.success) {
+        onNotif(formData.id ? '✅ Session mise à jour' : '✅ Session créée', 'success')
+        fetchSessions()
+        setShowForm(false)
+        setEditingSession(null)
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch (err) {
+      onNotif('Erreur réseau', 'error')
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('⚠️ Supprimer cette session spéciale ?')) return
+    try {
+      const r = await fetch(`/api/admin/sessions?id=${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${getToken()}` }
+      })
+      const d = await r.json()
+      if (d.success) {
+        onNotif('🗑️ Session supprimée', 'success')
+        fetchSessions()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch (err) {
+      onNotif('Erreur réseau', 'error')
+    }
+  }
+
+  const handleToggleActive = async (session) => {
+    try {
+      const r = await fetch('/api/admin/sessions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ id: session.id, is_active: !session.is_active })
+      })
+      const d = await r.json()
+      if (d.session) {
+        onNotif(!session.is_active ? '✅ Session activée' : '✅ Session désactivée', 'success')
+        fetchSessions()
+      } else {
+        onNotif(d.error || 'Erreur', 'error')
+      }
+    } catch (err) {
+      onNotif('Erreur réseau', 'error')
+    }
+  }
+
+  const filtered = search
+    ? sessions.filter(s => 
+        (s.label || '').toLowerCase().includes(search.toLowerCase()) ||
+        (s.dossier_nom || '').toLowerCase().includes(search.toLowerCase())
+      )
+    : sessions
+
+  if (loading) return <div className="py-16 text-center"><div className="spinner mx-auto"></div></div>
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4 mt-1">
+        <h2 className="text-white text-xl font-bold">⚡ Sessions Spéciales</h2>
+        <button
+          onClick={() => { setEditingSession(null); setShowForm(true) }}
+          className="px-4 py-2 font-bold text-white rounded-xl text-sm"
+          style={{ background: '#C4521A' }}>
+          ➕ Nouvelle session
+        </button>
+      </div>
+
+      <input
+        type="text"
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        placeholder="🔍 Rechercher par label ou dossier..."
+        className="w-full bg-gray-800 text-white rounded-xl px-4 py-2.5 text-sm border border-gray-700 mb-4 focus:outline-none focus:border-amber-500"
+      />
+
+      {filtered.length === 0 ? (
+        <div className="bg-gray-800 rounded-2xl p-10 text-center">
+          <p className="text-4xl mb-3">⚡</p>
+          <p className="text-gray-400">{sessions.length === 0 ? 'Aucune session créée' : 'Aucun résultat'}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(s => (
+            <div key={s.id} className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${s.type === 'direct' ? 'bg-blue-900 text-blue-200' : 'bg-green-900 text-green-200'}`}>
+                      {s.type === 'direct' ? '📚 Direct' : '🎓 Pro'}
+                    </span>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${s.is_active ? 'bg-green-900 text-green-300' : 'bg-gray-700 text-gray-400'}`}>
+                      {s.is_active ? '✅ Actif' : '❌ Inactif'}
+                    </span>
+                  </div>
+                  <p className="text-white font-bold">{s.label || 'Sans titre'}</p>
+                  {s.dossier_nom && <p className="text-gray-400 text-sm">📌 {s.dossier_nom}</p>}
+                  <p className="text-gray-500 text-xs mt-1">
+                    💰 {(s.prix || 0).toLocaleString()} FCFA • ⏱️ {s.duration_days} jour(s)
+                  </p>
+                  <p className="text-gray-500 text-xs">
+                    {new Date(s.start_date).toLocaleDateString('fr-FR')} → {new Date(s.end_date).toLocaleDateString('fr-FR')}
+                  </p>
+                </div>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => handleToggleActive(s)}
+                    className="p-2 rounded-lg text-sm"
+                    style={{ background: s.is_active ? 'rgba(34,197,94,0.2)' : 'rgba(107,114,128,0.2)', color: s.is_active ? '#86efac' : '#9ca3af' }}>
+                    {s.is_active ? '✓' : '○'}
+                  </button>
+                  <button
+                    onClick={() => { setEditingSession(s); setShowForm(true) }}
+                    className="p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 text-sm">
+                    ✏️
+                  </button>
+                  <button
+                    onClick={() => handleDelete(s.id)}
+                    className="p-2 rounded-lg bg-red-900 text-red-200 hover:bg-red-800 text-sm">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+              {s.description && <p className="text-gray-400 text-xs">{s.description}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showForm && (
+        <SessionSpecialeForm
+          session={editingSession}
+          onSave={handleSave}
+          onCancel={() => { setShowForm(false); setEditingSession(null) }}
+        />
+      )}
+    </div>
+  )
+}
+
+function SessionSpecialeForm({ session, onSave, onCancel }) {
+  const [form, setForm] = useState({
+    type: session?.type || 'direct',
+    label: session?.label || '',
+    description: session?.description || '',
+    dossier_nom: session?.dossier_nom || '',
+    prix: session?.prix || 1500,
+    duration_days: session?.duration_days || 3,
+    start_date: session?.start_date ? session.start_date.slice(0, 16) : '',
+    end_date: session?.end_date ? session.end_date.slice(0, 16) : '',
+    is_active: session?.is_active !== false
+  })
+  const [saving, setSaving] = useState(false)
+
+  const handleSubmit = async () => {
+    if (!form.label.trim() || !form.start_date || !form.end_date) {
+      alert('⚠️ Veuillez remplir tous les champs obligatoires')
+      return
+    }
+    if (form.type === 'professionnel' && !form.dossier_nom.trim()) {
+      alert('⚠️ Le dossier est obligatoire pour une session professionnelle')
+      return
+    }
+    setSaving(true)
+    await onSave({
+      id: session?.id,
+      ...form,
+      start_date: new Date(form.start_date).toISOString(),
+      end_date: new Date(form.end_date).toISOString()
+    })
+    setSaving(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
+      <div className="w-full max-w-lg mx-4 rounded-2xl shadow-2xl" style={{ background: '#1F1106', border: '1px solid #C4521A' }}>
+        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <h3 className="text-white font-bold">{session ? '✏️ Modifier' : '➕ Nouvelle'} session spéciale</h3>
+          <button onClick={onCancel} className="text-gray-400 hover:text-white p-2 text-lg">✕</button>
+        </div>
+
+        <div className="p-4 space-y-4 max-h-[75vh] overflow-y-auto">
+          <div>
+            <label className="text-gray-400 text-xs mb-1 block">Type *</label>
+            <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value, dossier_nom: '' }))}
+              className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm">
+              <option value="direct">📚 Concours Directs</option>
+              <option value="professionnel">🎓 Concours Professionnels</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-gray-400 text-xs mb-1 block">Label / Titre *</label>
+            <input type="text" value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
+              placeholder="Ex: Offre découverte 3 jours"
+              className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm border border-gray-600 focus:border-amber-500 focus:outline-none" />
+          </div>
+
+          {form.type === 'professionnel' && (
+            <div>
+              <label className="text-gray-400 text-xs mb-1 block">📌 Dossier professionnel *</label>
+              <input type="text" value={form.dossier_nom} onChange={e => setForm(f => ({ ...f, dossier_nom: e.target.value }))}
+                placeholder="Ex: Inspectorat : IES"
+                className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm border border-gray-600 focus:border-amber-500 focus:outline-none" />
+            </div>
+          )}
+
+          <div>
+            <label className="text-gray-400 text-xs mb-1 block">Description</label>
+            <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              placeholder="Description courte de l'offre..."
+              rows={2}
+              className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm border border-gray-600 focus:border-amber-500 focus:outline-none resize-none" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-gray-400 text-xs mb-1 block">💰 Prix (FCFA) *</label>
+              <input type="number" value={form.prix} onChange={e => setForm(f => ({ ...f, prix: parseInt(e.target.value) || 0 }))}
+                min="0" className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm border border-gray-600 focus:border-amber-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="text-gray-400 text-xs mb-1 block">⏱️ Durée (jours) *</label>
+              <input type="number" value={form.duration_days} onChange={e => setForm(f => ({ ...f, duration_days: parseInt(e.target.value) || 1 }))}
+                min="1" className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm border border-gray-600 focus:border-amber-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-gray-400 text-xs mb-1 block">📅 Début *</label>
+            <input type="datetime-local" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
+              className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm border border-gray-600 focus:border-amber-500 focus:outline-none" />
+          </div>
+
+          <div>
+            <label className="text-gray-400 text-xs mb-1 block">🔚 Fin *</label>
+            <input type="datetime-local" value={form.end_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
+              className="w-full bg-gray-700 text-white rounded-xl px-3 py-2.5 text-sm border border-gray-600 focus:border-amber-500 focus:outline-none" />
+          </div>
+
+          <label className="flex items-center gap-3 bg-gray-800 rounded-xl px-3 py-2.5 cursor-pointer">
+            <input type="checkbox" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))}
+              className="w-4 h-4 accent-amber-500" />
+            <span className="text-white text-sm font-medium">Actif</span>
+          </label>
+        </div>
+
+        <div className="p-4 border-t border-gray-700 flex gap-3">
+          <button onClick={onCancel} className="flex-1 py-3 text-sm font-bold text-gray-300 rounded-xl bg-gray-700 hover:bg-gray-600 active:scale-95">
+            Annuler
+          </button>
+          <button onClick={handleSubmit} disabled={saving}
+            className="flex-1 py-3 text-sm font-bold text-white rounded-xl active:scale-95 disabled:opacity-50"
+            style={{ background: '#C4521A' }}>
+            {saving ? '⏳ Enregistrement...' : (session ? '✅ Modifier' : '✅ Créer')}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

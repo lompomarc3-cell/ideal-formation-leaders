@@ -36,7 +36,6 @@ export default async function handler(req) {
       let query = supabaseAdmin
         .from('questions')
         .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, is_active, category_id, categories(nom, type)', { count: 'exact' })
-        .eq('is_active', true)
         .order('created_at', { ascending: true })
 
       // Filtre par catégorie
