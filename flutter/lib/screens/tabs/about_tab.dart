@@ -254,7 +254,7 @@ class AboutAppPage extends StatelessWidget {
           const SizedBox(height: 4),
           const Center(
             child: Text(
-              'Version 3.0.1',
+              'Version 3.0.4',
               style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
             ),
           ),
@@ -714,12 +714,100 @@ class AboutPrivacyPage extends StatelessWidget {
           ),
 
           // Section 6 : Contact
-          _section(
-            '6. Contact',
-            'Pour toute question relative à votre vie privée ou pour '
-            'exercer vos droits, contactez YOUGA DIGITAL SERVICE via '
-            'WhatsApp au +226 72 66 21 61. Nous nous engageons à '
-            'répondre dans un délai de 48 heures ouvrées.',
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFFFE4CC)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '6. Contact',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: AppColors.darkTerracotta,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Pour toute question relative à votre vie privée ou pour '
+                  'exercer vos droits, contactez-nous :',
+                  style: TextStyle(fontSize: 13, height: 1.55),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF8F0),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFFD0A0)),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.person_rounded,
+                              color: AppColors.primary, size: 18),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Marc LOMPO – YOUGA DIGITAL SERVICE',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13.5,
+                                color: AppColors.darkTerracotta,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.phone_rounded,
+                              color: Color(0xFF25D366), size: 18),
+                          SizedBox(width: 8),
+                          Text(
+                            'WhatsApp : +226 72 66 21 61',
+                            style: TextStyle(fontSize: 13, height: 1.5),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on_rounded,
+                              color: AppColors.primary, size: 18),
+                          SizedBox(width: 8),
+                          Text(
+                            'Ouagadougou, Burkina Faso 🇧🇫',
+                            style: TextStyle(fontSize: 13, height: 1.5),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(Icons.schedule_rounded,
+                              color: AppColors.secondary, size: 18),
+                          SizedBox(width: 8),
+                          Text(
+                            'Réponse sous 48h ouvrées',
+                            style: TextStyle(fontSize: 13, height: 1.5),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
 
           // Bouton WhatsApp
