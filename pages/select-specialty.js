@@ -12,9 +12,9 @@ export const DOSSIERS_ACCOMPAGNEMENT = [
   'Accompagnement final'
 ]
 
-// Les 36 dossiers professionnels (33 payants + 3 bonus)
+// Les 37 dossiers professionnels (34 payants + 3 bonus)
 const DOSSIERS_PRO = [
-  // ── Dossiers payants (1–33) ──
+  // ── Dossiers payants (1–34) ──
   { nom: 'Spécialités Vie scolaire (CASU-AASU)', icone: '🏫', desc: 'Conseillers et Assistants en Vie Scolaire' },
   { nom: 'Spécialités CISU/AISU/ENAREF', icone: '🏛️', desc: 'Inspecteurs et Administrateurs Scolaires' },
   { nom: 'Inspectorat : IES', icone: '🔍', desc: 'Inspecteur de l\'Enseignement Secondaire' },
@@ -48,6 +48,7 @@ const DOSSIERS_PRO = [
   { nom: 'Technicien Supérieur Géomètre et Agent', icone: '📐', desc: 'Technicien Supérieur Géomètre et Agent Foncier' },
   { nom: 'Ingénieur de Conception du Génie Rural (B1 à A1)', icone: '🌾', desc: 'Ingénieur de Conception du Génie Rural' },
   { nom: 'Ingénieur de Conception en Hydraulique', icone: '💧', desc: 'Ingénieur de Conception en Hydraulique' },
+  { nom: 'ENAREF CYCLE C', icone: '🏛️', desc: 'École Nationale des Régies Financières – Cycle C' },
   // ── 3 Dossiers BONUS (toujours à la fin – débloqués avec tout dossier payant) ──
   { nom: 'Actualités et culture générale', icone: '🌍', desc: 'Culture générale et actualités nationales', isAccompagnement: true },
   { nom: 'Entraînement QCM', icone: '✏️', desc: 'QCM d\'entraînement transversaux', isAccompagnement: true },

@@ -1,8 +1,8 @@
 // IFL Service Worker – Progressive Web App
-// Version : 1.4.0 – Icônes PWA depuis vrai logo + boutons démo harmonisés
-const CACHE_VERSION = 'ifl-cache-v4'
-const STATIC_CACHE = 'ifl-static-v4'
-const API_CACHE = 'ifl-api-v1'
+// Version : 1.5.0 – ENAREF CYCLE C + fix connexion cache (34 dossiers pro)
+const CACHE_VERSION = 'ifl-cache-v5'
+const STATIC_CACHE = 'ifl-static-v5'
+const API_CACHE = 'ifl-api-v2'
 
 // Ressources à mettre en cache immédiatement (installation)
 const STATIC_ASSETS = [

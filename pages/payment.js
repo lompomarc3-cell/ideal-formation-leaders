@@ -239,7 +239,7 @@ export default function Payment() {
                 <img src="/icons/pro_graduation.svg" alt="Professionnels" width="36" height="36" style={{ objectFit: 'contain' }} />
               </div>
               <p className="font-bold text-sm leading-tight" style={{ color: '#8B2500' }}>Professionnels</p>
-              <p className="text-gray-500 text-xs mt-1">36 dossiers spécialisés</p>
+              <p className="text-gray-500 text-xs mt-1">37 dossiers spécialisés</p>
               {promos.professionnel ? (
                 <div className="mt-2">
                   <p className="text-xs font-extrabold inline-block px-1.5 py-0.5 rounded" style={{ background: '#FEF3C7', color: '#16a34a' }}>🎯 PROMO</p>
