@@ -8,7 +8,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/cat_icon.dart';
 import '../../widgets/price_display.dart';
 import '../../widgets/promo_banner.dart';
-import '../../widgets/special_sessions_banner.dart';
+// import '../../widgets/special_sessions_banner.dart'; // MASQUÉ - réactivable
 
 /// Onglet 2 : Concours direct.
 /// - 12 dossiers
@@ -98,8 +98,8 @@ class _DirectTabState extends State<DirectTab> {
               SliverToBoxAdapter(child: _buildHeader(hasAccess)),
               // 🔥 Bandeau clignotant : promo Direct uniquement
               const SliverToBoxAdapter(child: PromoBanner(type: 'direct')),
-              // ⚡ Sessions spéciales directes
-              const SliverToBoxAdapter(child: SpecialSessionsBanner(filterType: 'direct')),
+              // ⚡ Sessions spéciales directes — MASQUÉES (désactivé, réactivable)
+              // const SliverToBoxAdapter(child: SpecialSessionsBanner(filterType: 'direct')),
               if (_loading)
                 const SliverFillRemaining(
                   hasScrollBody: false,

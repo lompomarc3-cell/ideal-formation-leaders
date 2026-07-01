@@ -33,33 +33,66 @@ export default async function handler(req) {
       const page = parseInt(url.searchParams.get('page') || '1', 10)
       const perPage = parseInt(url.searchParams.get('per_page') || '0', 10) // 0 = tout retourner
 
-      let query = supabaseAdmin
-        .from('questions')
-        .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, is_active, category_id, categories(nom, type)', { count: 'exact' })
-        .order('created_at', { ascending: true })
+      const SELECT_COLS = 'id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, is_active, category_id, categories(nom, type)'
 
-      // Filtre par catégorie
-      if (categorieId) query = query.eq('category_id', categorieId)
+      // Construit une requête de base (réutilisable pour chaque tranche de pagination)
+      const buildQuery = () => {
+        let q = supabaseAdmin
+          .from('questions')
+          .select(SELECT_COLS, { count: 'exact' })
+          .order('created_at', { ascending: true })
+          .order('id', { ascending: true }) // tri secondaire stable
 
-      // Recherche Full-Text : sur énoncé, options, explication
-      if (searchQ) {
-        const like = `%${searchQ}%`
-        query = query.or(
-          `enonce.ilike.${like},option_a.ilike.${like},option_b.ilike.${like},option_c.ilike.${like},option_d.ilike.${like},explication.ilike.${like}`
-        )
+        // Filtre par catégorie
+        if (categorieId) q = q.eq('category_id', categorieId)
+
+        // Recherche Full-Text : sur énoncé, options, explication
+        if (searchQ) {
+          const like = `%${searchQ}%`
+          q = q.or(
+            `enonce.ilike.${like},option_a.ilike.${like},option_b.ilike.${like},option_c.ilike.${like},option_d.ilike.${like},explication.ilike.${like}`
+          )
+        }
+        return q
       }
 
-      // Pagination optionnelle (perPage=0 → tout retourner sans limite Supabase)
+      let questions = []
+      let count = 0
+      let error = null
+
       if (perPage > 0) {
+        // Pagination explicite demandée par le client
         const offset = (page - 1) * perPage
-        query = query.range(offset, offset + perPage - 1)
+        const res = await buildQuery().range(offset, offset + perPage - 1)
+        error = res.error
+        questions = res.data || []
+        count = res.count || 0
       } else {
-        // CRITIQUE : Supabase retourne max 1000 lignes par défaut.
-        // Pour récupérer TOUTES les questions (8000+), on doit spécifier une range large.
-        query = query.range(0, 49999) // Supporte jusqu'à 50 000 questions
+        // ✅ AUCUNE LIMITE : on récupère TOUTES les questions du dossier.
+        // PostgREST/Supabase plafonne chaque requête à max-rows (souvent 1000),
+        // même avec un .range() large. On boucle donc par tranches jusqu'à
+        // épuisement pour garantir que 100 % des questions sont chargées.
+        const CHUNK = 1000
+        let from = 0
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const res = await buildQuery().range(from, from + CHUNK - 1)
+          if (res.error) { error = res.error; break }
+          const batch = res.data || []
+          questions = questions.concat(batch)
+          if (typeof res.count === 'number') count = res.count
+          if (batch.length < CHUNK) break // dernière tranche atteinte
+          from += CHUNK
+          // Filet de sécurité pour éviter toute boucle infinie
+          if (from > 200000) break
+        }
+        // Fallback : si le total connu dépasse ce qui a été chargé, on log sans bloquer
+        if (count > questions.length) {
+          count = Math.max(count, questions.length)
+        } else {
+          count = questions.length
+        }
       }
-
-      const { data: questions, error, count } = await query
 
       if (error) throw error
 

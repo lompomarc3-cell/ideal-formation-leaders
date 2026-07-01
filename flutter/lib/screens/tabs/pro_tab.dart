@@ -8,7 +8,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/cat_icon.dart';
 import '../../widgets/price_display.dart';
 import '../../widgets/promo_banner.dart';
-import '../../widgets/special_sessions_banner.dart';
+// import '../../widgets/special_sessions_banner.dart'; // MASQUÉ - réactivable
 
 /// Onglet 3 : Concours professionnel.
 /// - 37 dossiers : 34 payants + 3 bonus (Entraînement QCM, Actualités, Accompagnement)
@@ -151,8 +151,8 @@ class _ProTabState extends State<ProTab> {
               SliverToBoxAdapter(child: _buildHeader(hasAnyPaid)),
               // 🔥 Bandeau clignotant : promo Professionnel uniquement
               const SliverToBoxAdapter(child: PromoBanner(type: 'professionnel')),
-              // ⚡ Sessions spéciales professionnelles
-              const SliverToBoxAdapter(child: SpecialSessionsBanner(filterType: 'professionnel')),
+              // ⚡ Sessions spéciales professionnelles — MASQUÉES (désactivé, réactivable)
+              // const SliverToBoxAdapter(child: SpecialSessionsBanner(filterType: 'professionnel')),
               if (_loading)
                 const SliverFillRemaining(
                   hasScrollBody: false,
