@@ -62,6 +62,8 @@ String? _keyFromCategoryName(String nom, String catType) {
     if (n.contains('vie scolaire') || n.contains('casu')) return 'school';
     if (n.contains('enaref') && (n.contains('cycle c') || n.contains('cycle_c'))) return 'enaref_c'; // ENAREF CYCLE C
     if (n.contains('cisu') || n.contains('aisu') || n.contains('enaref')) return 'enaref'; // CISU/AISU/ENAREF
+    // 🆕 Nouveau dossier v3.0.8
+    if (n.contains('adjoint') && (n.contains('secrétariat') || n.contains('secretariat'))) return 'adjoint_secretariat';
     if (n.contains('iepenf') || n.contains('iepe')) return 'search2';
     // 🆕 7 nouveaux dossiers professionnels v3.0.6
     if (n.contains('agent') && n.contains('grh')) return 'grh_agent';
@@ -231,6 +233,8 @@ const Map<String, IconStyle> _proIconColors = {
   'genie_rural':            IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF0EA5E9)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
   'hydraulique':            IconStyle(bgGradient: [Color(0xFF0284C7), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0284C7)),
   'enaref_c':               IconStyle(bgGradient: [Color(0xFF1E3A8A), Color(0xFF2563EB)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E3A8A)),
+  // 🆕 Nouveau dossier v3.0.8
+  'adjoint_secretariat':     IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
 };
 
 IconStyle iconStyleFor(String? icone, String catType, {String? categoryName}) {

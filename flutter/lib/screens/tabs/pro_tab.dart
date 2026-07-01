@@ -302,7 +302,7 @@ class _ProTabState extends State<ProTab> {
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Text(
-                    '34 dossiers payants (QCM + Dissertations)',
+                    '35 dossiers payants (QCM + Dissertations)',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,

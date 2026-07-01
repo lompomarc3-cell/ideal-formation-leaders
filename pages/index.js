@@ -291,7 +291,7 @@ export default function Home() {
   }
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 37 dossiers (20 000 FCFA par an)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 38 dossiers (20 000 FCFA par an)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Formation Burkina Faso', text, url: APP_URL })
@@ -317,7 +317,7 @@ export default function Home() {
     <>
       <Head>
         <title>IFL – Idéale Formation of Leaders | Concours Burkina Faso</title>
-        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Démo gratuite de 10 questions. Concours directs (12 dossiers) et professionnels (37 dossiers)." />
+        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Démo gratuite de 10 questions. Concours directs (12 dossiers) et professionnels (38 dossiers)." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="theme-color" content="#8B2500" />
         {/* PWA */}
@@ -438,7 +438,7 @@ export default function Home() {
                   </div>
                   <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF7E8', color: '#B45309' }}>🏅 Évolution de carrière</div>
                   <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
-                  <p className="text-gray-500 text-xs mb-2">37 dossiers spécialisés</p>
+                  <p className="text-gray-500 text-xs mb-2">38 dossiers spécialisés</p>
                   <div style={{ color: '#C4521A' }}>
                     <PromoPrice type="professionnel" prices={publicPrices} size="lg" />
                   </div>
@@ -623,7 +623,7 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-white font-extrabold text-2xl mb-1">Concours Professionnels</h2>
-                    <p className="text-blue-200 text-sm">37 dossiers spécialisés</p>
+                    <p className="text-blue-200 text-sm">38 dossiers spécialisés</p>
                   </div>
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -887,7 +887,7 @@ export default function Home() {
                         </div>
                         <div>
                           <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Professionnels</p>
-                          <p className="text-gray-500 text-xs">37 dossiers – <strong style={{ color: '#C4521A' }}>
+                          <p className="text-gray-500 text-xs">38 dossiers – <strong style={{ color: '#C4521A' }}>
                             <PromoPrice type="professionnel" prices={publicPrices} size="sm" />
                           </strong></p>
                         </div>

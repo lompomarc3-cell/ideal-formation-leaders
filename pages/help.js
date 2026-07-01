@@ -34,7 +34,7 @@ export default function Help() {
     },
     {
       q: 'Quelle est la différence entre les deux formules ?',
-      a: '📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Informatique, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 37 dossiers spécialisés (CASU, CAPES, GRH, Géomètre, Génie Rural, Hydraulique, etc.)'
+      a: '📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Informatique, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 38 dossiers spécialisés (CASU, CAPES, GRH, Géomètre, Génie Rural, Hydraulique, etc.)'
     },
     {
       q: 'Mon abonnement n\'est pas activé après paiement ?',

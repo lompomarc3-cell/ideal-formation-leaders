@@ -459,7 +459,7 @@ export default function Dashboard() {
                                 </div>
                                 {dp.length >= 14 ? (
                                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)' }}>
-                                    🏆 Accès complet (34 dossiers payants)
+                                    🏆 Accès complet (35 dossiers payants)
                                   </span>
                                 ) : dp.length > 0 ? (
                                   <div className="flex flex-wrap gap-1">
@@ -866,7 +866,7 @@ export default function Dashboard() {
                         const dp = (user.dossiers_principaux || []).filter(d => !acc.includes(d))
                         if (dp.length >= 14) return (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
-                            🏆 Accès complet (34 dossiers payants)
+                            🏆 Accès complet (35 dossiers payants)
                           </span>
                         )
                         if (dp.length > 0) return (
@@ -1065,7 +1065,7 @@ export default function Dashboard() {
                               {dossiersPrincipaux.length >= 14 ? (
                                 <div>
                                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
-                                    🏆 Accès complet (34 dossiers payants)
+                                    🏆 Accès complet (35 dossiers payants)
                                   </span>
                                 </div>
                               ) : dossiersPrincipaux.length > 0 ? (
