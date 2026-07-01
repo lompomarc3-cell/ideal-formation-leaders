@@ -407,14 +407,16 @@ class _SessionDialogState extends State<_SessionDialog> {
   late TextEditingController _startCtrl;
   late TextEditingController _endCtrl;
   bool _saving = false;
-  bool _isActive = true;
+  bool _isActive = false; // v3.0.9 : inactif par défaut → l'admin active manuellement
 
   @override
   void initState() {
     super.initState();
     final e = widget.existing;
     _type = e?["type"]?.toString() ?? "direct";
-    _isActive = e?["is_active"] == true || e == null;
+    // v3.0.9 : Nouvelle session = inactive (false) par défaut
+    // Si on modifie une session existante, conserver son statut actuel
+    _isActive = e != null ? (e["is_active"] == true) : false;
     _labelCtrl = TextEditingController(text: e?["label"]?.toString() ?? '');
     _descCtrl = TextEditingController(text: e?["description"]?.toString() ?? '');
     _dossierCtrl = TextEditingController(text: e?["dossier_nom"]?.toString() ?? '');
@@ -598,7 +600,15 @@ class _SessionDialogState extends State<_SessionDialog> {
               // Statut actif
               SwitchListTile(
                 title: const Text("Session active"),
-                subtitle: const Text("Visible par les utilisateurs"),
+                subtitle: Text(
+                  _isActive
+                    ? "✅ Visible par les utilisateurs"
+                    : "🔴 Masquée — activez pour la rendre visible",
+                  style: TextStyle(
+                    color: _isActive ? const Color(0xFF16A34A) : Colors.red[700],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 value: _isActive,
                 activeThumbColor: const Color(0xFF7C3AED),
                 onChanged: (v) => setState(() => _isActive = v),

@@ -32,8 +32,8 @@ android {
         applicationId = "com.ifl.ifl"
         minSdk = flutter.minSdkVersion
         targetSdk = 35
-        versionCode = 47
-        versionName = "3.0.8"
+        versionCode = 48
+        versionName = "3.0.9"
         multiDexEnabled = true
     }
 
