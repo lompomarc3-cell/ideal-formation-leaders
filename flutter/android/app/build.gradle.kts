@@ -32,8 +32,8 @@ android {
         applicationId = "com.ifl.ifl"
         minSdk = flutter.minSdkVersion
         targetSdk = 35
-        versionCode = 45
-        versionName = "3.0.8"
+        versionCode = 46
+        versionName = "3.0.9"
         multiDexEnabled = true
     }
 
@@ -44,9 +44,10 @@ android {
                 keyPassword = keystoreProperties["keyPassword"] as String
                 storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
                 storePassword = keystoreProperties["storePassword"] as String
-                // CRUCIAL : Activer V1 + V2 pour Google Play Protect
+                // CRUCIAL : Activer V1 + V2 + V3 pour Google Play Protect
                 enableV1Signing = true
                 enableV2Signing = true
+                enableV3Signing = true
             }
         }
     }
