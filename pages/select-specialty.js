@@ -52,7 +52,7 @@ const DOSSIERS_PRO = [
   // 🆕 NOUVEAU dossier (35 payant)
   { nom: 'ADJOINT DE SECRÉTARIAT', icone: '✍️', desc: 'Adjoint de Secrétariat – Administration publique' },
   // 🆕 NOUVEAU dossier (36 payant) v3.0.11
-  { nom: "Certificat d'aptitude Pédagogique d'enseignement Technique (CAPET) option comptabilité et gestion", icone: '📖', desc: 'CAPET option comptabilité et gestion – Enseignement technique' },
+  { nom: "Certificat d'aptitude Pédagogique d'enseignement Technique (CAPET) option comptabilité et gestion", icone: '📘', desc: 'CAPET option comptabilité et gestion – Enseignement technique' },
   // ── 3 Dossiers BONUS (toujours à la fin – débloqués avec tout dossier payant) ──
   { nom: 'Actualités et culture générale', icone: '🌍', desc: 'Culture générale et actualités nationales', isAccompagnement: true },
   { nom: 'Entraînement QCM', icone: '✏️', desc: 'QCM d\'entraînement transversaux', isAccompagnement: true },

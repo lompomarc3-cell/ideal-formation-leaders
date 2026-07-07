@@ -4,7 +4,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 /// Mapping emoji DB → clé d'image SVG (identique à pages/index.js).
 const Map<String, String> _emojiToKey = {
   '🌍': 'globe', '🌎': 'globe', '🌐': 'globe',
-  '📚': 'book', '📕': 'book', '📗': 'book', '📘': 'book',
+  '📚': 'book', '📕': 'book', '📗': 'book',
+  // 📘 réservé au CAPET option comptabilité et gestion (v3.0.11)
+  '📘': 'capet_compta',
   '🎨': 'palette',
   '🗺️': 'map', '🗺': 'map', '📍': 'map', '📌': 'map',
   '🧬': 'leaf', '🌿': 'leaf', '🌱': 'leaf',
@@ -29,8 +31,7 @@ const Map<String, String> _emojiToKey = {
   '🛡️': 'shield', '🛡': 'shield',
   '👮': 'badge', '👮‍♂️': 'badge',
   '📋': 'clipboard', '📄': 'clipboard',
-  // 🆕 CAPET option comptabilité et gestion (v3.0.11)
-  '📊': 'capet_compta',
+  // 🆕 CAPET option comptabilité et gestion (v3.0.11) → piloté par _keyFromCategoryName et 📘
 };
 
 const List<String> _directKeys = [

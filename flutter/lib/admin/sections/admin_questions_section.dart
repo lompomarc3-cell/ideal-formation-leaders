@@ -196,6 +196,56 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
     );
   }
 
+  /// 🆕 v3.0.11 : Déplace une question vers le haut (direction=-1) ou bas (direction=+1)
+  /// et sauvegarde le nouvel ordre via l'API reorder.
+  Future<void> _moveQuestion(int index, int direction) async {
+    if (_filterCategoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Sélectionnez une catégorie pour réorganiser les questions.'),
+          backgroundColor: Color(0xFFF59E0B),
+        ),
+      );
+      return;
+    }
+    final newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= _questions.length) return;
+
+    final auth = context.read<AuthService>();
+    setState(() {
+      final item = _questions.removeAt(index);
+      _questions.insert(newIndex, item);
+    });
+
+    try {
+      final orderedIds = _questions.map((q) => q['id'].toString()).toList();
+      await auth.api.adminReorderQuestions(
+        auth.token!,
+        categorieId: _filterCategoryId!,
+        orderedIds: orderedIds,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Ordre sauvegardé'),
+          backgroundColor: Color(0xFF16A34A),
+          duration: Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      // Annuler le déplacement en cas d'erreur
+      setState(() {
+        final item = _questions.removeAt(newIndex);
+        _questions.insert(index, item);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur réorganisation : $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   Future<void> _delete(Map<String, dynamic> q) async {
     final ok = await showDialog<bool>(
       context: context,
@@ -251,7 +301,7 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
               SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'L\'ordre des questions ne change JAMAIS lorsque vous modifiez une question. Le numéro #N reste fixe.',
+                  'Modifiez une question sans changer son ordre. Filtrez par catégorie puis utilisez ↑↓ pour réorganiser.',
                   style: TextStyle(
                     fontSize: 11,
                     color: Color(0xFF1D4ED8),
@@ -545,6 +595,24 @@ class _AdminQuestionsSectionState extends State<AdminQuestionsSection> {
                               label: const Text('Supprimer',
                                   style: TextStyle(color: Colors.red)),
                             ),
+                            // 🆕 v3.0.11 : Boutons de réorganisation (↑↓)
+                            if (_filterCategoryId != null) ...[
+                              const Spacer(),
+                              IconButton(
+                                tooltip: 'Monter',
+                                icon: const Icon(Icons.arrow_upward, size: 18, color: Color(0xFF0369A1)),
+                                onPressed: i > 0 ? () => _moveQuestion(i, -1) : null,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              ),
+                              IconButton(
+                                tooltip: 'Descendre',
+                                icon: const Icon(Icons.arrow_downward, size: 18, color: Color(0xFF0369A1)),
+                                onPressed: i < filtered.length - 1 ? () => _moveQuestion(i, 1) : null,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              ),
+                            ],
                           ],
                         ),
                       ],

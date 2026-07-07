@@ -323,7 +323,7 @@ export default function Home() {
     <>
       <Head>
         <title>IFL – Idéale Formation of Leaders | Concours Burkina Faso</title>
-        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Démo gratuite de 10 questions. Concours directs (12 dossiers) et professionnels (38 dossiers)." />
+        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Démo gratuite de 10 questions. Concours directs (12 dossiers) et professionnels (39 dossiers)." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="theme-color" content="#8B2500" />
         {/* PWA */}
@@ -893,7 +893,7 @@ export default function Home() {
                         </div>
                         <div>
                           <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Professionnels</p>
-                          <p className="text-gray-500 text-xs">38 dossiers – <strong style={{ color: '#C4521A' }}>
+                          <p className="text-gray-500 text-xs">39 dossiers – <strong style={{ color: '#C4521A' }}>
                             <PromoPrice type="professionnel" prices={publicPrices} size="sm" />
                           </strong></p>
                         </div>

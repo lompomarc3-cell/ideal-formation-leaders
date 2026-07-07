@@ -47,6 +47,8 @@ async function fetchAllQuestionsForCategory(categorieId, hardLimit = 10000) {
       .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, matiere, difficulte')
       .eq('category_id', categorieId)
       .eq('is_active', true)
+      // 🆕 v3.0.11 : Tri par annee (display_order) quand défini, puis created_at
+      .order('annee', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: true })
       .range(from, to)
     if (error) throw error
@@ -334,6 +336,8 @@ export default async function handler(req) {
         .eq('category_id', categorieId)
         .eq('is_active', true)
         .eq('is_demo', true)
+        // 🆕 v3.0.11 : Tri par annee (display_order) quand défini
+        .order('annee', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true })
         .limit(5)
 
@@ -348,6 +352,8 @@ export default async function handler(req) {
           .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, matiere, difficulte, created_at')
           .eq('category_id', categorieId)
           .eq('is_active', true)
+          // 🆕 v3.0.11 : Tri par annee (display_order) quand défini
+          .order('annee', { ascending: true, nullsFirst: false })
           .order('created_at', { ascending: true })
           .limit(missing + excludeIds.length) // on prend de la marge puis on filtre
         const { data: fillers } = await query
@@ -408,6 +414,8 @@ export default async function handler(req) {
         .select('id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, matiere, difficulte')
         .eq('category_id', categorieId)
         .eq('is_active', true)
+        // 🆕 v3.0.11 : Tri par annee (display_order) quand défini
+        .order('annee', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true })
         .limit(5)
 
