@@ -12,9 +12,9 @@ export const DOSSIERS_ACCOMPAGNEMENT = [
   'Accompagnement final'
 ]
 
-// Les 38 dossiers professionnels (35 payants + 3 bonus)
+// Les 39 dossiers professionnels (36 payants + 3 bonus)
 const DOSSIERS_PRO = [
-  // ── Dossiers payants (1–35) ──
+  // ── Dossiers payants (1–36) ──
   { nom: 'Spécialités Vie scolaire (CASU-AASU)', icone: '🏫', desc: 'Conseillers et Assistants en Vie Scolaire' },
   { nom: 'Spécialités CISU/AISU/ENAREF', icone: '🏛️', desc: 'Inspecteurs et Administrateurs Scolaires' },
   { nom: 'Inspectorat : IES', icone: '🔍', desc: 'Inspecteur de l\'Enseignement Secondaire' },
@@ -51,6 +51,8 @@ const DOSSIERS_PRO = [
   { nom: 'ENAREF CYCLE C', icone: '🏛️', desc: 'École Nationale des Régies Financières – Cycle C' },
   // 🆕 NOUVEAU dossier (35 payant)
   { nom: 'ADJOINT DE SECRÉTARIAT', icone: '✍️', desc: 'Adjoint de Secrétariat – Administration publique' },
+  // 🆕 NOUVEAU dossier (36 payant) v3.0.11
+  { nom: "Certificat d'aptitude Pédagogique d'enseignement Technique (CAPET) option comptabilité et gestion", icone: '📖', desc: 'CAPET option comptabilité et gestion – Enseignement technique' },
   // ── 3 Dossiers BONUS (toujours à la fin – débloqués avec tout dossier payant) ──
   { nom: 'Actualités et culture générale', icone: '🌍', desc: 'Culture générale et actualités nationales', isAccompagnement: true },
   { nom: 'Entraînement QCM', icone: '✏️', desc: 'QCM d\'entraînement transversaux', isAccompagnement: true },
@@ -113,6 +115,9 @@ const PRO_ICON_MAP = {
   'génie rural': '/icons/pro_genie_rural.svg',
   'genie rural': '/icons/pro_genie_rural.svg',
   'hydraulique': '/icons/pro_hydraulique.svg',
+  // 🆕 CAPET option comptabilité et gestion (v3.0.11)
+  'capet': '/icons/pro_capet_compta.svg',
+  'comptabilit': '/icons/pro_capet_compta.svg',
 }
 
 function getCatIconSrc(nom) {

@@ -74,7 +74,7 @@ class _AdminScreenState extends State<AdminScreen> {
     _AdminTab(
       '📚 Catégories',
       Icons.category,
-      'Les 35 dossiers pro payants + 3 bonus + 12 dossiers directs.',
+      'Les 36 dossiers pro payants + 3 bonus + 12 dossiers directs.',
       Color(0xFF0891B2),
     ),
     _AdminTab(
@@ -485,7 +485,7 @@ class _AdminScreenState extends State<AdminScreen> {
           _guideItem('🎓',
               'Direct (5 000 FCFA par an) → débloque les 12 dossiers directs.'),
           _guideItem('💼',
-              'Pro (20 000 FCFA par an) → débloque le dossier choisi + 3 bonus (parmi 35 dossiers).'),
+              'Pro (20 000 FCFA par an) → débloque le dossier choisi + 3 bonus (parmi 36 dossiers).'),
           _guideItem('🗓️',
               'Programmation : choisissez date + heure + minute pour tester.'),
           _guideItem('❓',
@@ -597,10 +597,10 @@ class _AdminScreenState extends State<AdminScreen> {
                 const SizedBox(height: 6),
                 const Text('• 5 premières questions gratuites par dossier',
                     style: TextStyle(fontSize: 12)),
-                const Text('• 35 dossiers professionnels payants + 3 bonus (20 000 FCFA par an chacun)',
+                const Text('• 36 dossiers professionnels payants + 3 bonus (20 000 FCFA par an chacun)',
                     style: TextStyle(fontSize: 12)),
                 const Text(
-                    '• Total : 38 dossiers professionnels (35 payants + 3 bonus offerts)',
+                    '• Total : 39 dossiers professionnels (36 payants + 3 bonus offerts)',
                     style: TextStyle(fontSize: 12)),
                 const Text(
                     '• 3 bonus offerts (Entraînement QCM, Actualités, Accompagnement)',

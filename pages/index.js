@@ -92,6 +92,8 @@ const ICON_IMAGES = {
   shield:     '/icons/pro_shield.svg',
   badge:      '/icons/pro_badge.svg',
   clipboard:  '/icons/pro_clipboard.svg',
+  // 🆕 CAPET option comptabilité et gestion (v3.0.11)
+  capet_compta: '/icons/pro_capet_compta.svg',
 }
 
 function CatIcon({ name, color = 'white', size = 28 }) {
@@ -123,6 +125,8 @@ function CatIcon({ name, color = 'white', size = 28 }) {
     '🛡️': 'shield', '🛡': 'shield',
     '👮': 'badge', '👮‍♂️': 'badge',
     '📋': 'clipboard', '📄': 'clipboard',
+    // 🆕 CAPET option comptabilité et gestion (v3.0.11)
+    '📊': 'capet_compta',
   }
   // Résoudre la clé : emoji → image ou clé directe
   const key = EMOJI_TO_KEY[name] || name || 'book'
@@ -180,6 +184,8 @@ const PRO_ICON_COLORS = {
   clipboard:  { bg: 'linear-gradient(135deg,#065F46,#059669)', border: '#A7F3D0', tag: '#ECFDF5', tagText: '#065F46' }, // vert admin
   pencil:     { bg: 'linear-gradient(135deg,#9333EA,#C084FC)', border: '#E9D5FF', tag: '#FAF5FF', tagText: '#9333EA' }, // pourpre
   target:     { bg: 'linear-gradient(135deg,#B45309,#D97706)', border: '#FDE68A', tag: '#FFFBEB', tagText: '#B45309' }, // or cible
+  // 🆕 CAPET option comptabilité et gestion (v3.0.11)
+  capet_compta: { bg: 'linear-gradient(135deg,#0F766E,#14B8A6)', border: '#99F6E4', tag: '#F0FDFA', tagText: '#0F766E' }, // teal comptabilité
 }
 
 function getIconStyle(iconName, catType) {
@@ -291,7 +297,7 @@ export default function Home() {
   }
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 38 dossiers (20 000 FCFA par an)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 39 dossiers (20 000 FCFA par an)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Formation Burkina Faso', text, url: APP_URL })
@@ -438,7 +444,7 @@ export default function Home() {
                   </div>
                   <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF7E8', color: '#B45309' }}>🏅 Évolution de carrière</div>
                   <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
-                  <p className="text-gray-500 text-xs mb-2">38 dossiers spécialisés</p>
+                  <p className="text-gray-500 text-xs mb-2">39 dossiers spécialisés</p>
                   <div style={{ color: '#C4521A' }}>
                     <PromoPrice type="professionnel" prices={publicPrices} size="lg" />
                   </div>
@@ -623,7 +629,7 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-white font-extrabold text-2xl mb-1">Concours Professionnels</h2>
-                    <p className="text-blue-200 text-sm">38 dossiers spécialisés</p>
+                    <p className="text-blue-200 text-sm">39 dossiers spécialisés</p>
                   </div>
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

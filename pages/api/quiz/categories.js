@@ -91,6 +91,8 @@ const ORDRE_MAP = {
     { match: 'csap', ordre: 6 },
     { match: 'cap\u00e9', ordre: 6 },
     { match: 'cape', ordre: 6 },
+    { match: 'capet', ordre: 35 },   // CAPET option comptabilité (v3.0.11)
+    { match: 'comptabilit', ordre: 35 },
     { match: 'agr\u00e9g', ordre: 7 },
     { match: 'agr', ordre: 7 },
     { match: 'capes', ordre: 8 },
@@ -168,6 +170,8 @@ function getCatIcon(nom, catType) {
   if (n.includes('civil') || n.includes('admin')) return '📋'
   // 🆕 Nouveaux dossiers professionnels
   if (n.includes('capé') || n.includes('cape')) return '🎓'
+  // 🆕 CAPET option comptabilité et gestion (v3.0.11) - icône unique 📊
+  if (n.includes('capet') || (n.includes('aptitude') && n.includes('technique') && n.includes('comptabilit'))) return '📊'
   if (n.includes('impôt') || n.includes('impot')) return '🔍'
   if (n.includes('enaref')) return '🏛️'
   if (n.includes('travail')) return '📋'

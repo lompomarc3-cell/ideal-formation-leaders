@@ -302,7 +302,7 @@ export default function Dashboard() {
       if (dossiersProPrincipaux.length === 0) {
         parts.push('Concours professionnels (accompagnements)')
       } else if (dossiersProPrincipaux.length >= 14) {
-        parts.push('Accès complet Concours professionnels (37 dossiers : 34 payants + 3 bonus)')
+        parts.push('Accès complet Concours professionnels (39 dossiers : 36 payants + 3 bonus)')
       } else {
         parts.push(dossiersProPrincipaux.join(', '))
       }
@@ -333,7 +333,7 @@ export default function Dashboard() {
     },
     {
       q: "Quelle est la différence entre les deux formules ?",
-      a: "📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 30 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, etc.)"
+      a: "📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 39 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, CAPET, etc.)"
     },
     {
       q: "Mon abonnement n'est pas activé après paiement ?",

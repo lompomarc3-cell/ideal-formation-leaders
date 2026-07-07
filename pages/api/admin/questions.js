@@ -33,15 +33,18 @@ export default async function handler(req) {
       const page = parseInt(url.searchParams.get('page') || '1', 10)
       const perPage = parseInt(url.searchParams.get('per_page') || '0', 10) // 0 = tout retourner
 
-      const SELECT_COLS = 'id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, is_active, category_id, categories(nom, type)'
+      const SELECT_COLS = 'id, enonce, option_a, option_b, option_c, option_d, reponse_correcte, explication, is_demo, is_active, category_id, annee, categories(nom, type)'
 
       // Construit une requête de base (réutilisable pour chaque tranche de pagination)
       const buildQuery = () => {
         let q = supabaseAdmin
           .from('questions')
           .select(SELECT_COLS, { count: 'exact' })
+          // 🆕 v3.0.11: Tri par annee (display_order) quand défini, sinon created_at
+          // annee = null → trier en dernier (nulls last) puis par created_at
+          .order('annee', { ascending: true, nullsFirst: false })
           .order('created_at', { ascending: true })
-          .order('id', { ascending: true }) // tri secondaire stable
+          .order('id', { ascending: true }) // tri tertiaire stable
 
         // Filtre par catégorie
         if (categorieId) q = q.eq('category_id', categorieId)
@@ -109,7 +112,8 @@ export default async function handler(req) {
           option_d: q.option_d,
           bonne_reponse: q.reponse_correcte,
           explication: q.explication,
-          is_demo: q.is_demo
+          is_demo: q.is_demo,
+          display_order: q.annee  // 🆕 v3.0.11: champ annee utilisé comme display_order
         })),
         total: count || 0
       }), { status: 200, headers: { 'Content-Type': 'application/json' } })

@@ -29,6 +29,8 @@ const Map<String, String> _emojiToKey = {
   '🛡️': 'shield', '🛡': 'shield',
   '👮': 'badge', '👮‍♂️': 'badge',
   '📋': 'clipboard', '📄': 'clipboard',
+  // 🆕 CAPET option comptabilité et gestion (v3.0.11)
+  '📊': 'capet_compta',
 };
 
 const List<String> _directKeys = [
@@ -64,6 +66,9 @@ String? _keyFromCategoryName(String nom, String catType) {
     if (n.contains('cisu') || n.contains('aisu') || n.contains('enaref')) return 'enaref'; // CISU/AISU/ENAREF
     // 🆕 Nouveau dossier v3.0.8
     if (n.contains('adjoint') && (n.contains('secrétariat') || n.contains('secretariat'))) return 'adjoint_secretariat';
+    // 🆕 CAPET option comptabilité et gestion (v3.0.11)
+    if (n.contains('capet') || (n.contains('aptitude') && n.contains('pédagogique') && n.contains('technique'))) return 'capet_compta';
+    if (n.contains('comptabilit') && n.contains('gestion')) return 'capet_compta';
     if (n.contains('iepenf') || n.contains('iepe')) return 'search2';
     // 🆕 7 nouveaux dossiers professionnels v3.0.6
     if (n.contains('agent') && n.contains('grh')) return 'grh_agent';
@@ -235,6 +240,8 @@ const Map<String, IconStyle> _proIconColors = {
   'enaref_c':               IconStyle(bgGradient: [Color(0xFF1E3A8A), Color(0xFF2563EB)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E3A8A)),
   // 🆕 Nouveau dossier v3.0.8
   'adjoint_secretariat':     IconStyle(bgGradient: [Color(0xFF0369A1), Color(0xFF38BDF8)], border: Color(0xFFBAE6FD), tag: Color(0xFFF0F9FF), tagText: Color(0xFF0369A1)),
+  // 🆕 CAPET option comptabilité et gestion (v3.0.11)
+  'capet_compta':            IconStyle(bgGradient: [Color(0xFF0F766E), Color(0xFF14B8A6)], border: Color(0xFF99F6E4), tag: Color(0xFFF0FDFA), tagText: Color(0xFF0F766E)),
 };
 
 IconStyle iconStyleFor(String? icone, String catType, {String? categoryName}) {

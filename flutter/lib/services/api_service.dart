@@ -493,6 +493,24 @@ class ApiService {
     return _decode(res);
   }
 
+  /// 🆕 v3.0.11 : Réorganisation des questions — sauvegarde l'ordre d'affichage
+  /// [orderedIds] = liste des IDs dans l'ordre souhaité
+  Future<Map<String, dynamic>> adminReorderQuestions(
+    String token, {
+    required String categorieId,
+    required List<String> orderedIds,
+  }) async {
+    final res = await _client.post(
+      Uri.parse('$baseUrl/api/admin/questions/reorder'),
+      headers: _jsonHeaders(token),
+      body: jsonEncode({
+        'categorie_id': categorieId,
+        'ordered_ids': orderedIds,
+      }),
+    );
+    return _decode(res);
+  }
+
   /// Import massif de questions QCM (texte brut parsé côté Flutter).
   /// Le backend détecte les doublons et les ignore automatiquement.
   Future<Map<String, dynamic>> adminBulkImportQuestions(

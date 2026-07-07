@@ -57,6 +57,8 @@ function getCatIcon(nom) {
   if (n.includes('civil') || n.includes('admin')) return '📋'
   // 🆕 Nouveaux dossiers professionnels
   if (n.includes('capé') || n.includes('cape')) return '🎓'
+  // 🆕 CAPET option comptabilité et gestion (v3.0.11) - icône unique
+  if (n.includes('capet') || (n.includes('aptitude') && n.includes('technique') && n.includes('comptabilit'))) return '📊'
   if (n.includes('impôt') || n.includes('impot')) return '🔍'
   if (n.includes('enaref')) return '🏛️'
   if (n.includes('travail')) return '📋'

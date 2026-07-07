@@ -447,7 +447,7 @@ function AdminUsers({ getToken, onNotif }) {
                     const dp = (u.dossiers_principaux || []).filter(d => !acc.includes(d))
                     if (dp.length >= 14) return (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)', color: 'white' }}>
-                        🏆 Accès complet (35 dossiers payants)
+                        🏆 Accès complet (36 dossiers payants)
                       </span>
                     )
                     if (dp.length > 0) return (
@@ -2119,7 +2119,7 @@ function AdminSchedules({ getToken, onNotif }) {
       {/* ══════════════════════════════════════════════════════════════════ */}
       <div className="mb-5">
         <h3 className="text-red-400 font-bold text-sm mb-3">🌐 Programmation GLOBALE (tous types)</h3>
-        <p className="text-gray-400 text-xs mb-3">S'applique simultanément aux <b>12 dossiers Directs ET aux 38 dossiers Professionnels</b>. Priorité maximale.</p>
+        <p className="text-gray-400 text-xs mb-3">S'applique simultanément aux <b>12 dossiers Directs ET aux 39 dossiers Professionnels</b>. Priorité maximale.</p>
 
         <div className="bg-gray-800 rounded-2xl p-4 border border-red-700/60 mb-3 space-y-3">
           <div className="flex items-center justify-between">
@@ -2251,7 +2251,7 @@ function AdminSchedules({ getToken, onNotif }) {
         {/* Concours Professionnels */}
         <div className="bg-gray-800 rounded-2xl p-4 border border-cyan-700/50 mb-3 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-white font-bold text-sm">🎓 Concours Professionnels (38 dossiers)</span>
+            <span className="text-white font-bold text-sm">🎓 Concours Professionnels (39 dossiers)</span>
             {proInfo?.end_date && (
               <span className={`text-xs px-2 py-1 rounded-lg font-bold ${proInfo.expired ? 'bg-red-900/50 text-red-300' : 'bg-cyan-900/50 text-cyan-300'}`}>
                 {proInfo.expired ? '⚠️ EXPIRÉ' : '⏰ Actif'} : {fmtDate(proInfo.end_date)}
