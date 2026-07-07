@@ -11,7 +11,7 @@ import '../../widgets/promo_banner.dart';
 // import '../../widgets/special_sessions_banner.dart'; // MASQUÉ - réactivable
 
 /// Onglet 3 : Concours professionnel.
-/// - 37 dossiers : 34 payants + 3 bonus (Entraînement QCM, Actualités, Accompagnement)
+/// - 39 dossiers : 36 payants + 3 bonus (Entraînement QCM, Actualités, Accompagnement)
 /// - 20 000 FCFA par an par dossier payant
 /// - Les 3 bonus restent verrouillés (5 gratuites uniquement)
 ///   tant qu'aucun dossier payant n'a été acheté
