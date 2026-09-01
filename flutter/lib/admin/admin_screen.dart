@@ -74,7 +74,7 @@ class _AdminScreenState extends State<AdminScreen> {
     _AdminTab(
       '📚 Catégories',
       Icons.category,
-      'Les 36 dossiers pro payants + 3 bonus + 12 dossiers directs.',
+      'Les 36 dossiers pro payants + 3 bonus + 14 dossiers directs.',
       Color(0xFF0891B2),
     ),
     _AdminTab(
@@ -483,7 +483,7 @@ class _AdminScreenState extends State<AdminScreen> {
           _guideItem('💳',
               'Pour valider un paiement : ouvrez "Paiements" → bouton "Valider" (vert) ou "Rejeter" (rouge).'),
           _guideItem('🎓',
-              'Direct (5 000 FCFA par an) → débloque les 12 dossiers directs.'),
+              'Direct (5 000 FCFA par an) → débloque les 14 dossiers directs.'),
           _guideItem('💼',
               'Pro (20 000 FCFA par an) → débloque le dossier choisi + 3 bonus (parmi 36 dossiers).'),
           _guideItem('🗓️',
@@ -606,7 +606,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     '• 3 bonus offerts (Entraînement QCM, Actualités, Accompagnement)',
                     style: TextStyle(fontSize: 12)),
                 const Text(
-                    '• 12 dossiers directs (5 000 FCFA par an pour tout débloquer)',
+                    '• 14 dossiers directs (5 000 FCFA par an pour tout débloquer)',
                     style: TextStyle(fontSize: 12)),
                 const Divider(height: 18),
                 const Text(

@@ -325,7 +325,7 @@ class _AdminPaymentsSectionState extends State<AdminPaymentsSection> {
     final typeBg = isDirect ? const Color(0xFFDBEAFE) : const Color(0xFFFCE7F3);
     final typeFg = isDirect ? const Color(0xFF1E40AF) : const Color(0xFF9D174D);
     final typeLabel = isDirect
-        ? '🎓 DIRECT — débloquera les 12 dossiers directs'
+        ? '🎓 DIRECT — débloquera les 14 dossiers directs'
         : '💼 PRO — débloquera ${dossier ?? "le dossier choisi"} + 3 bonus';
 
     return Card(

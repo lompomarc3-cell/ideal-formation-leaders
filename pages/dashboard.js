@@ -157,7 +157,7 @@ export default function Dashboard() {
   }, [router.isReady, router.query])
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 37 dossiers (20 000 FCFA par an / dossier)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 14 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 37 dossiers (20 000 FCFA par an / dossier)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
     if (navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Idéale Formation of Leaders', text, url: APP_URL })
@@ -297,7 +297,7 @@ export default function Dashboard() {
     const dossiersProPrincipaux = (user.dossiers_principaux || []).filter(d => !accompagnements.includes(d))
 
     const parts = []
-    if (hasDirect) parts.push('Concours directs (12 dossiers)')
+    if (hasDirect) parts.push('Concours directs (14 dossiers)')
     if (hasPro) {
       if (dossiersProPrincipaux.length === 0) {
         parts.push('Concours professionnels (accompagnements)')
@@ -333,7 +333,7 @@ export default function Dashboard() {
     },
     {
       q: "Quelle est la différence entre les deux formules ?",
-      a: "📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 39 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, CAPET, etc.)"
+      a: "📚 Concours Directs (5 000 FCFA par an) : 14 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 39 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, CAPET, etc.)"
     },
     {
       q: "Mon abonnement n'est pas activé après paiement ?",
@@ -447,7 +447,7 @@ export default function Dashboard() {
                           {directAccess && (
                             <div className="flex items-center gap-2">
                               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg,#8B2500,#C4521A)' }}>📚 Concours directs</span>
-                              <span className="text-xs text-gray-500">(12 dossiers)</span>
+                              <span className="text-xs text-gray-500">(14 dossiers)</span>
                             </div>
                           )}
                           {proAccess && (() => {
@@ -502,7 +502,7 @@ export default function Dashboard() {
                   </div>
                   <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF0E8', color: '#C4521A' }}>🎯 Entrée initiale</div>
                   <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Concours Directs</h3>
-                  <p className="text-gray-500 text-xs mb-2">12 dossiers thématiques</p>
+                  <p className="text-gray-500 text-xs mb-2">14 dossiers thématiques</p>
                   {promos.direct ? (
                     <>
                       <p className="text-xs font-bold mb-0.5" style={{ color: '#16a34a' }}>🎯 PROMO</p>
@@ -642,7 +642,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-white font-extrabold text-2xl mb-1">Concours Directs</h2>
-                    <p className="text-orange-100 text-sm">12 dossiers thématiques</p>
+                    <p className="text-orange-100 text-sm">14 dossiers thématiques</p>
                   </div>
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.25)' }}>
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1050,7 +1050,7 @@ export default function Dashboard() {
                   <div className="space-y-3">
                     {directAccess && (
                       <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,#FFF0E8,#FFE4CC)', border: '2px solid #FFD0A8' }}>
-                        <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>✅ Concours directs (12 dossiers)</p>
+                        <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>✅ Concours directs (14 dossiers)</p>
                         <p className="text-green-600 text-xs mt-1 font-semibold">✅ Accès débloqué</p>
                       </div>
                     )}
@@ -1239,7 +1239,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Directs</p>
-                          <p className="text-gray-500 text-xs">12 dossiers – <strong style={{ color: '#C4521A' }}>5 000 FCFA par an</strong></p>
+                          <p className="text-gray-500 text-xs">14 dossiers – <strong style={{ color: '#C4521A' }}>5 000 FCFA par an</strong></p>
                         </div>
                       </div>
                       <div className="rounded-2xl p-4 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#FFF8E0,#FFE8A0)' }}>
@@ -1344,7 +1344,7 @@ export default function Dashboard() {
                         <div className="flex gap-3 mt-3">
                           <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center justify-center gap-1">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                            <p className="text-xs text-orange-100">Directs (12 dossiers)</p>
+                            <p className="text-xs text-orange-100">Directs (14 dossiers)</p>
                             <p className="font-extrabold">5 000 FCFA par an</p>
                           </div>
                           <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center justify-center gap-1">

@@ -288,7 +288,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             color: const Color(0xFF1E40AF),
             bgColor: const Color(0xFFDBEAFE),
             features: const [
-              '✅ 12 dossiers directs débloqués d\'un coup',
+              '✅ 14 dossiers directs débloqués d\'un coup',
               '✅ Toutes les questions accessibles',
               '✅ Paiement unique — pas de dossier à choisir',
             ],

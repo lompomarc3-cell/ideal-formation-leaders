@@ -214,7 +214,7 @@ export default function Payment() {
                 <img src="/icons/direct_book.svg" alt="Directs" width="36" height="36" style={{ objectFit: 'contain' }} />
               </div>
               <p className="font-bold text-sm leading-tight" style={{ color: '#8B2500' }}>Concours Directs</p>
-              <p className="text-gray-500 text-xs mt-1">12 dossiers thématiques</p>
+              <p className="text-gray-500 text-xs mt-1">14 dossiers thématiques</p>
               {promos.direct ? (
                 <div className="mt-2">
                   <p className="text-xs font-extrabold inline-block px-1.5 py-0.5 rounded" style={{ background: '#FEF3C7', color: '#16a34a' }}>🎯 PROMO</p>

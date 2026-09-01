@@ -34,7 +34,7 @@ export default function Help() {
     },
     {
       q: 'Quelle est la différence entre les deux formules ?',
-      a: '📚 Concours Directs (5 000 FCFA par an) : 12 dossiers thématiques (Actualité, Français, Maths, SVT, Informatique, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 39 dossiers spécialisés (CASU, CAPES, GRH, Géomètre, Génie Rural, Hydraulique, etc.)'
+      a: '📚 Concours Directs (5 000 FCFA par an) : 14 dossiers thématiques (Actualité, Français, Maths, SVT, Informatique, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 39 dossiers spécialisés (CASU, CAPES, GRH, Géomètre, Génie Rural, Hydraulique, etc.)'
     },
     {
       q: 'Mon abonnement n\'est pas activé après paiement ?',
@@ -121,7 +121,7 @@ export default function Help() {
               <div className="flex gap-3 mt-3">
                 <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center gap-1">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                  <p className="text-xs text-orange-100">Directs (12 dossiers)</p>
+                  <p className="text-xs text-orange-100">Directs (14 dossiers)</p>
                   <p className="font-extrabold">5 000 FCFA par an</p>
                 </div>
                 <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center gap-1">

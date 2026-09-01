@@ -14,7 +14,7 @@ import {
 // Les données sont stockées dans des lignes spéciales de la table
 // `categories` avec is_active=false :
 //   __SCHEDULE_GLOBAL__  → programmation globale (tous types)
-//   __SCHEDULE_DIRECT__  → programmation concours directs (12 dossiers)
+//   __SCHEDULE_DIRECT__  → programmation concours directs (14 dossiers)
 //   __SCHEDULE_PRO__     → programmation concours professionnels (37 dossiers)
 //
 // GET  → { global_end_date, direct_end_date, professional_end_date }
@@ -179,7 +179,7 @@ export default async function handler(req) {
 
     const labels = {
       global: 'tous les concours (global)',
-      direct: 'les concours directs (12 dossiers)',
+      direct: 'les concours directs (14 dossiers)',
       professionnel: 'les concours professionnels (29 dossiers)'
     }
 

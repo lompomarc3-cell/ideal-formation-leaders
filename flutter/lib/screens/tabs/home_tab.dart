@@ -41,7 +41,7 @@ class _HomeTabState extends State<HomeTab> {
     const txt =
         '🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n'
         '✅ Des milliers de QCM\n'
-        '✅ Concours directs – 12 dossiers (5 000 FCFA par an)\n'
+        '✅ Concours directs – 14 dossiers (5 000 FCFA par an)\n'
         '✅ Concours professionnels – 39 dossiers (20 000 FCFA par an / dossier)\n'
         '✅ 5 questions gratuites par dossier\n\n'
         '👉 $kAppUrl';
@@ -316,22 +316,22 @@ class _HomeTabState extends State<HomeTab> {
     final label = ps.directLabel;
     return _OfferCard(
       title: '📚 Concours directs',
-      subtitle: '12 dossiers',
+      subtitle: '14 dossiers',
       price: hasPromo && prixPromo != null ? _fmt(prixPromo) : _fmt(prix),
       oldPrice: hasPromo && prixPromo != null ? _fmt(prix) : null,
       promoLabel: hasPromo ? (label ?? 'PROMO') : null,
       promoCountdown: hasPromo ? _countdown(dateFin) : null,
-      priceHint: 'pour les 12 dossiers',
+      priceHint: 'pour les 14 dossiers',
       bullets: const [
         'Des milliers de QCM',
         '5 premières questions gratuites',
-        'Accès complet aux 12 dossiers',
+        'Accès complet aux 14 dossiers',
         'Suivi de progression personnalisé',
       ],
       gradient: const LinearGradient(
         colors: [Color(0xFFC4521A), Color(0xFF8B2500)],
       ),
-      cta: 'Voir les 12 dossiers',
+      cta: 'Voir les 14 dossiers',
       onCta: () => MainShell.of(context)?.goTo(1),
       loading: ps.loading && !ps.loaded,
     );

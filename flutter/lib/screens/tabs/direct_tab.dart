@@ -11,7 +11,7 @@ import '../../widgets/promo_banner.dart';
 // import '../../widgets/special_sessions_banner.dart'; // MASQUÉ - réactivable
 
 /// Onglet 2 : Concours direct.
-/// - 12 dossiers
+/// - 14 dossiers
 /// - Prix unique : 5 000 FCFA par an pour l'ensemble
 /// - 5 premières questions gratuites par dossier
 class DirectTab extends StatefulWidget {
@@ -206,7 +206,7 @@ class _DirectTabState extends State<DirectTab> {
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Text(
-                    '12 dossiers',
+                    '14 dossiers',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
@@ -264,7 +264,7 @@ class _DirectTabState extends State<DirectTab> {
               type: 'direct',
               style: PriceDisplayStyle.banner,
               foreground: Colors.white,
-              hint: 'pour les 12 dossiers',
+              hint: 'pour les 14 dossiers',
             ),
           ),
           const SizedBox(height: 10),

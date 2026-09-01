@@ -437,7 +437,7 @@ function AdminUsers({ getToken, onNotif }) {
                 <div className="flex gap-2 mt-2 flex-wrap">
                   {u.abonnement_type ? (
                     <span className="px-2 py-0.5 rounded text-xs font-bold bg-orange-800 text-orange-300">
-                      {u.abonnement_type === 'direct' ? '📚 Concours directs (12 dossiers)' : u.abonnement_type === 'professionnel' ? '🎓 Professionnel' : '🎯 Tout'}
+                      {u.abonnement_type === 'direct' ? '📚 Concours directs (14 dossiers)' : u.abonnement_type === 'professionnel' ? '🎓 Professionnel' : '🎯 Tout'}
                     </span>
                   ) : (
                     <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">Gratuit</span>
@@ -2119,7 +2119,7 @@ function AdminSchedules({ getToken, onNotif }) {
       {/* ══════════════════════════════════════════════════════════════════ */}
       <div className="mb-5">
         <h3 className="text-red-400 font-bold text-sm mb-3">🌐 Programmation GLOBALE (tous types)</h3>
-        <p className="text-gray-400 text-xs mb-3">S'applique simultanément aux <b>12 dossiers Directs ET aux 39 dossiers Professionnels</b>. Priorité maximale.</p>
+        <p className="text-gray-400 text-xs mb-3">S'applique simultanément aux <b>14 dossiers Directs ET aux 39 dossiers Professionnels</b>. Priorité maximale.</p>
 
         <div className="bg-gray-800 rounded-2xl p-4 border border-red-700/60 mb-3 space-y-3">
           <div className="flex items-center justify-between">
@@ -2189,7 +2189,7 @@ function AdminSchedules({ getToken, onNotif }) {
         {/* Concours Directs */}
         <div className="bg-gray-800 rounded-2xl p-4 border border-blue-700/50 mb-3 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-white font-bold text-sm">📚 Concours Directs (12 dossiers)</span>
+            <span className="text-white font-bold text-sm">📚 Concours Directs (14 dossiers)</span>
             {directInfo?.end_date && (
               <span className={`text-xs px-2 py-1 rounded-lg font-bold ${directInfo.expired ? 'bg-red-900/50 text-red-300' : 'bg-blue-900/50 text-blue-300'}`}>
                 {directInfo.expired ? '⚠️ EXPIRÉ' : '⏰ Actif'} : {fmtDate(directInfo.end_date)}

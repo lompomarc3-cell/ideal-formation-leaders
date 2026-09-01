@@ -25,7 +25,7 @@ class PriceDisplay extends StatefulWidget {
   final TextStyle? priceStyle;
   final TextStyle? oldPriceStyle;
 
-  /// Texte additionnel (ex: "/ dossier", "pour les 12 dossiers")
+  /// Texte additionnel (ex: "/ dossier", "pour les 14 dossiers")
   final String? hint;
 
   const PriceDisplay({

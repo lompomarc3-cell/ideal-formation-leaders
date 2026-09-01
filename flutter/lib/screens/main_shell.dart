@@ -9,7 +9,7 @@ import 'tabs/about_tab.dart';
 
 /// Squelette principal de l'application : 5 onglets de navigation.
 /// 1. Accueil      → Dashboard            (orange)
-/// 2. Direct       → 12 dossiers directs  (orange)
+/// 2. Direct       → 14 dossiers directs  (orange)
 /// 3. Pro          → 29 dossiers pros     (bleu ciel)
 /// 4. Profil       → Infos utilisateur    (orange)
 /// 5. À propos     → 3 sous-pages         (orange)

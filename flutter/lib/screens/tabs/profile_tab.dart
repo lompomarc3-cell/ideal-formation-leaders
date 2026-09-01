@@ -328,7 +328,7 @@ class _ProfileTabState extends State<ProfileTab> {
       bg = const Color(0xFFFFF3D9);
       fg = const Color(0xFF92400E);
     } else if (type == 'direct') {
-      label = 'Concours directs (12 dossiers)';
+      label = 'Concours directs (14 dossiers)';
       bg = const Color(0xFFFFEDD5);
       fg = const Color(0xFF9A3412);
     } else if (type == 'professionnel') {
@@ -518,7 +518,7 @@ class _ProfileTabState extends State<ProfileTab> {
                     foreground: AppColors.darkTerracotta,
                     promoBadgeBg: Color(0xFFFBBF24),
                     promoBadgeText: Color(0xFF7C2D12),
-                    hint: 'pour les 12 dossiers',
+                    hint: 'pour les 14 dossiers',
                   ),
                 ],
               ),

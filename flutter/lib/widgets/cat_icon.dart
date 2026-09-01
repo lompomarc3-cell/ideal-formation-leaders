@@ -36,7 +36,7 @@ const Map<String, String> _emojiToKey = {
 
 const List<String> _directKeys = [
   'globe','book','palette','map','leaf','brain','calculator','flask',
-  'scale','chart','pencil','target',
+  'scale','chart','pencil','target','hospital','shield',
 ];
 
 /// Construit le chemin asset SVG selon le type.
@@ -121,6 +121,9 @@ String? _keyFromCategoryName(String nom, String catType) {
     if (n.contains('conomie')) return 'chart';
     if (n.contains('qcm') || n.contains('entraîn')) return 'pencil';
     if (n.contains('accompagn') || n.contains('final')) return 'target';
+    // 🆕 Nouveaux dossiers Directs v3.0.12
+    if (n.contains('intégration santé') || n.contains('integration sante') || (n.contains('intégr') && n.contains('sant'))) return 'hospital';
+    if (n.contains('armée') || n.contains('armee') || n.contains('paramilitaire') || n.contains('militaire')) return 'shield';
   }
   return null;
 }
@@ -198,6 +201,9 @@ const Map<String, IconStyle> _directIconColors = {
   'chart':      IconStyle(bgGradient: [Color(0xFF0F766E), Color(0xFF14B8A6)], border: Color(0xFF99F6E4), tag: Color(0xFFF0FDFA), tagText: Color(0xFF0F766E)),
   'pencil':     IconStyle(bgGradient: [Color(0xFF9333EA), Color(0xFFC084FC)], border: Color(0xFFE9D5FF), tag: Color(0xFFFAF5FF), tagText: Color(0xFF9333EA)),
   'target':     IconStyle(bgGradient: [Color(0xFFC4521A), Color(0xFFD4A017)], border: Color(0xFFFED7AA), tag: Color(0xFFFFF7ED), tagText: Color(0xFFC4521A)),
+  // 🆕 Nouveaux dossiers Directs v3.0.12
+  'hospital':   IconStyle(bgGradient: [Color(0xFF059669), Color(0xFF34D399)], border: Color(0xFFA7F3D0), tag: Color(0xFFF0FDF4), tagText: Color(0xFF065F46)),
+  'shield':     IconStyle(bgGradient: [Color(0xFF1E3A8A), Color(0xFF2563EB)], border: Color(0xFFBFDBFE), tag: Color(0xFFEFF6FF), tagText: Color(0xFF1E3A8A)),
 };
 
 // Palette Pro = bleu ciel / bleu marin harmonisée (pas de vert / pas de violet)
