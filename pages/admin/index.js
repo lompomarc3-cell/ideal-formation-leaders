@@ -504,8 +504,8 @@ const SPECIALITES_PRO = [
   'Spécialités santé',
   'Justice',
   'Magistrature',
-  'Spécialités GSP',
-  'Spécialités police',
+  'GSP: CONTRÔLEUR ET INSPECTEUR',
+  'POLICE: OFFICIER ET COMMISSAIRE',
   'Administrateur civil'
 ]
 

@@ -5,7 +5,7 @@ import '../models/category.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 
-/// Écran dédié au dossier "Spécialités police" : affichage de sujets d'examen
+/// Écran dédié au dossier "POLICE: OFFICIER ET COMMISSAIRE" : affichage de sujets d'examen
 /// (titre + énoncé long + corrigé détaillé), navigation par flèches ←→ entre
 /// les 13 sujets, sans aucun élément de QCM (ni A/B/C/D, ni badge "5 gratuites",
 /// ni boutons "Précédente / Suivante" classiques).
@@ -20,7 +20,7 @@ class _PoliceExamScreenState extends State<PoliceExamScreen> {
   bool _loading = true;
   String? _error;
   String? _categoryId;
-  String _categoryName = 'Spécialités police';
+  String _categoryName = 'POLICE: OFFICIER ET COMMISSAIRE';
   bool _isPublic = false;
   bool _requiresSubscription = false;
   bool _initDone = false;
@@ -37,7 +37,7 @@ class _PoliceExamScreenState extends State<PoliceExamScreen> {
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     _categoryId = args?['categoryId']?.toString();
-    _categoryName = args?['categoryName']?.toString() ?? 'Spécialités police';
+    _categoryName = args?['categoryName']?.toString() ?? 'POLICE: OFFICIER ET COMMISSAIRE';
     _isPublic = args?['isPublic'] == true;
     if (_categoryId == null) {
       setState(() {

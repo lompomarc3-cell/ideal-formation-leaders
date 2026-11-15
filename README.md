@@ -64,8 +64,8 @@
 10. Spécialités santé
 11. Justice
 12. Magistrature
-13. Spécialités GSP
-14. Spécialités police
+13. GSP: CONTRÔLEUR ET INSPECTEUR
+14. POLICE: OFFICIER ET COMMISSAIRE
 15. Administrateur civil
 16. Entraînement QCM
 17. Accompagnement final

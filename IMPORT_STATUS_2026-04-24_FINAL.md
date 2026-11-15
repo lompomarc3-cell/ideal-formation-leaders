@@ -20,8 +20,8 @@ Toutes les 222 questions des 17 sous-dossiers professionnels sont bien insérée
 | 10 | Spécialités santé | QCM | 10 | 10 | ✅ |
 | 11 | Justice | QCM | 15 | 15 | ✅ |
 | 12 | Magistrature | DISS | 2 | 2 | ✅ |
-| 13 | Spécialités GSP | QCM | 6 | 6 | ✅ |
-| 14 | Spécialités police | QCM | 10 | 10 | ✅ |
+| 13 | GSP: CONTRÔLEUR ET INSPECTEUR | QCM | 6 | 6 | ✅ |
+| 14 | POLICE: OFFICIER ET COMMISSAIRE | QCM | 10 | 10 | ✅ |
 | 15 | Administrateur civil | QCM | 10 | 10 | ✅ |
 | 16 | Entraînement QCM | QCM | 17 | 17 | ✅ |
 | 17 | Accompagnement final | QCM | 44 | 44 | ✅ |

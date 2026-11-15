@@ -39,8 +39,8 @@ const CATEGORIES_PRO_STATIC = [
   { nom: 'Spécialités santé', icone: 'health' },
   { nom: 'Justice', icone: 'justice' },
   { nom: 'Magistrature', icone: 'judge' },
-  { nom: 'Spécialités GSP', icone: 'shield' },
-  { nom: 'Spécialités police', icone: 'badge' },
+  { nom: 'GSP: CONTRÔLEUR ET INSPECTEUR', icone: 'shield' },
+  { nom: 'POLICE: OFFICIER ET COMMISSAIRE', icone: 'badge' },
   { nom: 'Administrateur civil', icone: 'clipboard' },
   { nom: 'Entraînement QCM', icone: 'pencil' },
   { nom: 'Accompagnement final', icone: 'target' }

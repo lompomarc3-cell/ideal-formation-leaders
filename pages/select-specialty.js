@@ -14,6 +14,7 @@ export const DOSSIERS_ACCOMPAGNEMENT = [
 
 // Les 39 dossiers professionnels (36 payants + 3 bonus)
 const DOSSIERS_PRO = [
+  { nom: 'SPÉCIALITÉ( ATE, CE )', icone: '🏫', desc: 'Conseillers et Attachés de Service scolaire' },
   // ── Dossiers payants (1–36) ──
   { nom: 'Spécialités Vie scolaire (CASU-AASU)', icone: '🏫', desc: 'Conseillers et Assistants en Vie Scolaire' },
   { nom: 'Spécialités CISU/AISU/ENAREF', icone: '🏛️', desc: 'Inspecteurs et Administrateurs Scolaires' },
@@ -26,8 +27,8 @@ const DOSSIERS_PRO = [
   { nom: 'Spécialités santé', icone: '💊', desc: 'Corps médical et paramédical' },
   { nom: 'Justice', icone: '⚖️', desc: 'Greffiers, auxiliaires de justice' },
   { nom: 'Magistrature', icone: '👨‍⚖️', desc: 'Magistrats du siège et du parquet' },
-  { nom: 'Spécialités GSP', icone: '🛡️', desc: 'Gestion et Sécurité Publique' },
-  { nom: 'Spécialités police', icone: '👮', desc: 'Corps de police nationale' },
+  { nom: 'GSP: CONTRÔLEUR ET INSPECTEUR', icone: '🛡️', desc: 'Gestion et Sécurité Publique' },
+  { nom: 'POLICE: OFFICIER ET COMMISSAIRE', icone: '👮', desc: 'Corps de police nationale' },
   { nom: 'Administrateur civil', icone: '📋', desc: 'Administration publique générale' },
   { nom: 'CAPÉ', icone: '🎓', desc: 'Certificat d\'Aptitude Pédagogique de l\'Enseignement' },
   { nom: 'Inspecteur des Impôts', icone: '🔍', desc: 'Concours Inspecteur des Impôts – Fiscalité' },

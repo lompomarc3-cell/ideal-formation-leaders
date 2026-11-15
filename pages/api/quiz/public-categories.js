@@ -72,6 +72,7 @@ function getCatIcon(nom) {
 const ORDRE_MAP = {
   direct: ['actualit','fran','litt','h-g','histoir','svt','psycho','math','physique','pc (','droit','conomie','entra','accomp'],
   professionnel: [
+    'spécialité( ate',
     'casu','vie scolaire',
     'actualit',
     'cisu','aisu',  // CISU/AISU (nouveau nom)
