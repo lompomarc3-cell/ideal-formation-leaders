@@ -5,15 +5,10 @@ import { rateLimit, tooManyRequests } from '../../../lib/rate-limit'
 
 // 🛡️ SÉCURITÉ : Clés centralisées — ne jamais exposer côté client
 // supabaseAdmin utilise la SERVICE_ROLE_KEY en mode server-only (Edge runtime)
-const SUPABASE_URL = 'https://cyasoaihjjochwhnhwqf.supabase.co'
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://cyasoaihjjochwhnhwqf.supabase.co'
 // SERVICE_KEY utilisée uniquement pour l'appel fetch admin/users (création compte Auth)
 // Centraliser dans une variable d'env en production (SUPABASE_SERVICE_ROLE_KEY)
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || (() => {
-  // Fallback encodé en Base64 pour éviter la détection automatique dans les scanners de sécurité
-  // Ce code s'exécute UNIQUEMENT côté serveur Edge (Cloudflare Workers), jamais dans le navigateur
-  const b64 = 'ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW1ONVlYTnZZV2xvYW1wdlkyaDNhRzVvZDNGbUlpd2ljbTlzWlNJNkluTmxjblpwWTJGd2JDSXNJbWxoZENJNk1UYzNORE0xT1RJd05Td2laWGh3SWpveU1EZzVPVE0xTWpBMWZRLk96Ml9Nai1UT1BDUExOQkJ1bS10aDNYOG5jTTl0dnI3MGhaU0VWcTlKdUE='
-  return atob(b64)
-})()
+const SERVICE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'missing-secret-key'
 
 export default async function handler(req) {
   if (req.method !== 'POST') {

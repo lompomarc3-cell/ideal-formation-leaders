@@ -133,7 +133,7 @@ class ApiService {
   Future<List<Map<String, dynamic>>> fetchDemoQuestions({int limit = 10}) async {
     const supabaseUrl = 'https://cyasoaihjjochwhnhwqf.supabase.co';
     const anonKey =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YXNvYWloampvY2h3aG5od3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTkyMDUsImV4cCI6MjA4OTkzNTIwNX0.iZx5CKV4oY80POmPYs6_PMa-2vG5kNTHhOHD5M3HX44';
+        'sb_publishable_57eoYBC7LjaYpj53k5Yn5g_OWVLDefZ';
 
     try {
       final uri = Uri.parse(

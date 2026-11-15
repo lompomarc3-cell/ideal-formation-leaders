@@ -3,8 +3,8 @@
 export const runtime = 'edge'
 import { parseDescription, isScheduleExpired } from '../../../lib/scheduling'
 
-const SUPABASE_URL = 'https://cyasoaihjjochwhnhwqf.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YXNvYWloampvY2h3aG5od3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTkyMDUsImV4cCI6MjA4OTkzNTIwNX0.iZx5CKV4oY80POmPYs6_PMa-2vG5kNTHhOHD5M3HX44'
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://cyasoaihjjochwhnhwqf.supabase.co'
+const SUPABASE_ANON_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || 'missing-publishable-key'
 
 // Validation stricte du format UUID v4 (et compatible v1-v5).
 // Évite les erreurs 500 en bloquant les requêtes avec des IDs malformés (ex: 'invalid-id').
