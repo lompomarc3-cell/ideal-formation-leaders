@@ -4,6 +4,8 @@
 
 🌐 **URL Production** : https://ideal-formation-leaders.pages.dev
 
+📱 **Guide officiel de génération et publication APK** : [APK_RELEASE_GUIDE.md](./APK_RELEASE_GUIDE.md)
+
 ---
 
 ## 📋 Mise à jour v2.0 – Juillet 2025
