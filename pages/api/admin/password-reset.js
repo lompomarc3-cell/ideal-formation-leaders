@@ -16,10 +16,9 @@ async function checkAdmin(req) {
   return profile && ['admin', 'superadmin'].includes(profile.role) ? profile.id : null
 }
 
-function temporaryPassword() {
-  const raw = crypto.randomUUID().replace(/-/g, '')
-  const digits = raw.replace(/\D/g, '').slice(0, 4).padEnd(4, '0')
-  return `IFL2026!${digits}`
+function visiblePassword(phone) {
+  const digits = String(phone || '').replace(/\D/g, '')
+  return `IFL2026${digits.slice(-4).padStart(4, '0')}`
 }
 
 export default async function handler(req) {
@@ -62,8 +61,8 @@ export default async function handler(req) {
       })
     }
 
-    const temporary = temporaryPassword()
-    const passwordHash = await hashPassword(temporary)
+    const visible = visiblePassword(target.phone)
+    const passwordHash = await hashPassword(visible)
 
     // Synchroniser aussi le mot de passe Supabase Auth : cela permet au compte
     // de rester utilisable par les intégrations qui passent par Auth Admin.
@@ -74,7 +73,7 @@ export default async function handler(req) {
         'Authorization': `Bearer ${process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'missing-secret-key'}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ password: temporary, email_confirm: true })
+      body: JSON.stringify({ password: visible, email_confirm: true })
     })
     if (!authUpdate.ok) {
       const detail = await authUpdate.text()
@@ -120,8 +119,8 @@ export default async function handler(req) {
       success: true,
       status: 'issued',
       user: { id: target.id, phone: target.phone, full_name: target.full_name },
-      temporary_password: temporary,
-      message: 'Nouveau mot de passe généré. Copiez-le et communiquez-le à l’utilisateur par WhatsApp.'
+      temporary_password: visible,
+      message: 'Nouveau mot de passe généré et affiché. Copiez-le et communiquez-le à l’utilisateur par WhatsApp.'
     }), { status: 200, headers: { 'Content-Type': 'application/json' } })
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message || 'Erreur lors de la réinitialisation' }), {

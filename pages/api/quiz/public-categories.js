@@ -97,6 +97,7 @@ const ORDRE_MAP = {
 
 function getCatOrdre(nom, type) {
   const n = (nom || '').toLowerCase()
+  if (type === 'professionnel' && (n.includes('spécialité( ate') || n.includes('spécialite( ate'))) return 1
   const list = ORDRE_MAP[type] || []
   for (let i = 0; i < list.length; i++) {
     if (n.includes(list[i].toLowerCase())) return i + 1
@@ -187,6 +188,9 @@ export default async function handler(req) {
       // Seul l'accès aux questions au-delà de la 5ème est bloqué (cf. public-questions / questions API).
       .sort((a, b) => {
         if (a.type !== b.type) return a.type.localeCompare(b.type)
+        const aAte = a.nom.toLowerCase().includes('spécialité( ate') || a.nom.toLowerCase().includes('spécialite( ate')
+        const bAte = b.nom.toLowerCase().includes('spécialité( ate') || b.nom.toLowerCase().includes('spécialite( ate')
+        if (aAte !== bAte) return aAte ? -1 : 1
         return a.ordre - b.ordre
       })
 

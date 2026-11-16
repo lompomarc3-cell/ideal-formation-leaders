@@ -247,20 +247,20 @@ Les tokens fournis dans un brief ne doivent jamais être recopiés dans ce fichi
 
 La procédure reproductible est conservée dans le dépôt lui-même : ce fichier, le workflow GitHub Actions et les règles `.gitignore` constituent la mémoire opérationnelle du pipeline APK IFL.
 
-## 14. Paramètres de la release v4.0.2
+## 14. Paramètres de la release v4.0.5
 
-La release de stabilisation utilise :
+La release v4.0.5 utilise :
 
-- `version: 4.0.2+53` dans `flutter/pubspec.yaml` ;
-- `versionCode = 53` et `versionName = "4.0.2"` dans Android ;
+- `version: 4.0.5+56` dans `flutter/pubspec.yaml` ;
+- `versionCode = 56` et `versionName = "4.0.5"` dans Android ;
 - le workflow `.github/workflows/build-apk-v4.yml` ;
-- le tag GitHub `v4.0.2` ;
+- le tag GitHub `v4.0.5` ;
 - l’asset publié par le workflow : `app-release.apk`.
+
+Cette version force `SPÉCIALITÉ( ATE, CE )` en première position dans les APIs publique et authentifiée, supprime le tri local Flutter, et remplace l’action Reset par une action œil Voir/Copier. Le mot de passe généré suit le format lisible `IFL2026` + les quatre derniers chiffres du téléphone ; le mot de passe original ne peut pas être révélé car il est stocké haché.
 
 La landing doit pointer vers :
 
 ```text
-https://github.com/lompomarc3-cell/ideal-formation-leaders/releases/download/v4.0.2/app-release.apk
+https://github.com/lompomarc3-cell/ideal-formation-leaders/releases/download/v4.0.5/app-release.apk
 ```
-
-Cette version inclut ATE/CE en première position, les noms GSP/POLICE harmonisés, un reset administrateur avec mot de passe lisible et bouton de copie, les compteurs professionnels **41 dossiers (38 payants + 3 bonus)** et la visibilité du plan professionnel **5 000 FCFA/mois**.

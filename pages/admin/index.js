@@ -425,7 +425,7 @@ function AdminUsers({ getToken, onNotif }) {
       const d = await r.json()
       if (d.success && d.temporary_password) {
         setResetResult({ phone: u.phone || 'l’utilisateur', password: d.temporary_password })
-        onNotif('✅ Réinitialisation créée', 'success')
+        onNotif('✅ Mot de passe visible généré', 'success')
       } else onNotif(d.error || 'Réinitialisation impossible', 'error')
     } catch {
       onNotif('Erreur réseau', 'error')
@@ -511,8 +511,8 @@ function AdminUsers({ getToken, onNotif }) {
                 <button
                   onClick={() => resetPassword(u)}
                   className="p-2 rounded-lg bg-amber-900 text-amber-200 hover:bg-amber-800 text-sm"
-                  title="Réinitialiser le mot de passe"
-                >🔑</button>
+                  title="Voir et copier le mot de passe"
+                >👁️</button>
                 <button
                   onClick={() => deleteUser(u)}
                   className="p-2 rounded-lg bg-red-900 text-red-200 hover:bg-red-800 text-sm"

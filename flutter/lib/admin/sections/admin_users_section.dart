@@ -180,9 +180,9 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Réinitialiser le mot de passe ?'),
+        title: const Text('Voir / réinitialiser le mot de passe ?'),
         content: Text(
-            'Un nouveau mot de passe lisible sera généré pour ${user['full_name'] ?? user['phone']}. Vous pourrez le copier et l’envoyer par WhatsApp.'),
+            'Le mot de passe actuel étant haché, un nouveau mot de passe lisible sera généré pour ${user['full_name'] ?? user['phone']}. Vous pourrez le copier et l’envoyer par WhatsApp.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
           ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Générer')),
@@ -199,7 +199,7 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
         await showDialog<void>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Nouveau mot de passe'),
+            title: const Text('👁️ Mot de passe visible'),
             content: SelectableText(
                 'Utilisateur : ${user['phone'] ?? '—'}\n\nMot de passe : $temporary\n\nCopiez-le et communiquez-le à l’utilisateur par WhatsApp.'),
             actions: [
@@ -464,8 +464,8 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       onPressed: () => _resetPassword(u),
-                                      icon: const Icon(Icons.lock_reset, size: 16),
-                                      label: const Text('Reset'),
+                                      icon: const Icon(Icons.visibility, size: 16),
+                                      label: const Text('Voir / copier'),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor: Colors.orange.shade800,
                                         side: BorderSide(color: Colors.orange.shade800),

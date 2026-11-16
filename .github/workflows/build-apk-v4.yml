@@ -1,4 +1,4 @@
-name: Build and publish IFL APK v4.0.2
+name: Build and publish IFL APK v4.0.5
 
 on:
   workflow_dispatch:
@@ -66,17 +66,17 @@ jobs:
           "$APKSIGNER" verify --verbose "$APK" | tee /tmp/apksigner.txt
           grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true' /tmp/apksigner.txt
           grep -q 'Verified using v3 scheme (APK Signature Scheme v3): true' /tmp/apksigner.txt
-          "$AAPT" dump badging "$APK" | grep -E "package: name='com.ifl.ifl' versionCode='53' versionName='4.0.2'"
+          "$AAPT" dump badging "$APK" | grep -E "package: name='com.ifl.ifl' versionCode='56' versionName='4.0.5'"
 
       - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           APK=flutter/build/app/outputs/flutter-apk/app-release.apk
-          if gh release view v4.0.2 >/dev/null 2>&1; then
-            gh release upload v4.0.2 "$APK#ifl-app-v4.0.2.apk" --clobber
+          if gh release view v4.0.5 >/dev/null 2>&1; then
+            gh release upload v4.0.5 "$APK#ifl-app-v4.0.5.apk" --clobber
           else
-            gh release create v4.0.2 "$APK#ifl-app-v4.0.2.apk" \
-              --title 'IFL v4.0.2 - Corrections finales' \
-              --notes $'✅ ATE/CE en première position\n✅ Noms GSP et POLICE harmonisés\n✅ Reset admin avec mot de passe lisible et copie directe\n✅ Plan Pro mensuel 5 000 FCFA\n✅ Version Android 4.0.2 (build 53)'
+            gh release create v4.0.5 "$APK#ifl-app-v4.0.5.apk" \
+              --title 'IFL v4.0.5 - Ordre et mot de passe visibles' \
+              --notes $'✅ ATE/CE forcé en première position\n✅ Flutter respecte l’ordre API sans tri local\n✅ Bouton œil Voir/Copier dans les panneaux admin\n✅ Mot de passe lisible IFL2026 + 4 derniers chiffres\n✅ Version Android 4.0.5 (build 56)'
           fi

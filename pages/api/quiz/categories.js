@@ -79,6 +79,8 @@ const ORDRE_MAP = {
     { match: 'accomp', ordre: 12 },
   ],
   professionnel: [
+    { match: 'spécialité( ate', ordre: 1 },
+    { match: 'spécialite( ate', ordre: 1 },
     { match: 'vie scolaire', ordre: 1 },
     { match: 'casu', ordre: 1 },
     { match: 'actualit', ordre: 2 },
@@ -128,6 +130,7 @@ const ORDRE_MAP = {
 
 function getCatOrdre(nom, catType) {
   const n = (nom || '').toLowerCase()
+  if (catType === 'professionnel' && (n.includes('spécialité( ate') || n.includes('spécialite( ate'))) return 1
   const mapList = ORDRE_MAP[catType] || []
   // Chercher la correspondance la plus longue en premier (pour éviter les conflits)
   const sorted = [...mapList].sort((a, b) => b.match.length - a.match.length)
@@ -309,6 +312,9 @@ export default async function handler(req) {
       .sort((a, b) => {
         // Trier d'abord par type, puis par ordre
         if (a.type !== b.type) return a.type.localeCompare(b.type)
+        const aAte = a.nom.toLowerCase().includes('spécialité( ate') || a.nom.toLowerCase().includes('spécialite( ate')
+        const bAte = b.nom.toLowerCase().includes('spécialité( ate') || b.nom.toLowerCase().includes('spécialite( ate')
+        if (aAte !== bAte) return aAte ? -1 : 1
         return a.ordre - b.ordre
       })
 

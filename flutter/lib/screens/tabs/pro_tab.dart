@@ -124,17 +124,10 @@ class _ProTabState extends State<ProTab> {
     final paid = _paidDossiers();
     final hasAnyPaid = paid.isNotEmpty;
 
-    // Tri : payants en premier, bonus à la fin
-    final sorted = List<Category>.from(_categories);
-    sorted.sort((a, b) {
-      final aIsBonus = _isBonus(a);
-      final bIsBonus = _isBonus(b);
-      if (aIsBonus == bIsBonus) return a.ordre.compareTo(b.ordre);
-      return aIsBonus ? 1 : -1;
-    });
-
-    final paidList = sorted.where((c) => !_isBonus(c)).toList();
-    final bonusList = sorted.where(_isBonus).toList();
+    // L’API fournit l’ordre officiel (ATE/CE en première position).
+    // Aucun tri alphabétique ou par date n’est effectué localement.
+    final paidList = _categories.where((c) => !_isBonus(c)).toList();
+    final bonusList = _categories.where(_isBonus).toList();
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
