@@ -247,20 +247,20 @@ Les tokens fournis dans un brief ne doivent jamais être recopiés dans ce fichi
 
 La procédure reproductible est conservée dans le dépôt lui-même : ce fichier, le workflow GitHub Actions et les règles `.gitignore` constituent la mémoire opérationnelle du pipeline APK IFL.
 
-## 14. Paramètres de la release v4.0.1
+## 14. Paramètres de la release v4.0.2
 
 La release de stabilisation utilise :
 
-- `version: 4.0.1+52` dans `flutter/pubspec.yaml` ;
-- `versionCode = 52` et `versionName = "4.0.1"` dans Android ;
+- `version: 4.0.2+53` dans `flutter/pubspec.yaml` ;
+- `versionCode = 53` et `versionName = "4.0.2"` dans Android ;
 - le workflow `.github/workflows/build-apk-v4.yml` ;
-- le tag GitHub `v4.0.1` ;
+- le tag GitHub `v4.0.2` ;
 - l’asset publié par le workflow : `app-release.apk`.
 
 La landing doit pointer vers :
 
 ```text
-https://github.com/lompomarc3-cell/ideal-formation-leaders/releases/download/v4.0.1/app-release.apk
+https://github.com/lompomarc3-cell/ideal-formation-leaders/releases/download/v4.0.2/app-release.apk
 ```
 
-Cette version inclut l’harmonisation du nom **IDEAL FORMATION**, les compteurs professionnels **41 dossiers (38 payants + 3 bonus)**, le reset administrateur avec mot de passe temporaire et la visibilité du plan professionnel **5 000 FCFA/mois**.
+Cette version inclut ATE/CE en première position, les noms GSP/POLICE harmonisés, un reset administrateur avec mot de passe lisible et bouton de copie, les compteurs professionnels **41 dossiers (38 payants + 3 bonus)** et la visibilité du plan professionnel **5 000 FCFA/mois**.

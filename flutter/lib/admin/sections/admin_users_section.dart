@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
@@ -181,7 +182,7 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
       builder: (ctx) => AlertDialog(
         title: const Text('Réinitialiser le mot de passe ?'),
         content: Text(
-            'Un mot de passe temporaire sera généré pour ${user['full_name'] ?? user['phone']}. Il devra être changé après connexion.'),
+            'Un nouveau mot de passe lisible sera généré pour ${user['full_name'] ?? user['phone']}. Vous pourrez le copier et l’envoyer par WhatsApp.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
           ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Générer')),
@@ -198,10 +199,22 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
         await showDialog<void>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Mot de passe temporaire'),
+            title: const Text('Nouveau mot de passe'),
             content: SelectableText(
-                'Utilisateur : ${user['phone'] ?? '—'}\n\nMot de passe : $temporary\n\nValide pendant 24 heures. Communiquez-le à l’utilisateur puis demandez-lui de le changer.'),
+                'Utilisateur : ${user['phone'] ?? '—'}\n\nMot de passe : $temporary\n\nCopiez-le et communiquez-le à l’utilisateur par WhatsApp.'),
             actions: [
+              TextButton.icon(
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: temporary));
+                  if (ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(content: Text('✅ Mot de passe copié')),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.copy),
+                label: const Text('Copier'),
+              ),
               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer')),
             ],
           ),

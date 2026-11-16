@@ -348,6 +348,7 @@ function AdminUsers({ getToken, onNotif }) {
   const [loading, setLoading] = useState(true)
   const [editId, setEditId] = useState(null)
   const [search, setSearch] = useState('')
+  const [resetResult, setResetResult] = useState(null)
 
   useEffect(() => { fetchUsers() }, [])
 
@@ -411,8 +412,8 @@ function AdminUsers({ getToken, onNotif }) {
 
   const resetPassword = async (u) => {
     const ok = typeof window !== 'undefined' && window.confirm(
-      `Générer un mot de passe temporaire pour ${u.prenom || ''} ${u.nom || ''} (${u.phone || ''}) ?\n\n` +
-      `Le mot de passe sera valable 24 heures et devra être changé par l'utilisateur.`
+      `Réinitialiser et générer un nouveau mot de passe pour ${u.prenom || ''} ${u.nom || ''} (${u.phone || ''}) ?\n\n` +
+      `Le mot de passe sera affiché pour être copié et envoyé à l'utilisateur par WhatsApp.`
     )
     if (!ok) return
     try {
@@ -423,7 +424,7 @@ function AdminUsers({ getToken, onNotif }) {
       })
       const d = await r.json()
       if (d.success && d.temporary_password) {
-        window.alert(`Mot de passe temporaire pour ${u.phone || 'l’utilisateur'} :\n\n${d.temporary_password}\n\nCommuniquez-le à l’utilisateur puis demandez-lui de le changer.`)
+        setResetResult({ phone: u.phone || 'l’utilisateur', password: d.temporary_password })
         onNotif('✅ Réinitialisation créée', 'success')
       } else onNotif(d.error || 'Réinitialisation impossible', 'error')
     } catch {
@@ -438,6 +439,24 @@ function AdminUsers({ getToken, onNotif }) {
 
   return (
     <div>
+      {resetResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-md rounded-2xl border border-amber-500 bg-gray-900 p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-extrabold text-white">🔑 Nouveau mot de passe</h3>
+                <p className="mt-1 text-sm text-gray-400">À communiquer à {resetResult.phone}, notamment par WhatsApp.</p>
+              </div>
+              <button onClick={() => setResetResult(null)} className="text-gray-400 hover:text-white" aria-label="Fermer">✕</button>
+            </div>
+            <div className="mt-5 rounded-xl bg-gray-800 px-4 py-4 text-center text-2xl font-black tracking-widest text-amber-300">{resetResult.password}</div>
+            <div className="mt-5 flex gap-3">
+              <button onClick={async () => { try { await navigator.clipboard.writeText(resetResult.password); onNotif('✅ Mot de passe copié', 'success') } catch { onNotif('Copie impossible', 'error') } }} className="flex-1 rounded-xl bg-amber-500 px-4 py-3 font-bold text-gray-950 hover:bg-amber-400">Copier</button>
+              <button onClick={() => setResetResult(null)} className="rounded-xl bg-gray-700 px-4 py-3 font-bold text-white hover:bg-gray-600">Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-4 mt-1">
         <h2 className="text-white text-xl font-bold">👥 Utilisateurs ({nonAdminUsers.length})</h2>
         <button onClick={fetchUsers} className="text-gray-400 hover:text-white p-2">🔄</button>

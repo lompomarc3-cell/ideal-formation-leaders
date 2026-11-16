@@ -17,8 +17,9 @@ async function checkAdmin(req) {
 }
 
 function temporaryPassword() {
-  const raw = crypto.randomUUID().replace(/-/g, '').toUpperCase()
-  return `IFL-${raw.slice(0, 4)}-${raw.slice(4, 8)}`
+  const raw = crypto.randomUUID().replace(/-/g, '')
+  const digits = raw.replace(/\D/g, '').slice(0, 4).padEnd(4, '0')
+  return `IFL2026!${digits}`
 }
 
 export default async function handler(req) {
@@ -64,6 +65,22 @@ export default async function handler(req) {
     const temporary = temporaryPassword()
     const passwordHash = await hashPassword(temporary)
 
+    // Synchroniser aussi le mot de passe Supabase Auth : cela permet au compte
+    // de rester utilisable par les intégrations qui passent par Auth Admin.
+    const authUpdate = await fetch(`${process.env.SUPABASE_URL || 'https://cyasoaihjjochwhnhwqf.supabase.co'}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+      method: 'PUT',
+      headers: {
+        'apikey': process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'missing-secret-key',
+        'Authorization': `Bearer ${process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'missing-secret-key'}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ password: temporary, email_confirm: true })
+    })
+    if (!authUpdate.ok) {
+      const detail = await authUpdate.text()
+      throw new Error(`Synchronisation Auth impossible: ${authUpdate.status} ${detail.slice(0, 160)}`)
+    }
+
     // Le système IFL authentifie les utilisateurs via le dernier enregistrement ifl_auth.
     const { error: authError } = await supabaseAdmin
       .from('correction_requests')
@@ -92,7 +109,7 @@ export default async function handler(req) {
         channel: 'admin',
         status: 'issued',
         attempts: 0,
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        expires_at: null
       })
     if (requestError) {
       // Le changement d'authentification reste valide si le journal dédié est absent.
@@ -104,8 +121,7 @@ export default async function handler(req) {
       status: 'issued',
       user: { id: target.id, phone: target.phone, full_name: target.full_name },
       temporary_password: temporary,
-      expires_in_hours: 24,
-      message: 'Mot de passe temporaire généré. Communiquez-le à l’utilisateur puis demandez-lui de le changer.'
+      message: 'Nouveau mot de passe généré. Copiez-le et communiquez-le à l’utilisateur par WhatsApp.'
     }), { status: 200, headers: { 'Content-Type': 'application/json' } })
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message || 'Erreur lors de la réinitialisation' }), {
