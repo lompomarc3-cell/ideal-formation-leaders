@@ -157,10 +157,10 @@ export default function Dashboard() {
   }, [router.isReady, router.query])
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 14 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 37 dossiers (20 000 FCFA par an / dossier)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 14 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 41 dossiers (20 000 FCFA par an / dossier)\n✅ 5 questions gratuites par dossier\n\n👉 ${APP_URL}`
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'IFL – Idéale Formation of Leaders', text, url: APP_URL })
+        await navigator.share({ title: 'IFL – IDEAL FORMATION', text, url: APP_URL })
         setShareMsg('✅ Partagé !')
       } catch (e) {
         if (e.name !== 'AbortError') window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
@@ -302,7 +302,7 @@ export default function Dashboard() {
       if (dossiersProPrincipaux.length === 0) {
         parts.push('Concours professionnels (accompagnements)')
       } else if (dossiersProPrincipaux.length >= 14) {
-        parts.push('Accès complet Concours professionnels (39 dossiers : 36 payants + 3 bonus)')
+        parts.push('Accès complet Concours professionnels (41 dossiers : 38 payants + 3 bonus)')
       } else {
         parts.push(dossiersProPrincipaux.join(', '))
       }
@@ -333,7 +333,7 @@ export default function Dashboard() {
     },
     {
       q: "Quelle est la différence entre les deux formules ?",
-      a: "📚 Concours Directs (5 000 FCFA par an) : 14 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 39 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, CAPET, etc.)"
+      a: "📚 Concours Directs (5 000 FCFA par an) : 14 dossiers thématiques (Actualité, Français, Maths, SVT, Droit, etc.)\n\n🎓 Concours Professionnels (20 000 FCFA par an) : 41 dossiers spécialisés (CASU, CAPES, Justice, Magistrature, Police, Santé, CAPET, etc.)"
     },
     {
       q: "Mon abonnement n'est pas activé après paiement ?",
@@ -459,7 +459,7 @@ export default function Dashboard() {
                                 </div>
                                 {dp.length >= 14 ? (
                                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)' }}>
-                                    🏆 Accès complet (36 dossiers payants)
+                                    🏆 Accès complet (38 dossiers payants)
                                   </span>
                                 ) : dp.length > 0 ? (
                                   <div className="flex flex-wrap gap-1">
@@ -827,7 +827,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-white font-extrabold text-sm mb-1">Notre offre Concours Professionnels</p>
                     <p className="text-blue-100 text-xs leading-relaxed">
-                      <strong className="text-white">15 dossiers professionnels disponibles.</strong> Pour chaque dossier, <strong className="text-yellow-300">3 dossiers d'accompagnement offerts :</strong>
+                      <strong className="text-white">41 dossiers professionnels disponibles.</strong> Pour chaque dossier, <strong className="text-yellow-300">3 dossiers d'accompagnement offerts :</strong>
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {['📰 Actualités & culture', '📝 Entraînement QCM', '🎯 Accompagnement final'].map((item, i) => (
@@ -866,7 +866,7 @@ export default function Dashboard() {
                         const dp = (user.dossiers_principaux || []).filter(d => !acc.includes(d))
                         if (dp.length >= 14) return (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
-                            🏆 Accès complet (36 dossiers payants)
+                            🏆 Accès complet (38 dossiers payants)
                           </span>
                         )
                         if (dp.length > 0) return (
@@ -1065,7 +1065,7 @@ export default function Dashboard() {
                               {dossiersPrincipaux.length >= 14 ? (
                                 <div>
                                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white' }}>
-                                    🏆 Accès complet (36 dossiers payants)
+                                    🏆 Accès complet (38 dossiers payants)
                                   </span>
                                 </div>
                               ) : dossiersPrincipaux.length > 0 ? (
@@ -1205,11 +1205,11 @@ export default function Dashboard() {
                       <div className="inline-block mb-4" style={{ width: 80, height: 80 }}>
                         <img src="/logo.png" alt="IFL" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 20 }} />
                       </div>
-                      <h2 className="font-extrabold text-xl mb-1" style={{ color: '#8B2500' }}>Idéale Formation of Leaders</h2>
+                      <h2 className="font-extrabold text-xl mb-1" style={{ color: '#8B2500' }}>IDEAL FORMATION</h2>
                       <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: '#FFF0E8', color: '#C4521A' }}>IFL</span>
                     </div>
                     <p className="text-gray-700 text-sm leading-relaxed mb-5">
-                      <strong style={{ color: '#8B2500' }}>Idéale Formation of Leaders (IFL)</strong> est une application spécialisée dans la préparation aux concours directs et professionnels au Burkina Faso. Elle propose des milliers de QCM classés par sous-dossiers thématiques, avec un système de progression et des explications détaillées pour chaque question.
+                      <strong style={{ color: '#8B2500' }}>IDEAL FORMATION (IFL)</strong> est une application spécialisée dans la préparation aux concours directs et professionnels au Burkina Faso. Elle propose des milliers de QCM classés par sous-dossiers thématiques, avec un système de progression et des explications détaillées pour chaque question.
                     </p>
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       {[
@@ -1271,7 +1271,7 @@ export default function Dashboard() {
                       <h2 className="font-extrabold text-xl" style={{ color: '#8B2500' }}>Notre équipe</h2>
                     </div>
                     <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                      L'équipe d'<strong style={{ color: '#8B2500' }}>Idéale Formation of Leaders</strong> est composée d'enseignants et de professionnels passionnés qui accompagnent chaque année des centaines de candidats burkinabè vers la réussite de leurs concours.
+                      L'équipe d'<strong style={{ color: '#8B2500' }}>IDEAL FORMATION</strong> est composée d'enseignants et de professionnels passionnés qui accompagnent chaque année des centaines de candidats burkinabè vers la réussite de leurs concours.
                     </p>
                     <p className="text-gray-700 text-sm leading-relaxed mb-5">
                       Notre équipe est également auteure de plusieurs documents, mémoires et livres spécialisés pour les concours directs. Notre mission est de mettre à la disposition des candidats des outils de qualité, accessibles et efficaces.
@@ -1349,7 +1349,7 @@ export default function Dashboard() {
                           </div>
                           <div className="flex-1 bg-white bg-opacity-15 rounded-xl p-2 text-center flex flex-col items-center justify-center gap-1">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                            <p className="text-xs text-orange-100">Pro (37 dossiers)</p>
+                            <p className="text-xs text-orange-100">Pro (41 dossiers)</p>
                             <p className="font-extrabold">20 000 FCFA par an</p>
                           </div>
                         </div>

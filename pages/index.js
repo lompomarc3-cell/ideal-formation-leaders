@@ -297,7 +297,7 @@ export default function Home() {
   }
 
   const handleShare = async () => {
-    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 14 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 39 dossiers (20 000 FCFA par an)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
+    const text = `🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n✅ Des milliers de QCM\n✅ Concours directs – 14 dossiers (5 000 FCFA par an)\n✅ Concours professionnels – 41 dossiers (20 000 FCFA par an)\n✅ Démo gratuite : 10 questions pour découvrir\n\n👉 ${APP_URL}`
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title: 'IFL – Formation Burkina Faso', text, url: APP_URL })
@@ -322,8 +322,8 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>IFL – Idéale Formation of Leaders | Concours Burkina Faso</title>
-        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Démo gratuite de 10 questions. Concours directs (14 dossiers) et professionnels (39 dossiers)." />
+        <title>IFL – IDEAL FORMATION | Concours Burkina Faso</title>
+        <meta name="description" content="Préparez vos concours du Burkina Faso avec des milliers de QCM. Démo gratuite de 10 questions. Concours directs (14 dossiers) et professionnels (41 dossiers)." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="theme-color" content="#8B2500" />
         {/* PWA */}
@@ -347,7 +347,7 @@ export default function Home() {
               </div>
               <div>
                 <p className="text-white font-extrabold text-base leading-tight">IFL</p>
-                <p className="text-orange-200 text-xs">Idéale Formation of Leaders</p>
+                <p className="text-orange-200 text-xs">IDEAL FORMATION</p>
               </div>
             </div>
             <div className="flex gap-2 items-center">
@@ -444,7 +444,7 @@ export default function Home() {
                   </div>
                   <div className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block" style={{ background: '#FFF7E8', color: '#B45309' }}>🏅 Évolution de carrière</div>
                   <h3 className="font-extrabold text-sm mb-1" style={{ color: '#8B2500' }}>Professionnels</h3>
-                  <p className="text-gray-500 text-xs mb-2">39 dossiers spécialisés</p>
+                  <p className="text-gray-500 text-xs mb-2">41 dossiers spécialisés</p>
                   <div style={{ color: '#C4521A' }}>
                     <PromoPrice type="professionnel" prices={publicPrices} size="lg" />
                   </div>
@@ -629,7 +629,7 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-white font-extrabold text-2xl mb-1">Concours Professionnels</h2>
-                    <p className="text-blue-200 text-sm">39 dossiers spécialisés</p>
+                    <p className="text-blue-200 text-sm">41 dossiers spécialisés</p>
                   </div>
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -652,7 +652,7 @@ export default function Home() {
             <div className="max-w-lg mx-auto px-4 pt-5" style={{ background: '#EFF6FF' }}>
               <div className="rounded-xl px-3 py-2 mb-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '1px solid #BFDBFE' }}>
                 <span className="text-sm">🆓</span>
-                <p className="text-xs font-semibold flex-1" style={{ color: '#1D4ED8' }}>5 questions gratuites — 15 dossiers pro + 3 bonus inclus</p>
+                <p className="text-xs font-semibold flex-1" style={{ color: '#1D4ED8' }}>5 questions gratuites — 38 dossiers pro payants + 3 bonus inclus</p>
                 <Link href="/select-specialty" className="px-2.5 py-1 text-xs font-bold text-white rounded-lg flex-shrink-0" style={{ background: '#1D4ED8' }}>
                   <PromoPrice type="professionnel" prices={publicPrices} size="sm" lightTheme />
                 </Link>
@@ -848,11 +848,11 @@ export default function Home() {
                       <div className="inline-block logo-rounded mb-4" style={{ width: 80, height: 80 }}>
                         <img src="/logo.png" alt="IFL" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 20 }} />
                       </div>
-                      <h2 className="font-extrabold text-xl mb-1" style={{ color: '#8B2500' }}>Idéale Formation of Leaders</h2>
+                      <h2 className="font-extrabold text-xl mb-1" style={{ color: '#8B2500' }}>IDEAL FORMATION</h2>
                       <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: '#FFF0E8', color: '#C4521A' }}>IFL</span>
                     </div>
                     <p className="text-gray-700 text-sm leading-relaxed mb-5">
-                      <strong style={{ color: '#8B2500' }}>Idéale Formation of Leaders (IFL)</strong> est une application spécialisée dans la préparation aux concours directs et professionnels au Burkina Faso. Elle propose des milliers de QCM classés par sous-dossiers thématiques, avec un système de progression et des explications détaillées pour chaque question.
+                      <strong style={{ color: '#8B2500' }}>IDEAL FORMATION (IFL)</strong> est une application spécialisée dans la préparation aux concours directs et professionnels au Burkina Faso. Elle propose des milliers de QCM classés par sous-dossiers thématiques, avec un système de progression et des explications détaillées pour chaque question.
                     </p>
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       {[
@@ -893,7 +893,7 @@ export default function Home() {
                         </div>
                         <div>
                           <p className="font-extrabold text-sm" style={{ color: '#8B2500' }}>Concours Professionnels</p>
-                          <p className="text-gray-500 text-xs">39 dossiers – <strong style={{ color: '#C4521A' }}>
+                          <p className="text-gray-500 text-xs">41 dossiers – <strong style={{ color: '#C4521A' }}>
                             <PromoPrice type="professionnel" prices={publicPrices} size="sm" />
                           </strong></p>
                         </div>
@@ -918,7 +918,7 @@ export default function Home() {
                       <h2 className="font-extrabold text-xl" style={{ color: '#8B2500' }}>Notre équipe</h2>
                     </div>
                     <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                      L&apos;équipe d&apos;<strong style={{ color: '#8B2500' }}>Idéale Formation of Leaders</strong> est composée d&apos;enseignants et de professionnels passionnés qui accompagnent chaque année des centaines de candidats burkinabè vers la réussite de leurs concours.
+                      L&apos;équipe d&apos;<strong style={{ color: '#8B2500' }}>IDEAL FORMATION</strong> est composée d&apos;enseignants et de professionnels passionnés qui accompagnent chaque année des centaines de candidats burkinabè vers la réussite de leurs concours.
                     </p>
                     <p className="text-gray-700 text-sm leading-relaxed mb-5">
                       Notre équipe est également auteure de plusieurs documents, mémoires et livres spécialisés pour les concours directs. Notre mission est de mettre à la disposition des candidats des outils de qualité, accessibles et efficaces.

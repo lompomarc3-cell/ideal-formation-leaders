@@ -297,14 +297,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
           _planCard(
             value: 'professionnel',
             title: '💼 Concours PROFESSIONNEL',
-            subtitle: 'Choisissez UN dossier + 3 bonus offerts',
+            subtitle: 'Choisissez UN dossier + 3 bonus — ou ${PriceService.formatFcfa(ps.proMensuel).replaceAll(' par an', ' / mois')}',
             price: ps.proPrixEffectif,
             oldPrice: ps.proHasPromo ? ps.proPrix : null,
             hasPromo: ps.proHasPromo,
             color: const Color(0xFF9D174D),
             bgColor: const Color(0xFFFCE7F3),
             features: const [
-              '✅ 1 dossier au choix parmi 15 dossiers pro',
+              '✅ 1 dossier au choix parmi 38 dossiers pro payants',
               '🎁 Bonus 1 : Entraînement QCM',
               '🎁 Bonus 2 : Actualités',
               '🎁 Bonus 3 : Accompagnement final',

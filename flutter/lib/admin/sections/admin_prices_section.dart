@@ -15,6 +15,7 @@ class AdminPricesSection extends StatefulWidget {
 class _AdminPricesSectionState extends State<AdminPricesSection> {
   bool _loading = true;
   List<Map<String, dynamic>> _prices = [];
+  List<Map<String, dynamic>> _plans = [];
   String? _error;
 
   @override
@@ -36,6 +37,9 @@ class _AdminPricesSectionState extends State<AdminPricesSection> {
         _prices = (res['prices'] as List? ?? [])
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
+        _plans = (res['plans'] as List? ?? [])
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
         _loading = false;
       });
     } catch (e) {
@@ -52,6 +56,34 @@ class _AdminPricesSectionState extends State<AdminPricesSection> {
       if (p['type_concours'] == type) return p;
     }
     return null;
+  }
+
+  Future<void> _editPlan(Map<String, dynamic> plan) async {
+    final ctrl = TextEditingController(text: '${plan['amount_xof'] ?? 5000}');
+    final value = await showDialog<int?>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Professionnels — abonnement mensuel'),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'Montant mensuel', suffixText: 'FCFA', border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, int.tryParse(ctrl.text.trim())), child: const Text('Enregistrer')),
+        ],
+      ),
+    );
+    if (value == null || value <= 0) return;
+    final auth = context.read<AuthService>();
+    final result = await auth.api.adminUpdatePlan(auth.token!, code: plan['code'].toString(), amountXof: value);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(result['success'] == true ? '✅ Plan mensuel mis à jour' : 'Erreur : ${result['error'] ?? 'Inconnue'}'),
+      backgroundColor: result['success'] == true ? Colors.green : Colors.red,
+    ));
+    if (result['success'] == true) _load();
   }
 
   Future<void> _edit(String type, int currentPrice) async {
@@ -194,6 +226,10 @@ class _AdminPricesSectionState extends State<AdminPricesSection> {
             onEdit: () => _edit(
                 'professionnel', (pro?['prix'] as num?)?.toInt() ?? 20000),
           ),
+          ..._plans.where((p) => p['code'] == 'pro-monthly-5000').map((plan) => Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: _MonthlyPlanCard(plan: plan, onEdit: () => _editPlan(plan)),
+              )),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
@@ -208,6 +244,30 @@ class _AdminPricesSectionState extends State<AdminPricesSection> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MonthlyPlanCard extends StatelessWidget {
+  final Map<String, dynamic> plan;
+  final VoidCallback onEdit;
+  const _MonthlyPlanCard({required this.plan, required this.onEdit});
+
+  @override
+  Widget build(BuildContext context) {
+    final amount = (plan['amount_xof'] as num?)?.toInt() ?? 5000;
+    return Card(
+      color: Colors.green.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(plan['label']?.toString() ?? 'Professionnels — 5 000 FCFA/mois', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 6),
+          Text('$amount FCFA / mois', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.green.shade800)),
+          const SizedBox(height: 10),
+          Align(alignment: Alignment.centerRight, child: ElevatedButton.icon(onPressed: onEdit, icon: const Icon(Icons.edit, size: 16), label: const Text('Modifier le plan'))),
+        ]),
       ),
     );
   }

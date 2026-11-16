@@ -88,7 +88,7 @@ function WelcomeScreen({ onDone }) {
             color: '#374151', fontSize: 14, lineHeight: 1.75,
             fontFamily: 'Poppins, sans-serif', fontWeight: 400
           }}>
-            Vous êtes sur <strong style={{ color: '#8B2500', fontWeight: 700 }}>Idéale Formation of Leaders</strong> — une communauté d&apos;instructeurs engagés pour une même cause : la réussite des candidats aux concours directs et professionnels de la <strong style={{ color: '#C4521A' }}>fonction publique du Burkina Faso</strong>.
+            Vous êtes sur <strong style={{ color: '#8B2500', fontWeight: 700 }}>IDEAL FORMATION</strong> — une communauté d&apos;instructeurs engagés pour une même cause : la réussite des candidats aux concours directs et professionnels de la <strong style={{ color: '#C4521A' }}>fonction publique du Burkina Faso</strong>.
           </p>
           <div style={{ height: 1, background: '#FFE4CC', margin: '14px 0' }} />
           <p style={{
@@ -224,7 +224,7 @@ function SplashScreen({ onDone }) {
         <p style={{
           color: 'rgba(255,224,160,0.95)', fontWeight: 600, fontSize: 13.5,
           letterSpacing: 0.8, fontFamily: 'Poppins, sans-serif'
-        }}>Idéale Formation of Leaders</p>
+        }}>IDEAL FORMATION</p>
       </div>
 
       {/* Slogan */}

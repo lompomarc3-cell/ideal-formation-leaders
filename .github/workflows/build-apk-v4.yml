@@ -1,4 +1,4 @@
-name: Build and publish IFL APK v4.0.0
+name: Build and publish IFL APK v4.0.1
 
 on:
   workflow_dispatch:
@@ -66,17 +66,17 @@ jobs:
           "$APKSIGNER" verify --verbose "$APK" | tee /tmp/apksigner.txt
           grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true' /tmp/apksigner.txt
           grep -q 'Verified using v3 scheme (APK Signature Scheme v3): true' /tmp/apksigner.txt
-          "$AAPT" dump badging "$APK" | grep -E "package: name='com.ifl.ifl' versionCode='51' versionName='4.0.0'"
+          "$AAPT" dump badging "$APK" | grep -E "package: name='com.ifl.ifl' versionCode='52' versionName='4.0.1'"
 
       - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           APK=flutter/build/app/outputs/flutter-apk/app-release.apk
-          if gh release view v4.0.0 >/dev/null 2>&1; then
-            gh release upload v4.0.0 "$APK#ifl-app-v4.0.0.apk" --clobber
+          if gh release view v4.0.1 >/dev/null 2>&1; then
+            gh release upload v4.0.1 "$APK#ifl-app-v4.0.1.apk" --clobber
           else
-            gh release create v4.0.0 "$APK#ifl-app-v4.0.0.apk" \
-              --title 'IFL v4.0.0 - Nouvelle Version' \
-              --notes $'✅ Dossiers GSP et POLICE mis à jour\n✅ Spécialité ATE/CE\n✅ Version Android 4.0.0 (build 51)\n\n⚠️ Nouveau keystore : désinstallez l’ancienne version avant installation.'
+            gh release create v4.0.1 "$APK#ifl-app-v4.0.1.apk" \
+              --title 'IFL v4.0.1 - Stabilisation finale' \
+              --notes $'✅ Nom IDEAL FORMATION harmonisé\n✅ 41 dossiers professionnels (38 payants + 3 bonus)\n✅ Réinitialisation du mot de passe administrateur\n✅ Plan Pro mensuel 5 000 FCFA\n✅ Version Android 4.0.1 (build 52)'
           fi

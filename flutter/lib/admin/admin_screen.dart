@@ -485,7 +485,7 @@ class _AdminScreenState extends State<AdminScreen> {
           _guideItem('🎓',
               'Direct (5 000 FCFA par an) → débloque les 14 dossiers directs.'),
           _guideItem('💼',
-              'Pro (20 000 FCFA par an) → débloque le dossier choisi + 3 bonus (parmi 36 dossiers).'),
+              'Pro (20 000 FCFA par an) → débloque le dossier choisi + 3 bonus (parmi 38 dossiers).'),
           _guideItem('🗓️',
               'Programmation : choisissez date + heure + minute pour tester.'),
           _guideItem('❓',
@@ -600,7 +600,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 const Text('• 36 dossiers professionnels payants + 3 bonus (20 000 FCFA par an chacun)',
                     style: TextStyle(fontSize: 12)),
                 const Text(
-                    '• Total : 39 dossiers professionnels (36 payants + 3 bonus offerts)',
+                    '• Total : 41 dossiers professionnels (38 payants + 3 bonus offerts)',
                     style: TextStyle(fontSize: 12)),
                 const Text(
                     '• 3 bonus offerts (Entraînement QCM, Actualités, Accompagnement)',

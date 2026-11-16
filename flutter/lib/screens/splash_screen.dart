@@ -151,7 +151,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                             SizedBox(height: 6),
                             Text(
-                              'Idéale Formation of Leaders',
+                              'IDEAL FORMATION',
                               style: TextStyle(
                                 color: Color(0xFFFFE0A0),
                                 fontWeight: FontWeight.w600,

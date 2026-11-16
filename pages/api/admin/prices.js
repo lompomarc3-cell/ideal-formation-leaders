@@ -75,6 +75,12 @@ export default async function handler(req) {
         }
       } catch {}
 
+      const { data: plans } = await supabaseAdmin
+        .from('subscription_plans')
+        .select('id, code, label, type_concours, amount_xof, interval_months, is_active, updated_at')
+        .eq('is_active', true)
+        .order('amount_xof', { ascending: true })
+
       return new Response(JSON.stringify({
         prices: [
           {
@@ -95,7 +101,8 @@ export default async function handler(req) {
             promo_date_fin: profPromo?.date_fin || null,
             promo_label: profPromo?.label || null
           }
-        ]
+        ],
+        plans: plans || []
       }), { status: 200, headers: { 'Content-Type': 'application/json' } })
     } catch (err) {
       return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
@@ -106,7 +113,25 @@ export default async function handler(req) {
   if (req.method === 'PUT') {
     let body = {}
     try { body = await req.json() } catch {}
-    const { type_concours, prix } = body
+    const { type_concours, prix, plan_code, amount_xof, label, is_active } = body
+
+    if (plan_code) {
+      const updates = {}
+      if (amount_xof !== undefined) updates.amount_xof = parseInt(amount_xof, 10)
+      if (label !== undefined) updates.label = String(label).trim()
+      if (is_active !== undefined) updates.is_active = !!is_active
+      if (!updates.amount_xof || updates.amount_xof <= 0) {
+        return new Response(JSON.stringify({ error: 'amount_xof invalide' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+      }
+      const { data: plan, error } = await supabaseAdmin
+        .from('subscription_plans')
+        .update(updates)
+        .eq('code', plan_code)
+        .select()
+        .single()
+      if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ success: true, plan, message: 'Plan d’abonnement mis à jour' }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    }
 
     if (!type_concours || !prix) {
       return new Response(JSON.stringify({ error: 'type_concours et prix requis' }), { status: 400, headers: { 'Content-Type': 'application/json' } })

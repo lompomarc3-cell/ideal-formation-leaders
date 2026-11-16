@@ -33,6 +33,7 @@ class PriceService extends ChangeNotifier {
   bool _proHasPromo = false;
   String? _proDateFin;
   String? _proLabel;
+  int _proMensuel = 5000;
 
   // Getters
   bool get loading => _loading;
@@ -51,6 +52,7 @@ class PriceService extends ChangeNotifier {
   bool get proHasPromo => _proHasPromo;
   String? get proDateFin => _proDateFin;
   String? get proLabel => _proLabel;
+  int get proMensuel => _proMensuel;
   int get proPrixEffectif =>
       _proHasPromo && _proPrixPromo != null ? _proPrixPromo! : _proPrix;
 
@@ -111,6 +113,13 @@ class PriceService extends ChangeNotifier {
         _proHasPromo = pro['has_promo'] == true && _proPrixPromo != null;
         _proDateFin = pro['date_fin']?.toString();
         _proLabel = pro['label']?.toString();
+      }
+      final plans = (res['plans'] as List?) ?? const [];
+      for (final raw in plans) {
+        if (raw is Map && raw['code'] == 'pro-monthly-5000') {
+          _proMensuel = (raw['amount_xof'] as num?)?.toInt() ?? 5000;
+          break;
+        }
       }
       _loaded = true;
       _lastLoad = DateTime.now();

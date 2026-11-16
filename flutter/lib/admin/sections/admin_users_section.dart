@@ -175,6 +175,50 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
     }
   }
 
+  Future<void> _resetPassword(Map<String, dynamic> user) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Réinitialiser le mot de passe ?'),
+        content: Text(
+            'Un mot de passe temporaire sera généré pour ${user['full_name'] ?? user['phone']}. Il devra être changé après connexion.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Générer')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    final auth = context.read<AuthService>();
+    try {
+      final r = await auth.api.adminResetPassword(auth.token!, user['id'].toString());
+      if (!mounted) return;
+      final temporary = r['temporary_password']?.toString();
+      if (r['success'] == true && temporary != null) {
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Mot de passe temporaire'),
+            content: SelectableText(
+                'Utilisateur : ${user['phone'] ?? '—'}\n\nMot de passe : $temporary\n\nValide pendant 24 heures. Communiquez-le à l’utilisateur puis demandez-lui de le changer.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer')),
+            ],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur : ${r['error'] ?? 'Réinitialisation impossible'}'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   String _formatDate(String? iso) {
     if (iso == null || iso.isEmpty) return '—';
     try {
@@ -401,6 +445,18 @@ class _AdminUsersSectionState extends State<AdminUsersSection> {
                                       onPressed: () => _editSubscription(u),
                                       icon: const Icon(Icons.edit, size: 16),
                                       label: const Text('Abonnement'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () => _resetPassword(u),
+                                      icon: const Icon(Icons.lock_reset, size: 16),
+                                      label: const Text('Reset'),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.orange.shade800,
+                                        side: BorderSide(color: Colors.orange.shade800),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),

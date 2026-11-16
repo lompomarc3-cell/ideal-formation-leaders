@@ -1,7 +1,7 @@
 name: ifl
-description: "Idéale Formation of Leaders - Application QCM Concours Burkina Faso"
+description: "IDEAL FORMATION - Application QCM Concours Burkina Faso"
 publish_to: 'none'
-version: 4.0.0+51
+version: 4.0.1+52
 
 environment:
   sdk: ^3.9.2

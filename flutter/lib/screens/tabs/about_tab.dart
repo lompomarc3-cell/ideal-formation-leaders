@@ -65,7 +65,7 @@ class AboutTab extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Idéale Formation of Leaders',
+            'IDEAL FORMATION',
             style: TextStyle(color: Color(0xFFFFE0A0), fontSize: 12),
           ),
         ],
@@ -92,7 +92,7 @@ class AboutTab extends StatelessWidget {
             context,
             icon: Icons.groups_2_rounded,
             title: "L'équipe",
-            subtitle: "Idéale Formation of Leaders",
+            subtitle: "IDEAL FORMATION",
             color: const Color(0xFFF5871F),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const AboutTeamPage()),
@@ -196,7 +196,7 @@ class AboutAppPage extends StatelessWidget {
         '🎓 Préparez vos concours du Burkina Faso avec IFL !\n\n'
         '✅ Des milliers de QCM\n'
         '✅ Concours directs – 14 dossiers (5 000 FCFA par an)\n'
-        '✅ Concours professionnels – 39 dossiers (20 000 FCFA par an / dossier)\n'
+        '✅ Concours professionnels – 41 dossiers (20 000 FCFA par an / dossier)\n'
         '✅ 5 questions gratuites par dossier\n\n'
         '👉 $kAppUrl';
     try {
@@ -243,7 +243,7 @@ class AboutAppPage extends StatelessWidget {
           const SizedBox(height: 14),
           const Center(
             child: Text(
-              'IFL — Idéale Formation of Leaders',
+              'IFL — IDEAL FORMATION',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: 17,
@@ -451,7 +451,7 @@ class AboutTeamPage extends StatelessWidget {
                 Icon(Icons.groups_rounded, color: Colors.white, size: 56),
                 SizedBox(height: 8),
                 Text(
-                  'Idéale Formation of Leaders',
+                  'IDEAL FORMATION',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
@@ -492,7 +492,7 @@ class AboutTeamPage extends StatelessWidget {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Idéale Formation of Leaders — Une équipe d\'enseignants et '
+                  'IDEAL FORMATION — Une équipe d\'enseignants et '
                   'd\'instructeurs expérimentés au Burkina Faso. Nous '
                   'accompagnons les candidats vers la réussite de leurs '
                   'concours directs et professionnels de la fonction publique.',
@@ -641,7 +641,7 @@ class AboutPrivacyPage extends StatelessWidget {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'IFL – Idéale Formation of Leaders',
+                  'IFL – IDEAL FORMATION',
                   style: TextStyle(color: Color(0xFFFFE0A0), fontSize: 12),
                 ),
               ],

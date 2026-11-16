@@ -409,6 +409,28 @@ function AdminUsers({ getToken, onNotif }) {
     }
   }
 
+  const resetPassword = async (u) => {
+    const ok = typeof window !== 'undefined' && window.confirm(
+      `Générer un mot de passe temporaire pour ${u.prenom || ''} ${u.nom || ''} (${u.phone || ''}) ?\n\n` +
+      `Le mot de passe sera valable 24 heures et devra être changé par l'utilisateur.`
+    )
+    if (!ok) return
+    try {
+      const r = await fetch('/api/admin/password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ user_id: u.id })
+      })
+      const d = await r.json()
+      if (d.success && d.temporary_password) {
+        window.alert(`Mot de passe temporaire pour ${u.phone || 'l’utilisateur'} :\n\n${d.temporary_password}\n\nCommuniquez-le à l’utilisateur puis demandez-lui de le changer.`)
+        onNotif('✅ Réinitialisation créée', 'success')
+      } else onNotif(d.error || 'Réinitialisation impossible', 'error')
+    } catch {
+      onNotif('Erreur réseau', 'error')
+    }
+  }
+
   if (loading) return <div className="py-16 text-center"><div className="spinner mx-auto"></div></div>
 
   const nonAdminUsers = users.filter(u => !u.is_admin)
@@ -447,7 +469,7 @@ function AdminUsers({ getToken, onNotif }) {
                     const dp = (u.dossiers_principaux || []).filter(d => !acc.includes(d))
                     if (dp.length >= 14) return (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'linear-gradient(135deg,#8B2500,#D4A017)', color: 'white' }}>
-                        🏆 Accès complet (36 dossiers payants)
+                        🏆 Accès complet (38 dossiers payants)
                       </span>
                     )
                     if (dp.length > 0) return (
@@ -467,6 +489,11 @@ function AdminUsers({ getToken, onNotif }) {
                   className="p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 text-sm"
                   title="Modifier l'abonnement"
                 >✏️</button>
+                <button
+                  onClick={() => resetPassword(u)}
+                  className="p-2 rounded-lg bg-amber-900 text-amber-200 hover:bg-amber-800 text-sm"
+                  title="Réinitialiser le mot de passe"
+                >🔑</button>
                 <button
                   onClick={() => deleteUser(u)}
                   className="p-2 rounded-lg bg-red-900 text-red-200 hover:bg-red-800 text-sm"
@@ -1062,6 +1089,7 @@ function CategoryForm({ initial, onSave, onCancel }) {
 /* =================== PRIX =================== */
 function AdminPrices({ getToken, onNotif }) {
   const [prices, setPrices] = useState([])
+  const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { fetchPrices() }, [])
@@ -1072,6 +1100,7 @@ function AdminPrices({ getToken, onNotif }) {
       const r = await fetch('/api/admin/prices', { headers: { Authorization: `Bearer ${getToken()}` } })
       const d = await r.json()
       setPrices(d.prices || [])
+      setPlans(d.plans || [])
     } catch {}
     setLoading(false)
   }
@@ -1089,6 +1118,19 @@ function AdminPrices({ getToken, onNotif }) {
     } catch {}
   }
 
+  const updatePlan = async (plan_code, amount_xof) => {
+    try {
+      const r = await fetch('/api/admin/prices', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ plan_code, amount_xof: parseInt(amount_xof, 10) })
+      })
+      const d = await r.json()
+      if (d.success) { onNotif(d.message || '✅ Plan mis à jour', 'success'); fetchPrices() }
+      else onNotif(d.error || 'Erreur', 'error')
+    } catch { onNotif('Erreur réseau', 'error') }
+  }
+
   if (loading) return <div className="py-8 text-center"><div className="spinner mx-auto"></div></div>
 
   return (
@@ -1097,6 +1139,28 @@ function AdminPrices({ getToken, onNotif }) {
       <p className="text-gray-400 text-sm mb-5">Les prix sont définis par l&apos;administrateur. Aucune durée n&apos;est affichée.</p>
       <div className="space-y-4">
         {prices.map(p => <PriceEditor key={p.id} price={p} onSave={updatePrice} />)}
+        {plans.filter(p => p.code === 'pro-monthly-5000').map(p => (
+          <PlanEditor key={p.code} plan={p} onSave={updatePlan} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function PlanEditor({ plan, onSave }) {
+  const [amount, setAmount] = useState(plan.amount_xof || 5000)
+  const [saved, setSaved] = useState(false)
+  return (
+    <div className="bg-emerald-950 rounded-2xl p-5 border border-emerald-700">
+      <p className="text-emerald-200 font-bold mb-1">🔁 {plan.label || 'Professionnels — 5 000 FCFA/mois'}</p>
+      <p className="text-emerald-300 text-sm mb-3">Plan récurrent visible dans la gestion des abonnements.</p>
+      <div className="flex gap-3">
+        <input type="number" value={amount} onChange={e => { setAmount(e.target.value); setSaved(false) }} min="100"
+          className="flex-1 bg-emerald-900 text-white rounded-xl px-4 py-3 text-lg font-bold" />
+        <button onClick={async () => { await onSave(plan.code, amount); setSaved(true) }}
+          className="px-5 py-3 font-bold text-white rounded-xl" style={{ background: saved ? '#16a34a' : '#059669' }}>
+          {saved ? '✅' : '💾'}
+        </button>
       </div>
     </div>
   )
@@ -2119,7 +2183,7 @@ function AdminSchedules({ getToken, onNotif }) {
       {/* ══════════════════════════════════════════════════════════════════ */}
       <div className="mb-5">
         <h3 className="text-red-400 font-bold text-sm mb-3">🌐 Programmation GLOBALE (tous types)</h3>
-        <p className="text-gray-400 text-xs mb-3">S'applique simultanément aux <b>14 dossiers Directs ET aux 39 dossiers Professionnels</b>. Priorité maximale.</p>
+        <p className="text-gray-400 text-xs mb-3">S'applique simultanément aux <b>14 dossiers Directs ET aux 41 dossiers Professionnels</b>. Priorité maximale.</p>
 
         <div className="bg-gray-800 rounded-2xl p-4 border border-red-700/60 mb-3 space-y-3">
           <div className="flex items-center justify-between">
@@ -2251,7 +2315,7 @@ function AdminSchedules({ getToken, onNotif }) {
         {/* Concours Professionnels */}
         <div className="bg-gray-800 rounded-2xl p-4 border border-cyan-700/50 mb-3 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-white font-bold text-sm">🎓 Concours Professionnels (39 dossiers)</span>
+            <span className="text-white font-bold text-sm">🎓 Concours Professionnels (41 dossiers)</span>
             {proInfo?.end_date && (
               <span className={`text-xs px-2 py-1 rounded-lg font-bold ${proInfo.expired ? 'bg-red-900/50 text-red-300' : 'bg-cyan-900/50 text-cyan-300'}`}>
                 {proInfo.expired ? '⚠️ EXPIRÉ' : '⏰ Actif'} : {fmtDate(proInfo.end_date)}

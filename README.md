@@ -1,4 +1,4 @@
-# IFL – Idéale Formation of Leaders
+# IFL – IDEAL FORMATION
 
 **Application de préparation aux concours du Burkina Faso**
 
@@ -86,4 +86,4 @@
 
 ---
 
-*© 2025 IFL – Idéale Formation of Leaders – Burkina Faso*
+*© 2025 IFL – IDEAL FORMATION – Burkina Faso*

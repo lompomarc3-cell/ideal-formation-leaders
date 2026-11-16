@@ -1,6 +1,6 @@
 # IFL — Migration Next.js → Flutter (web + Android)
 
-> **Idéale Formation of Leaders** — application QCM des concours directs et professionnels du Burkina Faso.
+> **IDEAL FORMATION** — application QCM des concours directs et professionnels du Burkina Faso.
 > Migration UI vers Flutter avec préservation **intégrale** du back‑end Next.js (26 routes API,
 > Supabase, JWT, Cloudflare Pages). Aucune régression visible : même URL, mêmes comptes, mêmes données.
 

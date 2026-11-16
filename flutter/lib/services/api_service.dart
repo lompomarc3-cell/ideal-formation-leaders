@@ -322,6 +322,16 @@ class ApiService {
     return _decode(res);
   }
 
+  Future<Map<String, dynamic>> adminResetPassword(
+      String token, String userId) async {
+    final res = await _client.post(
+      Uri.parse('$baseUrl/api/admin/password-reset'),
+      headers: _jsonHeaders(token),
+      body: jsonEncode({'user_id': userId}),
+    );
+    return _decode(res);
+  }
+
   Future<Map<String, dynamic>> adminPayments(String token) async {
     final res = await _client.get(
       Uri.parse('$baseUrl/api/admin/payments'),
@@ -677,6 +687,19 @@ class ApiService {
         'type_concours': typeConcours,
         'prix': prix,
       }),
+    );
+    return _decode(res);
+  }
+
+  Future<Map<String, dynamic>> adminUpdatePlan(
+    String token, {
+    required String code,
+    required int amountXof,
+  }) async {
+    final res = await _client.put(
+      Uri.parse('$baseUrl/api/admin/prices'),
+      headers: _jsonHeaders(token),
+      body: jsonEncode({'plan_code': code, 'amount_xof': amountXof}),
     );
     return _decode(res);
   }

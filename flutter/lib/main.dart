@@ -65,7 +65,7 @@ class _IFLAppState extends State<IFLApp> with WidgetsBindingObserver {
         ChangeNotifierProvider<PriceService>.value(value: _priceService),
       ],
       child: MaterialApp(
-        title: 'IFL — Idéale Formation of Leaders',
+        title: 'IFL — IDEAL FORMATION',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),
         // Localisation française pour DatePicker, TimePicker, etc.

@@ -81,11 +81,19 @@ export default async function handler(req) {
       }
     }
 
+    const { data: plans } = await supabaseAdmin
+      .from('subscription_plans')
+      .select('code, label, type_concours, amount_xof, interval_months, is_active')
+      .eq('is_active', true)
+      .eq('type_concours', 'professionnel')
+      .order('amount_xof', { ascending: true })
+
     return new Response(JSON.stringify({
       prices: {
         direct: buildEntry('direct', directPrix),
         professionnel: buildEntry('professionnel', profPrix)
-      }
+      },
+      plans: plans || []
     }), {
       status: 200,
       headers: {

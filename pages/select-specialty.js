@@ -12,7 +12,7 @@ export const DOSSIERS_ACCOMPAGNEMENT = [
   'Accompagnement final'
 ]
 
-// Les 39 dossiers professionnels (36 payants + 3 bonus)
+// Les 41 dossiers professionnels (38 payants + 3 bonus)
 const DOSSIERS_PRO = [
   { nom: 'SPÉCIALITÉ( ATE, CE )', icone: '🏫', desc: 'Conseillers et Attachés de Service scolaire' },
   // ── Dossiers payants (1–36) ──
